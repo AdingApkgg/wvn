@@ -1,0 +1,10 @@
+node_modules/
+build/
+.react-router/
+state/
+reports/
+.superpowers/
+*.log
+.env
+playwright-report/
+test-results/
