@@ -10,7 +10,7 @@
     "build": "react-router build",
     "start": "tsx server.ts",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "test:e2e": "playwright test",
     "seed": "tsx scripts/seed.ts"
   },

@@ -12,12 +12,12 @@ None,33206,15637,45247,34848,27436,25170,3770,3144,1115,32183,5922,10680,18148,1
 assert len(ids)==len(legacy['entries'])==79
 cache=json.loads((root/'data/vndb-search-cache.json').read_text());evidence={v['id']:v for x in cache.values() for v in x.get('results',[])}
 # Earlier seed query contains ATRI exact match despite broad current query pagination.
-for v in json.load(open(root.parent/'wg-routing-20261019/vndb-seed-results.json'))['results']:evidence.setdefault(v['id'],v)
+for v in json.load(open(root/'data/vndb-initial-seeds.json'))['results']:evidence.setdefault(v['id'],v)
 works={};versions=[];pending=[];counts=collections.Counter()
-notes={55:'Actual index.html title identifies Tsui no Stella after-story; separate VNDB work.',63:'Actual Tyrano Config.tjs title: にーとと天使とえっちな家族; no confirmed VNDB match yet.',66:'Archive metadata script filename identifies アイコトバ2; system metadata and VNDB sequel title cross-check.',67:'Archive configuration identifies アマナツ; VNDB title and aliases cross-check.'}
+notes={55:'Actual index.html title identifies Tsui no Stella after-story; separate VNDB work.',63:'配置确认为 にーとと天使とえっちな家族；Bangumi 作者列表记载 PC / 3D、2020-03-06、开发 にじいろばんび，尚无核实的 VNDB ID。',66:'Archive metadata script filename identifies アイコトバ2; system metadata and VNDB sequel title cross-check.',67:'Archive configuration identifies アマナツ; VNDB title and aliases cross-check.'}
 for i,(n,card) in enumerate(zip(ids,legacy['entries']),1):
  path=urllib.parse.unquote(card['href']);uuid='legacy-'+hashlib.sha256(path.encode()).hexdigest()[:24]
- if n is None:pending.append({'id':uuid,**card,'legacyPath':path,'reason':notes.get(i,'Unresolved identity')});continue
+ if n is None:pending.append({'id':uuid,**card,'legacyPath':path,'reason':notes.get(i,'Unresolved identity'),'bangumiId':315601,'bangumiEvidence':'https://bangumi.tv/person/43634/works/game'});continue
  vnid='v'+str(n);vn=evidence[vnid];counts[vnid]+=1
  if vnid not in works:
   title=card['title'].split(' · ')[0] if '万华镜系列' not in card['title'] else card['title'].split(' · ')[1].split(' ')[0]
@@ -30,5 +30,5 @@ for i,(n,card) in enumerate(zip(ids,legacy['entries']),1):
  versions.append({'id':uuid,'workId':vnid,'number':counts[vnid],'title':card['title'],'legacyPath':path,'engine':engine,'mappingNote':notes.get(i,'Exact source title, translated title or established alias checked against VNDB API record')})
 seed={'snapshotAt':legacy['checkedAt'],'works':list(works.values()),'versions':versions,'pending':pending}
 (root/'data/catalog.json').write_text(json.dumps(seed,ensure_ascii=False,indent=2)+'\n')
-(root/'data/vndb-evidence.json').write_text(json.dumps({id:{**evidence[id],'api':'https://api.vndb.org/kana/vn','reviewedAt':legacy['checkedAt']} for id in works},ensure_ascii=False,indent=2)+'\n')
+(root/'data/vndb-evidence.json').write_text(json.dumps({id:{**evidence[id],'api':'https://api.vndb.org/kana/vn','reviewedOn':'2026-10-19'} for id in works},ensure_ascii=False,indent=2)+'\n')
 print(len(works),'works',len(versions),'mapped versions',len(pending),'unresolved')

@@ -1567,7 +1567,9 @@
       "title": "死宅天使",
       "subtitle": "网页版",
       "legacyPath": "/死宅天使/",
-      "reason": "Actual Tyrano Config.tjs title: にーとと天使とえっちな家族; no confirmed VNDB match yet."
+      "reason": "本地配置确认为「にーとと天使とえっちな家族」。Bangumi 作者游戏列表记载为 PC / 3D，2020-03-06，开发 にじいろばんび；尚无核实的 VNDB 编号。",
+      "bangumiId": 315601,
+      "bangumiEvidence": "https://bangumi.tv/person/43634/works/game"
     }
   ]
 }

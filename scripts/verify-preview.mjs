@@ -1,0 +1,8 @@
+import fs from 'node:fs/promises';
+const base=process.env.WG_TEST_URL??'http://127.0.0.1:8281';const catalog=JSON.parse(await fs.readFile('data/catalog.json','utf8'));const results=[];
+async function check(path,options={},expect=200){try{const r=await fetch(base+path,options);const ok=r.status===expect;results.push({path,method:options.method??'GET',status:r.status,ok,contentType:r.headers.get('content-type'),length:r.headers.get('content-length')});if(r.body)await r.body.cancel();return ok}catch(e){results.push({path,error:String(e),ok:false});return false}}
+for(const w of catalog.works)await check('/'+w.id.slice(1)+'/');
+for(const v of catalog.versions){await check('/'+v.workId.slice(1)+'/'+v.number+'/');await check(encodeURI(v.legacyPath+'index.html'),{method:'HEAD'});}
+for(const p of ['/manage','/manage.data','/api/manage/catalog','/0004/','/4/0001/','/unknown.js','/atri/%252e%252e/secret'])await check(p,{},404);
+await check('/_.data?q=ATRI');await check('/27448.data');
+const report={host:process.env.COMPUTERNAME??process.env.HOSTNAME,base,checkedAt:new Date().toISOString(),total:results.length,passed:results.filter(x=>x.ok).length,pending:catalog.pending,results};await fs.mkdir('reports',{recursive:true});await fs.writeFile('reports/http-verification.json',JSON.stringify(report,null,2));console.log(JSON.stringify({total:report.total,passed:report.passed,failed:results.filter(x=>!x.ok)}));if(report.total!==report.passed)process.exitCode=1;
