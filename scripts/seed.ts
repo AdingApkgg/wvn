@@ -1,0 +1,1 @@
+import {readFileSync} from 'node:fs';import {getStore} from '../src/server/runtime.ts';const store=getStore();store.seed(JSON.parse(readFileSync('data/catalog.json','utf8')));console.log(JSON.stringify({works:store.list().length,versions:store.list().reduce((n,w)=>n+w.versions.length,0)}));store.close();
