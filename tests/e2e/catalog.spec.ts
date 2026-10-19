@@ -64,7 +64,7 @@ test("private management edits persist and stale edit retains unsaved draft", as
   await expect(
     page.getByRole("heading", { name: "来源去重与候选" }),
   ).toBeVisible();
-  await page.getByPlaceholder("标题或 v 编号").fill("v27448");
+  await page.getByPlaceholder("标题或 v / b 编号").fill("v27448");
   await page.locator("details.panel>summary").click();
   const title = page.locator("details.panel").getByLabel("显示标题");
   await title.fill("ATRI 测试草稿");
@@ -83,4 +83,39 @@ test("private management edits persist and stale edit retains unsaved draft", as
   await expect(title).toHaveValue("ATRI 测试草稿");
   await page.getByRole("button", { name: "刷新列表" }).click();
   await expect(title).toHaveValue("ATRI 测试草稿");
+});
+
+test("Bangumi fallback search and hydrated navigation preserve the legacy execution path", async ({
+  page,
+  request,
+}) => {
+  await page.route("**/" + encodeURI("死宅天使") + "/**", (route) =>
+    route.fulfill({
+      body: "<title>Resource path fixture</title>",
+      contentType: "text/html",
+    }),
+  );
+  await page.goto("/");
+  await page.getByRole("searchbox").fill("死宅天使");
+  await page.getByRole("button", { name: "查找" }).click();
+  await expect(page.locator(".story-card")).toHaveCount(1);
+  await page.locator(".story-card").click();
+  await expect(page).toHaveURL(/\/b315601\/?$/);
+  await expect(
+    page.getByRole("heading", { name: "尼特与天使与色色家族", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "在 BGM 查看 ↗" }),
+  ).toHaveAttribute("href", "https://bgm.tv/subject/315601");
+  await page.getByRole("link", { name: "开始 ↗" }).click();
+  await expect(page).toHaveURL(/\/b315601\/1\/?$/);
+  await expect(page.locator("iframe")).toHaveAttribute(
+    "src",
+    encodeURI("/死宅天使/"),
+  );
+  await page.locator(".player-bar button").first().click();
+  await page.getByRole("button", { name: "离开", exact: true }).click();
+  await expect(page).toHaveURL(/\/b315601\/?$/);
+  for (const path of ["/b0315601/", "/b315601/01/", "/315601/"])
+    expect((await request.get(path)).status()).toBe(404);
 });

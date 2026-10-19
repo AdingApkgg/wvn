@@ -3,6 +3,12 @@ import { randomUUID } from "node:crypto";
 import { QueryBuilder } from "drizzle-orm/sqlite-core";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import {
+  workIdPattern,
+  parseWorkSlug,
+  workSlug,
+  providerLink,
+} from "../identity.ts";
 import { works } from "./schema.ts";
 import type { CatalogSeed, Version, PublicWork, Check } from "../types.ts";
 export class Conflict extends Error {
@@ -10,7 +16,7 @@ export class Conflict extends Error {
     super("记录已被其他操作更新，请刷新后重试");
   }
 }
-export const workId = z.string().regex(/^v[1-9]\d{0,8}$/);
+export const workId = z.string().regex(workIdPattern);
 const label = z.string().trim().min(1).max(300);
 export function legacyPath(input: string) {
   const s = decodeURIComponent(input);
@@ -20,7 +26,7 @@ export function legacyPath(input: string) {
     !s.endsWith("/") ||
     /[\\%?#\u0000-\u001f]/.test(s) ||
     s.split("/").some((x) => x === "." || x === "..") ||
-    /^\/[0-9]+(?:\/|$)/.test(s) ||
+    /^\/(?:b)?[0-9]+(?:\/|$)/.test(s) ||
     /^\/(?:api|assets|manage|health)(?:\/|$)/.test(s)
   )
     throw Error("无效资源入口");
@@ -140,6 +146,7 @@ export class Store {
         if (old) {
           if (old.legacyPath !== legacyPath(v.legacyPath))
             throw Error("种子身份冲突");
+          this.sqlite.prepare("DELETE FROM pending WHERE id=?").run(v.id);
           continue;
         }
         const value = versionInput.parse({
@@ -148,6 +155,7 @@ export class Store {
           engine: v.engine,
         });
         this.insert(v.workId, value, v.id, v.number);
+        this.sqlite.prepare("DELETE FROM pending WHERE id=?").run(v.id);
       }
       for (const p of seed.pending ?? []) {
         if (!this.raw(p.id))
@@ -258,7 +266,7 @@ export class Store {
         evidence: w.evidence,
         revision: w.revision,
         defaultVersionId: w.defaultId,
-        url: `/${w.id.slice(1)}/`,
+        url: `/${workSlug(w.id)}/`,
         versions: vs.map((v) => ({
           id: v.id,
           workId: v.workId,
@@ -269,7 +277,7 @@ export class Store {
           notes: v.notes,
           sortOrder: v.sortOrder,
           revision: v.revision,
-          url: `/${v.workId.slice(1)}/${v.number}/`,
+          url: `/${workSlug(v.workId)}/${v.number}/`,
           launchPath: encodeURI(v.legacyPath),
           checks: this.checks(v.id).map((c) =>
             includeHidden ? c : { ...c, detail: "" },
@@ -307,12 +315,12 @@ export class Store {
         )
       : undefined;
   }
-  resolveRoute(numeric: string, number: string) {
-    if (!/^[1-9]\d{0,8}$/.test(numeric) || !/^[1-9]\d{0,8}$/.test(number))
-      return;
+  resolveRoute(slug: string, number: string) {
+    const id = parseWorkSlug(slug);
+    if (!id || !/^[1-9]\d{0,8}$/.test(number)) return;
     const r = this.sqlite
       .prepare("SELECT version_id FROM routes WHERE work_id=? AND number=?")
-      .get("v" + numeric, Number(number)) as { version_id: string } | undefined;
+      .get(id, Number(number)) as { version_id: string } | undefined;
     const v = r && this.raw(r.version_id);
     return v?.status === "published" ? v : undefined;
   }
@@ -424,8 +432,8 @@ export class Store {
       })
       .strict()
       .parse(input);
-    if (w.evidence !== "https://vndb.org/" + w.id)
-      throw Error("需要对应作品的 VNDB 证据链接");
+    if (w.evidence !== providerLink(w.id))
+      throw Error("需要对应作品的 VNDB 或 BGM 证据链接");
     return this.tx(() => {
       this.sqlite
         .prepare("INSERT INTO works VALUES(?,?,?,?,?,1,1,NULL)")

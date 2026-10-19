@@ -1,3 +1,4 @@
+import { parseWorkSlug } from "../identity.ts";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { ZodError } from "zod";
@@ -48,9 +49,9 @@ export function createPublicApp(store: Store, root: string) {
     c.json(store.list().filter((w) => w.versions.length)),
   );
   app.get("/api/works/:id", (c) => {
-    const id = c.req.param("id");
-    if (!/^[1-9]\d{0,8}$/.test(id)) return c.notFound();
-    const w = store.get("v" + id);
+    const id = parseWorkSlug(c.req.param("id"));
+    if (!id) return c.notFound();
+    const w = store.get(id);
     return w?.versions.length ? c.json(w) : c.notFound();
   });
   app.use("*", async (c, next) => {
@@ -87,7 +88,9 @@ export function createPublicApp(store: Store, root: string) {
     }
     if (
       (/\.[a-z0-9]+$/i.test(path) &&
-        !/^\/(?:_|_root|[1-9]\d*(?:\/[1-9]\d*)?(?:\/_)?)\.data$/.test(path)) ||
+        !/^\/(?:_|_root|b?[1-9]\d{0,8}(?:\/[1-9]\d{0,8})?(?:\/_)?)\.data$/.test(
+          path,
+        )) ||
       /^\/api\//.test(path)
     )
       return c.notFound();

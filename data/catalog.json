@@ -642,6 +642,16 @@
       "evidence": "https://vndb.org/v562"
     },
     {
+      "id": "b315601",
+      "title": "尼特与天使与色色家族",
+      "originalTitle": "にーとと天使とえっちな家族",
+      "aliases": [
+        "死宅天使",
+        "にーとと天使とえっちな家族"
+      ],
+      "evidence": "https://bgm.tv/subject/315601"
+    },
+    {
       "id": "v15637",
       "title": "永不落幕的前奏诗",
       "originalTitle": "ソレヨリノ前奏詩",
@@ -1415,6 +1425,15 @@
       "mappingNote": "Exact source title, translated title or established alias checked against VNDB API record"
     },
     {
+      "id": "legacy-1b0a56130aa4fb6a5d073fdf",
+      "workId": "b315601",
+      "number": 1,
+      "title": "死宅天使",
+      "legacyPath": "/死宅天使/",
+      "engine": "Tyrano",
+      "mappingNote": "配置确认为 にーとと天使とえっちな家族；Bangumi 作者列表记载 PC / 3D、2020-03-06、开发 にじいろばんび，尚无核实的 VNDB ID。 用户授权使用已核实 Bangumi 编号兜底。"
+    },
+    {
       "id": "legacy-12af3d99fdc41dfac94fb78f",
       "workId": "v33206",
       "number": 2,
@@ -1559,17 +1578,5 @@
       "mappingNote": "Exact source title, translated title or established alias checked against VNDB API record"
     }
   ],
-  "pending": [
-    {
-      "id": "legacy-1b0a56130aa4fb6a5d073fdf",
-      "href": "/%E6%AD%BB%E5%AE%85%E5%A4%A9%E4%BD%BF/",
-      "meta": "TYRANOSCRIPT HTML5",
-      "title": "死宅天使",
-      "subtitle": "网页版",
-      "legacyPath": "/死宅天使/",
-      "reason": "本地配置确认为「にーとと天使とえっちな家族」。Bangumi 作者游戏列表记载为 PC / 3D，2020-03-06，开发 にじいろばんび；尚无核实的 VNDB 编号。",
-      "bangumiId": 315601,
-      "bangumiEvidence": "https://bangumi.tv/person/43634/works/game"
-    }
-  ]
+  "pending": []
 }

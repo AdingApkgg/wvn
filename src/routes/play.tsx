@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useLoaderData, useBlocker, redirect } from "react-router";
+import { parseWorkSlug, workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 export function loader({
   params,
@@ -9,8 +10,11 @@ export function loader({
   const store = getStore();
   const v = store.resolveRoute(params.workId ?? "", params.slot ?? "");
   if (!v) throw new Response(null, { status: 404 });
-  if (v.workId !== "v" + params.workId || String(v.number) !== params.slot)
-    return redirect(`/${v.workId.slice(1)}/${v.number}/`);
+  if (
+    v.workId !== parseWorkSlug(params.workId ?? "") ||
+    String(v.number) !== params.slot
+  )
+    return redirect(`/${workSlug(v.workId)}/${v.number}/`);
   const w = store.get(v.workId)!;
   return {
     version: w.versions.find((x) => x.id === v.id)!,

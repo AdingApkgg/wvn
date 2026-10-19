@@ -1,4 +1,5 @@
 import { Form, Link, useLoaderData } from "react-router";
+import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 export function meta() {
   return [
@@ -84,7 +85,7 @@ export default function Catalog() {
               type="search"
               name="q"
               defaultValue={q}
-              placeholder="标题、别名或 VNDB 编号"
+              placeholder="标题、别名或 VNDB / BGM 编号"
             />
           </label>
           <label>
@@ -122,7 +123,7 @@ export default function Catalog() {
             <Link key={w.id} to={w.url} className="story-card">
               <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
                 <span className="card-index">
-                  {w.id.slice(1).padStart(5, "0")}
+                  {workSlug(w.id).padStart(5, "0")}
                 </span>
                 <span className="art-line" />
                 <span className="art-symbol">

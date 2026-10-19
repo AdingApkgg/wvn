@@ -1,4 +1,4 @@
-"""Assemble reviewed mappings only. Missing evidence blocks numeric publication."""
+"""Assemble reviewed VNDB mappings and explicit Bangumi fallback mappings only."""
 import json,pathlib,hashlib,urllib.parse,collections
 root=pathlib.Path(__file__).resolve().parents[1]
 legacy=json.loads((root/'data/legacy-catalog.json').read_text())
@@ -17,6 +17,10 @@ works={};versions=[];pending=[];counts=collections.Counter()
 notes={55:'Actual index.html title identifies Tsui no Stella after-story; separate VNDB work.',63:'配置确认为 にーとと天使とえっちな家族；Bangumi 作者列表记载 PC / 3D、2020-03-06、开发 にじいろばんび，尚无核实的 VNDB ID。',66:'Archive metadata script filename identifies アイコトバ2; system metadata and VNDB sequel title cross-check.',67:'Archive configuration identifies アマナツ; VNDB title and aliases cross-check.'}
 for i,(n,card) in enumerate(zip(ids,legacy['entries']),1):
  path=urllib.parse.unquote(card['href']);uuid='legacy-'+hashlib.sha256(path.encode()).hexdigest()[:24]
+ if n is None and i == 63:
+  works['b315601']={'id':'b315601','title':'尼特与天使与色色家族','originalTitle':'にーとと天使とえっちな家族','aliases':['死宅天使','にーとと天使とえっちな家族'],'evidence':'https://bgm.tv/subject/315601'}
+  versions.append({'id':uuid,'workId':'b315601','number':1,'title':card['title'],'legacyPath':path,'engine':'Tyrano','mappingNote':notes[i]+' 用户授权使用已核实 Bangumi 编号兜底。'})
+  continue
  if n is None:pending.append({'id':uuid,**card,'legacyPath':path,'reason':notes.get(i,'Unresolved identity'),'bangumiId':315601,'bangumiEvidence':'https://bangumi.tv/person/43634/works/game'});continue
  vnid='v'+str(n);vn=evidence[vnid];counts[vnid]+=1
  if vnid not in works:
@@ -30,5 +34,6 @@ for i,(n,card) in enumerate(zip(ids,legacy['entries']),1):
  versions.append({'id':uuid,'workId':vnid,'number':counts[vnid],'title':card['title'],'legacyPath':path,'engine':engine,'mappingNote':notes.get(i,'Exact source title, translated title or established alias checked against VNDB API record')})
 seed={'snapshotAt':legacy['checkedAt'],'works':list(works.values()),'versions':versions,'pending':pending}
 (root/'data/catalog.json').write_text(json.dumps(seed,ensure_ascii=False,indent=2)+'\n')
-(root/'data/vndb-evidence.json').write_text(json.dumps({id:{**evidence[id],'api':'https://api.vndb.org/kana/vn','reviewedOn':'2026-10-19'} for id in works},ensure_ascii=False,indent=2)+'\n')
+prior=json.loads((root/'data/vndb-evidence.json').read_text())
+(root/'data/vndb-evidence.json').write_text(json.dumps({id:prior.get(id,{**evidence[id],'api':'https://api.vndb.org/kana/vn','reviewedOn':'2026-10-19'}) for id in works if id.startswith('v')},ensure_ascii=False,indent=2)+'\n')
 print(len(works),'works',len(versions),'mapped versions',len(pending),'unresolved')

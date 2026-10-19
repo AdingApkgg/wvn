@@ -4,9 +4,9 @@ React Router 8 framework SSR、Hono、Vite 8、TypeScript 与 SQLite 的作品/�
 
 ## 路由与数据
 
-作品 `/27448/`，版本 `/27448/1/`。首次导入按旧首页顺序分配；编号只增不减，删除登记不复用。修复版、视频替换版是独立版本；续作、FD 使用独立 VNDB 作品编号。展示排序与 URL 编号分开。
+VNDB 作品 `/27448/`，版本 `/27448/1/`；未确认 VNDB、已核实 BGM 编号的作品使用 `/b315601/` 与 `/b315601/1/`，同号也不会混淆。首次导入按旧首页顺序分配；编号只增不减，删除登记不复用。修复版、视频替换版是独立版本；续作、FD 使用独立 VNDB 作品编号。展示排序与 URL 编号分开。
 
-`data/catalog.json` 是 reviewed seed；`data/vndb-evidence.json` 保存查询证据。79 个原始条目中，78 个版本已映射到 63 部作品；《死宅天使》在 Bangumi 作者列表核实为《尼特与天使与色色家族》（PC / 3D，2020-03-06），VNDB 未确认，保留 pending，不虚构数字编号。详见 `data/metadata-exceptions.json`。
+`data/catalog.json` 是 reviewed seed；`data/vndb-evidence.json` 和 `data/bangumi-evidence.json` 分别保存来源证据。79 个原始条目全部映射到 64 部作品（63 个 VNDB、1 个 BGM）。《死宅天使》以 Bangumi 315601 兜底，中文名《尼特与天使与色色家族》，VNDB 仍未确认。详见 `data/metadata-exceptions.json`。
 
 目录查询、版本页和启动器由公开 listener 提供；原始执行入口保持同路径并在数字版本页 iframe 内运行，避免改变存档命名。**预览与正式域名是不同 origin，存档不自动互通。** 不宣称所有作品完整可玩。
 

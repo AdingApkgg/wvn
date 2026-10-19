@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { workSlug, providerLink } from "../identity.ts";
 import type { PublicWork, PublicVersion } from "../types.ts";
 export function meta() {
   return [
@@ -92,7 +93,7 @@ export default function Manage() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="标题或 v 编号"
+                placeholder="标题或 v / b 编号"
               />
             </label>
             <button
@@ -256,8 +257,12 @@ export default function Manage() {
                   }}
                 >
                   <label>
-                    已核实并登记的 VNDB ID
-                    <input name="workId" required pattern="v[1-9][0-9]*" />
+                    已核实并登记的 VNDB / BGM ID
+                    <input
+                      name="workId"
+                      required
+                      pattern="[vb][1-9][0-9]{0,8}"
+                    />
                   </label>
                   <button disabled={busy}>确认归属并分配版本号</button>
                 </form>
@@ -265,7 +270,10 @@ export default function Manage() {
             ))}
             <details>
               <summary>登记已核实的新作品</summary>
-              <p>请先人工核对 VNDB 条目；此操作不会自动选择搜索首项。</p>
+              <p>
+                请先人工核对 VNDB 或 BGM 条目（v / b
+                前缀）；此操作不会自动选择搜索首项。
+              </p>
               <form
                 className="edit-form"
                 onSubmit={(e) => {
@@ -277,14 +285,14 @@ export default function Manage() {
                       title: f.get("title"),
                       originalTitle: f.get("originalTitle"),
                       aliases: [],
-                      evidence: "https://vndb.org/" + f.get("id"),
+                      evidence: providerLink(String(f.get("id"))),
                     }),
                   );
                 }}
               >
                 <label>
-                  VNDB ID
-                  <input name="id" required pattern="v[1-9][0-9]*" />
+                  VNDB / BGM ID
+                  <input name="id" required pattern="[vb][1-9][0-9]{0,8}" />
                 </label>
                 <label>
                   显示标题
@@ -397,7 +405,7 @@ function VersionEditor({
     <section className="version-edit">
       <p>
         <b>
-          /{v.workId.slice(1)}/{v.number}/
+          /{workSlug(v.workId)}/{v.number}/
         </b>{" "}
         · {v.engine} · {state}
       </p>
@@ -457,10 +465,10 @@ function VersionEditor({
           }}
         >
           <label>
-            已登记的目标 VNDB ID
+            已登记的目标 VNDB / BGM ID
             <input
               name="workId"
-              pattern="v[1-9][0-9]*"
+              pattern="[vb][1-9][0-9]{0,8}"
               placeholder="v27448"
               required
             />

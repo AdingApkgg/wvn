@@ -1,9 +1,10 @@
 import { Link, useLoaderData } from "react-router";
+import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 export function loader({ params }: { params: { workId?: string } }) {
-  if (!/^[1-9]\d{0,8}$/.test(params.workId ?? ""))
-    throw new Response(null, { status: 404 });
-  const w = getStore().get("v" + params.workId);
+  const id = parseWorkSlug(params.workId ?? "");
+  if (!id) throw new Response(null, { status: 404 });
+  const w = getStore().get(id);
   if (!w?.versions.length) throw new Response(null, { status: 404 });
   return w;
 }
@@ -35,11 +36,11 @@ export default function Work() {
         </div>
         <a
           className="external"
-          href={"https://vndb.org/" + w.id}
+          href={providerLink(w.id)}
           target="_blank"
           rel="noreferrer"
         >
-          在 VNDB 查看 ↗
+          在 {providerName(w.id)} 查看 ↗
         </a>
       </section>
       <div className="section-title">

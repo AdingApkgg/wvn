@@ -1,5 +1,6 @@
 {
-  "unmatched": [
+  "unmatched": [],
+  "bangumiFallbacks": [
     {
       "title": "死宅天使",
       "actualTitle": "にーとと天使とえっちな家族",
@@ -11,7 +12,11 @@
       "listedGenre": "3D",
       "evidence": "https://bangumi.tv/person/43634/works/game",
       "vndbId": null,
-      "limitation": "The public creator listing confirms identity and 3D classification. Anonymous subject access returned unavailable; no inference that VNDB absence is caused by genre."
+      "limitation": "The public creator listing confirms identity and 3D classification. Anonymous subject access returned unavailable; no inference that VNDB absence is caused by genre.",
+      "status": "bangumi_fallback",
+      "workId": "b315601",
+      "canonicalUrl": "/b315601/",
+      "versionUrl": "/b315601/1/"
     }
   ]
 }
