@@ -479,3 +479,191 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
     page.getByRole("button", { name: "继续上传", exact: true }),
   ).toHaveCount(0);
 });
+
+test("recovery completion keeps the target kit separate from another discoverable account", async ({
+  page,
+}) => {
+  await page.goto(origin + "/health");
+  const key = await authenticator(page);
+  expect((await register(page, "Recovery Target A")).status).toBe(200);
+  const a = (await api(page, "/api/me")).data;
+  const oldCredential = (
+    await key.cdp.send("WebAuthn.getCredentials", { authenticatorId: key.id })
+  ).credentials[0];
+  const codes = (await api(page, "/api/me/recovery-codes", {})).data;
+  await api(page, "/api/auth/sign-out", {});
+  expect((await register(page, "Other Discoverable B")).status).toBe(200);
+  await api(page, "/api/auth/sign-out", {});
+  await key.cdp.send("WebAuthn.removeCredential", {
+    authenticatorId: key.id,
+    credentialId: oldCredential.credentialId,
+  });
+  await page.goto(origin + "/account");
+  // Keep the original focus-refresh cancellation separate from this identity regression.
+  await page.evaluate(() =>
+    window.addEventListener("focus", (e) => e.stopImmediatePropagation(), true),
+  );
+  await page.getByRole("tab", { name: "恢复账号" }).click();
+  await page.getByLabel("恢复账号标识").fill(a.user.id);
+  await page.getByLabel("一次性恢复码").fill(codes.codes[0]);
+  await page.route("**/api/recovery/complete", async (route) => {
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    const credentialId = route.request().postDataJSON().response.id;
+    // Only B remains discoverable: a generic post-recovery login would choose B.
+    await key.cdp.send("WebAuthn.removeCredential", {
+      authenticatorId: key.id,
+      credentialId: Buffer.from(credentialId, "base64url").toString("base64"),
+    });
+    await route.fulfill({ response });
+  });
+  await page.getByRole("button", { name: "验证恢复码并创建新密钥" }).click();
+  await expect(page.locator(".recovery-code")).toHaveCount(10);
+  await expect(
+    page.getByRole("button", {
+      name: "使用通行密钥登录",
+      exact: true,
+      includeHidden: true,
+    }),
+  ).toHaveCount(1);
+  expect((await api(page, "/api/me")).status).toBe(401);
+  await page.getByRole("button", { name: "我已保存，关闭" }).click();
+  await page
+    .getByRole("button", { name: "使用通行密钥登录", exact: true })
+    .click();
+  await expect(
+    page.getByText("Other Discoverable B，欢迎回来。", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".recovery-code")).toHaveCount(0);
+});
+
+test("late rotation refresh cannot restore A recovery secrets after a cross-tab switch to B", async ({
+  page,
+  browser,
+}) => {
+  await page.goto(origin + "/health");
+  await authenticator(page);
+  expect((await register(page, "Secret Owner A")).status).toBe(200);
+  const other = await browser.newContext({ ignoreHTTPSErrors: true });
+  let release!: () => void;
+  try {
+    const target = await other.newPage();
+    await target.goto(origin + "/health");
+    await authenticator(target);
+    expect((await register(target, "Secret Owner B")).status).toBe(200);
+    const cookiesB = await other.cookies();
+    await page.goto(origin + "/account");
+    await expect(
+      page.getByText("Secret Owner A，欢迎回来。", { exact: true }),
+    ).toBeVisible();
+    let hold = false;
+    let waiting!: () => void;
+    const held = new Promise<void>((r) => {
+      waiting = r;
+    });
+    const released = new Promise<void>((r) => {
+      release = r;
+    });
+    await page.route("**/api/me/recovery-codes", async (route) => {
+      const response = await route.fetch();
+      expect(response.status()).toBe(200);
+      hold = true;
+      await route.fulfill({ response });
+    });
+    await page.route("**/api/me", async (route) => {
+      if (!hold) return route.continue();
+      hold = false;
+      const response = await route.fetch();
+      waiting();
+      await released;
+      await route.fulfill({ response }).catch(() => {});
+    });
+    await page.getByRole("button", { name: "生成恢复码", exact: true }).click();
+    await held;
+    await page.context().addCookies(cookiesB);
+    await page.evaluate(() =>
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "wg-account-change",
+          newValue: "other-tab",
+        }),
+      ),
+    );
+    await expect(
+      page.getByText("Secret Owner B，欢迎回来。", { exact: true }),
+    ).toBeVisible();
+    release();
+    await expect(
+      page.getByRole("button", { name: "生成恢复码", exact: true }),
+    ).toBeEnabled();
+    await expect(page.locator(".recovery-code")).toHaveCount(0);
+  } finally {
+    release?.();
+    await other.close();
+  }
+});
+
+test("old signup and add-key challenges cannot complete after switching accounts", async ({
+  page,
+}) => {
+  await page.goto(origin + "/health");
+  await authenticator(page);
+  const context = encodeURIComponent(
+    JSON.stringify({
+      nickname: "Stale Signup",
+      invite: process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite",
+    }),
+  );
+  const oldSignup = await page.evaluate(
+    async (context) =>
+      (
+        await fetch(
+          "/api/auth/passkey/generate-register-options?context=" + context,
+        )
+      ).json(),
+    context,
+  );
+  const signupCookies = (await page.context().cookies()).filter((c) =>
+    c.name.endsWith("better-auth-passkey"),
+  );
+  expect((await register(page, "Challenge Owner A")).status).toBe(200);
+  const a = (await api(page, "/api/me")).data;
+  const oldAdd = await page.evaluate(
+    async (binding) =>
+      (
+        await fetch("/api/auth/passkey/generate-register-options", {
+          headers: { "x-wg-binding": binding },
+        })
+      ).json(),
+    a.binding,
+  );
+  const addCookies = (await page.context().cookies()).filter((c) =>
+    c.name.endsWith("better-auth-passkey"),
+  );
+  await api(page, "/api/auth/sign-out", {});
+  expect((await register(page, "Challenge Owner B")).status).toBe(200);
+  const b = (await api(page, "/api/me")).data;
+  for (const [options, cookies] of [
+    [oldSignup, signupCookies],
+    [oldAdd, addCookies],
+  ] as const) {
+    expect(cookies.length).toBeGreaterThan(0);
+    await page.context().addCookies(cookies);
+    const response = registrationFixture(options.challenge, origin!, true);
+    const result = await page.evaluate(
+      async (response) =>
+        (
+          await fetch("/api/auth/passkey/verify-registration", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ response, createSession: true }),
+          })
+        ).status,
+      response,
+    );
+    expect([400, 401]).toContain(result);
+  }
+  const after = (await api(page, "/api/me")).data;
+  expect(after.user.id).toBe(b.user.id);
+  expect(after.passkeys).toHaveLength(1);
+});

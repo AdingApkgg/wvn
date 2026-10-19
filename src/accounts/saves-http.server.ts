@@ -33,7 +33,13 @@ export function mountSaves({
   });
   app.get("/api/me/save-profiles/:id/revisions", async (c) => {
     const { session } = await player(c);
-    return c.json(saves.history(session.user.id, c.req.param("id")));
+    return c.json(
+      saves.historyPage(
+        session.user.id,
+        c.req.param("id"),
+        c.req.query("cursor"),
+      ),
+    );
   });
   app.post("/api/me/save-profiles/:id/uploads", async (c) => {
     const { session } = await player(c);

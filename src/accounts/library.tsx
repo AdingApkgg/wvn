@@ -278,19 +278,14 @@ function AccountPlayer({
         .then(() => setOnline(true))
         .catch(() => setOnline(false));
     };
-    const input = () => {
-      lastInput.current = Date.now();
-    };
     const timer = setInterval(pulse, 30_000);
     pulse();
     document.addEventListener("visibilitychange", pulse);
-    window.addEventListener("pointerdown", input);
-    window.addEventListener("keydown", input);
+
     return () => {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", pulse);
-      window.removeEventListener("pointerdown", input);
-      window.removeEventListener("keydown", input);
+
       void account
         .request(`/api/me/play-sessions/${play.id}/heartbeat`, {
           seq: ++sequence.current,
@@ -323,7 +318,7 @@ function AccountPlayer({
               ? "画面已就绪，开始记录"
               : idle
                 ? "继续记录时间"
-                : "正在记录前台时间"}
+                : "正在记录（每 5 分钟手动续期）"}
           </Button>
           <Button variant="link" asChild>
             <a href={url} target="_blank" rel="noreferrer">
@@ -341,7 +336,8 @@ function AccountPlayer({
         />
         {!online && <p role="status">计时连接中断，断线时长暂未计入。</p>}
         <p className="text-sm text-muted-foreground mt-3">
-          若画面无法载入，可使用原入口。原浏览器存档仍保留在游戏站点；此处暂不自动上传或恢复。请确认游戏可正常阅读后开始记录；长时间无操作会暂停计时。
+          若画面无法载入，可使用原入口。原浏览器存档仍保留在游戏站点；此处暂不自动上传或恢复。请确认游戏可正常阅读后开始记录。此预览无法检测游戏画面内的操作；每
+          5 分钟暂停一次，请手动点击“继续记录时间”续期。
         </p>
       </CardContent>
     </Card>

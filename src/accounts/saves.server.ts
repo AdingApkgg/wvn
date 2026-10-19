@@ -6,7 +6,7 @@ import {
   writeSync,
   fsyncSync,
   closeSync,
-  renameSync,
+  linkSync,
   unlinkSync,
   readFileSync,
 } from "node:fs";
@@ -27,6 +27,11 @@ export type SaveRevision = {
   files: SaveFile[];
   conflict: boolean;
   createdAt: number;
+};
+export type SaveHistory = {
+  items: SaveRevision[];
+  current: SaveRevision | null;
+  next: string | null;
 };
 type UploadFile = SaveFile & { id: string };
 type Row = Record<string, SQLOutputValue>;
@@ -51,6 +56,8 @@ export class SaveStore {
       });
     db.exec(`CREATE TABLE IF NOT EXISTS wg_save_profiles(id TEXT PRIMARY KEY,owner TEXT NOT NULL,version_id TEXT NOT NULL,generation INTEGER NOT NULL,head TEXT,deleted INTEGER NOT NULL DEFAULT 0,created INTEGER NOT NULL);
   CREATE INDEX IF NOT EXISTS wg_profiles_owner ON wg_save_profiles(owner,version_id);
+  CREATE UNIQUE INDEX IF NOT EXISTS wg_profile_active_version ON wg_save_profiles(owner,version_id) WHERE deleted=0;
+  CREATE TABLE IF NOT EXISTS wg_save_parts(id TEXT PRIMARY KEY,owner TEXT NOT NULL,upload_id TEXT NOT NULL,created INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS wg_save_revisions(id TEXT PRIMARY KEY,owner TEXT NOT NULL,profile TEXT NOT NULL,parent TEXT,source TEXT,files TEXT NOT NULL,conflict INTEGER NOT NULL,created INTEGER NOT NULL);
   CREATE INDEX IF NOT EXISTS wg_revisions_profile ON wg_save_revisions(owner,profile,created);
   CREATE TABLE IF NOT EXISTS wg_save_blobs(owner TEXT NOT NULL,hash TEXT NOT NULL,bytes INTEGER NOT NULL,created INTEGER NOT NULL,PRIMARY KEY(owner,hash));
@@ -97,24 +104,29 @@ export class SaveStore {
   createProfile(owner: string, versionId: string): SaveProfile {
     if (typeof versionId !== "string" || versionId.length > 200 || !versionId)
       throw new AccountError();
-    if (
-      Number(
-        this.db
-          .prepare(
-            "SELECT count(*) AS n FROM wg_save_profiles WHERE owner=? AND deleted=0",
-          )
-          .get(owner)?.n,
-      ) >= 200
-    )
-      throw new AccountError(413, "PROFILE_LIMIT");
-    const id = randomUUID();
-    this.db
-      .prepare(
-        "INSERT INTO wg_save_profiles(id,owner,version_id,generation,created) VALUES (?,?,?,1,?)",
+    return this.tx(() => {
+      const existing = this.profiles(owner, versionId)[0];
+      if (existing) return existing;
+      if (
+        Number(
+          this.db
+            .prepare(
+              "SELECT count(*) AS n FROM wg_save_profiles WHERE owner=? AND deleted=0",
+            )
+            .get(owner)?.n,
+        ) >= 200
       )
-      .run(id, owner, versionId, Date.now());
-    return this.profile(owner, id);
+        throw new AccountError(413, "PROFILE_LIMIT");
+      const id = randomUUID();
+      this.db
+        .prepare(
+          "INSERT INTO wg_save_profiles(id,owner,version_id,generation,created) VALUES (?,?,?,1,?)",
+        )
+        .run(id, owner, versionId, Date.now());
+      return this.profile(owner, id);
+    });
   }
+
   private manifest(files: SaveFile[]): SaveFile[] {
     if (!Array.isArray(files) || files.length < 1 || files.length > 512)
       throw new AccountError(400, "MANIFEST_INVALID");
@@ -125,8 +137,9 @@ export class SaveStore {
         typeof file.name !== "string" ||
         Buffer.byteLength(file.name, "utf8") > 240 ||
         !file.name ||
+        /\p{Cs}/u.test(file.name) ||
         file.name !== file.name.normalize("NFC") ||
-        /[\\\p{Cc}\p{Cf}]/u.test(file.name) ||
+        /[\\:*?"<>|\p{Cc}\p{Cf}]/u.test(file.name) ||
         file.name
           .split("/")
           .some(
@@ -200,13 +213,12 @@ export class SaveStore {
     if (previous) {
       if (previous.manifest !== manifest)
         throw new AccountError(409, "CAPTURE_CHANGED");
-      if (Number(previous.expires) < Date.now() && !previous.result)
-        throw new AccountError(410, "UPLOAD_EXPIRED");
-      return {
-        id: String(previous.id),
-        files: JSON.parse(String(previous.files)),
-        complete: !!previous.result,
-      };
+      if (previous.result || Number(previous.expires) >= Date.now())
+        return {
+          id: String(previous.id),
+          files: JSON.parse(String(previous.files)),
+          complete: !!previous.result,
+        };
     }
     const total = files.reduce((n, f) => n + f.bytes, 0);
     this.space(total);
@@ -239,8 +251,22 @@ export class SaveStore {
       );
       if (used + reserved + added > 512 * 1024 ** 2)
         throw new AccountError(413, "ACCOUNT_QUOTA");
-      const id = randomUUID(),
+      const id = previous ? String(previous.id) : randomUUID(),
         uploadFiles = files.map((f) => ({ ...f, id: randomUUID() }));
+      if (previous) {
+        this.db
+          .prepare(
+            "UPDATE wg_save_uploads SET files=?,total=?,expires=? WHERE id=? AND owner=? AND result IS NULL",
+          )
+          .run(
+            JSON.stringify(uploadFiles),
+            added,
+            Date.now() + 3600_000,
+            id,
+            owner,
+          );
+        return { id, files: uploadFiles, complete: false };
+      }
       this.db
         .prepare(
           "INSERT INTO wg_save_uploads(id,owner,profile,expected_head,generation,capture,manifest,files,total,expires) VALUES (?,?,?,?,?,?,?,?,?,?)",
@@ -273,30 +299,19 @@ export class SaveStore {
     return row;
   }
   gc() {
-    const expired = this.db
-      .prepare(
-        "SELECT * FROM wg_save_uploads WHERE result IS NULL AND expires<? AND files!='[]' LIMIT 20",
-      )
-      .all(Date.now());
-    for (const upload of expired) {
-      let removed = true;
-      for (const file of JSON.parse(String(upload.files)) as UploadFile[]) {
-        try {
-          unlinkSync(
-            join(
-              this.root,
-              SHA(String(upload.owner)),
-              String(upload.id) + "-" + file.id + ".upload",
-            ),
-          );
-        } catch (e) {
-          if ((e as NodeJS.ErrnoException).code !== "ENOENT") removed = false;
-        }
+    // Known request parts only; never scan unrelated files or erase capture manifests.
+    const parts = this.db
+      .prepare("SELECT * FROM wg_save_parts WHERE created<? LIMIT 100")
+      .all(Date.now() - 3600_000);
+    for (const part of parts) {
+      try {
+        unlinkSync(
+          join(this.root, SHA(String(part.owner)), String(part.id) + ".upload"),
+        );
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== "ENOENT") continue;
       }
-      if (removed)
-        this.db
-          .prepare("UPDATE wg_save_uploads SET files='[]' WHERE id=?")
-          .run(upload.id);
+      this.db.prepare("DELETE FROM wg_save_parts WHERE id=?").run(part.id);
     }
     const cutoff = Date.now() - 7 * 86400_000;
     const rows = this.db
@@ -325,19 +340,23 @@ export class SaveStore {
     stream: ReadableStream<Uint8Array>,
     locked: <T>(fn: () => T) => Promise<T> = async (fn) => fn(),
   ): Promise<void> {
-    const upload = await locked(() => this.upload(owner, uploadId));
-    if (upload.result) throw new AccountError(409, "UPLOAD_COMMITTED");
-    const file = (JSON.parse(String(upload.files)) as UploadFile[]).find(
-      (f) => f.id === fileId,
-    );
-    if (!file) throw new AccountError(404, "NOT_FOUND");
-    this.space(file.bytes);
+    const partId = randomUUID();
+    const file = await locked(() => {
+      const current = this.upload(owner, uploadId);
+      if (current.result) throw new AccountError(409, "UPLOAD_COMMITTED");
+      const item = (JSON.parse(String(current.files)) as UploadFile[]).find(
+        (f) => f.id === fileId,
+      );
+      if (!item) throw new AccountError(404, "NOT_FOUND");
+      this.space(item.bytes);
+      this.db
+        .prepare("INSERT INTO wg_save_parts VALUES (?,?,?,?)")
+        .run(partId, owner, uploadId, Date.now());
+      return item;
+    });
     const dir = join(this.root, SHA(owner));
     mkdirSync(dir, { recursive: true, mode: 0o700 });
-    const temp = join(dir, uploadId + "-" + fileId + ".upload");
-    try {
-      unlinkSync(temp);
-    } catch {}
+    const temp = join(dir, partId + ".upload");
     const hash = createHash("sha256");
     let fd: number | undefined,
       bytes = 0;
@@ -362,8 +381,26 @@ export class SaveStore {
       closeSync(fd);
       fd = undefined;
       await locked(() => {
-        this.upload(owner, uploadId);
-        renameSync(temp, this.blobPath(owner, file.sha256));
+        const current = this.upload(owner, uploadId);
+        if (current.result) throw new AccountError(409, "UPLOAD_COMMITTED");
+        if (
+          !(JSON.parse(String(current.files)) as UploadFile[]).some(
+            (f) => f.id === fileId,
+          )
+        )
+          throw new AccountError(409, "UPLOAD_RENEWED");
+        const target = this.blobPath(owner, file.sha256);
+        try {
+          linkSync(temp, target);
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+          const existing = readFileSync(target);
+          if (
+            existing.byteLength !== file.bytes ||
+            SHA(existing) !== file.sha256
+          )
+            throw new AccountError(503, "FILE_CORRUPT");
+        }
         this.db
           .prepare(
             "INSERT INTO wg_save_blobs(owner,hash,bytes,created) VALUES (?,?,?,?) ON CONFLICT(owner,hash) DO UPDATE SET bytes=excluded.bytes",
@@ -375,6 +412,9 @@ export class SaveStore {
       try {
         unlinkSync(temp);
       } catch {}
+      await locked(() =>
+        this.db.prepare("DELETE FROM wg_save_parts WHERE id=?").run(partId),
+      ).catch(() => {});
     }
   }
   private revision(row: Row): SaveRevision {
@@ -462,14 +502,53 @@ export class SaveStore {
       return result;
     });
   }
+  historyPage(owner: string, profileId: string, cursor?: string): SaveHistory {
+    const profile = this.profile(owner, profileId);
+    const base = cursor
+      ? this.db
+          .prepare(
+            "SELECT rowid AS pos,created FROM wg_save_revisions WHERE owner=? AND profile=? AND id=?",
+          )
+          .get(owner, profileId, cursor)
+      : null;
+    if (cursor && !base) throw new AccountError(400, "CURSOR_INVALID");
+    const rows = base
+      ? this.db
+          .prepare(
+            "SELECT * FROM wg_save_revisions WHERE owner=? AND profile=? AND (created<? OR (created=? AND rowid<?)) ORDER BY created DESC,rowid DESC LIMIT 201",
+          )
+          .all(owner, profileId, base.created, base.created, base.pos)
+      : this.db
+          .prepare(
+            "SELECT * FROM wg_save_revisions WHERE owner=? AND profile=? ORDER BY created DESC,rowid DESC LIMIT 201",
+          )
+          .all(owner, profileId);
+    const items = rows.slice(0, 200).map((row) => this.revision(row));
+    const head = profile.head
+      ? this.db
+          .prepare(
+            "SELECT * FROM wg_save_revisions WHERE owner=? AND profile=? AND id=?",
+          )
+          .get(owner, profileId, profile.head)
+      : null;
+    return {
+      items,
+      current: head ? this.revision(head) : null,
+      next: rows.length > 200 ? items.at(-1)!.id : null,
+    };
+  }
   history(owner: string, profileId: string): SaveRevision[] {
-    this.profile(owner, profileId);
-    return this.db
-      .prepare(
-        "SELECT * FROM wg_save_revisions WHERE owner=? AND profile=? ORDER BY created DESC,rowid DESC LIMIT 200",
-      )
-      .all(owner, profileId)
-      .map((row) => this.revision(row));
+    return this.historyPage(owner, profileId).items;
+  }
+  allHistory(owner: string, profileId: string): SaveRevision[] {
+    const all: SaveRevision[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = this.historyPage(owner, profileId, cursor);
+      all.push(...page.items);
+      cursor = page.next ?? undefined;
+    } while (cursor);
+    return all;
   }
   async read(
     owner: string,

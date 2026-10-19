@@ -37,7 +37,7 @@ export function mountSettings({
       saveProfiles:
         saves?.profiles(session.user.id).map((p) => ({
           ...p,
-          revisions: saves.history(session.user.id, p.id),
+          revisions: saves.allHistory(session.user.id, p.id),
         })) ?? [],
       playSessions: db
         .prepare(

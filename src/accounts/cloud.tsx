@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { useAccount } from "./client";
 import { AccountClientError } from "./client";
 import type { CatalogItem } from "./library.server";
-import type { SaveProfile, SaveRevision } from "./saves.server";
+import type { SaveProfile, SaveRevision, SaveHistory } from "./saves.server";
 import { draftsFor, saveDraft, removeDraft, type SaveDraft } from "./outbox";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -43,6 +43,7 @@ export function CloudBackups({
     [version, setVersion] = useState(""),
     [profile, setProfile] = useState<SaveProfile | null>(null),
     [history, setHistory] = useState<SaveRevision[]>([]),
+    [nextCursor, setNextCursor] = useState<string | null>(null),
     [drafts, setDrafts] = useState<SaveDraft[]>([]),
     [files, setFiles] = useState<File[]>([]),
     [busy, setBusy] = useState(false),
@@ -54,19 +55,23 @@ export function CloudBackups({
   const owned = <T,>(path: string, body?: unknown, method?: string) =>
     account.request<T>(path, body, method, owner);
   const reloadDrafts = async () => setDrafts(await draftsFor(owner));
+  function historyItems(page: SaveHistory | null): SaveRevision[] {
+    if (!page) return [];
+    return page.current && !page.items.some((r) => r.id === page.current!.id)
+      ? [page.current, ...page.items]
+      : page.items;
+  }
   async function load(versionId = version) {
     const profiles = await owned<SaveProfile[]>(
       "/api/me/save-profiles?versionId=" + encodeURIComponent(versionId),
     );
     const next = profiles[0] ?? null;
     setProfile(next);
-    setHistory(
-      next
-        ? await owned<SaveRevision[]>(
-            `/api/me/save-profiles/${next.id}/revisions`,
-          )
-        : [],
-    );
+    const page = next
+      ? await owned<SaveHistory>(`/api/me/save-profiles/${next.id}/revisions`)
+      : null;
+    setHistory(historyItems(page));
+    setNextCursor(page?.next ?? null);
     await reloadDrafts();
   }
   useEffect(() => {
@@ -92,14 +97,15 @@ export function CloudBackups({
       .then(async (profiles) => {
         const next = profiles[0] ?? null;
         const revisions = next
-          ? await owned<SaveRevision[]>(
+          ? await owned<SaveHistory>(
               `/api/me/save-profiles/${next.id}/revisions`,
             )
-          : [];
+          : null;
         const pending = await draftsFor(owner);
         if (live) {
           setProfile(next);
-          setHistory(revisions);
+          setHistory(historyItems(revisions));
+          setNextCursor(revisions?.next ?? null);
           setDrafts(pending);
         }
       })
@@ -362,6 +368,27 @@ export function CloudBackups({
                   </div>
                 ))}
               </div>
+            )}
+            {nextCursor && profile && (
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() =>
+                  action(async () => {
+                    const page = await owned<SaveHistory>(
+                      `/api/me/save-profiles/${profile.id}/revisions?cursor=${encodeURIComponent(nextCursor)}`,
+                    );
+                    setHistory((current) => [
+                      ...new Map(
+                        [...current, ...page.items].map((r) => [r.id, r]),
+                      ).values(),
+                    ]);
+                    setNextCursor(page.next);
+                  })
+                }
+              >
+                加载更早的备份
+              </Button>
             )}
             {profile && (
               <Button

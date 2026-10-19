@@ -37,7 +37,11 @@ export function meta() {
     { name: "robots", content: "noindex,nofollow" },
   ];
 }
-type RecoveryKit = { accountId: string; codes: string[] };
+type RecoveryKit = {
+  accountId: string;
+  codes: string[];
+  signInRequired?: boolean;
+};
 export default function Account() {
   const account = useAccount();
   const {
@@ -85,23 +89,29 @@ export default function Account() {
     }
   }
   async function recover() {
-    await request("/api/recovery/start", {
-      accountId: recoveryId.trim(),
-      code: recoveryCode.trim(),
-    });
-    setRecoveryCode("");
-    const options = await request<
-      Parameters<typeof startRegistration>[0]["optionsJSON"]
-    >("/api/recovery/options", {});
-    const response = await startRegistration({ optionsJSON: options });
-    const result = await request<RecoveryKit>("/api/recovery/complete", {
-      response,
-    });
-    try {
-      await passkey("login");
-    } finally {
+    const check = account.guard();
+    const target = recoveryId.trim();
+    await account.withCeremony(async () => {
+      await request("/api/recovery/start", {
+        accountId: target,
+        code: recoveryCode.trim(),
+      });
+      check();
+      setRecoveryCode("");
+      const options = await request<
+        Parameters<typeof startRegistration>[0]["optionsJSON"]
+      >("/api/recovery/options", {});
+      const response = await startRegistration({ optionsJSON: options });
+      check();
+      const result = await request<RecoveryKit>("/api/recovery/complete", {
+        response,
+      });
+      check();
+      if (result.accountId !== target)
+        throw new AccountClientError("IDENTITY_CHANGED");
+      // Recovery remains anonymous. Save A's kit before a separate discoverable login can select B.
       setKit(result);
-    }
+    });
   }
   function downloadKit() {
     if (!kit) return;
@@ -394,11 +404,23 @@ export default function Account() {
                     disabled={busy}
                     onClick={() =>
                       run(async () => {
+                        const owner = me.user.id;
+                        const check = account.guard();
                         const result = await request<RecoveryKit>(
                           "/api/me/recovery-codes",
                           {},
+                          undefined,
+                          owner,
                         );
-                        await refresh();
+                        check();
+                        const refreshed = await refresh();
+                        if (
+                          !refreshed ||
+                          refreshed.view?.user.id !== owner ||
+                          result.accountId !== owner
+                        )
+                          throw new AccountClientError("IDENTITY_CHANGED");
+                        refreshed.check();
                         setKit(result);
                       })
                     }
@@ -498,7 +520,10 @@ export default function Account() {
           <AlertDialogHeader>
             <AlertDialogTitle>保存你的恢复码</AlertDialogTitle>
             <AlertDialogDescription>
-              这些码只显示一次。请保存到可信的位置；每枚只能用一次，任何持有码的人都能恢复你的账号。
+              {kit?.signInRequired
+                ? "恢复已完成。请先保存此账号的新恢复码，关闭后再单独使用新通行密钥登录。"
+                : "这些码只显示一次。"}
+              请保存到可信的位置；每枚只能用一次，任何持有码的人都能恢复你的账号。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <p className="text-sm break-all">账号标识：{kit?.accountId}</p>

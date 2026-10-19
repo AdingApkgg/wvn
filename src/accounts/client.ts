@@ -56,6 +56,21 @@ export function useAccount() {
     alive = useRef(false),
     ceremony = useRef(false),
     channel = useRef<BroadcastChannel | null>(null);
+  const guard = () => {
+    const start = epoch.current;
+    return () => {
+      if (!alive.current || start !== epoch.current)
+        throw new AccountClientError("IDENTITY_CHANGED");
+    };
+  };
+  const withCeremony = async <T>(fn: () => Promise<T>) => {
+    ceremony.current = true;
+    try {
+      return await fn();
+    } finally {
+      ceremony.current = false;
+    }
+  };
   const invalidate = useCallback(() => {
     epoch.current++;
     controller.current.abort();
@@ -102,6 +117,7 @@ export function useAccount() {
         current.current = next;
         setMe(next);
         setOptions(available);
+        return { view: next, check: guard() };
       } catch (e) {
         if (
           alive.current &&
@@ -260,6 +276,8 @@ export function useAccount() {
     request,
     passkey,
     upload,
+    guard,
+    withCeremony,
     isOwner: (id: string) => current.current?.user.id === id,
   };
 }
