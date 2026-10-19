@@ -114,6 +114,10 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
         .getByLabel("进度类型", { exact: true })
         .selectOption("complete");
       await edit.getByLabel("含剧透说明").uncheck();
+      await page.setViewportSize({width:390,height:844});
+      await edit.screenshot({path:"reports/sharing-preview/edit-progress-mobile-checked.png",animations:"disabled"});
+      const bounds=await edit.boundingBox();
+      expect(bounds).not.toBeNull();expect(bounds!.x).toBeGreaterThanOrEqual(0);expect(bounds!.y).toBeGreaterThanOrEqual(0);expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(391);expect(bounds!.y+bounds!.height).toBeLessThanOrEqual(845);
       await edit.getByRole("button", { name: "保存说明", exact: true }).click();
       await expect(page.getByRole("alertdialog")).toHaveCount(0);
       await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
