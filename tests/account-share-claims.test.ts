@@ -126,3 +126,59 @@ test("an expired receipt resumes the original generation and a deleted target ne
     f.close();
   }
 });
+
+test("low disk and receiver deletion during copying leave no committed receipt", async () => {
+  const f = await sharingFixture();
+  try {
+    const { ShareStore } = await import("../src/accounts/shares.server.ts");
+    const { SaveStore } = await import("../src/accounts/saves.server.ts");
+    const made = f.shares.create("alice", f.input);
+    const low = new ShareStore(
+      f.db,
+      new SaveStore(f.db, f.root, () => 60 * 1024 ** 3),
+      f.policy,
+      f.ledger,
+    );
+    const claims = new module!.ShareClaims(low);
+    await assert.rejects(
+      () =>
+        claims.claim("bob", () => {}, {
+          shareId: made.id,
+          secret: made.secret,
+          requestId: "no-space",
+        }),
+      /SPACE_STOP/,
+    );
+    assert.equal(
+      f.db
+        .prepare(
+          "SELECT count(*) AS n FROM wg_save_revisions WHERE owner='bob'",
+        )
+        .get()?.n,
+      0,
+    );
+    const normal = new module!.ShareClaims(f.shares);
+    let count = 0;
+    await assert.rejects(() =>
+      normal.claim(
+        "bob",
+        () => {},
+        { shareId: made.id, secret: made.secret, requestId: "deleted" },
+        async (fn) => {
+          if (++count === 3) f.saves.deleteOwner("bob");
+          return fn();
+        },
+      ),
+    );
+    assert.equal(
+      f.db
+        .prepare(
+          "SELECT count(*) AS n FROM wg_save_revisions WHERE owner='bob'",
+        )
+        .get()?.n,
+      0,
+    );
+  } finally {
+    f.close();
+  }
+});

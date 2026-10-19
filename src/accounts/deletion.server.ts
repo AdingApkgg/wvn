@@ -12,10 +12,15 @@ import type { DatabaseSync } from "node:sqlite";
 import type { SaveStore } from "./saves.server.ts";
 export class DeletionLedger {
   readonly entries = new Map<string, number>();
-  constructor(private file?: string) {
+  constructor(
+    private file?: string,
+    readOnly = false,
+  ) {
     if (!file) return;
-    mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
-    if (!existsSync(file)) {
+    if (readOnly && !existsSync(file))
+      throw new Error("Existing independent ledger required");
+    if (!readOnly) mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
+    if (!readOnly && !existsSync(file)) {
       const fd = openSync(file, "wx", 0o600);
       try {
         fsyncSync(fd);

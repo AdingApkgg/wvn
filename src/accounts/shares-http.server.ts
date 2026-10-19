@@ -116,6 +116,7 @@ export function mountShares(service: AccountService) {
           : view.files.filter((f) => f.name === input.name);
       if (!selected.length) throw new AccountError(404, "NOT_FOUND");
       const check = async () => {
+        await sharing.catalog.refresh();
         await withLock(async () => {
           const current = await player(c);
           if (

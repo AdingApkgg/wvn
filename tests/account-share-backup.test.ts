@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { sharingFixture } from "./helpers/sharing.ts";
@@ -76,6 +77,34 @@ test("sharing-enabled backups refuse to omit the independent share deny ledger",
           destination: join(f.root, "incomplete"),
         }),
       /share revocation ledger/i,
+    );
+  } finally {
+    f.close();
+  }
+});
+
+test("backup never creates a missing source revocation ledger or accepts malformed records", async () => {
+  const f = await sharingFixture(true);
+  try {
+    new DeletionLedger(join(f.root, "deleted.jsonl"));
+    const missing = join(f.root, "missing.jsonl");
+    const options = {
+      database: join(f.root, "accounts.sqlite"),
+      blobRoot: f.root,
+      ledger: join(f.root, "deleted.jsonl"),
+      shareLedger: missing,
+      destination: join(f.root, "missing-backup"),
+    };
+    assert.throws(() => createAccountBackup(options), /ledger/i);
+    assert.equal(existsSync(missing), false);
+    writeFileSync(missing, '{"userId":3,"deletedAt":1}\n');
+    assert.throws(
+      () =>
+        createAccountBackup({
+          ...options,
+          destination: join(f.root, "malformed-backup"),
+        }),
+      /record|ledger/i,
     );
   } finally {
     f.close();

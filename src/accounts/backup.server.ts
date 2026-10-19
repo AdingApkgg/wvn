@@ -114,7 +114,7 @@ export function createAccountBackup(options: {
       file,
     );
   }
-  const ledger = new DeletionLedger(options.ledger);
+  const ledger = new DeletionLedger(options.ledger, true);
   writeFileSync(
     join(destination, "deletions.jsonl"),
     [...ledger.entries]
@@ -125,7 +125,7 @@ export function createAccountBackup(options: {
     { mode: 0o600 },
   );
   if (options.shareLedger) {
-    const share = new DeletionLedger(options.shareLedger);
+    const share = new DeletionLedger(options.shareLedger, true);
     writeFileSync(
       join(destination, "share-revocations.jsonl"),
       [...share.entries]
@@ -193,8 +193,12 @@ export function prepareAccountRestore(options: {
       file,
     );
   }
-  const combined = new DeletionLedger(join(options.backup, "deletions.jsonl"));
-  for (const [id, time] of new DeletionLedger(options.currentLedger).entries)
+  const combined = new DeletionLedger(
+    join(options.backup, "deletions.jsonl"),
+    true,
+  );
+  for (const [id, time] of new DeletionLedger(options.currentLedger, true)
+    .entries)
     combined.entries.set(id, time);
   writeFileSync(
     join(destination, "deletions.jsonl"),
@@ -211,9 +215,9 @@ export function prepareAccountRestore(options: {
   )
     throw new Error("Current share revocation ledger required");
   if (options.currentShareLedger) {
-    const current = new DeletionLedger(options.currentShareLedger);
+    const current = new DeletionLedger(options.currentShareLedger, true);
     const oldPath = join(options.backup, "share-revocations.jsonl");
-    const old = existsSync(oldPath) ? new DeletionLedger(oldPath) : null;
+    const old = existsSync(oldPath) ? new DeletionLedger(oldPath, true) : null;
     for (const [id, time] of old?.entries ?? [])
       if (!current.entries.has(id)) current.entries.set(id, time);
     writeFileSync(

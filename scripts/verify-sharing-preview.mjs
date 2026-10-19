@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { hostname } from "node:os";
@@ -65,13 +65,11 @@ try {
   await select.waitFor();
   const version = await select.locator("option").nth(1).getAttribute("value");
   await select.selectOption(version);
-  await author
-    .getByLabel("游戏导出的存档文件")
-    .setInputFiles({
-      name: "wg-preview-synthetic.dat",
-      mimeType: "application/octet-stream",
-      buffer: Buffer.from(synthetic),
-    });
+  await author.getByLabel("游戏导出的存档文件").setInputFiles({
+    name: "wg-preview-synthetic.dat",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from(synthetic),
+  });
   await author
     .getByRole("button", { name: "保留云端历史，保存为新备份" })
     .click();
@@ -137,6 +135,44 @@ try {
     .waitFor();
   const profiles = (await api(recipient, "/api/me/save-profiles")).data;
   assert.equal(profiles[0].head, null);
+  const received = (
+    await api(recipient, `/api/me/save-profiles/${profiles[0].id}/revisions`)
+  ).data.items[0];
+  const receiverId = (await api(recipient, "/api/me")).data.user.id;
+  const digest = createHash("sha256").update(synthetic).digest("hex");
+  const ownerPath =
+    "state/accounts-preview/blobs/" +
+    createHash("sha256").update(owner).digest("hex") +
+    "/" +
+    digest +
+    ".bin";
+  const receiverPath =
+    "state/accounts-preview/blobs/" +
+    createHash("sha256").update(receiverId).digest("hex") +
+    "/" +
+    digest +
+    ".bin";
+  assert.equal(
+    createHash("sha256").update(readFileSync(receiverPath)).digest("hex"),
+    digest,
+  );
+  assert.notEqual(
+    statSync(ownerPath).ino,
+    statSync(receiverPath).ino,
+    "cross-owner bytes must have independent inodes",
+  );
+  const privateCopy = await recipient.evaluate(
+    async ({ profile, revision }) => {
+      const response = await fetch(
+        `/api/me/save-profiles/${profile}/revisions/${revision}/files?name=wg-preview-synthetic.dat`,
+      );
+      return { status: response.status, text: await response.text() };
+    },
+    { profile: profiles[0].id, revision: received.id },
+  );
+  assert.equal(privateCopy.status, 200);
+  assert.equal(privateCopy.text, synthetic);
+
   const download = recipient.waitForEvent("download");
   await recipient.getByRole("button", { name: "下载完整存档包" }).click();
   const file = await download;
@@ -166,6 +202,63 @@ try {
     { encoding: "utf8" },
   );
   assert.ok(!manifestFile.includes(owner));
+  // Use a separate link for destructive acceptance; retain the public and link examples.
+  const authorProfile = (await api(author, "/api/me/save-profiles")).data[0];
+  const authorRevision = (
+    await api(author, `/api/me/save-profiles/${authorProfile.id}/revisions`)
+  ).data.items[0];
+  const disposable = await api(author, "/api/me/save-shares", {
+    profileId: authorProfile.id,
+    generation: authorProfile.generation,
+    revisionId: authorRevision.id,
+    mode: "link",
+    days: 1,
+    requestId: crypto.randomUUID(),
+    title: "撤回验收 · 合成文件",
+    description: "Disposable protocol test",
+    progress: "other",
+    spoiler: false,
+  });
+  assert.equal(disposable.status, 201);
+  const claim = await api(recipient, "/api/me/share-claims", {
+    shareId: disposable.data.id,
+    secret: disposable.data.secret,
+    requestId: crypto.randomUUID(),
+  });
+  assert.equal(claim.status, 200);
+  assert.equal(
+    (await api(author, `/api/me/save-shares/${disposable.data.id}/revoke`, {}))
+      .status,
+    200,
+  );
+  assert.equal(
+    (
+      await api(recipient, `/api/share-links/${disposable.data.id}/inspect`, {
+        secret: disposable.data.secret,
+      })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await api(recipient, "/api/me/share-downloads", {
+        shareId: disposable.data.id,
+        secret: disposable.data.secret,
+      })
+    ).status,
+    404,
+  );
+  const afterRevoke = await recipient.evaluate(
+    async ({ profile, revision }) => {
+      const response = await fetch(
+        `/api/me/save-profiles/${profile}/revisions/${revision}/files?name=wg-preview-synthetic.dat`,
+      );
+      return { status: response.status, text: await response.text() };
+    },
+    { profile: profiles[0].id, revision: claim.data.revision.id },
+  );
+  assert.equal(afterRevoke.status, 200);
+  assert.equal(afterRevoke.text, synthetic);
   await screenshot(recipient, "detail-desktop", 1440, 1000);
   await screenshot(recipient, "detail-mobile", 390, 844);
   const catalog = (await api(author, "/api/account-catalog")).data,
@@ -190,6 +283,9 @@ try {
     publicShareUrl: origin + "/s/" + published.id,
     examples: "synthetic files explicitly labelled; not game saves",
     authorNamespaceIndependent: true,
+    revokedSourceDenied: true,
+    recipientCopyReadableAfterRevoke: true,
+    privateCopySHA256: digest,
     receivedHead: null,
     zipCRC: "passed",
     zipFileSHA256: zip["files/wg-preview-synthetic.dat"],

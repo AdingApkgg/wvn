@@ -7,10 +7,15 @@ sharing_state="$sharing_root/state/sharing-preview"
 account_state="$sharing_root/state/accounts-preview"
 mkdir -p "$sharing_state"
 chmod 700 "$sharing_state"
-# Refuse foreign listeners before stopping any process.
-for sharing_port in 18284 18285 18286; do
- if test -n "$(ss -H -ltn "sport = :$sharing_port")" && ! test -f "$sharing_state/ready"; then echo "Sharing preview port already occupied"; exit 1; fi
+# Verify prerequisites and actual ownership before changing any running process.
+source scripts/lib/sharing-preflight.sh
+for required in reports/sharing-source-revision reports/sharing-source-manifest.json build/server/index.js "$account_state/accounts.sqlite" "$account_state/tls.crt" "$account_state/tls.key" "$account_state/secret" "$account_state/invite" "$account_state/deletions.jsonl"; do
+ test -s "$required" || { test "$required" = "$account_state/deletions.jsonl" && test -f "$required"; } || { echo "Missing prerequisite: $required"; exit 1; }
 done
+preflight_listener 18283 "$account_state/pid" "$sharing_root" accounts-server.ts
+preflight_listener 18285 "$account_state/pid" "$sharing_root" accounts-server.ts
+preflight_listener 18284 "$sharing_state/catalog.pid" "$sharing_root" server.ts
+preflight_listener 18286 "$sharing_state/catalog.pid" "$sharing_root" server.ts
 stop_owned(){
  local record="$1" expected="$2"
  if test -f "$record"; then

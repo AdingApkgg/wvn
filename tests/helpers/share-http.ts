@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdtempSync, rmSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { createAccountService } from "../../src/accounts/service.server.ts";
 import { registrationFixture } from "./webauthn.ts";
 const origin = "https://accounts.wg.test";
 export async function shareHttpFixture() {
-  const root = mkdtempSync(join(tmpdir(), "wg-share-http-"));
+  mkdirSync(join(process.cwd(), "state"), { recursive: true });
+  const root = mkdtempSync(join(process.cwd(), "state", "wg-share-http-"));
   const catalog = [
     {
       id: "v4",
@@ -68,6 +68,7 @@ export async function shareHttpFixture() {
   }
   return {
     service,
+    catalog,
     register,
     async api(path: string, cookie = "", body?: unknown, binding?: string) {
       return service.app.request(origin + path, {

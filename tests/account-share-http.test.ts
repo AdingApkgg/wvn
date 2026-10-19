@@ -33,3 +33,72 @@ test("share HTTP policy exposes metadata only and blocks player access to privat
     f.close();
   }
 });
+
+test("long downloads refresh live catalog and stop if their version becomes hidden", async (t) => {
+  const f = await shareHttpFixture();
+  const { createHash } = await import("node:crypto");
+  let now = Date.now();
+  t.mock.method(Date, "now", () => now);
+  try {
+    const cookie = await f.register("Slow Reader");
+    const me = await (await f.api("/api/me", cookie)).json();
+    const saves = f.service.saves!;
+    const profile = saves.createProfile(me.user.id, "version-a");
+    const bytes = Buffer.alloc(1024 * 1024, 42);
+    const upload = saves.reserve(me.user.id, profile.id, {
+      expectedHead: null,
+      generation: 1,
+      captureId: "slow",
+      files: [
+        {
+          name: "slot.dat",
+          bytes: bytes.length,
+          sha256: createHash("sha256").update(bytes).digest("hex"),
+        },
+      ],
+    });
+    await saves.write(
+      me.user.id,
+      upload.id,
+      upload.files[0].id,
+      new Blob([bytes]).stream(),
+    );
+    const revision = saves.commit(me.user.id, upload.id).revision;
+    await f.service.sharing!.catalog.refresh(true);
+    const made = f.service.sharing!.create(me.user.id, {
+      profileId: profile.id,
+      generation: 1,
+      revisionId: revision.id,
+      mode: "link",
+      days: 30,
+      requestId: "slow",
+      title: "Slow",
+      description: "",
+      progress: "chapter",
+      spoiler: false,
+    });
+    const response = await f.api(
+      "/api/me/share-downloads",
+      cookie,
+      { shareId: made.id, secret: made.secret },
+      me.binding,
+    );
+    assert.equal(response.status, 200);
+    const reader = response.body!.getReader();
+    assert.equal((await reader.read()).done, false);
+    now += 31_000;
+    assert.equal(
+      (await reader.read()).done,
+      false,
+      "a visible version must continue beyond catalog TTL",
+    );
+    f.catalog.length = 0;
+    now += 31_000;
+    await assert.rejects(async () => {
+      while (!(await reader.read()).done) {}
+    }, /VERSION_UNAVAILABLE/);
+  } finally {
+    t.mock.restoreAll();
+    f.close();
+  }
+});
