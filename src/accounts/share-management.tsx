@@ -22,6 +22,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
+import { SHARE_PROGRESS, type ShareProgress } from "./share-metadata";
 export function ShareManagement({
   account,
   run,
@@ -36,7 +37,9 @@ export function ShareManagement({
     [revoke, setRevoke] = useState<OwnShare | null>(null),
     [edit, setEdit] = useState<OwnShare | null>(null),
     [title, setTitle] = useState(""),
-    [description, setDescription] = useState("");
+    [description, setDescription] = useState(""),
+    [progress, setProgress] = useState<ShareProgress>("chapter"),
+    [spoiler, setSpoiler] = useState(false);
   async function load(cursor?: string) {
     const page = await account.request<SharePage<OwnShare>>(
       "/api/me/save-shares" +
@@ -92,6 +95,9 @@ export function ShareManagement({
                 } as Record<string, string>
               )[s.state] ?? s.state}
               {s.pending && s.state === "active" && " · 新文案待审核"}
+              {" · "}
+              {SHARE_PROGRESS[s.progress]}
+              {s.spoiler && " · 含剧透说明"}
             </p>
             <div className="flex gap-2 flex-wrap">
               {s.mode === "public" && s.state === "active" && (
@@ -105,8 +111,11 @@ export function ShareManagement({
                     variant="outline"
                     onClick={() => {
                       setEdit(s);
-                      setTitle(s.title);
-                      setDescription(s.description);
+                      const text = s.pending ?? s;
+                      setTitle(text.title);
+                      setDescription(text.description);
+                      setProgress(text.progress);
+                      setSpoiler(text.spoiler);
                     }}
                   >
                     编辑分享说明
@@ -166,7 +175,7 @@ export function ShareManagement({
             if (!open) setEdit(null);
           }}
         >
-          <AlertDialogContent>
+          <AlertDialogContent className="max-h-[90dvh] overflow-y-auto">
             <AlertDialogHeader>
               <AlertDialogTitle>编辑分享说明</AlertDialogTitle>
               <AlertDialogDescription>
@@ -187,6 +196,30 @@ export function ShareManagement({
               maxLength={2000}
               onChange={(e) => setDescription(e.target.value)}
             />
+            <Label htmlFor="edit-share-progress">进度类型</Label>
+            <select
+              id="edit-share-progress"
+              value={progress}
+              onChange={(e) => setProgress(e.target.value as ShareProgress)}
+            >
+              {Object.entries(SHARE_PROGRESS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <Label
+              className="flex items-center gap-2"
+              htmlFor="edit-share-spoiler"
+            >
+              <input
+                id="edit-share-spoiler"
+                type="checkbox"
+                checked={spoiler}
+                onChange={(e) => setSpoiler(e.target.checked)}
+              />
+              含剧透说明
+            </Label>
             <Button
               onClick={() => {
                 const selected = edit;
@@ -197,8 +230,8 @@ export function ShareManagement({
                       {
                         title,
                         description,
-                        progress: selected.progress,
-                        spoiler: selected.spoiler,
+                        progress,
+                        spoiler,
                         revision: selected.metadataRevision,
                       },
                       "PATCH",

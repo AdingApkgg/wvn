@@ -1,3 +1,4 @@
+import { SHARE_PROGRESS } from "./share-metadata";
 import { useEffect, useRef, useState } from "react";
 import type { useAccount } from "./client";
 import { errorCopy, AccountClientError } from "./client";
@@ -172,13 +173,7 @@ export function SharePublish({
                 value={progress}
                 onChange={(e) => setProgress(e.target.value)}
               >
-                {Object.entries({
-                  chapter: "章节节点",
-                  route: "路线起点",
-                  complete: "通关",
-                  unlock: "全解锁",
-                  other: "其他",
-                }).map(([v, t]) => (
+                {Object.entries(SHARE_PROGRESS).map(([v, t]) => (
                   <NativeSelectOption key={v} value={v}>
                     {t}
                   </NativeSelectOption>

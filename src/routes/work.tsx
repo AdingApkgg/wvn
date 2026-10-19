@@ -7,6 +7,7 @@ import { Link, useLoaderData } from "react-router";
 import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { projectShares } from "../server/share-projection";
+import { SHARE_PROGRESS, isShareProgress } from "../accounts/share-metadata";
 export async function loader({
   params,
   request,
@@ -19,6 +20,10 @@ export async function loader({
   const w = getStore().get(id);
   if (!w?.versions.length) throw new Response(null, { status: 404 });
   const url = new URL(request.url);
+  const version = url.searchParams.get("saveVersion") ?? "";
+  const progress = url.searchParams.get("saveProgress") ?? "";
+  const saveVersion = w.versions.some((v) => v.id === version) ? version : "";
+  const saveProgress = isShareProgress(progress) ? progress : "";
   const shares =
     process.env.WG_SHARE_BACKEND_ORIGIN && process.env.WG_SHARE_ACCOUNT_ORIGIN
       ? await projectShares(
@@ -28,11 +33,14 @@ export async function loader({
             backend: process.env.WG_SHARE_BACKEND_ORIGIN,
             account: process.env.WG_SHARE_ACCOUNT_ORIGIN,
           },
-          url.searchParams.get("saveVersion") ?? undefined,
-          url.searchParams.get("saveCursor") ?? undefined,
+          {
+            version: saveVersion || undefined,
+            progress: saveProgress || undefined,
+            cursor: url.searchParams.get("saveCursor") ?? undefined,
+          },
         )
       : null;
-  return { ...w, shares };
+  return { ...w, shares, saveVersion, saveProgress };
 }
 export function meta({ loaderData: data }: { loaderData?: { title: string } }) {
   return [{ title: data ? `${data.title} — WG` : "WG · 故事放映室" }];
@@ -129,12 +137,27 @@ export default function Work() {
             <select
               id="share-version-filter"
               name="saveVersion"
-              defaultValue=""
+              key={w.saveVersion}
+              defaultValue={w.saveVersion}
             >
               <option value="">全部版本</option>
               {w.versions.map((v) => (
                 <option key={v.id} value={v.id}>
                   版本 {v.number} · {v.title}
+                </option>
+              ))}
+            </select>
+            <label htmlFor="share-progress-filter">进度类型</label>
+            <select
+              id="share-progress-filter"
+              name="saveProgress"
+              key={w.saveProgress}
+              defaultValue={w.saveProgress}
+            >
+              <option value="">全部进度</option>
+              {Object.entries(SHARE_PROGRESS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
                 </option>
               ))}
             </select>
@@ -152,7 +175,11 @@ export default function Work() {
             </p>
           ) : (
             w.shares.items.map((s) => (
-              <Card className="p-5 space-y-3" key={s.id}>
+              <Card
+                className="p-5 space-y-3"
+                key={s.id}
+                data-public-share-id={s.id}
+              >
                 <h3>
                   <a
                     href={`${w.shares!.account}/s/${s.id}`}
@@ -163,7 +190,8 @@ export default function Work() {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {s.author} · 版本 {s.version.number} · {s.version.title} ·{" "}
-                  {(s.bytes / 1024).toFixed(1)} KiB
+                  {(s.bytes / 1024).toFixed(1)} KiB ·{" "}
+                  {SHARE_PROGRESS[s.progress]}
                 </p>
                 {s.spoiler ? (
                   <details>
@@ -188,7 +216,7 @@ export default function Work() {
           {w.shares.next && (
             <Button variant="outline" asChild>
               <Link
-                to={`?saveCursor=${encodeURIComponent(w.shares.next)}#player-saves`}
+                to={`?${new URLSearchParams({ ...(w.saveVersion ? { saveVersion: w.saveVersion } : {}), ...(w.saveProgress ? { saveProgress: w.saveProgress } : {}), saveCursor: w.shares.next })}#player-saves`}
               >
                 更多玩家存档
               </Link>

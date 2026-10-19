@@ -8,6 +8,10 @@ test("share HTTP policy exposes metadata only and blocks player access to privat
     const response = await f.api("/api/public/works/v4/save-shares");
     assert.equal(response.status, 200);
     assert.deepEqual((await response.json()).items, []);
+    assert.equal(
+      (await f.api("/api/public/works/v4/save-shares?progress=wrong")).status,
+      400,
+    );
     assert.equal((await f.api("/api/me/share-downloads", "", {})).status, 401);
     assert.equal((await f.api("/api/share-admin/queue")).status, 404);
     const cookie = await f.register("Reader");

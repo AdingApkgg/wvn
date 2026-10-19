@@ -15,7 +15,9 @@ import type {
   ShareView,
   OwnShare,
   SharePage,
+  ModerationShare,
 } from "./share-types.ts";
+import { isShareProgress } from "./share-metadata.ts";
 type Row = Record<string, SQLOutputValue>;
 const sha = (v: string) => createHash("sha256").update(v).digest("hex");
 export class ShareStore {
@@ -58,9 +60,7 @@ export class ShareStore {
       /[\p{Cs}\p{Cf}\u0000-\u0008\u000b\u000c\u000e-\u001f]/u.test(
         input.title + input.description,
       ) ||
-      !["chapter", "route", "complete", "unlock", "other"].includes(
-        input.progress,
-      ) ||
+      !isShareProgress(input.progress) ||
       typeof input.spoiler !== "boolean"
     )
       throw new AccountError(400, "SHARE_TEXT_INVALID");
@@ -250,6 +250,7 @@ export class ShareStore {
     version?: string,
     cursor?: string,
     limit = 21,
+    progress?: string,
   ): Row[] {
     let before = Number.MAX_SAFE_INTEGER,
       beforeId = "~";
@@ -262,7 +263,7 @@ export class ShareStore {
     }
     return this.db
       .prepare(
-        "SELECT * FROM wg_save_shares WHERE (? IS NULL OR owner=?) AND (? IS NULL OR work=?) AND (? IS NULL OR version=?) AND (created<? OR (created=? AND id<?)) AND (?=0 OR (mode='public' AND state='active' AND (expires IS NULL OR expires>?))) ORDER BY created DESC,id DESC LIMIT ?",
+        "SELECT * FROM wg_save_shares WHERE (? IS NULL OR owner=?) AND (? IS NULL OR work=?) AND (? IS NULL OR version=?) AND (? IS NULL OR json_extract(approved,'$.progress')=?) AND (created<? OR (created=? AND id<?)) AND (?=0 OR (mode='public' AND state='active' AND (expires IS NULL OR expires>?))) ORDER BY created DESC,id DESC LIMIT ?",
       )
       .all(
         owner,
@@ -271,6 +272,8 @@ export class ShareStore {
         work,
         version ?? null,
         version ?? null,
+        progress ?? null,
+        progress ?? null,
         before,
         before,
         beforeId,
@@ -279,7 +282,14 @@ export class ShareStore {
         limit,
       );
   }
-  listPublic(work: string, version?: string, cursor?: string): SharePage {
+  listPublic(
+    work: string,
+    version?: string,
+    cursor?: string,
+    progress?: string,
+  ): SharePage {
+    if (progress !== undefined && !isShareProgress(progress))
+      throw new AccountError(400, "FILTER_INVALID");
     const visible: Row[] = [];
     let at = cursor,
       exhausted = false;
@@ -288,7 +298,7 @@ export class ShareStore {
       scanned < 1000 && visible.length < 21;
       scanned += 40
     ) {
-      const rows = this.pageRows(null, work, version, at, 40);
+      const rows = this.pageRows(null, work, version, at, 40, progress);
       for (const row of rows) {
         at = String(row.id);
         try {
@@ -472,22 +482,56 @@ export class ShareStore {
       )
       .run(randomUUID(), owner, id, reason.trim(), Date.now());
   }
-  queue() {
+  queue(): ModerationShare[] {
     return this.db
       .prepare(
-        "SELECT id,mode,state,pending,approved,metadata_revision AS metadataRevision,created FROM wg_save_shares WHERE state IN ('active','pending') AND (pending IS NOT NULL OR id IN(SELECT share FROM wg_save_share_reports WHERE status='open')) ORDER BY created LIMIT 100",
+        "SELECT * FROM wg_save_shares WHERE state IN ('active','pending') AND (pending IS NOT NULL OR id IN(SELECT share FROM wg_save_share_reports WHERE status='open')) ORDER BY created LIMIT 100",
       )
       .all()
-      .map((r) => ({
-        ...r,
-        pending: r.pending ? JSON.parse(String(r.pending)) : null,
-        approved: r.approved ? JSON.parse(String(r.approved)) : null,
-        reports: this.db
-          .prepare(
-            "SELECT id,reason,created FROM wg_save_share_reports WHERE share=? AND status='open'",
-          )
-          .all(r.id),
-      }));
+      .map((r) => {
+        let metadata: ReturnType<CatalogPolicy["require"]> | null = null;
+        let catalogStatus: ModerationShare["catalogStatus"] = "visible";
+        try {
+          metadata = this.catalog.require(String(r.version));
+        } catch (error) {
+          catalogStatus =
+            error instanceof AccountError && error.status === 404
+              ? "hidden"
+              : "unavailable";
+        }
+        const files = JSON.parse(String(r.files)) as SaveFile[];
+        return {
+          id: String(r.id),
+          mode: r.mode as ModerationShare["mode"],
+          state: String(r.state),
+          metadataRevision: Number(r.metadata_revision),
+          createdAt: Number(r.created),
+          expiresAt: r.expires === null ? null : Number(r.expires),
+          workId: String(r.work),
+          versionId: String(r.version),
+          work: metadata?.work ?? null,
+          version: metadata?.version ?? null,
+          catalogStatus,
+          author: String(
+            this.db.prepare('SELECT name FROM "user" WHERE id=?').get(r.owner)
+              ?.name ?? "已注销玩家",
+          ),
+          files,
+          bytes: files.reduce((n, f) => n + f.bytes, 0),
+          pending: r.pending ? JSON.parse(String(r.pending)) : null,
+          approved: r.approved ? JSON.parse(String(r.approved)) : null,
+          reports: this.db
+            .prepare(
+              "SELECT id,reason,created FROM wg_save_share_reports WHERE share=? AND status='open'",
+            )
+            .all(r.id)
+            .map((report) => ({
+              id: String(report.id),
+              reason: String(report.reason),
+              created: Number(report.created),
+            })),
+        };
+      });
   }
   leaseDownload(owner: string, files: SaveFile[]) {
     const id = "download:" + randomUUID();

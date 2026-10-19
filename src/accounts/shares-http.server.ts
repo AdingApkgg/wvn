@@ -26,6 +26,7 @@ export function mountShares(service: AccountService) {
         c.req.param("work"),
         c.req.query("versionId"),
         c.req.query("cursor"),
+        c.req.query("progress"),
       ),
     ),
   );

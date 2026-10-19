@@ -17,13 +17,11 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
   await expect(select).toBeVisible();
   const versionId = await select.locator("option").nth(1).getAttribute("value");
   await select.selectOption(versionId!);
-  await page
-    .getByLabel("游戏导出的存档文件")
-    .setInputFiles({
-      name: "slot.dat",
-      mimeType: "application/octet-stream",
-      buffer: Buffer.from("shared-original-chapter"),
-    });
+  await page.getByLabel("游戏导出的存档文件").setInputFiles({
+    name: "slot.dat",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("shared-original-chapter"),
+  });
   await page
     .getByRole("button", { name: "保留云端历史，保存为新备份" })
     .click();
@@ -83,11 +81,74 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
       await expect(
         manager.getByText("Public chapter", { exact: true }),
       ).toBeVisible();
+      const reviewCard = manager
+        .locator("[data-share-id]")
+        .filter({ hasText: "Public chapter" });
+      await expect(
+        reviewCard.getByText("slot.dat", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        reviewCard.getByText("SHA256", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        reviewCard.getByText("章节节点", { exact: true }),
+      ).toBeVisible();
       await manager.getByLabel("审核原因").fill("Synthetic preview acceptance");
       await manager.getByRole("button", { name: "批准发布" }).click();
       await expect(
         manager.getByText("暂无待处理条目", { exact: true }),
       ).toBeVisible();
+      await page.getByRole("button", { name: "关闭", exact: true }).click();
+      await page
+        .getByRole("button", { name: "刷新分享列表", exact: true })
+        .click();
+      const ownCard = page.locator(".account-pending").filter({
+        has: page.getByRole("heading", {
+          name: "Public chapter",
+          exact: true,
+        }),
+      });
+      await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
+      const edit = page.getByRole("alertdialog");
+      await edit
+        .getByLabel("进度类型", { exact: true })
+        .selectOption("complete");
+      await edit.getByLabel("含剧透说明").uncheck();
+      await edit.getByRole("button", { name: "保存说明", exact: true }).click();
+      await expect(page.getByRole("alertdialog")).toHaveCount(0);
+      await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
+      await expect(edit.getByLabel("进度类型", { exact: true })).toHaveValue(
+        "complete",
+      );
+      await expect(edit.getByLabel("含剧透说明")).not.toBeChecked();
+      await edit.getByRole("button", { name: "取消", exact: true }).click();
+      const ownPublic = (
+        await api(page, "/api/me/save-shares")
+      ).data.items.find((x: { mode: string }) => x.mode === "public");
+      const before = await page.request.get(
+        origin + "/api/public/save-shares/" + ownPublic.id,
+      );
+      const beforeEdit = await before.json();
+      expect(beforeEdit.progress).toBe("chapter");
+      expect(beforeEdit.spoiler).toBe(true);
+      await manager.getByRole("button", { name: "刷新审核队列" }).click();
+      await expect(
+        reviewCard.getByRole("heading", { name: "待审核内容", exact: true }),
+      ).toBeVisible();
+      await expect(reviewCard.getByText("通关", { exact: true })).toBeVisible();
+      await expect(
+        reviewCard.getByText("章节节点", { exact: true }),
+      ).toBeVisible();
+      await manager.getByRole("button", { name: "批准发布" }).click();
+      await expect(
+        manager.getByText("暂无待处理条目", { exact: true }),
+      ).toBeVisible();
+      const after = await page.request.get(
+        origin + "/api/public/save-shares/" + ownPublic.id,
+      );
+      const afterEdit = await after.json();
+      expect(afterEdit.progress).toBe("complete");
+      expect(afterEdit.spoiler).toBe(false);
     } finally {
       await admin.close();
     }
@@ -151,4 +212,144 @@ test("anonymous invalid links and public moderation endpoints stay isolated on n
   expect((await page.request.get(publicOrigin + "/share-admin")).status()).toBe(
     404,
   );
+});
+
+test("public version and progress filters persist through the next page and reset its cursor on submit", async ({
+  page,
+}) => {
+  const { DatabaseSync } = await import("node:sqlite");
+  const database = process.env.WG_ACCOUNT_DATABASE!;
+  expect(database).toContain("/state/sharing-test/");
+  const catalog = await (
+    await page.request.get(publicOrigin + "/api/catalog")
+  ).json();
+  const work = catalog.find(
+    (w: { versions: unknown[] }) => w.versions.length > 1,
+  );
+  expect(work).toBeTruthy();
+  const [one, two] = work.versions;
+  await page.goto(origin + "/account");
+  await authenticator(page);
+  expect((await register(page, "Filter Fixture Author")).status).toBe(200);
+  await page.reload();
+  await page
+    .getByRole("combobox", { name: "存档所属版本" })
+    .selectOption(one.id);
+  await page
+    .getByLabel("游戏导出的存档文件")
+    .setInputFiles({
+      name: "filter-fixture.dat",
+      mimeType: "application/octet-stream",
+      buffer: Buffer.from("Synthetic pagination fixture"),
+    });
+  await page
+    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .click();
+  await page.getByRole("button", { name: "分享这份存档" }).waitFor();
+  const profile = (await api(page, "/api/me/save-profiles")).data[0];
+  const revision = (
+    await api(page, `/api/me/save-profiles/${profile.id}/revisions`)
+  ).data.items[0];
+  const templateShare = await api(page, "/api/me/save-shares", {
+    profileId: profile.id,
+    revisionId: revision.id,
+    generation: profile.generation,
+    mode: "public",
+    title: "Filter template",
+    description: "",
+    progress: "chapter",
+    spoiler: false,
+    requestId: crypto.randomUUID(),
+  });
+  expect(templateShare.status).toBe(201);
+  const db = new DatabaseSync(database);
+  const ids: string[] = [];
+  try {
+    db.exec("PRAGMA busy_timeout=5000");
+    const template = db
+      .prepare("SELECT * FROM wg_save_shares WHERE id=?")
+      .get(templateShare.data.id)!;
+    expect(template).toBeTruthy();
+    // Isolated list fixtures reuse immutable bytes; public visibility still checks source generation.
+    for (let n = 0; n < 70; n++) {
+      const id = "browser-filter-" + n;
+      ids.push(id);
+      const v = n % 3 === 0 ? two : one;
+      const progress = n % 3 === 1 ? "route" : "complete";
+      db.prepare(
+        "INSERT INTO wg_save_shares SELECT ?,owner,profile,generation,revision,?,?,'public',NULL,'active',NULL,files,?,NULL,1,?,?,payload FROM wg_save_shares WHERE id=?",
+      ).run(
+        id,
+        v.id,
+        work.id,
+        JSON.stringify({
+          title: `Filter example ${n}`,
+          description: "Synthetic list fixture",
+          spoiler: false,
+          progress,
+        }),
+        Date.now() + n,
+        id,
+        template.id,
+      );
+    }
+    await page.goto(publicOrigin + work.url);
+    await page.getByLabel("游戏版本", { exact: true }).selectOption(one.id);
+    await page.getByLabel("进度类型", { exact: true }).selectOption("complete");
+    await page.getByRole("button", { name: "筛选玩家存档" }).click();
+    await expect(page.locator("[data-public-share-id]")).toHaveCount(20);
+    const first = await page
+      .locator("[data-public-share-id]")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => n.getAttribute("data-public-share-id")),
+      );
+    await page.getByRole("link", { name: "更多玩家存档" }).click();
+    await expect(page).toHaveURL(/saveCursor=/);
+    await expect(page.getByLabel("游戏版本", { exact: true })).toHaveValue(
+      one.id,
+    );
+    await expect(page.getByLabel("进度类型", { exact: true })).toHaveValue(
+      "complete",
+    );
+    expect(new URL(page.url()).searchParams.get("saveCursor")).toBeTruthy();
+    const second = await page
+      .locator("[data-public-share-id]")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => n.getAttribute("data-public-share-id")),
+      );
+    expect(second.length).toBe(3);
+    expect(second.some((id) => first.includes(id))).toBe(false);
+    expect(
+      [...first, ...second].every(
+        (id) => Number(id!.split("-").at(-1)) % 3 === 2,
+      ),
+    ).toBe(true);
+    await page.getByLabel("进度类型", { exact: true }).selectOption("route");
+    await page.getByRole("button", { name: "筛选玩家存档" }).click();
+    await expect(page).toHaveURL(/saveProgress=route/);
+    expect(new URL(page.url()).searchParams.has("saveCursor")).toBe(false);
+    const routes = await page
+      .locator("[data-public-share-id]")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => n.getAttribute("data-public-share-id")),
+      );
+    expect(routes.length).toBe(20);
+    expect(routes.every((id) => Number(id!.split("-").at(-1)) % 3 === 1)).toBe(
+      true,
+    );
+    await page.reload();
+    await expect(page.getByLabel("进度类型", { exact: true })).toHaveValue(
+      "route",
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1,
+      ),
+    ).toBe(true);
+  } finally {
+    for (const id of ids)
+      db.prepare("DELETE FROM wg_save_shares WHERE id=?").run(id);
+    db.close();
+  }
 });

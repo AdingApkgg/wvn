@@ -44,7 +44,11 @@ export async function sharingFixture(persistent = false) {
       ],
     },
   ];
-  const policy = new modules[1].CatalogPolicy(async () => catalog);
+  let unavailable = false;
+  const policy = new modules[1].CatalogPolicy(async () => {
+    if (unavailable) throw new Error("catalog offline");
+    return catalog;
+  });
   await policy.refresh(true);
   const ledger = new modules[2].ShareLedger(join(root, "revoked.jsonl"));
   const shares = new modules[0].ShareStore(db, saves, policy, ledger);
@@ -88,6 +92,10 @@ export async function sharingFixture(persistent = false) {
     revision,
     input,
     content,
+    offline: async () => {
+      unavailable = true;
+      await policy.refresh(true).catch(() => {});
+    },
     hide: async () => {
       catalog = [];
       await policy.refresh(true);

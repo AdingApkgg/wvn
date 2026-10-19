@@ -77,7 +77,9 @@ const a = await browser.newContext({ ignoreHTTPSErrors: true }),
   b = await browser.newContext({ ignoreHTTPSErrors: true }),
   m = await browser.newContext({ ignoreHTTPSErrors: true });
 const errors = [],
-  layouts = [];
+  layouts = [],
+  polish = process.env.WG_SHARING_POLISH_ACCEPTANCE === "1",
+  ephemeral = [];
 async function screenshot(page, name, width, height) {
   await page.setViewportSize({ width, height });
   const content = await page.evaluate(
@@ -140,6 +142,7 @@ try {
   const own = (await api(author, "/api/me/save-shares")).data.items;
   const published = own.find((s) => s.mode === "public");
   const manager = await m.newPage();
+  manager.on("pageerror", (error) => errors.push(error.message));
   await manager.goto(adminOrigin + "/share-admin");
   await manager
     .getByLabel("管理令牌")
@@ -147,14 +150,73 @@ try {
       readFileSync("state/accounts-preview/share-admin-token", "utf8").trim(),
     );
   await manager.getByRole("button", { name: "进入审核后台" }).click();
-  await manager.getByText(published.title, { exact: true }).waitFor();
+  const reviewCard = manager.locator(`[data-share-id="${published.id}"]`);
+  await reviewCard.waitFor();
+  if (polish) {
+    await reviewCard
+      .getByText("wg-preview-synthetic.dat", { exact: true })
+      .waitFor();
+    assert.equal(
+      await reviewCard.locator("code").first().innerText(),
+      createHash("sha256").update(synthetic).digest("hex"),
+    );
+    await screenshot(manager, "moderation-files-desktop", 1440, 1000);
+    await screenshot(manager, "moderation-files-mobile", 390, 844);
+    await manager.setViewportSize({ width: 1440, height: 1000 });
+  }
   await manager
     .getByLabel("审核原因")
     .fill(
       "Isolated preview synthetic acceptance; not a compatibility certification",
     );
-  await manager.getByRole("button", { name: "批准发布" }).click();
-  await manager.getByText("暂无待处理条目", { exact: true }).waitFor();
+  await reviewCard.getByRole("button", { name: "批准发布" }).click();
+  await reviewCard.waitFor({ state: "detached" });
+  if (polish) {
+    await author
+      .getByRole("button", { name: "刷新分享列表", exact: true })
+      .click();
+    const ownCard = author
+      .locator(".account-pending")
+      .filter({
+        has: author.getByRole("heading", {
+          name: published.title,
+          exact: true,
+        }),
+      });
+    await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
+    const edit = author.getByRole("alertdialog");
+    await edit.getByLabel("进度类型", { exact: true }).selectOption("complete");
+    await edit.getByLabel("含剧透说明").uncheck();
+    await screenshot(author, "edit-progress-mobile", 390, 844);
+    await edit.getByRole("button", { name: "保存说明", exact: true }).click();
+    await edit.waitFor({ state: "detached" });
+    await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
+    assert.equal(
+      await edit.getByLabel("进度类型", { exact: true }).inputValue(),
+      "complete",
+    );
+    assert.equal(await edit.getByLabel("含剧透说明").isChecked(), false);
+    await edit.getByRole("button", { name: "取消", exact: true }).click();
+    const before = (
+      await api(author, "/api/public/save-shares/" + published.id)
+    ).data;
+    assert.equal(before.progress, "chapter");
+    assert.equal(before.spoiler, true);
+    await manager.getByRole("button", { name: "刷新审核队列" }).click();
+    await reviewCard
+      .getByRole("heading", { name: "待审核内容", exact: true })
+      .waitFor();
+    await reviewCard.getByText("通关", { exact: true }).waitFor();
+    await reviewCard.getByText("章节节点", { exact: true }).waitFor();
+    await screenshot(manager, "moderation-edit-desktop", 1440, 1000);
+    await screenshot(manager, "moderation-edit-mobile", 390, 844);
+    await reviewCard.getByRole("button", { name: "批准发布" }).click();
+    await reviewCard.waitFor({ state: "detached" });
+    const after = (await api(author, "/api/public/save-shares/" + published.id))
+      .data;
+    assert.equal(after.progress, "complete");
+    assert.equal(after.spoiler, false);
+  }
   await screenshot(manager, "moderation-desktop", 1440, 1000);
   const recipient = await b.newPage();
   recipient.on("pageerror", (e) => errors.push(e.message));
@@ -305,10 +367,136 @@ try {
   const catalog = (await api(author, "/api/account-catalog")).data,
     work = catalog.find((w) => w.versions.some((v) => v.id === version));
   const gallery = await browser.newPage();
+  gallery.on("pageerror", (error) => errors.push(error.message));
   await gallery.goto(publicOrigin + work.url);
-  await gallery.getByText(published.title, { exact: true }).waitFor();
+  await gallery.locator(`[data-public-share-id="${published.id}"]`).waitFor();
   await screenshot(gallery, "work-desktop", 1440, 1000);
   await screenshot(gallery, "work-mobile", 390, 844);
+  let filteredPages = 0;
+  if (polish) {
+    const expected = new Set([published.id]);
+    for (let n = 0; n < 4; n++) {
+      const context = await browser.newContext({ ignoreHTTPSErrors: true });
+      const fixture = await context.newPage();
+      ephemeral.push({ context, page: fixture });
+      await fixture.goto(origin + "/account");
+      await authenticator(fixture);
+      await register(fixture, `分页验收 ${n + 1} · 临时合成账号`);
+      await fixture.reload();
+      await fixture
+        .getByRole("combobox", { name: "存档所属版本" })
+        .selectOption(version);
+      await fixture
+        .getByLabel("游戏导出的存档文件")
+        .setInputFiles({
+          name: "pagination-synthetic.dat",
+          mimeType: "application/octet-stream",
+          buffer: Buffer.from(synthetic),
+        });
+      await fixture
+        .getByRole("button", { name: "保留云端历史，保存为新备份" })
+        .click();
+      await fixture.getByRole("button", { name: "分享这份存档" }).waitFor();
+      const profile = (await api(fixture, "/api/me/save-profiles")).data[0];
+      const revision = (
+        await api(fixture, `/api/me/save-profiles/${profile.id}/revisions`)
+      ).data.items[0];
+      for (let j = 0; j < 5; j++) {
+        const made = await api(fixture, "/api/me/save-shares", {
+          profileId: profile.id,
+          revisionId: revision.id,
+          generation: profile.generation,
+          mode: "public",
+          requestId: crypto.randomUUID(),
+          title: `分页验收 ${n + 1}-${j + 1} · 临时合成文件`,
+          description:
+            "Only used by preview pagination acceptance; removed afterward.",
+          progress: "complete",
+          spoiler: false,
+        });
+        assert.equal(made.status, 201);
+        expected.add(made.data.id);
+        const status = await manager.evaluate(async (id) => {
+          const response = await fetch(`/api/share-admin/${id}/moderate`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              revision: 1,
+              action: "approve",
+              reason: "Synthetic pagination acceptance",
+            }),
+          });
+          return response.status;
+        }, made.data.id);
+        assert.equal(status, 200);
+      }
+    }
+    await gallery.goto(publicOrigin + work.url);
+    await gallery.getByLabel("游戏版本", { exact: true }).selectOption(version);
+    await gallery
+      .getByLabel("进度类型", { exact: true })
+      .selectOption("complete");
+    await gallery.getByRole("button", { name: "筛选玩家存档" }).click();
+    await gallery.waitForURL(
+      (url) => url.searchParams.get("saveProgress") === "complete",
+    );
+    const seen = new Set();
+    for (let pageIndex = 0; pageIndex < 20; pageIndex++) {
+      filteredPages++;
+      assert.equal(
+        await gallery.getByLabel("游戏版本", { exact: true }).inputValue(),
+        version,
+      );
+      assert.equal(
+        await gallery.getByLabel("进度类型", { exact: true }).inputValue(),
+        "complete",
+      );
+      const ids = await gallery
+        .locator("[data-public-share-id]")
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.getAttribute("data-public-share-id")),
+        );
+      for (const id of ids) {
+        assert.ok(!seen.has(id));
+        seen.add(id);
+      }
+      const next = gallery.getByRole("link", { name: "更多玩家存档" });
+      if (!(await next.count())) break;
+      const before = gallery.url();
+      await next.click();
+      await gallery.waitForURL((url) => url.href !== before);
+    }
+    assert.ok(filteredPages >= 2);
+    for (const id of expected) assert.ok(seen.has(id), id);
+    await screenshot(gallery, "filtered-next-page-desktop", 1440, 1000);
+    await screenshot(gallery, "filtered-next-page-mobile", 390, 844);
+    await gallery
+      .getByLabel("进度类型", { exact: true })
+      .selectOption("chapter");
+    await gallery.getByRole("button", { name: "筛选玩家存档" }).click();
+    await gallery.waitForURL(
+      (url) => url.searchParams.get("saveProgress") === "chapter",
+    );
+    assert.equal(new URL(gallery.url()).searchParams.has("saveCursor"), false);
+    // Delete only credentials created in this run; deletion withdraws the 20 temporary shares.
+    for (const fixture of ephemeral) {
+      const status = await fixture.page.evaluate(async () => {
+        const me = await (await fetch("/api/me")).json();
+        return (
+          await fetch("/api/me", {
+            method: "DELETE",
+            headers: {
+              "content-type": "application/json",
+              "x-wg-binding": me.binding,
+            },
+            body: JSON.stringify({ confirmation: "DELETE" }),
+          })
+        ).status;
+      });
+      assert.equal(status, 200);
+      fixture.deleted = true;
+    }
+  }
   await gallery.close();
   assert.deepEqual(errors, []);
   const receipt = {
@@ -323,6 +511,14 @@ try {
     publicWorkUrl: publicOrigin + work.url,
     publicShareUrl: origin + "/s/" + published.id,
     examples: "synthetic files explicitly labelled; not game saves",
+    ...(polish
+      ? {
+          combinedFilterPages: filteredPages,
+          progressEditAndPendingApproval: "passed",
+          moderationManifest: "passed",
+          temporaryPaginationAccountsDeleted: ephemeral.every((f) => f.deleted),
+        }
+      : {}),
     authorNamespaceIndependent: true,
     revokedSourceDenied: true,
     recipientCopyReadableAfterRevoke: true,
@@ -343,6 +539,30 @@ try {
   );
   console.log(JSON.stringify(receipt));
 } finally {
+  for (const fixture of ephemeral) {
+    if (!fixture.deleted) {
+      try {
+        await fixture.page.evaluate(async () => {
+          const response = await fetch("/api/me");
+          if (!response.ok) return;
+          const me = await response.json();
+          await fetch("/api/me", {
+            method: "DELETE",
+            headers: {
+              "content-type": "application/json",
+              "x-wg-binding": me.binding,
+            },
+            body: JSON.stringify({ confirmation: "DELETE" }),
+          });
+        });
+      } catch {
+        console.error(
+          "Temporary synthetic account cleanup did not finish; inspect this run before retrying",
+        );
+      }
+    }
+    await fixture.context.close();
+  }
   await a.close();
   await b.close();
   await m.close();

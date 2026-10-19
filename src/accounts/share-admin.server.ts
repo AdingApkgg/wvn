@@ -64,9 +64,10 @@ export function createShareAdminApp(
     });
     return c.json({ ok: true });
   });
-  app.get("/api/share-admin/queue", (c) =>
-    c.json(service.sharing?.queue() ?? []),
-  );
+  app.get("/api/share-admin/queue", async (c) => {
+    await service.sharing?.catalog.refresh().catch(() => {});
+    return c.json(service.sharing?.queue() ?? []);
+  });
   app.get("/api/share-admin/audit", (c) =>
     c.json(
       service.db

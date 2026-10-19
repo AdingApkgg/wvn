@@ -172,3 +172,89 @@ test("missing source profiles fail closed even if a legacy process omitted the s
     f.close();
   }
 });
+
+test("version and approved-progress filters page before limiting and ignore pending edits", async () => {
+  const f = await sharingFixture();
+  try {
+    const made = f.shares.create("alice", { ...f.input, mode: "public" });
+    f.shares.moderate(made.id, 1, "approve", "checked");
+    for (let n = 0; n < 65; n++) {
+      const progress = n % 3 === 0 ? "complete" : "route";
+      f.db
+        .prepare(
+          "INSERT INTO wg_save_shares SELECT ?,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,?,pending,metadata_revision,?,?,payload FROM wg_save_shares WHERE id=?",
+        )
+        .run(
+          "filter-" + String(n).padStart(3, "0"),
+          JSON.stringify({
+            description: "",
+            spoiler: false,
+            progress,
+            title: "Filtered " + n,
+          }),
+          Date.now() + n,
+          "filter-request-" + n,
+          made.id,
+        );
+    }
+    f.shares.edit("alice", made.id, 1, { ...f.input, progress: "complete" });
+    let cursor: string | undefined;
+    const ids: string[] = [];
+    do {
+      const page = f.shares.listPublic("v4", "version-a", cursor, "complete");
+      assert.ok(
+        page.items.every(
+          (s) => s.progress === "complete" && s.version.id === "version-a",
+        ),
+      );
+      ids.push(...page.items.map((s) => s.id));
+      cursor = page.next ?? undefined;
+    } while (cursor);
+    assert.equal(ids.length, 22);
+    assert.equal(new Set(ids).size, 22);
+    assert.ok(!ids.includes(made.id));
+    assert.equal(
+      f.shares.listPublic("v4", "not-a-version", undefined, "complete").items
+        .length,
+      0,
+    );
+    assert.throws(
+      () => f.shares.listPublic("v4", undefined, undefined, "wrong"),
+      /FILTER_INVALID/,
+    );
+  } finally {
+    f.close();
+  }
+});
+
+test("private moderation projects full metadata and immutable manifest even when catalog is hidden", async () => {
+  const f = await sharingFixture();
+  try {
+    const made = f.shares.create("alice", { ...f.input, mode: "public" });
+    let item = f.shares.queue()[0];
+    assert.equal(item.work?.title, "Story");
+    assert.equal(item.version?.id, "version-a");
+    assert.equal(item.version?.engine, "ONS");
+    assert.equal(item.author, "Alice");
+    assert.deepEqual(item.files, f.revision.files);
+    assert.equal(item.bytes, f.content.length);
+    assert.equal(item.catalogStatus, "visible");
+    const raw = JSON.stringify(item);
+    for (const privateValue of [f.p.id, f.revision.id, "alice", f.root])
+      assert.ok(!raw.includes(privateValue));
+    await f.hide();
+    item = f.shares.queue()[0];
+    assert.equal(item.catalogStatus, "hidden");
+    assert.equal(item.versionId, "version-a");
+    assert.equal(item.workId, "v4");
+    assert.equal(item.files[0].sha256, f.revision.files[0].sha256);
+    await f.offline();
+    const offlineItem = f.shares.queue()[0];
+    assert.equal(offlineItem.catalogStatus, "unavailable");
+    assert.equal(offlineItem.files[0].sha256, f.revision.files[0].sha256);
+    f.shares.moderate(made.id, 1, "block", "Version unavailable");
+    assert.equal(f.shares.queue().length, 0);
+  } finally {
+    f.close();
+  }
+});

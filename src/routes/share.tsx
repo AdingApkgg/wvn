@@ -1,3 +1,4 @@
+import { SHARE_PROGRESS } from "../accounts/share-metadata";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { useAccount, AccountClientError, errorCopy } from "../accounts/client";
@@ -151,6 +152,9 @@ export default function Share() {
             <Card>
               <CardHeader>
                 <CardTitle>存档说明</CardTitle>
+                <CardDescription>
+                  进度类型 · {SHARE_PROGRESS[view.progress]}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {view.spoiler ? (

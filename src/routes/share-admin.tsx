@@ -17,15 +17,24 @@ import {
   TableHead,
   TableCell,
 } from "../components/ui/table";
-import type { ShareText } from "../accounts/share-types";
-type Item = {
-  id: string;
-  metadataRevision: number;
-  mode: string;
-  pending: ShareText | null;
-  approved: ShareText | null;
-  reports: { id: string; reason: string }[];
-};
+import type { ShareText, ModerationShare } from "../accounts/share-types";
+import { SHARE_PROGRESS } from "../accounts/share-metadata";
+type Item = ModerationShare;
+function ReviewText({ label, text }: { label: string; text: ShareText }) {
+  return (
+    <section className="rounded-lg border p-4 space-y-2">
+      <h3 className="font-medium">{label}</h3>
+      <p className="break-words">标题：{text.title}</p>
+      <div className="flex gap-2 flex-wrap text-sm">
+        <span>{SHARE_PROGRESS[text.progress]}</span>
+        <span>{text.spoiler ? "含剧透说明" : "不含剧透说明"}</span>
+      </div>
+      <p className="whitespace-pre-wrap break-words">
+        {text.description || "作者未填写说明。"}
+      </p>
+    </section>
+  );
+}
 export function meta() {
   return [
     { title: "分享审核 · WG" },
@@ -130,7 +139,7 @@ export default function ShareAdmin() {
           </div>
           {!items.length && <p>暂无待处理条目</p>}
           {items.map((item) => (
-            <Card key={item.id}>
+            <Card key={item.id} data-share-id={item.id}>
               <CardHeader>
                 <CardTitle>{(item.pending || item.approved)?.title}</CardTitle>
                 <CardDescription>
@@ -139,14 +148,73 @@ export default function ShareAdmin() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {item.approved && (
-                  <p>已批准文案：{item.approved.description}</p>
-                )}
-                {item.pending && (
-                  <p className="whitespace-pre-wrap break-words">
-                    待审说明：{item.pending.description}
+                <section className="space-y-2 text-sm">
+                  <h3 className="font-medium">作品与版本</h3>
+                  <p className="break-words">
+                    {item.work?.title ?? "作品信息暂不可读取"} · {item.workId}
                   </p>
-                )}
+                  <p className="break-words">
+                    {item.version
+                      ? `版本 ${item.version.number} · ${item.version.title} · ${item.version.engine}`
+                      : "版本信息暂不可读取"}
+                  </p>
+                  <p className="break-all text-muted-foreground">
+                    版本标识：{item.versionId}
+                  </p>
+                  {item.catalogStatus !== "visible" && (
+                    <p role="status">
+                      {item.catalogStatus === "hidden"
+                        ? "此版本已下线，不能批准发布。"
+                        : "游戏目录暂不可用，批准时会重新验证。"}{" "}
+                      仍可下架或处理举报。
+                    </p>
+                  )}
+                  <p>发布者：{item.author}</p>
+                  <p>
+                    创建于 {new Date(item.createdAt).toLocaleString()}
+                    {item.expiresAt
+                      ? ` · 到期于 ${new Date(item.expiresAt).toLocaleString()}`
+                      : " · 长期公开"}
+                  </p>
+                </section>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {item.approved && (
+                    <ReviewText
+                      label={
+                        item.mode === "public"
+                          ? "当前已批准内容"
+                          : "当前分享内容"
+                      }
+                      text={item.approved}
+                    />
+                  )}
+                  {item.pending && (
+                    <ReviewText label="待审核内容" text={item.pending} />
+                  )}
+                </div>
+                <section className="space-y-3">
+                  <h3 className="font-medium">
+                    固定快照文件 · {item.files.length} 个 · {item.bytes} 字节
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    仅展示文件清单；SHA256 校验不代表游戏兼容性或文件隐私审核。
+                  </p>
+                  <ul className="space-y-3 text-sm">
+                    {item.files.map((file) => (
+                      <li
+                        key={file.name}
+                        className="rounded-lg border p-3 space-y-1 min-w-0"
+                      >
+                        <p className="break-all">{file.name}</p>
+                        <p>{file.bytes} 字节</p>
+                        <p className="text-xs text-muted-foreground">SHA256</p>
+                        <code className="block break-all text-xs">
+                          {file.sha256}
+                        </code>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
                 {item.reports.length > 0 && (
                   <Table>
                     <TableHeader>

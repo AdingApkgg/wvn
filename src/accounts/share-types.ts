@@ -1,8 +1,9 @@
 import type { SaveFile } from "./saves.server";
+import type { ShareProgress } from "./share-metadata";
 export type ShareText = {
   title: string;
   description: string;
-  progress: "chapter" | "route" | "complete" | "unlock" | "other";
+  progress: ShareProgress;
   spoiler: boolean;
 };
 export type ShareInput = ShareText & {
@@ -39,3 +40,23 @@ export type OwnShare = ShareView & {
   pending: ShareText | null;
 };
 export type SharePage<T = ShareView> = { items: T[]; next: string | null };
+
+export type ModerationShare = {
+  id: string;
+  mode: "public" | "link";
+  state: string;
+  metadataRevision: number;
+  createdAt: number;
+  expiresAt: number | null;
+  workId: string;
+  versionId: string;
+  work: ShareView["work"] | null;
+  version: ShareView["version"] | null;
+  catalogStatus: "visible" | "hidden" | "unavailable";
+  author: string;
+  files: SaveFile[];
+  bytes: number;
+  pending: ShareText | null;
+  approved: ShareText | null;
+  reports: { id: string; reason: string; created: number }[];
+};

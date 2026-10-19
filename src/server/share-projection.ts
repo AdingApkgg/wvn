@@ -1,8 +1,12 @@
+import {
+  isShareProgress,
+  type ShareProgress,
+} from "../accounts/share-metadata";
 export type PublicShareCard = {
   id: string;
   title: string;
   description: string;
-  progress: string;
+  progress: ShareProgress;
   spoiler: boolean;
   author: string;
   bytes: number;
@@ -19,10 +23,10 @@ export async function projectShares(
   work: string,
   versions: Set<string>,
   config: { backend: string; account: string },
-  version?: string,
-  cursor?: string,
+  filters: { version?: string; cursor?: string; progress?: ShareProgress } = {},
   fetcher: typeof fetch = fetch,
 ): Promise<PublicShareProjection> {
+  const { version, cursor, progress } = filters;
   const empty = {
     available: false,
     items: [],
@@ -49,6 +53,8 @@ export async function projectShares(
       url.searchParams.set("versionId", version);
     if (cursor && /^[a-zA-Z0-9-]{1,100}$/.test(cursor))
       url.searchParams.set("cursor", cursor);
+    if (progress && isShareProgress(progress))
+      url.searchParams.set("progress", progress);
     const response = await fetcher(url, {
       credentials: "omit",
       redirect: "error",
@@ -72,7 +78,13 @@ export async function projectShares(
       return empty;
     const items: PublicShareCard[] = [];
     for (const x of data.items) {
-      if (x.work?.id !== work || !versions.has(x.version?.id)) continue;
+      if (
+        x.work?.id !== work ||
+        !versions.has(x.version?.id) ||
+        (version && versions.has(version) && x.version.id !== version) ||
+        (progress && x.progress !== progress)
+      )
+        continue;
       if (
         !/^[a-zA-Z0-9-]{1,100}$/.test(x.id) ||
         typeof x.title !== "string" ||
@@ -81,7 +93,7 @@ export async function projectShares(
         x.description.length > 6000 ||
         typeof x.author !== "string" ||
         x.author.length > 160 ||
-        typeof x.progress !== "string" ||
+        !isShareProgress(x.progress) ||
         typeof x.spoiler !== "boolean" ||
         !Number.isSafeInteger(x.bytes) ||
         x.bytes < 0 ||
