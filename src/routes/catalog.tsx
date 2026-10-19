@@ -1,3 +1,12 @@
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "../components/ui/native-select";
+import { Badge } from "../components/ui/badge";
+import { Search } from "lucide-react";
 import { Form, Link, useLoaderData } from "react-router";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
@@ -48,7 +57,9 @@ export default function Catalog() {
         <Link className="brand" to="/">
           WG<span>故事放映室</span>
         </Link>
-        <span className="eyebrow">REMOTE PREVIEW · 远程预览</span>
+        <Badge variant="outline" className="preview-badge">
+          远程预览
+        </Badge>
       </header>
       <main className="container">
         <section className="hero">
@@ -79,52 +90,62 @@ export default function Catalog() {
           method="get"
           role="search"
         >
-          <label className="search">
-            <span>搜索作品</span>
-            <input
+          <div className="search field">
+            <Label htmlFor="catalog-search">搜索作品</Label>
+            <Input
+              id="catalog-search"
               type="search"
               name="q"
               defaultValue={q}
               placeholder="标题、别名或 VNDB / BGM 编号"
             />
-          </label>
-          <label>
-            <span>引擎</span>
-            <select name="engine" defaultValue={engine}>
-              <option value="">全部引擎</option>
+          </div>
+          <div className="field">
+            <Label htmlFor="catalog-engine">引擎</Label>
+            <NativeSelect
+              id="catalog-engine"
+              name="engine"
+              defaultValue={engine}
+            >
+              <NativeSelectOption value="">全部引擎</NativeSelectOption>
               {["ONS", "Artemis", "RenPy", "Tyrano"].map((x) => (
-                <option key={x}>{x}</option>
+                <NativeSelectOption key={x}>{x}</NativeSelectOption>
               ))}
-            </select>
-          </label>
-          <label>
-            <span>检查记录</span>
-            <select name="state" defaultValue={state}>
-              <option value="">全部状态</option>
-              <option value="unchecked">未导入检查</option>
-              <option value="passed">有通过记录</option>
-              <option value="failed">有失败记录</option>
-              <option value="incomplete">检查未完成</option>
-            </select>
-          </label>
-          <button className="button">查找</button>
+            </NativeSelect>
+          </div>
+          <div className="field">
+            <Label htmlFor="catalog-state">检查记录</Label>
+            <NativeSelect id="catalog-state" name="state" defaultValue={state}>
+              <NativeSelectOption value="">全部状态</NativeSelectOption>
+              <NativeSelectOption value="unchecked">
+                未导入检查
+              </NativeSelectOption>
+              <NativeSelectOption value="passed">有通过记录</NativeSelectOption>
+              <NativeSelectOption value="failed">有失败记录</NativeSelectOption>
+              <NativeSelectOption value="incomplete">
+                检查未完成
+              </NativeSelectOption>
+            </NativeSelect>
+          </div>
+          <Button type="submit">
+            <Search aria-hidden="true" />
+            查找
+          </Button>
           {(q || engine || state) && (
-            <Link to="/" className="clear">
-              清除
-            </Link>
+            <Button asChild variant="ghost">
+              <Link to="/">清除</Link>
+            </Button>
           )}
         </Form>
         <div className="section-title">
           <h2>故事目录</h2>
           <span>{items.length} 部作品</span>
         </div>
-        <div className="grid">
+        <div className="story-grid">
           {items.map((w, i) => (
             <Link key={w.id} to={w.url} className="story-card">
               <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
-                <span className="card-index">
-                  {workSlug(w.id).padStart(5, "0")}
-                </span>
+                <span className="card-index">{workSlug(w.id)}</span>
                 <span className="art-line" />
                 <span className="art-symbol">
                   {["✦", "◌", "✧", "◇", "⋆"][i % 5]}
@@ -140,7 +161,7 @@ export default function Catalog() {
                 <h3>{w.title}</h3>
                 <p>{w.originalTitle}</p>
                 <div className="card-footer">
-                  <span>{w.versions.length} 个版本</span>
+                  <Badge variant="secondary">{w.versions.length} 个版本</Badge>
                   <span>阅读详情 ↗</span>
                 </div>
               </div>
@@ -151,7 +172,9 @@ export default function Catalog() {
           <div className="empty">
             <h2>暂时没有匹配的故事</h2>
             <p>试试其他标题、别名或编号。</p>
-            <Link to="/">清除筛选</Link>
+            <Button asChild variant="outline">
+              <Link to="/">清除筛选</Link>
+            </Button>
           </div>
         )}
         <footer>

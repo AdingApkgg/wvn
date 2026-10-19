@@ -1,6 +1,6 @@
 # WG Manager
 
-React Router 8 framework SSR、Hono、Vite 8、TypeScript 与 SQLite 的作品/版本目录。原游戏文件保留在 Windows `H:\wg`，应用只保存元数据和资源映射。当前为隔离预览，未切生产。
+React Router 8 framework SSR、Hono、Vite 8、TypeScript 与 SQLite 的作品/版本目录。界面使用 shadcn/ui（new-york / Radix）和 Tailwind v4；前台保留故事放映室主题，后台使用标准管理组件。原游戏文件保留在 Windows `H:\wg`，应用只保存元数据和资源映射。当前为隔离预览，未切生产。
 
 ## 路由与数据
 

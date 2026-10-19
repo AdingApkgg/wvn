@@ -8,9 +8,10 @@ import {
   useRouteError,
 } from "react-router";
 import "./styles.css";
+import { Button } from "./components/ui/button";
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className="dark">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -41,9 +42,9 @@ export function ErrorBoundary() {
           : "页面暂时无法打开"}
       </h1>
       <p>请返回目录，或稍后再试。</p>
-      <a className="button" href="/">
-        返回目录
-      </a>
+      <Button asChild>
+        <a href="/">返回目录</a>
+      </Button>
     </main>
   );
 }

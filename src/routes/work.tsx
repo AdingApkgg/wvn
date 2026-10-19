@@ -1,3 +1,6 @@
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Card } from "../components/ui/card";
 import { Link, useLoaderData } from "react-router";
 import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
@@ -30,18 +33,17 @@ export default function Work() {
           <p className="original">{w.originalTitle}</p>
           <div className="aliases">
             {w.aliases.slice(0, 8).map((x) => (
-              <span key={x}>{x}</span>
+              <Badge key={x} variant="secondary">
+                {x}
+              </Badge>
             ))}
           </div>
         </div>
-        <a
-          className="external"
-          href={providerLink(w.id)}
-          target="_blank"
-          rel="noreferrer"
-        >
-          在 {providerName(w.id)} 查看 ↗
-        </a>
+        <Button asChild variant="outline" className="external">
+          <a href={providerLink(w.id)} target="_blank" rel="noreferrer">
+            在 {providerName(w.id)} 查看 ↗
+          </a>
+        </Button>
       </section>
       <div className="section-title">
         <h2>选择一个版本</h2>
@@ -49,7 +51,7 @@ export default function Work() {
       </div>
       <div className="version-list">
         {w.versions.map((v) => (
-          <article key={v.id} className="version">
+          <Card key={v.id} className="version">
             <span className="slot">{String(v.number).padStart(2, "0")}</span>
             <div className="version-info">
               <p className="eyebrow">
@@ -74,10 +76,10 @@ export default function Work() {
                 </small>
               ))}
             </div>
-            <Link to={v.url} className="button">
-              开始 ↗
-            </Link>
-          </article>
+            <Button asChild className="story-start">
+              <Link to={v.url}>开始 ↗</Link>
+            </Button>
+          </Card>
         ))}
       </div>
       <p className="note">

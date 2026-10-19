@@ -58,3 +58,7 @@ Windows `WVN-STORAGE`，Node24.12，目录 `H:\wg-manager-preview-20261019`：22
 - 实际监听仍仅 127.0.0.1:8281/8282，用户预览入口 http://127.0.0.1:18281/b315601/ 。生产 Caddyfile SHA256 仍为 313a06303c4ad24b14cc535bda718f09c08b3c2c0ef72110bf4d843f5af0657f，未切生产。H 盘可用 119960489984 字节（约111.7 GiB）。
 
 部署辅助脚本曾因 Windows PowerShell 的 native 参数引号及 JSON 数组包装中断；改为标准输入执行 Node 和直接比对 SQLite 一致性备份后验收通过。应用回归无失败遗留。
+
+## shadcn 统一界面补充（2026-10-19）
+
+前台保留深色暖金与故事卡片；后台采用标准Card、Tabs、Accordion、Table、表单及确认弹窗。Linux 16项测试、类型检查、构建与8项浏览器回归通过；Windows235项HTTP检查通过，实际前后台只读浏览器验收通过。验收前后数据库完全一致，生产配置未变，未切生产。详见 [统一界面验收](shadcn-preview.md)。

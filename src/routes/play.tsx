@@ -34,12 +34,24 @@ export function meta({
     },
   ];
 }
+import { Button } from "../components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "../components/ui/alert-dialog";
 export default function Play() {
   const { version, work } = useLoaderData<typeof loader>();
   const [expanded, setExpanded] = useState(false);
   const [exitRequested, setExitRequested] = useState(false);
   const [ready, setReady] = useState(false);
   const allowExit = useRef(false);
+  const backButton = useRef<HTMLButtonElement>(null);
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       currentLocation.pathname !== nextLocation.pathname,
@@ -57,18 +69,26 @@ export default function Play() {
   return (
     <main className={"player" + (expanded ? " expanded" : "")}>
       <header className="player-bar">
-        <button
+        <Button
+          variant="ghost"
+          ref={backButton}
           disabled={!ready}
           onClick={() => blocker.state !== "blocked" && setExitRequested(true)}
         >
           ← {work.title}
-        </button>
+        </Button>
         <span>
           版本 {version.number} · {version.engine}
         </span>
-        <button disabled={!ready} onClick={() => setExpanded(!expanded)}>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-pressed={expanded}
+          disabled={!ready}
+          onClick={() => setExpanded(!expanded)}
+        >
           {expanded ? "显示工具栏" : "展开画面"}
-        </button>
+        </Button>
       </header>
       <iframe
         key={version.id}
@@ -80,18 +100,30 @@ export default function Play() {
       <p className="player-note">
         存档保存在当前浏览器。远程预览与正式站点属于不同来源，存档不会自动互通。
       </p>
-      {(blocker.state === "blocked" || exitRequested) && (
-        <div className="modal-backdrop">
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="exit-title"
-            className="modal"
-          >
-            <h2 id="exit-title">离开当前故事？</h2>
-            <p>请先在游戏中保存进度。</p>
-            <button
-              className="button"
+      <AlertDialog
+        open={blocker.state === "blocked" || exitRequested}
+        onOpenChange={(open) => {
+          if (!open && !allowExit.current) {
+            if (blocker.state === "blocked") blocker.reset();
+            setExitRequested(false);
+          }
+        }}
+      >
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            backButton.current?.focus();
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>离开当前故事？</AlertDialogTitle>
+            <AlertDialogDescription>
+              请先在游戏中保存进度。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>继续阅读</AlertDialogCancel>
+            <AlertDialogAction
               onClick={() => {
                 allowExit.current = true;
                 if (blocker.state === "blocked") blocker.proceed();
@@ -99,18 +131,10 @@ export default function Play() {
               }}
             >
               离开
-            </button>
-            <button
-              onClick={() => {
-                if (blocker.state === "blocked") blocker.reset();
-                setExitRequested(false);
-              }}
-            >
-              继续阅读
-            </button>
-          </section>
-        </div>
-      )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
