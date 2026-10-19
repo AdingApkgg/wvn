@@ -748,3 +748,187 @@ footer {
     transition: none !important;
   }
 }
+
+/* Provider media stays on the preview origin so WASM cross-origin isolation is preserved. */
+.cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  z-index: 1;
+}
+.card-index {
+  z-index: 2;
+  background: #0009;
+  border-radius: 4px;
+  padding: 3px 6px;
+  color: #f2e9dd;
+}
+.work-heading-body {
+  flex: 1;
+  min-width: 0;
+}
+.work-cover {
+  width: 160px;
+  height: 240px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.work-metadata {
+  padding-top: 32px;
+}
+.metadata-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  padding: 22px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.metadata-facts > div {
+  min-width: 0;
+}
+.metadata-facts span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  margin-bottom: 8px;
+}
+.metadata-facts strong {
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.metadata-facts small {
+  font-size: 10px;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+.metadata-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 24px;
+}
+.work-metadata h2 {
+  font:
+    24px Georgia,
+    "Songti SC",
+    serif;
+  margin: 30px 0 20px;
+}
+.synopsis {
+  max-width: 880px;
+}
+.synopsis p {
+  white-space: pre-line;
+  font-size: 14px;
+  line-height: 1.95;
+  color: #c3c5ce;
+  overflow-wrap: anywhere;
+}
+.metadata-credit {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  line-height: 1.8;
+  margin-top: 16px;
+}
+.metadata-credit a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.metadata-titles {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-top: 24px;
+}
+.metadata-titles summary {
+  cursor: pointer;
+}
+.metadata-titles li {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.metadata-titles li span {
+  font:
+    10px ui-monospace,
+    monospace;
+  display: inline-block;
+  min-width: 70px;
+}
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.screenshot-grid a {
+  aspect-ratio: 16/10;
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card);
+}
+.screenshot-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.metadata-admin-summary {
+  padding: 16px;
+  margin: 20px 0;
+  background: var(--muted);
+  border-radius: var(--radius);
+}
+.metadata-admin-summary p {
+  margin-top: 8px;
+  font-size: 12px;
+}
+@media (max-width: 720px) {
+  .work-heading.has-cover {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .work-heading.has-cover .work-cover {
+    width: 88px;
+    height: 132px;
+  }
+  .work-heading.has-cover h1 {
+    font-size: 28px;
+    margin-top: 0;
+  }
+  .work-heading.has-cover .external {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .work-heading.has-cover .original {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .metadata-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    padding: 16px;
+  }
+  .screenshot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+.aliases [data-slot="badge"],
+.metadata-tags [data-slot="badge"] {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.metadata-tags a {
+  max-width: 100%;
+}

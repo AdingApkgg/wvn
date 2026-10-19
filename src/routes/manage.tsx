@@ -286,6 +286,25 @@ export default function Manage() {
                           </Label>
                           <Button disabled={busy}>保存作品</Button>
                         </form>
+                        {w.metadata && (
+                          <div className="metadata-admin-summary">
+                            <Badge variant="secondary">来源资料</Badge>
+                            <p>
+                              {w.metadata.titles.length} 个标题 ·{" "}
+                              {w.metadata.cover ? "封面已缓存" : "暂无封面"} ·{" "}
+                              {w.metadata.screenshots.length} 张截图 ·{" "}
+                              {w.metadata.tags.length} 个标签
+                            </p>
+                            <p className="muted">
+                              来源：
+                              {w.metadata.sources
+                                .map((s) => s.provider.toUpperCase())
+                                .join(" / ")}{" "}
+                              · {w.metadata.fetchedAt.slice(0, 10)}
+                              。来源资料单独保存，不覆盖上面的人工编辑。
+                            </p>
+                          </div>
+                        )}
                         <h3>已有版本</h3>
                         {w.versions.map((v) => (
                           <VersionEditor

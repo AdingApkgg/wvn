@@ -1,3 +1,4 @@
+import type { WorkMetadata } from "./metadata.ts";
 export interface WorkSeed {
   id: string;
   title: string;
@@ -58,6 +59,7 @@ export interface PublicVersion {
   sortOrder: number;
 }
 export interface PublicWork extends WorkSeed {
+  metadata?: WorkMetadata;
   revision: number;
   defaultVersionId: string | null;
   url: string;

@@ -8,3 +8,8 @@ reports/
 .env
 playwright-report/
 test-results/
+media/
+__pycache__/
+data/metadata-sources/
+data/metadata-collected.json
+data/metadata-plan.json

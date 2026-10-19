@@ -1,3 +1,4 @@
+import { WorkMetadataPanel } from "../components/work-metadata";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
@@ -24,8 +25,19 @@ export default function Work() {
       <nav>
         <Link to="/">故事目录</Link> / {w.title}
       </nav>
-      <section className="work-heading">
-        <div>
+      <section
+        className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
+      >
+        {w.metadata?.cover && (
+          <img
+            className="work-cover"
+            src={w.metadata.cover.url}
+            alt={w.title + " 封面"}
+            width={w.metadata.cover.width}
+            height={w.metadata.cover.height}
+          />
+        )}
+        <div className="work-heading-body">
           <p className="eyebrow">
             {w.id.toUpperCase()} / {w.versions.length} VERSIONS
           </p>
@@ -82,6 +94,9 @@ export default function Work() {
           </Card>
         ))}
       </div>
+      {w.metadata && (
+        <WorkMetadataPanel metadata={w.metadata} title={w.title} />
+      )}
       <p className="note">
         启动检查与完整游玩体验分别记录。旧版执行入口暂时保留，以兼容已有的存档命名。
       </p>

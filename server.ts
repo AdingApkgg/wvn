@@ -12,7 +12,11 @@ const stateDir = resolve(process.env.WG_STATE_DIR ?? "state");
 mkdirSync(stateDir, { recursive: true });
 writeFileSync(resolve(stateDir, "admin-token"), auth.token, { mode: 0o600 });
 const root = resolve(process.env.WG_RESOURCE_ROOT ?? "fixtures/resources");
-const pub = createPublicApp(store, root);
+const pub = createPublicApp(
+  store,
+  root,
+  resolve(process.env.WG_MEDIA_ROOT ?? "media"),
+);
 const admin = createAdminApp(
   store,
   auth,

@@ -207,3 +207,64 @@ test("public app passes built client assets and known framework data paths to th
     f.close();
   }
 });
+test("only imported cached metadata images are served from the isolated media root", async () => {
+  const f = fixture();
+  try {
+    const file = "a".repeat(64) + ".jpg";
+    mkdirSync(join(f.root, "media"));
+    writeFileSync(join(f.root, "media", file), Buffer.from([255, 216, 255, 0]));
+    const app = createPublicApp(f.store, f.root, join(f.root, "media"));
+    assert.equal((await app.request("/media/" + file)).status, 404);
+    f.store.importMetadata(
+      {
+        schemaVersion: 1,
+        fetchedAt: "2026-10-19T02:00:00Z",
+        works: [
+          {
+            workId: "v4",
+            fetchedAt: "2026-10-19T02:00:00Z",
+            titles: [],
+            description: "",
+            descriptionSource: null,
+            cover: {
+              url: "/media/" + file,
+              sourceUrl: "https://t.vndb.org/cv/12/76012.jpg",
+              source: "vndb",
+            },
+            screenshots: [],
+            tags: [],
+            released: null,
+            developers: [],
+            languages: [],
+            platforms: [],
+            ratings: [],
+            sources: [
+              { provider: "vndb", id: "v4", url: "https://vndb.org/v4" },
+            ],
+            warnings: [],
+          },
+        ],
+      },
+      true,
+    );
+    const response = await app.request("/media/" + file);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "image/jpeg");
+    assert.equal(
+      response.headers.get("cross-origin-embedder-policy"),
+      "require-corp",
+    );
+    for (const path of [
+      "/media/catalog.db",
+      "/media/..%5csecret",
+      "/media/unknown.jpg",
+    ])
+      assert.equal((await app.request(path)).status, 404);
+    assert.equal(
+      (await app.request("/media/" + file, { method: "HEAD" })).status,
+      200,
+    );
+  } finally {
+    f.close();
+  }
+});

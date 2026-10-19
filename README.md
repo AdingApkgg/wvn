@@ -36,6 +36,8 @@ ssh -N -L 18281:127.0.0.1:8281 -L 18282:127.0.0.1:8282 storage.example.invalid
 
 管理支持显示名、别名、默认版本、版本语言/说明/排序/隐藏、不可复用的删除登记、纠正作品归属、待匹配确认、人工核实新作品登记与验证报告导入。不提供 shell、批量转换、源文件删除或服务操作。报告的自由文本只在私有接口中返回。
 
+来源元数据独立保存，封面及截图使用同源缓存，支持来源标题搜索、标签筛选和资料溯源。更新已有目录先运行 `node --import tsx scripts/import-metadata.ts` 审查 dry-run，再加 `--apply` 导入，不重跑 seed。详见 [元数据预览](docs/metadata-preview.md)。
+
 ## 检查与回滚
 
 `node scripts/verify-preview.mjs` 逐条检查作品页、固定版本页、旧资源入口、SSR 数据路由与公开/私有隔离。`scripts/browser-preview.ps1` 在 Windows 启动自有独立 Chrome profile 检查 ATRI、CLANNAD；使用现有代理，调试端口仅回环，检查结束关闭自己的浏览器。

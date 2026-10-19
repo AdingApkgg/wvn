@@ -34,3 +34,11 @@ export const versions = sqliteTable(
   },
   (t) => [uniqueIndex("work_slot").on(t.workId, t.number)],
 );
+
+export const workMetadata = sqliteTable("work_metadata", {
+  workId: text("work_id")
+    .primaryKey()
+    .references(() => works.id),
+  fetchedAt: text("fetched_at").notNull(),
+  payload: text().notNull(),
+});

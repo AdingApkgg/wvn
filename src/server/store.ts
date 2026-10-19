@@ -9,6 +9,7 @@ import {
   workSlug,
   providerLink,
 } from "../identity.ts";
+import { metadataDocument, type WorkMetadata } from "../metadata.ts";
 import { works } from "./schema.ts";
 import type { CatalogSeed, Version, PublicWork, Check } from "../types.ts";
 export class Conflict extends Error {
@@ -27,7 +28,7 @@ export function legacyPath(input: string) {
     /[\\%?#\u0000-\u001f]/.test(s) ||
     s.split("/").some((x) => x === "." || x === "..") ||
     /^\/(?:b)?[0-9]+(?:\/|$)/.test(s) ||
-    /^\/(?:api|assets|manage|health)(?:\/|$)/.test(s)
+    /^\/(?:api|assets|media|manage|health)(?:\/|$)/.test(s)
   )
     throw Error("无效资源入口");
   return s;
@@ -80,7 +81,7 @@ export class Store {
  CREATE TABLE IF NOT EXISTS versions(id TEXT PRIMARY KEY,work_id TEXT NOT NULL REFERENCES works(id),number INTEGER NOT NULL CHECK(number>0),title TEXT NOT NULL,legacy_path TEXT NOT NULL UNIQUE,engine TEXT NOT NULL,revision INTEGER NOT NULL,status TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(work_id,number));
  CREATE TABLE IF NOT EXISTS routes(work_id TEXT NOT NULL,number INTEGER NOT NULL,version_id TEXT NOT NULL REFERENCES versions(id),PRIMARY KEY(work_id,number));
  CREATE TABLE IF NOT EXISTS reports(version_id TEXT NOT NULL REFERENCES versions(id),kind TEXT NOT NULL,started_at TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(version_id,kind));
- CREATE TABLE IF NOT EXISTS pending(id TEXT PRIMARY KEY,payload TEXT NOT NULL); PRAGMA user_version=2;`);
+ CREATE TABLE IF NOT EXISTS pending(id TEXT PRIMARY KEY,payload TEXT NOT NULL); CREATE TABLE IF NOT EXISTS work_metadata(work_id TEXT PRIMARY KEY REFERENCES works(id),fetched_at TEXT NOT NULL,payload TEXT NOT NULL); PRAGMA user_version=3;`);
     const cols = this.sqlite
       .prepare("PRAGMA table_info(versions)")
       .all()
@@ -248,6 +249,13 @@ export class Store {
     });
   }
   list(includeHidden = false): PublicWork[] {
+    const metadata = new Map(
+      (
+        this.sqlite
+          .prepare("SELECT work_id,payload FROM work_metadata")
+          .all() as { work_id: string; payload: string }[]
+      ).map((r) => [r.work_id, JSON.parse(r.payload) as WorkMetadata]),
+    );
     return this.workRows().map((w) => {
       const vs = (
         this.sqlite
@@ -264,6 +272,7 @@ export class Store {
         originalTitle: w.originalTitle,
         aliases: JSON.parse(w.aliases),
         evidence: w.evidence,
+        ...(metadata.has(w.id) ? { metadata: metadata.get(w.id) } : {}),
         revision: w.revision,
         defaultVersionId: w.defaultId,
         url: `/${workSlug(w.id)}/`,
@@ -420,6 +429,54 @@ export class Store {
         payload: string;
       }[]
     ).map((r) => JSON.parse(r.payload));
+  }
+  hasMedia(url: string): boolean {
+    return !!this.sqlite
+      .prepare(
+        "SELECT 1 FROM work_metadata WHERE json_extract(payload,'$.cover.url')=? OR EXISTS(SELECT 1 FROM json_each(payload,'$.screenshots') WHERE json_extract(value,'$.url')=?) LIMIT 1",
+      )
+      .get(url, url);
+  }
+  importMetadata(input: unknown, apply = false) {
+    const document = metadataDocument.parse(input);
+    const ids = new Set<string>();
+    const changes: {
+      workId: string;
+      kind: "added" | "updated" | "unchanged";
+    }[] = [];
+    for (const m of document.works) {
+      if (ids.has(m.workId)) throw Error("重复元数据编号");
+      ids.add(m.workId);
+      if (!this.workRows(m.workId).length) throw Error("作品不存在");
+      const old = this.sqlite
+        .prepare("SELECT fetched_at,payload FROM work_metadata WHERE work_id=?")
+        .get(m.workId) as { fetched_at: string; payload: string } | undefined;
+      if (old && Date.parse(m.fetchedAt) < Date.parse(old.fetched_at))
+        throw Error("拒绝较旧的元数据快照");
+      changes.push({
+        workId: m.workId,
+        kind: !old
+          ? "added"
+          : old.payload === JSON.stringify(m)
+            ? "unchanged"
+            : "updated",
+      });
+    }
+    if (apply)
+      this.tx(() => {
+        const put = this.sqlite.prepare(
+          "INSERT INTO work_metadata VALUES(?,?,?) ON CONFLICT(work_id) DO UPDATE SET fetched_at=excluded.fetched_at,payload=excluded.payload",
+        );
+        for (const m of document.works)
+          put.run(m.workId, m.fetchedAt, JSON.stringify(m));
+      });
+    return {
+      total: changes.length,
+      added: changes.filter((c) => c.kind === "added").length,
+      updated: changes.filter((c) => c.kind === "updated").length,
+      unchanged: changes.filter((c) => c.kind === "unchanged").length,
+      changes,
+    };
   }
   createWork(input: unknown) {
     const w = z

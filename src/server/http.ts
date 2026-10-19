@@ -29,7 +29,11 @@ function base() {
   );
   return app;
 }
-export function createPublicApp(store: Store, root: string) {
+export function createPublicApp(
+  store: Store,
+  root: string,
+  mediaRoot?: string,
+) {
   const app = base();
   app.get("/favicon.ico", (c) =>
     c.body(
@@ -41,6 +45,16 @@ export function createPublicApp(store: Store, root: string) {
       },
     ),
   );
+  app.on(["GET", "HEAD"], "/media/:file", (c) => {
+    const file = c.req.param("file");
+    if (
+      !mediaRoot ||
+      !/^([a-f0-9]{64})\.(jpg|png|webp)$/.test(file) ||
+      !store.hasMedia("/media/" + file)
+    )
+      return c.notFound();
+    return fileResponse(c.req.raw, mediaRoot, "/" + file);
+  });
   app.get("/health", (c) => c.json({ status: "ok", mode: "preview" }));
   app.all("/api/manage/*", (c) => c.notFound());
   app.all("/manage", (c) => c.notFound());

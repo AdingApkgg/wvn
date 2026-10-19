@@ -24,13 +24,22 @@ export function loader({ request }: { request: Request }) {
   const q = url.searchParams.get("q") ?? "";
   const engine = url.searchParams.get("engine") ?? "";
   const state = url.searchParams.get("state") ?? "";
+  const tag = url.searchParams.get("tag") ?? "";
   const items = all.filter(
     (w) =>
       (!q ||
-        [w.title, w.originalTitle, w.id, ...w.aliases]
+        [
+          w.title,
+          w.originalTitle,
+          w.id,
+          ...w.aliases,
+          ...(w.metadata?.titles.map((t) => t.title) ?? []),
+          ...(w.metadata?.tags.map((t) => t.name) ?? []),
+        ]
           .join(" ")
           .toLowerCase()
           .includes(q.toLowerCase())) &&
+      (!tag || w.metadata?.tags.some((t) => t.name === tag)) &&
       (!engine || w.versions.some((v) => v.engine === engine)) &&
       (!state ||
         w.versions.some((v) =>
@@ -44,12 +53,13 @@ export function loader({ request }: { request: Request }) {
     q,
     engine,
     state,
+    tag,
     total: all.length,
     versions: all.reduce((n, w) => n + w.versions.length, 0),
   };
 }
 export default function Catalog() {
-  const { items, q, engine, state, total, versions } =
+  const { items, q, engine, state, tag, total, versions } =
     useLoaderData<typeof loader>();
   return (
     <>
@@ -85,11 +95,12 @@ export default function Catalog() {
           </div>
         </section>
         <Form
-          key={q + engine + state}
+          key={q + engine + state + tag}
           className="filters"
           method="get"
           role="search"
         >
+          {tag && <input type="hidden" name="tag" value={tag} />}
           <div className="search field">
             <Label htmlFor="catalog-search">搜索作品</Label>
             <Input
@@ -131,7 +142,7 @@ export default function Catalog() {
             <Search aria-hidden="true" />
             查找
           </Button>
-          {(q || engine || state) && (
+          {(q || engine || state || tag) && (
             <Button asChild variant="ghost">
               <Link to="/">清除</Link>
             </Button>
@@ -139,12 +150,27 @@ export default function Catalog() {
         </Form>
         <div className="section-title">
           <h2>故事目录</h2>
-          <span>{items.length} 部作品</span>
+          <span>
+            {tag ? "标签：" + tag + " · " : ""}
+            {items.length} 部作品
+          </span>
         </div>
         <div className="story-grid">
           {items.map((w, i) => (
             <Link key={w.id} to={w.url} className="story-card">
               <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
+                {w.metadata?.cover && (
+                  <img
+                    className="cover-image"
+                    src={w.metadata.cover.url}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
                 <span className="card-index">{workSlug(w.id)}</span>
                 <span className="art-line" />
                 <span className="art-symbol">
