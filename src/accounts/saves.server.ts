@@ -26,6 +26,7 @@ export type SaveRevision = {
   source: string | null;
   files: SaveFile[];
   conflict: boolean;
+  originKind?: "share";
   createdAt: number;
 };
 export type SaveHistory = {
@@ -39,6 +40,7 @@ const SHA = (value: string | Uint8Array) =>
   createHash("sha256").update(value).digest("hex");
 const GiB = 1024 ** 3;
 export class SaveStore {
+  onRemove?: (owner: string, profileId?: string) => void;
   private root: string;
   private free: () => number;
   constructor(
@@ -58,6 +60,7 @@ export class SaveStore {
   CREATE INDEX IF NOT EXISTS wg_profiles_owner ON wg_save_profiles(owner,version_id);
   CREATE UNIQUE INDEX IF NOT EXISTS wg_profile_active_version ON wg_save_profiles(owner,version_id) WHERE deleted=0;
   CREATE TABLE IF NOT EXISTS wg_save_parts(id TEXT PRIMARY KEY,owner TEXT NOT NULL,upload_id TEXT NOT NULL,created INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS wg_save_origins(revision TEXT PRIMARY KEY,kind TEXT NOT NULL,share_id TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS wg_save_revisions(id TEXT PRIMARY KEY,owner TEXT NOT NULL,profile TEXT NOT NULL,parent TEXT,source TEXT,files TEXT NOT NULL,conflict INTEGER NOT NULL,created INTEGER NOT NULL);
   CREATE INDEX IF NOT EXISTS wg_revisions_profile ON wg_save_revisions(owner,profile,created);
   CREATE TABLE IF NOT EXISTS wg_save_blobs(owner TEXT NOT NULL,hash TEXT NOT NULL,bytes INTEGER NOT NULL,created INTEGER NOT NULL,PRIMARY KEY(owner,hash));
@@ -330,6 +333,27 @@ export class SaveStore {
         .run(row.owner, row.hash);
     }
   }
+  snapshot(owner: string, profileId: string, revisionId: string) {
+    const profile = this.profile(owner, profileId);
+    const row = this.db.prepare("SELECT * FROM wg_save_revisions WHERE owner=? AND profile=? AND id=?").get(owner, profileId, revisionId);
+    if (!row) throw new AccountError(404, "NOT_FOUND");
+    const revision = this.revision(row);
+    for (const file of revision.files) this.readBlob(owner, file);
+    return { profile, revision };
+  }
+  readBlob(owner: string, file: SaveFile): Buffer {
+    let bytes: Buffer;
+    try { bytes = readFileSync(this.blobPath(owner, file.sha256)); } catch { throw new AccountError(503, "FILE_UNAVAILABLE"); }
+    if (bytes.length !== file.bytes || SHA(bytes) !== file.sha256) throw new AccountError(503, "FILE_CORRUPT");
+    return bytes;
+  }
+  pin(owner: string, key: string, files: SaveFile[]) {
+    for (const file of files) this.db.prepare("INSERT OR IGNORE INTO wg_save_refs VALUES (?,?,?)").run(owner, key, file.sha256);
+  }
+  unpin(owner: string, key: string) {
+    this.db.prepare("UPDATE wg_save_blobs SET created=? WHERE owner=? AND hash IN(SELECT hash FROM wg_save_refs WHERE owner=? AND revision=?)").run(Date.now(), owner, owner, key);
+    this.db.prepare("DELETE FROM wg_save_refs WHERE owner=? AND revision=?").run(owner, key);
+  }
   private blobPath(owner: string, hash: string) {
     return join(this.root, SHA(owner), hash + ".bin");
   }
@@ -424,6 +448,7 @@ export class SaveStore {
       source: row.source ? String(row.source) : null,
       files: JSON.parse(String(row.files)),
       conflict: !!row.conflict,
+      ...(this.db.prepare("SELECT 1 FROM wg_save_origins WHERE revision=?").get(row.id) ? { originKind: "share" as const } : {}),
       createdAt: Number(row.created),
     };
   }
@@ -455,9 +480,11 @@ export class SaveStore {
         .run(owner, id, file.sha256);
     return { id, parent, source, files, conflict, createdAt: created };
   }
+  commitReceived(owner: string, uploadId: string, shareId: string) { return this.commit(owner, uploadId, shareId); }
   commit(
     owner: string,
     uploadId: string,
+    receivedShare?: string,
   ): { conflict: boolean; revision: SaveRevision } {
     const upload = this.upload(owner, uploadId);
     if (upload.result) return JSON.parse(String(upload.result));
@@ -483,7 +510,7 @@ export class SaveStore {
       const profile = this.profile(owner, String(upload.profile));
       if (profile.generation !== upload.generation)
         throw new AccountError(410, "GENERATION_CHANGED");
-      const conflict = profile.head !== upload.expected_head;
+      const conflict = !receivedShare && profile.head !== upload.expected_head;
       const revision = this.insertRevision(
         owner,
         profile.id,
@@ -491,7 +518,11 @@ export class SaveStore {
         files,
         conflict,
       );
-      if (!conflict)
+      if (receivedShare) {
+        this.db.prepare("INSERT INTO wg_save_origins VALUES (?,'share',?)").run(revision.id, receivedShare);
+        revision.originKind = "share";
+      }
+      if (!conflict && !receivedShare)
         this.db
           .prepare("UPDATE wg_save_profiles SET head=? WHERE owner=? AND id=?")
           .run(revision.id, owner, profile.id);
@@ -633,6 +664,7 @@ export class SaveStore {
         throw new AccountError(410, "GENERATION_CHANGED");
       if (profile.head !== head)
         throw new AccountError(409, "CONTENT_CONFLICT");
+      this.onRemove?.(owner, profileId);
       this.db
         .prepare(
           "UPDATE wg_save_profiles SET deleted=1,generation=generation+1 WHERE owner=? AND id=?",
@@ -656,6 +688,8 @@ export class SaveStore {
     });
   }
   deleteOwner(owner: string, deletedAt = Date.now()) {
+    this.onRemove?.(owner);
+    this.db.prepare("DELETE FROM wg_save_origins WHERE revision IN (SELECT id FROM wg_save_revisions WHERE owner=?)").run(owner);
     this.db
       .prepare("UPDATE wg_save_blobs SET created=? WHERE owner=?")
       .run(deletedAt, owner);
