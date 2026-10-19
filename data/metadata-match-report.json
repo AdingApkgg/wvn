@@ -3054,30 +3054,8 @@
     }
   },
   "missing": {
-    "cover": [
-      "v32805",
-      "v8038",
-      "v14240",
-      "v14365",
-      "v44184",
-      "v33099",
-      "v33969",
-      "v6589",
-      "v33206",
-      "v13190",
-      "v11071",
-      "v19182",
-      "v33205",
-      "b315601",
-      "v45247"
-    ],
-    "description": [
-      "v36554",
-      "v36555",
-      "v36558",
-      "v44249",
-      "b315601"
-    ],
+    "cover": [],
+    "description": [],
     "tags": [],
     "screenshots": [
       "v33969",
@@ -3090,5 +3068,224 @@
       "v49795",
       "b315601"
     ]
-  }
+  },
+  "snapshotFetchedAt": "2026-10-19T04:53:07.500Z",
+  "coverKinds": {
+    "original": 49,
+    "promotion": 7,
+    "logo": 5,
+    "screenshot": 3
+  },
+  "reviewedSupplements": [
+    {
+      "workId": "v32805",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "steam-1698030",
+          "url": "https://store.steampowered.com/app/1698030/"
+        }
+      ]
+    },
+    {
+      "workId": "v33205",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "steam-3407830",
+          "url": "https://store.steampowered.com/app/3407830/"
+        }
+      ]
+    },
+    {
+      "workId": "v44184",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "steam-3449440",
+          "url": "https://store.steampowered.com/app/3449440/"
+        }
+      ]
+    },
+    {
+      "workId": "v8038",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v8038",
+          "url": "https://www.omega-star.jp/biman15thcc/index.html"
+        }
+      ]
+    },
+    {
+      "workId": "v11071",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v11071",
+          "url": "https://www.omega-star.jp/biman15thcc/index.html"
+        }
+      ]
+    },
+    {
+      "workId": "v14240",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v14240",
+          "url": "https://www.omega-star.jp/bimanharuhtml/index.html"
+        }
+      ]
+    },
+    {
+      "workId": "v14365",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v14365",
+          "url": "https://www.omega-star.jp/biman3html/index.html"
+        }
+      ]
+    },
+    {
+      "workId": "v19182",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v19182",
+          "url": "https://www.omega-star.jp/biman4html/index.html"
+        }
+      ]
+    },
+    {
+      "workId": "v33099",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "citrus-v33099",
+          "url": "https://citrus-soft.net/product/hokeloli/"
+        }
+      ]
+    },
+    {
+      "workId": "v33969",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "citrus-v33969",
+          "url": "https://citrus-soft.net/product/hokecho/"
+        }
+      ]
+    },
+    {
+      "workId": "v45247",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "aikotoba-sss",
+          "url": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/"
+        }
+      ]
+    },
+    {
+      "workId": "b315601",
+      "coverApplied": true,
+      "descriptionApplied": true,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "072-RA24086637",
+          "url": "https://072project.com/r18/jp/shop/RA24086637"
+        }
+      ]
+    },
+    {
+      "workId": "v36555",
+      "coverApplied": false,
+      "descriptionApplied": true,
+      "sources": [
+        {
+          "provider": "official",
+          "id": "sonokoi-garden",
+          "url": "https://sonokoi-horyu.net/gardenparty/"
+        }
+      ]
+    },
+    {
+      "workId": "v6589",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": []
+    },
+    {
+      "workId": "v13190",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": []
+    },
+    {
+      "workId": "v33206",
+      "coverApplied": true,
+      "descriptionApplied": false,
+      "sources": []
+    },
+    {
+      "workId": "v36554",
+      "coverApplied": false,
+      "descriptionApplied": true,
+      "sources": [
+        {
+          "provider": "bgm",
+          "id": "292411",
+          "url": "https://bgm.tv/subject/292411"
+        }
+      ]
+    },
+    {
+      "workId": "v36558",
+      "coverApplied": false,
+      "descriptionApplied": true,
+      "sources": [
+        {
+          "provider": "bgm",
+          "id": "377861",
+          "url": "https://bgm.tv/subject/377861"
+        }
+      ]
+    },
+    {
+      "workId": "v44249",
+      "coverApplied": false,
+      "descriptionApplied": true,
+      "sources": [
+        {
+          "provider": "bgm",
+          "id": "424048",
+          "url": "https://bgm.tv/subject/424048"
+        }
+      ]
+    }
+  ]
 }

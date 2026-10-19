@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "fetchedAt": "2026-10-19T03:15:35Z",
+  "fetchedAt": "2026-10-19T04:53:07.500Z",
   "works": [
     {
       "workId": "v27448",
@@ -1487,7 +1487,7 @@
     },
     {
       "workId": "v32805",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "NinNinDays2",
@@ -1497,7 +1497,12 @@
       ],
       "description": "A young man is dazing off while working the night shift at a convenience store, when a girl stops in to ask for a meat bun. The one next to her appears to be her boyfriend, and after doing their shopping, the two of them link arms affectionately and take off. Just when the young man is thinking how nice it would be to have a girlfriend, a pair of girls in ninja cosplay show up.\n\nThe girls just stare at the shop goods without buying anything in particular. Even worse, they're even chatting about ninja techniques or something along those lines. When he calls out to them to prevent theft, it becomes apparent that they have no money.\n\nDespite suspecting that they might try to steal something, he gives in and buys a bento for the two desperately pleading girls.\n\nThe life of that young man is turned upside down from the moment of his encounter with the two young women.\n\nA roommate life with two female ninja, one a Chuunibyou, and the other a fanservice machine, is about to begin?! And so begins a new love story with two ninja girls!\n\n[From Official Website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/b880fc3c9f2238cebb0a191a03bb8a83935962574da076b1adf7c096587a9bea.jpg"
+      },
       "screenshots": [
         {
           "url": "/media/5579d7c60ede955e94112d91855ca00ee6fd60c95150504d4f243889c8cf278f.jpg",
@@ -1605,11 +1610,14 @@
           "provider": "vndb",
           "id": "v32805",
           "url": "https://vndb.org/v32805"
+        },
+        {
+          "provider": "official",
+          "id": "steam-1698030",
+          "url": "https://store.steampowered.com/app/1698030/"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v30216",
@@ -1746,7 +1754,7 @@
     },
     {
       "workId": "v8038",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "Bishoujo Mangekyou: A Girl's Cursed Legend",
@@ -1771,7 +1779,12 @@
       ],
       "description": "Onogami Shigehiko, a teacher at an all-girls school, is a man of love - of love towards beautiful young girls - and to this day he has managed to keep this hidden from those around by playing as Mr. Serious.\n\nFrom the fear of losing his beloved career as a teacher, he has had to abstain from crossing the line with any of his students until now.\n\n...Indeed, until now, until he met Kagarino Kirie, a mysterious girl of stunning beauty - it is this meeting that finally derails him into crossing that line, a line that was better left not crossed.\n\n[Translated from Homepage]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman15thcc/img/movie-title-01.webp",
+        "source": "official",
+        "kind": "logo",
+        "url": "/media/2304bca577e507e4f37e4019a8795babd6d7199d43dac0a97d1e1ce7495984d9.webp"
+      },
       "screenshots": [
         {
           "url": "/media/4f2cd75c4681ea09bc48944782ad203f6c12b8df025aa92782e808388983508e.jpg",
@@ -1901,15 +1914,18 @@
           "provider": "vndb",
           "id": "v8038",
           "url": "https://vndb.org/v8038"
+        },
+        {
+          "provider": "official",
+          "id": "omega-v8038",
+          "url": "https://www.omega-star.jp/biman15thcc/index.html"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v14240",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "Beauty Kaleidoscope 2.5: The Girl You Were Once",
@@ -1939,7 +1955,12 @@
       ],
       "description": "In the middle of the mountains stands an isolated, rural hot springs inn.\n\nThere works the beautiful waitress, Inamori Haru.\n\nKamijou Souta, the lover of Haru, secretly pays a visit to the inn in order to surprise her...\n\nThis is the story of a night of passionate love woven by a foolish couple of adults who have fallen in love...\n\n[Translated from the homepage's official synopsis]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/bimanharuhtml/topmenugrp.png",
+        "source": "official",
+        "kind": "logo",
+        "url": "/media/413773495449a3c2ed11edcaf8037b03fbca50f9c0636a7d853081f4d0694f8d.png"
+      },
       "screenshots": [
         {
           "url": "/media/8cc12175bb651b04662ad0944c17a7652697f6e0bd7e82297caffd4474befd64.jpg",
@@ -2061,15 +2082,18 @@
           "provider": "vndb",
           "id": "v14240",
           "url": "https://vndb.org/v14240"
+        },
+        {
+          "provider": "official",
+          "id": "omega-v14240",
+          "url": "https://www.omega-star.jp/bimanharuhtml/index.html"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v14365",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "美少女万華鏡 -神が造りたもうた少女たち-",
@@ -2089,7 +2113,12 @@
       ],
       "description": "In an unknown era.\nLong after humanity's golden age crumbled to dust, and eons rolled by like waves...\n\nIn a realm where the horizon bled into oblivion, a solitary scientist, the last of his kind, dwelled within a tower.\n\nMarooned in this desolate expanse, his heart yearned for companionship.\nArmed with arcane knowledge from a long-lost civilization, he wielded technology akin to sorcery and finally created the ideal maid robot into existence.\n\n[Translated from the official website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman3html/topmenugrp.png",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/54dd909d6935a4ffb72fd551978f593719d3d1bbc47b8149bba4a0c7b73c1522.png"
+      },
       "screenshots": [
         {
           "url": "/media/1a96504c80b75062c68e38c337afcae6c59ab7457da451a5356be3a3b92d7de0.jpg",
@@ -2208,11 +2237,14 @@
           "provider": "vndb",
           "id": "v14365",
           "url": "https://vndb.org/v14365"
+        },
+        {
+          "provider": "official",
+          "id": "omega-v14365",
+          "url": "https://www.omega-star.jp/biman3html/index.html"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v27057",
@@ -2367,7 +2399,7 @@
     },
     {
       "workId": "v44184",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "美少女万華鏡異聞 雪おんな",
@@ -2387,7 +2419,12 @@
       ],
       "description": "Renfutsu Yukinoshin, a dedicated martial artist and expected successor of his dojo, faces a crushing defeat against a rival, leading him to seek solitude and self-improvement in the mountains. During a harsh winter, he encounters a small white critter in distress and finds himself in a life-threatening situation in his attempt to rescue it.\n\nYukinoshin's life takes an extraordinary turn when a beautiful and enigmatic woman appears, filling his once-ordinary existence with affection and a twist of fate. It marks the beginning of a new chapter of \"Bishoujo Mangekyou\", where love, passion, and the pleasure of the dream realm intertwine.\n\nEmbark on a journey through a world steeped in timeless history and witness the tapestry of reborn souls as they weave through this evolving tale once again.\n\n[Based on  the official site]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3449440/header.jpg?t=1746617201",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/dbe73a43c377b4e3510dd75cde2422cb2f830359977578663da3bc8c63d5715a.jpg"
+      },
       "screenshots": [
         {
           "url": "/media/fefc3b517eb862c9116c25e66892c0b0cf0e7c1a68b6792ac6daf55a09412656.jpg",
@@ -2477,15 +2514,18 @@
           "provider": "vndb",
           "id": "v44184",
           "url": "https://vndb.org/v44184"
+        },
+        {
+          "provider": "official",
+          "id": "steam-3449440",
+          "url": "https://store.steampowered.com/app/3449440/"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v33099",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "保健室のセンセーとゴスロリの校医",
@@ -2505,7 +2545,12 @@
       ],
       "description": "\"Perhaps I've been searching for a fresh start.\"\n\"Or maybe, just maybe, I've been searching for love.\"\n\nOriginally intending to serve only for the initial semester, Kazami Sora extended his role as the health counselor at Saika Girls' Academy into the subsequent term. \nThough his erstwhile travel companion, Shirobana, stays as his aide, their shared domicile at the hot spring inn, Shikisai Home, is now a chapter closed.\nHaving fulfilled the heartfelt task of guiding his sister to her final rest, Sora now walks a life shaped more by his own desires than by family obligations.\nPerceiving this personal transition with intuitive understanding, Shirobana opts to step back, watching Sora from a respectful distance—much like his late sister Yuka once did.\n\nAs autumn arrives, the academy brims with a spectrum of educational activities—from experiential learning amidst lavender fields to an eagerly awaited festival in collaboration with sister schools.\nAmidst this fast-paced tapestry of events, a novel enigma joins the seven school mysteries: whispered tales of an ogre haunting the nocturnal campus, allegedly laying waste to the school's surroundings. \nConvinced that a Tamabito may be the culprit, Sora assumes his Okuribito role to unravel this unsettling lore, aided by his reliable confidante and convivial drinking companion, the academy's in-house physician Otohime.\n\nThe poetic symbolism of cherry blossoms embodies an epitome of beauty,\nAnd an essence of purity...\n\n[Translated and edited from the official website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://citrus-soft.net/product/hokeloli/images/common/logo.png",
+        "source": "official",
+        "kind": "logo",
+        "url": "/media/d5ddedad3760136d06fbd4f6547845389c6b5d15eb335e6f29a9f86969c35846.png"
+      },
       "screenshots": [
         {
           "url": "/media/ffdf478d4553d9a86b189bf91f5e477fa847ba546ddbc6159dff4309f02eed05.jpg",
@@ -2622,15 +2667,18 @@
           "provider": "vndb",
           "id": "v33099",
           "url": "https://vndb.org/v33099"
+        },
+        {
+          "provider": "official",
+          "id": "citrus-v33099",
+          "url": "https://citrus-soft.net/product/hokeloli/"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v33969",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "保健室のセンセーと小悪魔な会長",
@@ -2650,7 +2698,12 @@
       ],
       "description": "\"See you later, Sensei,\"\n\"Let's go on another wonderful date with me!\"\n\nInitially slated to leave after the first term, Kazami Sora continues his role as the school's health counselor into the second term at Saika Girls' Academy.\nShirobana, his traveling companion, is still working as his assistant. However, the two no longer live together at Shikisai Home, a hot spring resort.\nHaving guided his sister to her final rest, Sora embarks on a new journey now dictated by his own desires rather than filial obligation.\nKnowing this, Shirobana decides to step back and keep an eye on Sora from a distance, as Yuka, Sora's older sister, had previously done.\n\nAutumn ushers in a time teeming with school events—ranging from educational outings amid lavender fields to an upcoming school festival in collaboration with sister institutions. \nAmid this bustling timeframe, a fresh rumor gets added to the academy's \"Seven Mysteries\" list: the emergence of an ogre at nightfall, supposedly responsible for desecrating the school's grounds. \nSora, suspecting the work of a Tamabito, assumes his Okuribito role to scrutinize these ogre rumors. He does so in partnership with Tsukimori Rin, a mischievous student council president who is also a particularly problematic student.\n\nThe symbolic language of the red spider lily (higanbana) embodies passion, devotion, and yearning.\nI long solely for you and eagerly await the day we meet again——\n\n[Translated from the official website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://citrus-soft.net/product/hokecho/images/common/logo.png",
+        "source": "official",
+        "kind": "logo",
+        "url": "/media/7ee6d98c63df9488576e18db4bc8753e317f6389eb25e2389438684dbe48538a.png"
+      },
       "screenshots": [],
       "tags": [
         {
@@ -2717,11 +2770,14 @@
           "provider": "vndb",
           "id": "v33969",
           "url": "https://vndb.org/v33969"
+        },
+        {
+          "provider": "official",
+          "id": "citrus-v33969",
+          "url": "https://citrus-soft.net/product/hokecho/"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v28666",
@@ -3360,7 +3416,7 @@
     },
     {
       "workId": "v6589",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "Tomgirls of the Mountains - Josou Sanmyaku",
@@ -3390,7 +3446,14 @@
       ],
       "description": "Following a string of heartbreaks, Ikuto Watarai decides to go into the mountains to clear his head and dump women for good. He laments his previous experiences until a massive storm forces him to take cover in a cave. With nowhere else to go, he explores deeper into the unknown and gets hopelessly lost. The world goes dark and he accepts his fate...\n\nBut instead of waking up in the afterlife, he finds himself in a small, aging village that the world has all but forgotten. Looking around, he see that his saviors are three girls? And they are calling him their destined \"messenger\" who is to revitalize their home by giving birth to a new generation?! Now that Ikuto's has arrived, he can't leave until he completes his duty!\n\nThere's just one catch – these girls have a secret under their skirts...\n\n[From Jast USA]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "url": "/media/aa38d328f28f643cfebb903947135f060a1da122c8567259531bf2b0a8494a24.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/97/20297.jpg",
+        "source": "vndb",
+        "width": 800,
+        "height": 600,
+        "kind": "screenshot"
+      },
       "screenshots": [
         {
           "url": "/media/aa38d328f28f643cfebb903947135f060a1da122c8567259531bf2b0a8494a24.jpg",
@@ -3513,13 +3576,11 @@
           "url": "https://vndb.org/v6589"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v33206",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "いもおか",
@@ -3539,7 +3600,14 @@
       ],
       "description": "Imooka is a maternal, loli and harem erotic game.\n\nA healing bubbly harem where you are pampered to the full by three loli real sisters and a loli real mother awaits you.\n\n[Translated from DLsite]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "url": "/media/5a3d12fe1dbf3d5b855e485d6875561e66f2a17706c63f8a227c7478af14488f.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/51/166451.jpg",
+        "source": "vndb",
+        "width": 1920,
+        "height": 1080,
+        "kind": "screenshot"
+      },
       "screenshots": [
         {
           "url": "/media/5a3d12fe1dbf3d5b855e485d6875561e66f2a17706c63f8a227c7478af14488f.jpg",
@@ -3654,9 +3722,7 @@
           "url": "https://vndb.org/v33206"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v9303",
@@ -3789,7 +3855,7 @@
     },
     {
       "workId": "v13190",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "妹調教日記√happy end & another",
@@ -3804,7 +3870,14 @@
       ],
       "description": "Fandisk of Imouto Choukyou Nikki ~Konna Tsundere ga Ore no Imouto na Wakenai!~, released at Comiket 84.",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "url": "/media/538a8f11b77065a2857b194adb27d09c0df3a2db49bbcf8f97eb3bfb5105b4e1.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/40/203140.jpg",
+        "source": "vndb",
+        "width": 1024,
+        "height": 768,
+        "kind": "screenshot"
+      },
       "screenshots": [
         {
           "url": "/media/538a8f11b77065a2857b194adb27d09c0df3a2db49bbcf8f97eb3bfb5105b4e1.jpg",
@@ -3876,9 +3949,7 @@
           "url": "https://vndb.org/v13190"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v14805",
@@ -4005,7 +4076,7 @@
     },
     {
       "workId": "v11071",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "美少女万華鏡 -忘れな草と永遠の少女-",
@@ -4025,7 +4096,12 @@
       ],
       "description": "The protagonist, Kanzaki Akihito, was once a cheerful boy.\n\nOnly having grown up, he was now with heart problems; friends of old were friends no more; and more often than not, he was not seen attending school.\n\nHis mind was darkened mostly by his childhood friend and first love Sawatari Shizuku, and the fact that she had been unreachable for a while now.\n\nHe felt as if she had betrayed him.\n\n\nGray days pass by, and once more Shizuku appears before Akihito...\n\nAgain the story starts moving, and to a direction not one of them had expected...\n\n[Translated from The Official Website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman15thcc/img/movie-title-02.webp",
+        "source": "official",
+        "kind": "logo",
+        "url": "/media/7b0a4d3181f60858d6d62cceb95541ed0a05e94364a7b7267facf1a330af7074.webp"
+      },
       "screenshots": [
         {
           "url": "/media/b8c62b7084cd38ab8fe189d56546df8f1606e54014a3ef09b0a988df4c9e5180.jpg",
@@ -4147,15 +4223,18 @@
           "provider": "vndb",
           "id": "v11071",
           "url": "https://vndb.org/v11071"
+        },
+        {
+          "provider": "official",
+          "id": "omega-v11071",
+          "url": "https://www.omega-star.jp/biman15thcc/index.html"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v19182",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "美少女万華鏡 -罪と罰の少女-",
@@ -4175,7 +4254,12 @@
       ],
       "description": "Yuuma was forced to take a hiatus from school due to unspecified circumstances that left him hospitalized. \n\nAfter a year apart, he finally reunites with Yuuri, his breathtakingly beautiful twin sister, and they start living together. Nonetheless, Yuuma harbors a secret that he can never share with her - he's head over heels for his own sister...\n\nAs the truth inevitably comes to light, the love becomes an obsession that threatens to swallow him whole...\n\n[Translated and edited from the official site]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman4html/topmenugrp.png",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/94811dcffe3ac6dcadc89a219ff7143475c4cb196219a5a148f89efeb910ebeb.png"
+      },
       "screenshots": [
         {
           "url": "/media/b5dfba5cbe8f2131051a079caa0913487fad0bcf5cf70ffb7f9db09906c813ff.jpg",
@@ -4286,11 +4370,14 @@
           "provider": "vndb",
           "id": "v19182",
           "url": "https://vndb.org/v19182"
+        },
+        {
+          "provider": "official",
+          "id": "omega-v19182",
+          "url": "https://www.omega-star.jp/biman4html/index.html"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v12246",
@@ -4444,7 +4531,7 @@
     },
     {
       "workId": "v33205",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "ハミダシクリエイティブ凸",
@@ -4469,7 +4556,12 @@
       ],
       "description": "A fandisc that includes after stories for the four main heroines and a new route for sub-heroine Ameri.\n\nAmeri: Entering summer holiday, Tomohiro remembers a promise he made with Ameri. Thinking back on it, he planned a castle tour plan with the student council, but on the tour, things began to roll in an unexpected direction.\n\nHiyori: It's been a year since Tomohiro dated his little sister, it's a new life that's filled with affection and... jealousy?\n\nKano: Finally the two of them begin to rent their love nest. There's a lot in this new life that could not be shown to kids.\n\nAsumi: While Asumi is unexpectedly assertive in their harmonious love life, she is preparing to jump into a big live stage...!\n\nShio: Big shock as the former all-in-one former student council president repeats a year. She's plotting a revenge in the next school festival...!?\n\n[Translated from the official website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3407830/header.jpg?t=1774784859",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/8806794080003395d1b942e8663afe4c7863455fef58fe84fd7194a46ba1d170.jpg"
+      },
       "screenshots": [
         {
           "url": "/media/e012be2f6b1c5c179941b7d514e203bbfebea0bcc5b431c17af7bf82599bbddd.jpg",
@@ -4588,11 +4680,14 @@
           "provider": "vndb",
           "id": "v33205",
           "url": "https://vndb.org/v33205"
+        },
+        {
+          "provider": "official",
+          "id": "steam-3407830",
+          "url": "https://store.steampowered.com/app/3407830/"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v27449",
@@ -4979,7 +5074,7 @@
     },
     {
       "workId": "v36554",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "その恋、保留につき、",
@@ -4997,8 +5092,8 @@
           "source": "vndb"
         }
       ],
-      "description": "",
-      "descriptionSource": null,
+      "description": "柳川幸介暗恋着社团伙伴小澄友香，却担心表白会破坏现有关系，迟迟不愿迈出一步。姪浜舞与天神晶子组成的“恋爱应援委员会”决定出手相助，把他的平静日常卷入一场围绕不同恋爱观展开的校园喜剧。",
+      "descriptionSource": "bgm",
       "cover": {
         "url": "/media/999ff7e1fc74acd0cd8915dd7d0a6ade9efd2eb5a3f562d1236e371b642c3672.jpg",
         "sourceUrl": "https://t.vndb.org/cv/80/56980.jpg",
@@ -5081,13 +5176,19 @@
           "provider": "vndb",
           "id": "v36554",
           "url": "https://vndb.org/v36554"
+        },
+        {
+          "provider": "bgm",
+          "id": "292411",
+          "url": "https://bgm.tv/subject/292411"
         }
       ],
-      "warnings": []
+      "warnings": [],
+      "descriptionAdapted": true
     },
     {
       "workId": "v36555",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "その恋、保留につき、ガーデンパーティー",
@@ -5105,8 +5206,8 @@
           "source": "vndb"
         }
       ],
-      "description": "",
-      "descriptionSource": null,
+      "description": "秋日文化祭将至，藤高流传着“文化祭期间接吻，就不会在下次文化祭前分手”的传说。恋爱应援委员会借机再度行动。本作为《这份恋情、予以保留、》的后续 Fan Disc，前作角色与新伙伴共同迎来热闹的文化祭。",
+      "descriptionSource": "official",
       "cover": {
         "url": "/media/84501b439217506ee0135b85732fa2dfa7ba53b4a9470e94969bbca6ec54864e.jpg",
         "sourceUrl": "https://t.vndb.org/cv/82/56982.jpg",
@@ -5169,9 +5270,15 @@
           "provider": "vndb",
           "id": "v36555",
           "url": "https://vndb.org/v36555"
+        },
+        {
+          "provider": "official",
+          "id": "sonokoi-garden",
+          "url": "https://sonokoi-horyu.net/gardenparty/"
         }
       ],
-      "warnings": []
+      "warnings": [],
+      "descriptionAdapted": true
     },
     {
       "workId": "v36556",
@@ -5419,7 +5526,7 @@
     },
     {
       "workId": "v36558",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "その恋、暫定につき、バレンタインシチュエーションボイスＺ",
@@ -5437,8 +5544,8 @@
           "source": "vndb"
         }
       ],
-      "description": "",
-      "descriptionSource": null,
+      "description": "以情人节为主题的短篇情景音声作品。几位女主角准备了各自的巧克力与告白般的赠礼场景，流程约十分钟；即使没有体验过系列前作，也能独立感受情人节气氛。",
+      "descriptionSource": "bgm",
       "cover": {
         "url": "/media/62a19f567390e50db179be5adbc09c5c971e4b6efd8fd4bdda6bed484b4d159c.jpg",
         "sourceUrl": "https://t.vndb.org/cv/86/56986.jpg",
@@ -5477,13 +5584,19 @@
           "provider": "vndb",
           "id": "v36558",
           "url": "https://vndb.org/v36558"
+        },
+        {
+          "provider": "bgm",
+          "id": "377861",
+          "url": "https://bgm.tv/subject/377861"
         }
       ],
-      "warnings": []
+      "warnings": [],
+      "descriptionAdapted": true
     },
     {
       "workId": "v44249",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "その恋、終焉につき。",
@@ -5501,8 +5614,8 @@
           "source": "vndb"
         }
       ],
-      "description": "",
-      "descriptionSource": null,
+      "description": "《这份恋情》系列的最终篇。天神在整理委员会室时找到旧毕业相册，照片中竟出现了大野城学生会长。一直被谜团包围的会长决定亲自揭开真相，并提出与大家进行“最后一次约会”。",
+      "descriptionSource": "bgm",
       "cover": {
         "url": "/media/6e4f1c62d64e3d102d9c055094ecd827a174c78efba721e903a5c5d80298e522.jpg",
         "sourceUrl": "https://t.vndb.org/cv/78/66878.jpg",
@@ -5541,9 +5654,15 @@
           "provider": "vndb",
           "id": "v44249",
           "url": "https://vndb.org/v44249"
+        },
+        {
+          "provider": "bgm",
+          "id": "424048",
+          "url": "https://bgm.tv/subject/424048"
         }
       ],
-      "warnings": []
+      "warnings": [],
+      "descriptionAdapted": true
     },
     {
       "workId": "v49795",
@@ -7111,7 +7230,7 @@
     },
     {
       "workId": "b315601",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "尼特与天使与色色家族",
@@ -7124,9 +7243,14 @@
           "source": "bgm"
         }
       ],
-      "description": "",
-      "descriptionSource": null,
-      "cover": null,
+      "description": "一名足不出户的青年遇到自称天使的桜子，被要求重新开始生活，并与一个三人家庭共同居住。作品通过日常交流和外出事件推进人物关系，采用3D人物与影像演出。",
+      "descriptionSource": "official",
+      "cover": {
+        "sourceUrl": "https://storage.072project.com/img/product/e3b0c442_t7l7oi90.jpg",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/f3befbc2325bec99d43cf004147906bfc6a45837f5bb79d11b6650db78b8e26b.jpg"
+      },
       "screenshots": [],
       "tags": [
         {
@@ -7148,12 +7272,17 @@
           "provider": "bgm",
           "id": "315601",
           "url": "https://bgm.tv/subject/315601"
+        },
+        {
+          "provider": "official",
+          "id": "072-RA24086637",
+          "url": "https://072project.com/r18/jp/shop/RA24086637"
         }
       ],
       "warnings": [
-        "Bangumi 公开 API 本轮未返回详情，保留已核实的标题、发售日与开发者。",
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+        "BGM 公开 API 未返回详情；简介和宣传图由发行商资料补充，作品身份仍采用已核实的 BGM 编号。"
+      ],
+      "descriptionAdapted": true
     },
     {
       "workId": "v15637",
@@ -7300,7 +7429,7 @@
     },
     {
       "workId": "v45247",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-10-19T04:53:07.500Z",
       "titles": [
         {
           "title": "アイコトバ-Silver Snow Sister-",
@@ -7320,7 +7449,12 @@
       ],
       "description": "Hoshitsugu Kotetsu and Hoshitsugu Shirone are non-blood-related siblings.\n\nThe younger sister Shirone, is an athlete. Her talents in figure skating, smooth skin, and hair that is brighter than snow, earn her the nickname Snow Fairy (Fee des Neiges), her reputation in her hometown Sendai, is spreading.\n\nOn the other hand, the older brother Kotetsu, is unknown...... If anything, he has a bad reputation as well. Although it is a misunderstanding for the most part, the fact that his blonde hair makes him intimidating is undeniable, the positions of the siblings are entirely opposite​. One day, in order to deliver something that Shirone forgets, Kotetsu heads to the skating rink, however......\n\n\"Nii-san should leave me alone. How about getting a girlfriend?\"\n\"That's a good idea.\"\n\nTaking his sister words seriously, Kotetsu uses a popular online app \"Aikotoba\". He gets an 88.88% rate of successfully matching with other partners. But, what comes after is something unexpected......?\n\nMeanwhile, the obsession with the matchmaking app, and the never-seen-before mysterious enthusiasm of Kotetsu, make Shirone feels unpleasant.\n\n\"If Nii-san is let loose​ like this, \nthe peace of this town might be threatened!\"\n\nUsing such thoughts as an excuse, Shirone comes up with a proposal.\n\n\"Unpopular loser...... For Nii-san who is a beginner in love, \nthe ABCs of love, let's learn from the first character.\"\n\nThus begins a love lesson......? Starts with a three months deadline, not enough explanation, but they understand each other.\n\n\"Don't worry, Nii-san. Shirone will take responsibility...... Ah. \nBy responsibility, that's not what I meant, alright.\"\n\"What you meant is?\"\n\"Please die, pervert.\"\n\nWill Shirone guide her brother to become capable of love, and will Kotetsu be able to leave his sister?\n\n[Translated and edited from the official website]",
       "descriptionSource": "vndb",
-      "cover": null,
+      "cover": {
+        "sourceUrl": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/ogp.jpg",
+        "source": "official",
+        "kind": "promotion",
+        "url": "/media/a90d667fc959e2f8082429689612caca4f7f162bae846e888c7ae4c5d0c578c3.jpg"
+      },
       "screenshots": [
         {
           "url": "/media/2a552c04573efcd1e2236f48f12a6edcaf900c9f4cc22a04d7a2f210975c2482.jpg",
@@ -7411,11 +7545,14 @@
           "provider": "vndb",
           "id": "v45247",
           "url": "https://vndb.org/v45247"
+        },
+        {
+          "provider": "official",
+          "id": "aikotoba-sss",
+          "url": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/"
         }
       ],
-      "warnings": [
-        "来源缺少可用封面或图片内容分级不符合当前展示条件。"
-      ]
+      "warnings": []
     },
     {
       "workId": "v34848",

@@ -112,3 +112,38 @@ test("source markup removes spoiler blocks and preserves plain readable attribut
   ])
     assert.equal(trustedImageUrl(url), false);
 });
+
+test("reviewed official sources accept cached promotional art with exact work attribution", async () => {
+  const { metadataSchema } = await import("../src/metadata.ts");
+  const doc: any = snapshot().works[0];
+  doc.workId = "v32805";
+  doc.sources = [
+    { provider: "vndb", id: "v32805", url: "https://vndb.org/v32805" },
+    { provider: "official", id: "steam-1698030", url: "https://store.steampowered.com/app/1698030/" },
+  ];
+  doc.cover = {
+    url: "/media/" + "a".repeat(64) + ".jpg",
+    sourceUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
+    source: "official", kind: "promotion",
+  };
+  assert.equal(metadataSchema.parse(doc).cover?.source, "official");
+  const badLink = structuredClone(doc);
+  badLink.sources[1].url += "?next=https://evil.test";
+  assert.equal(metadataSchema.safeParse(badLink).success, false);
+  const wrongWork = structuredClone(doc);
+  wrongWork.workId = "v4";
+  wrongWork.sources[0] = { provider: "vndb", id: "v4", url: "https://vndb.org/v4" };
+  assert.equal(metadataSchema.safeParse(wrongWork).success, false);
+  const falseCredit = structuredClone(doc);
+  falseCredit.cover.source = "vndb";
+  assert.equal(metadataSchema.safeParse(falseCredit).success, false);
+  const unknownImage = structuredClone(doc);
+  unknownImage.cover.sourceUrl = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/999/header.jpg";
+  assert.equal(metadataSchema.safeParse(unknownImage).success, false);
+  const unknownSource = structuredClone(doc);
+  unknownSource.sources[1].id = "constructor";
+  assert.equal(metadataSchema.safeParse(unknownSource).success, false);
+  const malformed = structuredClone(doc);
+  malformed.cover.sourceUrl = "not a URL";
+  assert.equal(metadataSchema.safeParse(malformed).success, false);
+});

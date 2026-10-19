@@ -932,3 +932,8 @@ footer {
 .metadata-tags a {
   max-width: 100%;
 }
+
+.cover-fit {
+  object-fit: contain !important;
+  background-color: #ede8e0;
+}

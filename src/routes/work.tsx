@@ -1,4 +1,5 @@
 import { WorkMetadataPanel } from "../components/work-metadata";
+import { coverKindLabel } from "../metadata-sources.ts";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
@@ -30,9 +31,9 @@ export default function Work() {
       >
         {w.metadata?.cover && (
           <img
-            className="work-cover"
+            className={"work-cover" + (w.metadata.cover.kind ? " cover-fit" : "")}
             src={w.metadata.cover.url}
-            alt={w.title + " 封面"}
+            alt={w.title + " " + coverKindLabel(w.metadata.cover.kind)}
             width={w.metadata.cover.width}
             height={w.metadata.cover.height}
           />

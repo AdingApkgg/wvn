@@ -41,6 +41,7 @@ import {
 } from "../components/ui/alert-dialog";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { metadataSourceLabel } from "../metadata-sources.ts";
 import { workSlug, providerLink } from "../identity.ts";
 import type { PublicWork, PublicVersion } from "../types.ts";
 export function meta() {
@@ -298,7 +299,7 @@ export default function Manage() {
                             <p className="muted">
                               来源：
                               {w.metadata.sources
-                                .map((s) => s.provider.toUpperCase())
+                                .map((s) => metadataSourceLabel(s.provider, s.id))
                                 .join(" / ")}{" "}
                               · {w.metadata.fetchedAt.slice(0, 10)}
                               。来源资料单独保存，不覆盖上面的人工编辑。

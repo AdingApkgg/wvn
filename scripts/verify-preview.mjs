@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 const base=process.env.WG_TEST_URL??'http://127.0.0.1:8281';const catalog=JSON.parse(await fs.readFile('data/catalog.json','utf8'));const results=[];
-async function check(path,options={},expect=200){try{const r=await fetch(base+path,options);const ok=r.status===expect;results.push({path,method:options.method??'GET',status:r.status,ok,contentType:r.headers.get('content-type'),length:r.headers.get('content-length')});if(r.body)await r.body.cancel();return ok}catch(e){results.push({path,error:String(e),ok:false});return false}}
+async function check(path,options={},expect=200){try{const r=await fetch(base+path,options);const coop=r.headers.get('cross-origin-opener-policy'),coep=r.headers.get('cross-origin-embedder-policy');const ok=r.status===expect&&coop==='same-origin'&&coep==='require-corp';results.push({path,method:options.method??'GET',status:r.status,ok,coop,coep,contentType:r.headers.get('content-type'),length:r.headers.get('content-length')});if(r.body)await r.body.cancel();return ok}catch(e){results.push({path,error:String(e),ok:false});return false}}
 const slug=id=>id.startsWith('v')?id.slice(1):id;
 for(const w of catalog.works)await check('/'+slug(w.id)+'/');
 for(const v of catalog.versions){await check('/'+slug(v.workId)+'/'+v.number+'/');await check(encodeURI(v.legacyPath+'index.html'),{method:'HEAD'});}

@@ -1,5 +1,6 @@
 import { z } from "zod";
-export const provider = z.enum(["vndb", "bgm"]);
+import { officialSources } from "./metadata-sources.ts";
+export const provider = z.enum(["vndb", "bgm", "official"]);
 export function trustedImageUrl(value: string): boolean {
   try {
     const u = new URL(value);
@@ -8,7 +9,7 @@ export function trustedImageUrl(value: string): boolean {
       !u.username &&
       !u.password &&
       !u.port &&
-      ((u.hostname === "t.vndb.org" &&
+      (Object.values(officialSources).some(s => s.images.includes(value)) || (u.hostname === "t.vndb.org" &&
         /^\/(?:cv|sf)(?:\.t)?\/\d+\/\d+\.(?:jpg|png|webp)$/.test(u.pathname)) ||
         (u.hostname === "lain.bgm.tv" &&
           /^\/(?:r\/\d+\/)?pic\/cover\//.test(u.pathname)))
@@ -22,12 +23,19 @@ const image = z
     url: z.string().regex(/^\/media\/[a-f0-9]{64}\.(jpg|png|webp)$/),
     sourceUrl: z.string().refine(trustedImageUrl, "不可信图片来源"),
     source: provider,
+    kind: z.enum(["logo", "promotion", "screenshot"]).optional(),
     width: z.number().int().positive().optional(),
     height: z.number().int().positive().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((i, ctx) => {
+    let host: string;
+    try { host = new URL(i.sourceUrl).hostname; } catch { return; }
+    if ((i.source === "vndb" && host !== "t.vndb.org") || (i.source === "bgm" && host !== "lain.bgm.tv") || (i.source === "official" && !Object.values(officialSources).some(s => s.images.includes(i.sourceUrl))))
+      ctx.addIssue({ code: "custom", message: "图片来源标注不符" });
+  });
 const source = z
-  .object({ provider, id: z.string().max(20), url: z.string().url() })
+  .object({ provider, id: z.string().max(60), url: z.string().url() })
   .strict()
   .superRefine((s, ctx) => {
     const expected =
@@ -35,7 +43,7 @@ const source = z
         ? "https://vndb.org/" + s.id
         : s.provider === "bgm" && /^[1-9]\d{0,8}$/.test(s.id)
           ? "https://bgm.tv/subject/" + s.id
-          : "";
+          : s.provider === "official" ? officialSources[s.id]?.url ?? "" : "";
     if (!expected || s.url !== expected)
       ctx.addIssue({ code: "custom", message: "来源编号与链接不符" });
   });
@@ -56,6 +64,7 @@ export const metadataSchema = z
       .max(100),
     description: z.string().max(12000),
     descriptionSource: provider.nullable(),
+    descriptionAdapted: z.boolean().optional(),
     cover: image.nullable(),
     screenshots: z.array(image).max(6),
     tags: z
@@ -73,14 +82,14 @@ export const metadataSchema = z
       .array(
         z
           .object({
-            source: provider,
+            source: z.enum(["vndb", "bgm"]),
             score: z.number().min(0).max(10),
             votes: z.number().int().nonnegative(),
           })
           .strict(),
       )
       .max(2),
-    sources: z.array(source).min(1).max(2),
+    sources: z.array(source).min(1).max(6),
     warnings: z.array(z.string().max(400)).max(10),
   })
   .strict()
@@ -92,6 +101,14 @@ export const metadataSchema = z
     );
     if (!match)
       ctx.addIssue({ code: "custom", message: "元数据来源与作品编号不符" });
+    for (const s of m.sources.filter(s => s.provider === "official")) {
+      if (officialSources[s.id]?.workId !== m.workId)
+        ctx.addIssue({ code: "custom", message: "官方来源与作品不符" });
+    }
+    for (const i of [m.cover, ...m.screenshots].filter(i => i?.source === "official")) {
+      if (i && !m.sources.some(s => s.provider === "official" && officialSources[s.id]?.images?.includes(i.sourceUrl)))
+        ctx.addIssue({ code: "custom", message: "图片缺少对应官方来源" });
+    }
   });
 export const metadataDocument = z
   .object({

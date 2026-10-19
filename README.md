@@ -1,6 +1,6 @@
 # WG Manager
 
-React Router 8 framework SSR、Hono、Vite 8、TypeScript 与 SQLite 的作品/版本目录。界面使用 shadcn/ui（new-york / Radix）和 Tailwind v4；前台保留故事放映室主题，后台使用标准管理组件。原游戏文件保留在 Windows `H:\wg`，应用只保存元数据和资源映射。当前为隔离预览，未切生产。
+React Router 8 framework SSR、Hono、Vite 8、TypeScript 与 SQLite 的作品/版本目录。界面使用 shadcn/ui（new-york / Radix）和 Tailwind v4；前台保留故事放映室主题，后台使用标准管理组件。原游戏文件保留在 Windows `H:\wg`，应用只保存元数据和资源映射。2026-10-19 已发布至 [wg.saop.cc](https://wg.saop.cc)，发布编号 `20261019-133308`。
 
 ## 路由与数据
 
@@ -23,6 +23,12 @@ sh tests/e2e/run-remote.sh
 ```
 
 测试 worker 上限为 1；跨进程编号测试明确只启动两个小进程。Windows Node 24 运行构建产物，内置 `node:sqlite`，不依赖原生 SQLite 扩展。Drizzle 提供 schema 与类型化 SQL 编译；当前锁定版没有文档中所述 node-sqlite adapter，因此由 DatabaseSync 执行已编译查询。
+
+## 生产
+
+生产运行目录 `H:\wg-manager-release-20261019-133308`，公开/私有管理分别为Windows回环8381/8382，原Caddy8212反代公开端口；私有管理不经公网反代。启动任务 `WG-Manager-20261019-133308` 配置为开机启动和失败重试。数据库从预览一致性备份派生，独立维护；游戏资源与旧执行入口保留。
+
+本次补齐19部作品的图片或简介，现64部作品都有图片位和简介，含明确标注的宣传图、标题图与3张备用画面。235路由、330图及候选/公网浏览器验收通过，详见 [生产发布与回滚](docs/production-release.md)。完整游戏内存档/游玩验收仍单独记录。
 
 ## 远程预览
 

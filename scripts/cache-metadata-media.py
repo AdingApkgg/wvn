@@ -1,10 +1,11 @@
 """Bounded proxy downloads of reviewed provider images; manifest import remains a separate step."""
-import urllib.request,urllib.parse,json,pathlib,os,concurrent.futures,time
+import urllib.request,urllib.parse,json,pathlib,os,concurrent.futures,time,subprocess
 ROOT=pathlib.Path(__file__).resolve().parents[1];MEDIA=ROOT/'media';MEDIA.mkdir(exist_ok=True)
 PROXY=os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy') or 'http://127.0.0.1:11090'
+REVIEWED={url for s in json.loads((ROOT/'data/metadata-official-sources.json').read_text()).values() for url in s['images']}
 def trusted(url):
  u=urllib.parse.urlsplit(url)
- return u.scheme=='https' and not u.username and not u.password and not u.port and u.hostname in ['t.vndb.org','lain.bgm.tv']
+ return u.scheme=='https' and not u.username and not u.password and not u.port and (u.hostname in ['t.vndb.org','lain.bgm.tv'] or url in REVIEWED)
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,req,fp,code,msg,headers,newurl):
   if not trusted(newurl):raise ValueError('Untrusted image redirect')
@@ -17,9 +18,15 @@ def download(image):
   if file.exists() and file.stat().st_size>0:return url,'/media/'+file.name,None
  for attempt in range(2):
   try:
-   op=urllib.request.build_opener(urllib.request.ProxyHandler({'http':PROXY,'https':PROXY}),Redirect())
-   with op.open(urllib.request.Request(url,headers={'User-Agent':'WG-Catalog-Metadata/0.1 (https://wg.saop.cc)'}),timeout=35) as res:
-    raw=res.read(3*1024*1024+1)
+   if url in REVIEWED:
+    # Some publisher CDNs require curl's TLS stack. Keep verification enabled;
+    # do not follow redirects away from the exact reviewed asset URL.
+    referrer=next(s['url'] for s in json.loads((ROOT/'data/metadata-official-sources.json').read_text()).values() if url in s['images'])
+    raw=subprocess.run(['curl','--silent','--show-error','--fail','--max-time','35','--max-filesize',str(3*1024*1024),'--proto','=https','--proxy',PROXY,'--user-agent','WG-Catalog-Metadata/0.1','--referer',referrer,url],check=True,capture_output=True,timeout=40).stdout
+   else:
+    op=urllib.request.build_opener(urllib.request.ProxyHandler({'http':PROXY,'https':PROXY}),Redirect())
+    with op.open(urllib.request.Request(url,headers={'User-Agent':'WG-Catalog-Metadata/0.1 (https://wg.saop.cc)'}),timeout=35) as res:
+     raw=res.read(3*1024*1024+1)
    if len(raw)>3*1024*1024:raise ValueError('Image exceeds 3 MiB')
    ext='jpg' if raw.startswith(b'\xff\xd8\xff') else 'png' if raw.startswith(b'\x89PNG\r\n\x1a\n') else 'webp' if raw[:4]==b'RIFF' and raw[8:12]==b'WEBP' else None
    if not ext:raise ValueError('Unsupported image bytes')

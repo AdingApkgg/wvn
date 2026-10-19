@@ -1,6 +1,6 @@
 # 预览与未来切换的回滚边界
 
-本次没有改 CaddyWG 配置、Cloudflare Tunnel、DNS、H:/wg 或任何原安装。关闭预览不需要生产回滚，原站仍使用 8212。
+初次隔离预览没有改生产。2026-10-19用户随后明确授权切生产，发布 `20261019-133308` 已完成；Caddy8212反代独立生产回环8381，原预览仍独立。正式回滚入口与配置/数据库备份见 [生产发布](production-release.md)。Cloudflare Tunnel、DNS、H:/wg和原安装未改。
 
 预览进程身份保存在独立目录 preview-process.json；只停止该启动记录的 cmd 父进程及确认为其子进程的 Node。不得按进程名批量结束 Node/Chrome。SSH 隧道关闭仅影响本机预览连接。浏览器验证只结束自有独立 profile 的浏览器。
 

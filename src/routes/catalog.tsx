@@ -161,7 +161,7 @@ export default function Catalog() {
               <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
                 {w.metadata?.cover && (
                   <img
-                    className="cover-image"
+                    className={"cover-image" + (w.metadata.cover.kind ? " cover-fit" : "")}
                     src={w.metadata.cover.url}
                     alt=""
                     loading="lazy"

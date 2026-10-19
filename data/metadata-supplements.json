@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "workId": "v32805",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "steam-1698030",
+          "url": "https://store.steampowered.com/app/1698030/"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
+        "source": "official",
+        "kind": "promotion"
+      }
+    },
+    {
+      "workId": "v33205",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "steam-3407830",
+          "url": "https://store.steampowered.com/app/3407830/"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3407830/header.jpg?t=1774784859",
+        "source": "official",
+        "kind": "promotion"
+      }
+    },
+    {
+      "workId": "v44184",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "steam-3449440",
+          "url": "https://store.steampowered.com/app/3449440/"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3449440/header.jpg?t=1746617201",
+        "source": "official",
+        "kind": "promotion"
+      }
+    },
+    {
+      "workId": "v8038",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v8038",
+          "url": "https://www.omega-star.jp/biman15thcc/index.html"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman15thcc/img/movie-title-01.webp",
+        "source": "official",
+        "kind": "logo"
+      },
+      "evidence": "ωstar 官方15周年合集页为对应独立作品提供的具名标题标识图，不使用合集共用封面。"
+    },
+    {
+      "workId": "v11071",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v11071",
+          "url": "https://www.omega-star.jp/biman15thcc/index.html"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman15thcc/img/movie-title-02.webp",
+        "source": "official",
+        "kind": "logo"
+      },
+      "evidence": "ωstar 官方15周年合集页为对应独立作品提供的具名标题标识图，不使用合集共用封面。"
+    },
+    {
+      "workId": "v14240",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v14240",
+          "url": "https://www.omega-star.jp/bimanharuhtml/index.html"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/bimanharuhtml/topmenugrp.png",
+        "source": "official",
+        "kind": "logo"
+      }
+    },
+    {
+      "workId": "v14365",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v14365",
+          "url": "https://www.omega-star.jp/biman3html/index.html"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman3html/topmenugrp.png",
+        "source": "official",
+        "kind": "promotion"
+      }
+    },
+    {
+      "workId": "v19182",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "omega-v19182",
+          "url": "https://www.omega-star.jp/biman4html/index.html"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://www.omega-star.jp/biman4html/topmenugrp.png",
+        "source": "official",
+        "kind": "promotion"
+      }
+    },
+    {
+      "workId": "v33099",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "citrus-v33099",
+          "url": "https://citrus-soft.net/product/hokeloli/"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://citrus-soft.net/product/hokeloli/images/common/logo.png",
+        "source": "official",
+        "kind": "logo"
+      }
+    },
+    {
+      "workId": "v33969",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "citrus-v33969",
+          "url": "https://citrus-soft.net/product/hokecho/"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://citrus-soft.net/product/hokecho/images/common/logo.png",
+        "source": "official",
+        "kind": "logo"
+      }
+    },
+    {
+      "workId": "v45247",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "aikotoba-sss",
+          "url": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/ogp.jpg",
+        "source": "official",
+        "kind": "promotion"
+      }
+    },
+    {
+      "workId": "b315601",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "072-RA24086637",
+          "url": "https://072project.com/r18/jp/shop/RA24086637"
+        }
+      ],
+      "cover": {
+        "sourceUrl": "https://storage.072project.com/img/product/e3b0c442_t7l7oi90.jpg",
+        "source": "official",
+        "kind": "promotion"
+      },
+      "description": "一名足不出户的青年遇到自称天使的桜子，被要求重新开始生活，并与一个三人家庭共同居住。作品通过日常交流和外出事件推进人物关系，采用3D人物与影像演出。",
+      "descriptionSource": "official",
+      "descriptionAdapted": true,
+      "evidence": "发行商公开接口 /shop/product/RA24086637?source= 返回日文完整标题与开发者；采用本体商品页宣传图，包含DLC发布字样，不改变本地版本归属。简介为非露骨中文整理。"
+    },
+    {
+      "workId": "v36555",
+      "sources": [
+        {
+          "provider": "official",
+          "id": "sonokoi-garden",
+          "url": "https://sonokoi-horyu.net/gardenparty/"
+        }
+      ],
+      "description": "秋日文化祭将至，藤高流传着“文化祭期间接吻，就不会在下次文化祭前分手”的传说。恋爱应援委员会借机再度行动。本作为《这份恋情、予以保留、》的后续 Fan Disc，前作角色与新伙伴共同迎来热闹的文化祭。",
+      "descriptionSource": "official",
+      "descriptionAdapted": true,
+      "evidence": "完整作品标题、人物/制作组及官网链接人工核对；不按日期近似自动推断，不修改目录身份或原有发售日期。"
+    },
+    {
+      "workId": "v6589",
+      "sources": [],
+      "cover": {
+        "url": "/media/aa38d328f28f643cfebb903947135f060a1da122c8567259531bf2b0a8494a24.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/97/20297.jpg",
+        "source": "vndb",
+        "width": 800,
+        "height": 600,
+        "kind": "screenshot"
+      },
+      "evidence": "缺少可用独立原封面；采用同作已核实的非露骨游戏画面作为备用，页面明确标注，不冒充原始封面。"
+    },
+    {
+      "workId": "v13190",
+      "sources": [],
+      "cover": {
+        "url": "/media/538a8f11b77065a2857b194adb27d09c0df3a2db49bbcf8f97eb3bfb5105b4e1.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/40/203140.jpg",
+        "source": "vndb",
+        "width": 1024,
+        "height": 768,
+        "kind": "screenshot"
+      },
+      "evidence": "缺少可用独立原封面；采用同作已核实的非露骨游戏画面作为备用，页面明确标注，不冒充原始封面。"
+    },
+    {
+      "workId": "v33206",
+      "sources": [],
+      "cover": {
+        "url": "/media/5a3d12fe1dbf3d5b855e485d6875561e66f2a17706c63f8a227c7478af14488f.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/51/166451.jpg",
+        "source": "vndb",
+        "width": 1920,
+        "height": 1080,
+        "kind": "screenshot"
+      },
+      "evidence": "缺少可用独立原封面；采用同作已核实的非露骨游戏画面作为备用，页面明确标注，不冒充原始封面。"
+    },
+    {
+      "workId": "v36554",
+      "sources": [
+        {
+          "provider": "bgm",
+          "id": "292411",
+          "url": "https://bgm.tv/subject/292411"
+        }
+      ],
+      "description": "柳川幸介暗恋着社团伙伴小澄友香，却担心表白会破坏现有关系，迟迟不愿迈出一步。姪浜舞与天神晶子组成的“恋爱应援委员会”决定出手相助，把他的平静日常卷入一场围绕不同恋爱观展开的校园喜剧。",
+      "descriptionSource": "bgm",
+      "descriptionAdapted": true,
+      "evidence": "完整作品标题、人物/制作组及官网链接人工核对；不按日期近似自动推断，不修改目录身份或原有发售日期。"
+    },
+    {
+      "workId": "v36558",
+      "sources": [
+        {
+          "provider": "bgm",
+          "id": "377861",
+          "url": "https://bgm.tv/subject/377861"
+        }
+      ],
+      "description": "以情人节为主题的短篇情景音声作品。几位女主角准备了各自的巧克力与告白般的赠礼场景，流程约十分钟；即使没有体验过系列前作，也能独立感受情人节气氛。",
+      "descriptionSource": "bgm",
+      "descriptionAdapted": true,
+      "evidence": "完整作品标题、人物/制作组及官网链接人工核对；不按日期近似自动推断，不修改目录身份或原有发售日期。"
+    },
+    {
+      "workId": "v44249",
+      "sources": [
+        {
+          "provider": "bgm",
+          "id": "424048",
+          "url": "https://bgm.tv/subject/424048"
+        }
+      ],
+      "description": "《这份恋情》系列的最终篇。天神在整理委员会室时找到旧毕业相册，照片中竟出现了大野城学生会长。一直被谜团包围的会长决定亲自揭开真相，并提出与大家进行“最后一次约会”。",
+      "descriptionSource": "bgm",
+      "descriptionAdapted": true,
+      "evidence": "完整作品标题、人物/制作组及官网链接人工核对；不按日期近似自动推断，不修改目录身份或原有发售日期。"
+    }
+  ]
+}

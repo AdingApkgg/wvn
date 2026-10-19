@@ -33,6 +33,12 @@ const report = {
   checkedAt: new Date().toISOString(),
   works: document.works.length,
   covers: document.works.filter((w) => w.cover).length,
+  coverKinds: document.works.filter((w) => w.cover).reduce((counts, w) => {
+    const kind = w.cover.kind ?? "original";
+    counts[kind] = (counts[kind] ?? 0) + 1;
+    return counts;
+  }, {}),
+  descriptions: document.works.filter((w) => w.description).length,
   screenshots: document.works.reduce((n, w) => n + w.screenshots.length, 0),
   images: images.size,
   errors,

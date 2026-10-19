@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Badge } from "./ui/badge";
 import type { WorkMetadata } from "../metadata.ts";
+import { metadataSourceLabel, coverKindLabel } from "../metadata-sources.ts";
 export function WorkMetadataPanel({
   metadata,
   title,
@@ -63,7 +64,7 @@ export function WorkMetadataPanel({
           <h2>故事简介</h2>
           <p>{m.description}</p>
           <span className="metadata-credit">
-            简介来源：{m.descriptionSource === "bgm" ? "Bangumi" : "VNDB"}
+            简介来源：{metadataSourceLabel(m.descriptionSource ?? "vndb")}{m.descriptionAdapted ? "（中文整理）" : ""}
           </span>
         </div>
       )}
@@ -101,12 +102,13 @@ export function WorkMetadataPanel({
         </section>
       )}
       <p className="metadata-credit">
+        {m.cover && <>{coverKindLabel(m.cover.kind)} · {metadataSourceLabel(m.cover.source)}<br /></>}
         资料来源：
         {m.sources.map((s, i) => (
-          <span key={s.provider}>
+          <span key={s.provider + s.id}>
             {i ? " · " : ""}
             <a href={s.url} target="_blank" rel="noreferrer">
-              {s.provider === "vndb" ? "VNDB" : "Bangumi"} ↗
+              {metadataSourceLabel(s.provider, s.id)} ↗
             </a>
           </span>
         ))}{" "}
