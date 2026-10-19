@@ -1,7 +1,7 @@
 import { registrationFixture } from "../helpers/webauthn.ts";
 import { test, expect, type Page } from "@playwright/test";
 const origin = process.env.WG_ACCOUNT_TEST_URL;
-test.use({ ignoreHTTPSErrors: true });
+test.use({ ignoreHTTPSErrors: false });
 test.skip(!origin, "Separate HTTPS account preview required");
 import {
   authenticator,
@@ -43,7 +43,7 @@ test("recovery ticket has no ordinary access and replacing a key revokes old ses
   const me = await api(page, "/api/me");
   const codes = await api(page, "/api/me/recovery-codes", {});
   expect(codes.data.codes).toHaveLength(10);
-  const fresh = await browser.newContext({ ignoreHTTPSErrors: true });
+  const fresh = await browser.newContext({ ignoreHTTPSErrors: false });
   try {
     const target = await fresh.newPage();
     await target.goto(origin + "/health");
@@ -201,7 +201,7 @@ test("private library survives login and another account cannot read it", async 
   ).toBe(409);
   const exportA = await api(page, "/api/me/export");
   expect(exportA.data.library[0].note).toBe("private chapter");
-  const other = await browser.newContext({ ignoreHTTPSErrors: true });
+  const other = await browser.newContext({ ignoreHTTPSErrors: false });
   try {
     const target = await other.newPage();
     await target.goto(origin + "/health");
@@ -444,7 +444,7 @@ test("late rotation refresh cannot restore A recovery secrets after a cross-tab 
   await page.goto(origin + "/health");
   await authenticator(page);
   expect((await register(page, "Secret Owner A")).status).toBe(200);
-  const other = await browser.newContext({ ignoreHTTPSErrors: true });
+  const other = await browser.newContext({ ignoreHTTPSErrors: false });
   let release!: () => void;
   try {
     const target = await other.newPage();

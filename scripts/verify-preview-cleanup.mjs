@@ -4,6 +4,7 @@ import { hostname } from "node:os";
 import { spawnSync } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
 import { chromium } from "@playwright/test";
+import { previewChromiumOptions } from "./lib/preview-browser.mjs";
 import { PreviewCleanup } from "./lib/preview-cleanup.mjs";
 assert.equal(hostname(), "localhost");
 assert.equal(process.cwd(), "/home/wvn/wg-accounts-preview-20261019");
@@ -47,13 +48,12 @@ cases.push({
   remaining: result.remaining,
   privateJournal: result.report,
 });
-const browser = await chromium.launch({
-  executablePath: "/usr/bin/chromium",
-  args: ["--no-sandbox", "--disable-dev-shm-usage"],
-});
+const browser = await chromium.launch(
+  previewChromiumOptions("state/accounts-preview/tls.crt"),
+);
 try {
   for (const fault of ["http500", "network"]) {
-    const context = await browser.newContext({ ignoreHTTPSErrors: true });
+    const context = await browser.newContext({ ignoreHTTPSErrors: false });
     const run = new PreviewCleanup({
       directory: "state/sharing-preview/acceptance-runs",
       origin,

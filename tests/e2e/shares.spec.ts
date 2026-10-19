@@ -3,7 +3,7 @@ import { authenticator, register, api } from "../helpers/account-browser";
 const origin = process.env.WG_SHARING_TEST_URL,
   publicOrigin = process.env.WG_SHARING_PUBLIC_URL,
   adminOrigin = process.env.WG_SHARING_ADMIN_URL;
-test.use({ ignoreHTTPSErrors: true });
+test.use({ ignoreHTTPSErrors: false });
 test.skip(!origin, "Dedicated sharing preview required");
 test("link and public shares can be published, moderated, claimed and withdrawn without changing the receiver head", async ({
   page,
@@ -43,7 +43,7 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
   ).toBeVisible();
   expect((await api(page, "/api/me/save-shares")).data.items).toHaveLength(1);
   await page.getByRole("button", { name: "关闭", exact: true }).click();
-  const other = await browser.newContext({ ignoreHTTPSErrors: true });
+  const other = await browser.newContext({ ignoreHTTPSErrors: false });
   try {
     const recipient = await other.newPage();
     await recipient.goto(origin + "/account");
@@ -80,7 +80,7 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
       page.getByText("已提交审核，通过后出现在作品页。", { exact: true }),
     ).toBeVisible();
     let moderationCookie = "";
-    const admin = await browser.newContext({ ignoreHTTPSErrors: true });
+    const admin = await browser.newContext({ ignoreHTTPSErrors: false });
     try {
       const manager = await admin.newPage();
       await manager.goto(adminOrigin + "/share-admin");

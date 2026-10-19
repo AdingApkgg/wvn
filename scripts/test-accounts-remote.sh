@@ -15,6 +15,7 @@ export WG_ACCOUNT_DELETION_LEDGER="$WG_ACCOUNT_DATABASE.deletions.jsonl"
 export WG_ACCOUNT_BLOBS="$PWD/state/accounts-test/blobs-$RANDOM"
 export WG_ACCOUNT_UI=1
 export WG_ACCOUNT_TEST_URL="$WG_ACCOUNT_ORIGIN" WG_ACCOUNT_TEST_INVITE=test-invite
+export WG_ACCOUNT_TEST_CERT="$PWD/state/accounts-test/tls.crt"
 if test -n "$(ss -H -ltn 'sport = :8393')"; then echo "Account test port already in use"; exit 1; fi
 node --import tsx accounts-server.ts > state/accounts-test/server.log 2>&1 &
 account_pid=$!

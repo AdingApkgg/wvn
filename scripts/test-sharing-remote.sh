@@ -28,5 +28,6 @@ for i in {1..30}; do
  if curl -kfsS https://localhost:18483/health >/dev/null 2>&1 && test -s "$sharing_run/admin-token"; then break; fi
  sleep .5
 done
+export WG_SHARING_TEST_CERT="$sharing_run/tls.crt"
 export WG_SHARING_ADMIN_TOKEN=$(cat "$sharing_run/admin-token")
-node_modules/.bin/playwright test tests/e2e/shares.spec.ts "$@"
+node_modules/.bin/playwright test tests/e2e/shares.spec.ts tests/e2e/preview-tls.spec.ts "$@"

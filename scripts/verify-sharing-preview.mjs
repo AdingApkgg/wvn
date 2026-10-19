@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { hostname } from "node:os";
 import { chromium } from "@playwright/test";
+import { previewChromiumOptions } from "./lib/preview-browser.mjs";
 import { PreviewCleanup } from "./lib/preview-cleanup.mjs";
 async function authenticator(page) {
   const cdp = await page.context().newCDPSession(page);
@@ -97,8 +98,7 @@ const errors = [],
   ephemeral = [];
 async function screenshot(page, name, width, height) {
   await page.setViewportSize({ width, height });
-  // Hydration can replace the route stylesheet while the page is already interactive.
-  // Wait for the actual theme, then keep the strict geometry assertion below.
+  // Require a loaded stylesheet before measuring; this does not retry failed CSS.
   await page.waitForFunction(() =>
     getComputedStyle(document.documentElement)
       .getPropertyValue("--background")
@@ -155,13 +155,12 @@ try {
   ).trim();
   mkdirSync("reports/sharing-preview", { recursive: true });
   stage = "launch-browser";
-  browser = await chromium.launch({
-    executablePath: "/usr/bin/chromium",
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
-  a = await browser.newContext({ ignoreHTTPSErrors: true });
-  b = await browser.newContext({ ignoreHTTPSErrors: true });
-  m = await browser.newContext({ ignoreHTTPSErrors: true });
+  browser = await chromium.launch(
+    previewChromiumOptions("state/accounts-preview/tls.crt"),
+  );
+  a = await browser.newContext({ ignoreHTTPSErrors: false });
+  b = await browser.newContext({ ignoreHTTPSErrors: false });
+  m = await browser.newContext({ ignoreHTTPSErrors: false });
   stage = "register-author";
   const author = await a.newPage();
   author.on("pageerror", (e) => errors.push(e.message));
@@ -615,7 +614,7 @@ try {
   if (polish) {
     const expected = new Set([published.id]);
     for (let n = 0; n < 4; n++) {
-      const context = await browser.newContext({ ignoreHTTPSErrors: true });
+      const context = await browser.newContext({ ignoreHTTPSErrors: false });
       const fixture = await context.newPage();
       const cleanupEntry = cleanup.begin(context, `pagination-${n + 1}`);
       ephemeral.push({ context, page: fixture, cleanupEntry });
