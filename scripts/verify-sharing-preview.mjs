@@ -97,6 +97,13 @@ const errors = [],
   ephemeral = [];
 async function screenshot(page, name, width, height) {
   await page.setViewportSize({ width, height });
+  // Hydration can replace the route stylesheet while the page is already interactive.
+  // Wait for the actual theme, then keep the strict geometry assertion below.
+  await page.waitForFunction(() =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--background")
+      .trim(),
+  );
   const content = await page.evaluate(
     () => document.documentElement.scrollWidth,
   );
