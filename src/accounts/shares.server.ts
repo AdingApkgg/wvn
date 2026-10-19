@@ -34,7 +34,26 @@ export class ShareStore {
   CREATE TABLE IF NOT EXISTS wg_share_audit(id INTEGER PRIMARY KEY,share TEXT NOT NULL,action TEXT NOT NULL,reason TEXT NOT NULL,created INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS wg_save_share_reports(id TEXT PRIMARY KEY,reporter TEXT NOT NULL,share TEXT NOT NULL,reason TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'open',created INTEGER NOT NULL);
   CREATE UNIQUE INDEX IF NOT EXISTS wg_report_open ON wg_save_share_reports(reporter,share) WHERE status='open';`);
-    saves.onRemove = (owner, profile) => this.revokeSource(owner, profile);
+    const columns = new Set(
+      db
+        .prepare("PRAGMA table_info(wg_save_shares)")
+        .all()
+        .map((c) => String(c.name)),
+    );
+    if (!columns.has("published_meta"))
+      db.exec("ALTER TABLE wg_save_shares ADD COLUMN published_meta TEXT");
+    if (!columns.has("source_share"))
+      db.exec("ALTER TABLE wg_save_shares ADD COLUMN source_share TEXT");
+    db.exec(
+      "CREATE TABLE IF NOT EXISTS wg_share_publish_keys(owner TEXT NOT NULL,request TEXT NOT NULL,payload TEXT NOT NULL,share TEXT NOT NULL,PRIMARY KEY(owner,request)); CREATE INDEX IF NOT EXISTS wg_share_snapshot_mode ON wg_save_shares(owner,revision,mode,created,id)",
+    );
+    saves.onRemove = (owner, profile) => {
+      this.revokeSource(owner, profile);
+      if (!profile)
+        this.db
+          .prepare("DELETE FROM wg_share_publish_keys WHERE owner=?")
+          .run(owner);
+    };
     this.replay();
   }
   atomic<T>(fn: () => T): T {
@@ -131,7 +150,9 @@ export class ShareStore {
     const text = JSON.parse(
       String((own && row.pending) || row.approved || row.pending),
     ) as ShareText;
-    const meta = this.catalog.require(String(row.version));
+    const meta = row.published_meta
+      ? JSON.parse(String(row.published_meta))
+      : this.catalog.require(String(row.version));
     const files = JSON.parse(String(row.files)) as SaveFile[];
     const claims = this.db
       .prepare(
@@ -151,6 +172,8 @@ export class ShareStore {
       id: String(row.id),
       mode: row.mode as "public" | "link",
       ...meta,
+      metadataBasis: row.published_meta ? "published" : "legacy-current",
+      publicSource: this.publicSource(row),
       author: String(
         this.db.prepare('SELECT name FROM "user" WHERE id=?').get(row.owner)
           ?.name ?? "已注销玩家",
@@ -167,10 +190,24 @@ export class ShareStore {
   inspect(id: string, secret?: string) {
     return this.view(this.authorize(id, secret));
   }
+  private publicSource(row: Row): ShareView["publicSource"] {
+    if (!row.source_share) return null;
+    const parent = this.db
+      .prepare("SELECT * FROM wg_save_shares WHERE id=? AND mode='public'")
+      .get(row.source_share);
+    if (!parent) return null;
+    try {
+      this.authorize(String(parent.id));
+      const approved = JSON.parse(String(parent.approved)) as ShareText;
+      return { id: String(parent.id), title: approved.title };
+    } catch {
+      return null;
+    }
+  }
   create(
     owner: string,
     input: ShareInput,
-  ): { id: string; secret?: string; state: string } {
+  ): { id: string; secret?: string; state: string; duplicate?: boolean } {
     const text = this.text(input);
     if (
       !["public", "link"].includes(input.mode) ||
@@ -181,25 +218,61 @@ export class ShareStore {
     )
       throw new AccountError();
     const payload = sha(JSON.stringify({ ...input, ...text }));
-    const previous = this.db
-      .prepare("SELECT * FROM wg_save_shares WHERE owner=? AND request_id=?")
-      .get(owner, input.requestId);
-    if (previous) {
-      if (previous.payload !== payload)
-        throw new AccountError(409, "CAPTURE_CHANGED");
-      this.live(previous);
-      return { id: String(previous.id), state: String(previous.state) };
-    }
-    const source = this.saves.snapshot(
-      owner,
-      input.profileId,
-      input.revisionId,
-    );
-    if (source.profile.generation !== input.generation)
-      throw new AccountError(410, "GENERATION_CHANGED");
-    const meta = this.catalog.require(source.profile.versionId);
-    this.limit("publish:" + owner, 5);
     return this.atomic(() => {
+      const key = this.db
+        .prepare(
+          "SELECT * FROM wg_share_publish_keys WHERE owner=? AND request=?",
+        )
+        .get(owner, input.requestId);
+      const previous = key
+        ? this.row(String(key.share))
+        : this.db
+            .prepare(
+              "SELECT * FROM wg_save_shares WHERE owner=? AND request_id=?",
+            )
+            .get(owner, input.requestId);
+      if (previous) {
+        if ((key?.payload ?? previous.payload) !== payload)
+          throw new AccountError(409, "CAPTURE_CHANGED");
+        this.live(previous);
+        return {
+          id: String(previous.id),
+          state: String(previous.state),
+          duplicate: true,
+        };
+      }
+      const source = this.saves.snapshot(
+        owner,
+        input.profileId,
+        input.revisionId,
+      );
+      if (source.profile.generation !== input.generation)
+        throw new AccountError(410, "GENERATION_CHANGED");
+      const meta = this.catalog.require(source.profile.versionId);
+      const duplicate = this.db
+        .prepare(
+          "SELECT * FROM wg_save_shares WHERE owner=? AND profile=? AND generation=? AND revision=? AND mode=? AND state IN ('active','pending') AND (expires IS NULL OR expires>?) ORDER BY created,id",
+        )
+        .all(
+          owner,
+          input.profileId,
+          input.generation,
+          input.revisionId,
+          input.mode,
+          Date.now(),
+        )
+        .find((row) => !this.ledger.entries.has(String(row.id)));
+      if (duplicate) {
+        this.live(duplicate);
+        this.db
+          .prepare("INSERT INTO wg_share_publish_keys VALUES (?,?,?,?)")
+          .run(owner, input.requestId, payload, duplicate.id);
+        return {
+          id: String(duplicate.id),
+          state: String(duplicate.state),
+          duplicate: true,
+        };
+      }
       if (
         Number(
           this.db
@@ -210,15 +283,21 @@ export class ShareStore {
         ) >= 20
       )
         throw new AccountError(413, "SHARE_LIMIT");
+      this.limit("publish:" + owner, 5);
       const id = randomUUID(),
         secret =
           input.mode === "link"
             ? randomBytes(32).toString("base64url")
             : undefined,
         state = secret ? "active" : "pending";
+      const origin = this.db
+        .prepare(
+          "SELECT share_id FROM wg_save_origins WHERE revision=? AND kind='share'",
+        )
+        .get(input.revisionId);
       this.db
         .prepare(
-          "INSERT INTO wg_save_shares VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload,published_meta,source_share) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         )
         .run(
           id,
@@ -239,7 +318,12 @@ export class ShareStore {
           Date.now(),
           input.requestId,
           payload,
+          JSON.stringify(meta),
+          origin?.share_id ?? null,
         );
+      this.db
+        .prepare("INSERT INTO wg_share_publish_keys VALUES (?,?,?,?)")
+        .run(owner, input.requestId, payload, id);
       this.saves.pin(owner, "share:" + id, source.revision.files);
       return { id, ...(secret ? { secret } : {}), state };
     });
@@ -347,6 +431,8 @@ export class ShareStore {
               engine: "",
               url: "/",
             },
+            metadataBasis: "legacy-current",
+            publicSource: null,
             author: "",
             createdAt: Number(r.created),
             expiresAt: r.expires,
@@ -512,6 +598,10 @@ export class ShareStore {
           work: metadata?.work ?? null,
           version: metadata?.version ?? null,
           catalogStatus,
+          publication: r.published_meta
+            ? JSON.parse(String(r.published_meta))
+            : null,
+          publicSource: this.publicSource(r),
           author: String(
             this.db.prepare('SELECT name FROM "user" WHERE id=?').get(r.owner)
               ?.name ?? "已注销玩家",

@@ -134,6 +134,22 @@ export default function Share() {
                 {view.work.title} · 版本 {view.version.number} ·{" "}
                 {view.version.title}
               </p>
+              <p className="text-xs text-muted-foreground">
+                {view.metadataBasis === "published"
+                  ? "版本信息已按发布时保存。"
+                  : "旧分享未保存发布时版本信息，当前显示目录信息。"}
+              </p>
+              {view.publicSource && (
+                <p>
+                  <a
+                    className="underline"
+                    href={`/s/${view.publicSource.id}`}
+                    aria-label="查看公开来源"
+                  >
+                    公开来源：{view.publicSource.title}
+                  </a>
+                </p>
+              )}
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline">
                   {view.mode === "public" ? "公开分享" : "链接分享"}

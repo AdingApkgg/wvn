@@ -12,6 +12,8 @@ export type PublicShareCard = {
   bytes: number;
   createdAt: number;
   version: { id: string; title: string; number: number };
+  metadataBasis: "published" | "legacy-current";
+  publicSource: { id: string; title: string } | null;
 };
 export type PublicShareProjection = {
   available: boolean;
@@ -102,6 +104,19 @@ export async function projectShares(
         !Number.isSafeInteger(x.version.number)
       )
         return empty;
+      if (
+        x.metadataBasis !== undefined &&
+        !["published", "legacy-current"].includes(x.metadataBasis)
+      )
+        return empty;
+      if (
+        x.publicSource !== undefined &&
+        x.publicSource !== null &&
+        (!/^[A-Za-z0-9-]{1,100}$/.test(x.publicSource.id) ||
+          typeof x.publicSource.title !== "string" ||
+          x.publicSource.title.length > 240)
+      )
+        return empty;
       items.push({
         id: x.id,
         title: x.title,
@@ -111,6 +126,10 @@ export async function projectShares(
         spoiler: x.spoiler,
         bytes: x.bytes,
         createdAt: x.createdAt,
+        metadataBasis: x.metadataBasis ?? "legacy-current",
+        publicSource: x.publicSource
+          ? { id: x.publicSource.id, title: x.publicSource.title }
+          : null,
         version: {
           id: x.version.id,
           title: x.version.title,

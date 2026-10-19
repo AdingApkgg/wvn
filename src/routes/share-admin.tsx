@@ -177,6 +177,27 @@ export default function ShareAdmin() {
                       : " · 长期公开"}
                   </p>
                 </section>
+                <section className="rounded-lg border p-4 space-y-2 text-sm">
+                  <h3 className="font-medium">发布时版本信息</h3>
+                  {item.publication ? (
+                    <>
+                      <p>
+                        {item.publication.work.title} ·{" "}
+                        {item.publication.work.id}
+                      </p>
+                      <p>
+                        版本 {item.publication.version.number} ·{" "}
+                        {item.publication.version.title} ·{" "}
+                        {item.publication.version.engine}
+                      </p>
+                      <p className="break-all">{item.publication.version.id}</p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      旧分享未保存发布时版本信息，上方为当前目录信息。
+                    </p>
+                  )}
+                </section>
                 <div className="grid gap-3 md:grid-cols-2">
                   {item.approved && (
                     <ReviewText

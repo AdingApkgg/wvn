@@ -64,7 +64,7 @@ export function ShareManagement({
   }, [owner]);
   if (!enabled) return null;
   return (
-    <Card className="account-sharing">
+    <Card className="account-sharing" id="my-shares">
       <CardHeader>
         <CardTitle>
           <h2>我的分享</h2>
@@ -98,6 +98,11 @@ export function ShareManagement({
               {" · "}
               {SHARE_PROGRESS[s.progress]}
               {s.spoiler && " · 含剧透说明"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {s.metadataBasis === "published"
+                ? "版本信息已按发布时保存。"
+                : "旧分享未保存发布时版本信息，当前显示目录信息。"}
             </p>
             <div className="flex gap-2 flex-wrap">
               {s.mode === "public" && s.state === "active" && (

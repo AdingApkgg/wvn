@@ -97,3 +97,43 @@ test("projection forwards combined filters and rejects mismatched response cards
     ["filtered"],
   );
 });
+
+test("public projection carries only safe publication/source metadata", async () => {
+  assert.ok(mod?.projectShares);
+  const result = await mod.projectShares(
+    "v4",
+    new Set(["version-a"]),
+    { backend: "http://127.0.0.1:18484", account: "https://accounts.wg.test" },
+    {},
+    async () =>
+      Response.json({
+        items: [
+          {
+            id: "child",
+            title: "Reshare",
+            description: "",
+            progress: "chapter",
+            spoiler: false,
+            author: "Reader",
+            bytes: 1,
+            createdAt: 1,
+            work: { id: "v4" },
+            version: { id: "version-a", title: "Frozen build", number: 1 },
+            metadataBasis: "published",
+            publicSource: {
+              id: "public-parent",
+              title: "Source",
+              secret: "never-forward-this",
+            },
+          },
+        ],
+        next: null,
+      }),
+  );
+  assert.equal(result.items[0].metadataBasis, "published");
+  assert.deepEqual(result.items[0].publicSource, {
+    id: "public-parent",
+    title: "Source",
+  });
+  assert.ok(!JSON.stringify(result).includes("never-forward-this"));
+});

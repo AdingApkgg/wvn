@@ -104,13 +104,20 @@ export function SharePublish({
                   id: string;
                   secret?: string;
                   state: string;
+                  duplicate?: boolean;
                 }>(
                   "/api/me/save-shares",
                   { ...body, requestId: capture.current.id },
                   undefined,
                   owner,
                 );
-                if (result.secret)
+                if (result.duplicate)
+                  setMessage(
+                    mode === "link"
+                      ? "这份快照已有有效链接分享，未重复创建。"
+                      : "这份快照已有公开分享或待审条目，未重复创建。",
+                  );
+                else if (result.secret)
                   setLink(
                     `${location.origin}/s/${result.id}#key=${result.secret}`,
                   );
@@ -235,9 +242,19 @@ export function SharePublish({
               <AlertDialogCancel>关闭</AlertDialogCancel>
             </div>
             {message && (
-              <p role="status" className="text-sm">
-                {message}
-              </p>
+              <div className="space-y-2">
+                <p role="status" className="text-sm">
+                  {message}
+                </p>
+                {message.startsWith("这份快照已有") && (
+                  <p className="text-xs text-muted-foreground">
+                    原文案和有效期保持不变。完整链接只在首次创建时显示；已有链接继续有效，遗失后可先撤回再重建。
+                    <a className="underline ml-1" href="/account#my-shares">
+                      管理我的分享
+                    </a>
+                  </p>
+                )}
+              </div>
             )}
           </form>
         )}

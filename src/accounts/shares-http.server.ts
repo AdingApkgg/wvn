@@ -138,6 +138,7 @@ export function mountShares(service: AccountService) {
                 work: view.work,
                 version: view.version,
                 compatibility: view.compatibility,
+                metadataBasis: view.metadataBasis,
                 files: view.files,
               }),
             ),

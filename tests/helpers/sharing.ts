@@ -92,6 +92,11 @@ export async function sharingFixture(persistent = false) {
     revision,
     input,
     content,
+    rename: async (workTitle: string, versionTitle: string) => {
+      catalog[0].title = workTitle;
+      catalog[0].versions[0].title = versionTitle;
+      await policy.refresh(true);
+    },
     offline: async () => {
       unavailable = true;
       await policy.refresh(true).catch(() => {});

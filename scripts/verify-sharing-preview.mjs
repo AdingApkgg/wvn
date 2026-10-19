@@ -107,6 +107,29 @@ async function screenshot(page, name, width, height) {
   });
   layouts.push({ name, width, content });
 }
+async function cloneSnapshot(page, profile, revision) {
+  const latest = (await api(page, "/api/me/save-profiles")).data.find(
+    (p) => p.id === profile.id,
+  );
+  const upload = await api(
+    page,
+    `/api/me/save-profiles/${profile.id}/uploads`,
+    {
+      expectedHead: latest.head,
+      generation: latest.generation,
+      captureId: crypto.randomUUID(),
+      files: revision.files,
+    },
+  );
+  assert.equal(upload.status, 200);
+  const result = await api(
+    page,
+    `/api/me/uploads/${upload.data.id}/commit`,
+    {},
+  );
+  assert.equal(result.status, 200);
+  return result.data.revision;
+}
 const synthetic =
   "WG sharing protocol preview only. This is NOT a game save and must not be imported into games.";
 try {
@@ -195,6 +218,29 @@ try {
   await author.getByRole("button", { name: "关闭", exact: true }).click();
   const own = (await api(author, "/api/me/save-shares")).data.items;
   const published = own.find((s) => s.mode === "public");
+  const sourceProfile = (await api(author, "/api/me/save-profiles")).data[0];
+  const sourceRevision = (
+    await api(author, `/api/me/save-profiles/${sourceProfile.id}/revisions`)
+  ).data.items[0];
+  const oldLink = own.find((s) => s.mode === "link");
+  const repeated = await api(author, "/api/me/save-shares", {
+    profileId: sourceProfile.id,
+    generation: sourceProfile.generation,
+    revisionId: sourceRevision.id,
+    mode: "link",
+    days: 1,
+    requestId: crypto.randomUUID(),
+    title: "Ignored repeated draft",
+    description: "Should not change existing share",
+    progress: "other",
+    spoiler: false,
+  });
+  assert.equal(repeated.status, 201);
+  assert.equal(repeated.data.id, oldLink.id);
+  assert.equal(repeated.data.duplicate, true);
+  assert.equal(repeated.data.secret, undefined);
+  assert.equal((await api(author, "/api/me/save-shares")).data.items.length, 2);
+
   stage = "moderation";
   const manager = await m.newPage();
   manager.on("pageerror", (error) => errors.push(error.message));
@@ -302,6 +348,61 @@ try {
   const received = (
     await api(recipient, `/api/me/save-profiles/${profiles[0].id}/revisions`)
   ).data.items[0];
+  const publication = (
+    await api(author, "/api/public/save-shares/" + published.id)
+  ).data;
+  assert.equal(publication.metadataBasis, "published");
+  assert.equal(publication.version.id, version);
+  async function approve(id) {
+    const status = await manager.evaluate(
+      async (id) =>
+        (
+          await fetch(`/api/share-admin/${id}/moderate`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              revision: 1,
+              action: "approve",
+              reason: "Synthetic public source acceptance",
+            }),
+          })
+        ).status,
+      id,
+    );
+    assert.equal(status, 200);
+  }
+  async function reshare(revision, profile, title) {
+    const made = await api(recipient, "/api/me/save-shares", {
+      profileId: profile.id,
+      generation: profile.generation,
+      revisionId: revision.id,
+      mode: "public",
+      requestId: crypto.randomUUID(),
+      title,
+      description: "Synthetic provenance example, not game save.",
+      progress: "chapter",
+      spoiler: false,
+    });
+    assert.equal(made.status, 201);
+    await approve(made.data.id);
+    return made.data.id;
+  }
+  const publicChild = await reshare(
+    received,
+    profiles[0],
+    "预览示例 · 公开来源转分享（合成文件）",
+  );
+  const childView = (
+    await api(recipient, "/api/public/save-shares/" + publicChild)
+  ).data;
+  assert.deepEqual(childView.publicSource, {
+    id: published.id,
+    title: publication.title,
+  });
+  await recipient.goto(origin + "/s/" + publicChild);
+  await recipient.getByRole("link", { name: "查看公开来源" }).waitFor();
+  await screenshot(recipient, "public-source-mobile", 390, 844);
+  await recipient.goto(origin + "/s/" + published.id);
   const receiverId = (await api(recipient, "/api/me")).data.user.id;
   const digest = createHash("sha256").update(synthetic).digest("hex");
   const ownerPath =
@@ -366,15 +467,21 @@ try {
     { encoding: "utf8" },
   );
   assert.ok(!manifestFile.includes(owner));
+  assert.equal(JSON.parse(manifestFile).metadataBasis, "published");
   // Use a separate link for destructive acceptance; retain the public and link examples.
   const authorProfile = (await api(author, "/api/me/save-profiles")).data[0];
   const authorRevision = (
     await api(author, `/api/me/save-profiles/${authorProfile.id}/revisions`)
   ).data.items[0];
+  const disposableRevision = await cloneSnapshot(
+    author,
+    authorProfile,
+    authorRevision,
+  );
   const disposable = await api(author, "/api/me/save-shares", {
     profileId: authorProfile.id,
     generation: authorProfile.generation,
-    revisionId: authorRevision.id,
+    revisionId: disposableRevision.id,
     mode: "link",
     days: 1,
     requestId: crypto.randomUUID(),
@@ -423,6 +530,70 @@ try {
   );
   assert.equal(afterRevoke.status, 200);
   assert.equal(afterRevoke.text, synthetic);
+  const privateChild = await reshare(
+    claim.data.revision,
+    claim.data.profile,
+    "来源隐私验收 · 合成文件",
+  );
+  const privateView = (
+    await api(recipient, "/api/public/save-shares/" + privateChild)
+  ).data;
+  assert.equal(privateView.publicSource, null);
+  assert.ok(!JSON.stringify(privateView).includes(disposable.data.id));
+  assert.equal(
+    (await api(recipient, `/api/me/save-shares/${privateChild}/revoke`, {}))
+      .status,
+    200,
+  );
+  const transientParent = await api(author, "/api/me/save-shares", {
+    profileId: authorProfile.id,
+    generation: authorProfile.generation,
+    revisionId: disposableRevision.id,
+    mode: "public",
+    requestId: crypto.randomUUID(),
+    title: "来源撤回验收 · 合成文件",
+    description: "Temporary public source",
+    progress: "other",
+    spoiler: false,
+  });
+  assert.equal(transientParent.status, 201);
+  await approve(transientParent.data.id);
+  const transientReceipt = await api(recipient, "/api/me/share-claims", {
+    shareId: transientParent.data.id,
+    requestId: crypto.randomUUID(),
+  });
+  assert.equal(transientReceipt.status, 200);
+  const transientChild = await reshare(
+    transientReceipt.data.revision,
+    transientReceipt.data.profile,
+    "来源撤回副本验收 · 合成文件",
+  );
+  assert.equal(
+    (await api(recipient, "/api/public/save-shares/" + transientChild)).data
+      .publicSource.id,
+    transientParent.data.id,
+  );
+  assert.equal(
+    (
+      await api(
+        author,
+        `/api/me/save-shares/${transientParent.data.id}/revoke`,
+        {},
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await api(recipient, "/api/public/save-shares/" + transientChild)).data
+      .publicSource,
+    null,
+  );
+  assert.equal(
+    (await api(recipient, `/api/me/save-shares/${transientChild}/revoke`, {}))
+      .status,
+    200,
+  );
+
   await screenshot(recipient, "detail-desktop", 1440, 1000);
   await screenshot(recipient, "detail-mobile", 390, 844);
   const catalog = (await api(author, "/api/account-catalog")).data,
@@ -467,9 +638,11 @@ try {
         await api(fixture, `/api/me/save-profiles/${profile.id}/revisions`)
       ).data.items[0];
       for (let j = 0; j < 5; j++) {
+        const snapshot =
+          j === 0 ? revision : await cloneSnapshot(fixture, profile, revision);
         const made = await api(fixture, "/api/me/save-shares", {
           profileId: profile.id,
-          revisionId: revision.id,
+          revisionId: snapshot.id,
           generation: profile.generation,
           mode: "public",
           requestId: crypto.randomUUID(),
@@ -578,6 +751,11 @@ try {
           ),
         }
       : {}),
+    snapshotDeduplication: "passed",
+    publicationMetadata: "published",
+    publicSourceLifecycle: "passed",
+    privateSourceUndisclosed: true,
+    publicReshareUrl: origin + "/s/" + publicChild,
     authorNamespaceIndependent: true,
     revokedSourceDenied: true,
     recipientCopyReadableAfterRevoke: true,

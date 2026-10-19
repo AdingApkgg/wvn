@@ -128,7 +128,7 @@ test("public and owner lists page stably through 201 records without duplicate o
     for (let n = 1; n <= 200; n++)
       f.db
         .prepare(
-          "INSERT INTO wg_save_shares SELECT ?,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,?,?,payload FROM wg_save_shares WHERE id=?",
+          "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload) SELECT ?,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,?,?,payload FROM wg_save_shares WHERE id=?",
         )
         .run(
           "page-" + String(n).padStart(4, "0"),
@@ -182,7 +182,7 @@ test("version and approved-progress filters page before limiting and ignore pend
       const progress = n % 3 === 0 ? "complete" : "route";
       f.db
         .prepare(
-          "INSERT INTO wg_save_shares SELECT ?,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,?,pending,metadata_revision,?,?,payload FROM wg_save_shares WHERE id=?",
+          "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload) SELECT ?,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,?,pending,metadata_revision,?,?,payload FROM wg_save_shares WHERE id=?",
         )
         .run(
           "filter-" + String(n).padStart(3, "0"),

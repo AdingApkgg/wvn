@@ -193,6 +193,20 @@ export default function Work() {
                   {(s.bytes / 1024).toFixed(1)} KiB ·{" "}
                   {SHARE_PROGRESS[s.progress]}
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  {s.metadataBasis === "published"
+                    ? "发布时版本信息"
+                    : "旧分享 · 当前目录信息"}
+                </p>
+                {s.publicSource && (
+                  <a
+                    className="underline text-sm"
+                    href={`${w.shares!.account}/s/${s.publicSource.id}`}
+                    aria-label="查看公开来源"
+                  >
+                    公开来源：{s.publicSource.title}
+                  </a>
+                )}
                 {s.spoiler ? (
                   <details>
                     <summary className="cursor-pointer text-sm">

@@ -25,6 +25,8 @@ export type ShareView = ShareText & {
     engine: string;
     url: string;
   };
+  metadataBasis: "published" | "legacy-current";
+  publicSource: { id: string; title: string } | null;
   author: string;
   createdAt: number;
   expiresAt: number | null;
@@ -53,6 +55,11 @@ export type ModerationShare = {
   work: ShareView["work"] | null;
   version: ShareView["version"] | null;
   catalogStatus: "visible" | "hidden" | "unavailable";
+  publication: {
+    work: ShareView["work"];
+    version: ShareView["version"];
+  } | null;
+  publicSource: ShareView["publicSource"];
   author: string;
   files: SaveFile[];
   bytes: number;

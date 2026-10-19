@@ -681,8 +681,19 @@ export class SaveStore {
         sourceId,
       );
       this.db
+        .prepare(
+          "INSERT INTO wg_save_origins(revision,kind,share_id) SELECT ?,kind,share_id FROM wg_save_origins WHERE revision=?",
+        )
+        .run(revision.id, sourceId);
+      this.db
         .prepare("UPDATE wg_save_profiles SET head=? WHERE owner=? AND id=?")
         .run(revision.id, owner, profileId);
+      if (
+        this.db
+          .prepare("SELECT 1 FROM wg_save_origins WHERE revision=?")
+          .get(revision.id)
+      )
+        revision.originKind = "share";
       return revision;
     });
   }
