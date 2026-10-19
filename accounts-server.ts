@@ -1,5 +1,7 @@
 import { serve } from "@hono/node-server";
 import { createServer } from "node:https";
+import { createShareAdminApp } from "./src/accounts/share-admin.server.ts";
+import { writeFileSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { projectCatalog } from "./src/accounts/catalog.server.ts";
@@ -15,6 +17,8 @@ const origin = required("WG_ACCOUNT_ORIGIN");
 const service = await createAccountService({
   origin,
   revision: process.env.WG_ACCOUNT_REVISION,
+  shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
+  catalogOrigin: process.env.WG_ACCOUNT_CATALOG_ORIGIN,
   database: required("WG_ACCOUNT_DATABASE"),
   deletionLedger: required("WG_ACCOUNT_DELETION_LEDGER"),
   blobRoot: required("WG_ACCOUNT_BLOBS"),
@@ -24,6 +28,13 @@ const service = await createAccountService({
   secret: readFileSync(required("WG_ACCOUNT_SECRET_FILE"), "utf8").trim(),
   signupInvite: readFileSync(required("WG_ACCOUNT_INVITE_FILE"), "utf8").trim(),
 });
+const moderation = service.sharing
+  ? createShareAdminApp(service, required("WG_SHARE_ADMIN_ORIGIN"))
+  : null;
+if (moderation)
+  writeFileSync(required("WG_SHARE_ADMIN_TOKEN_FILE"), moderation.token, {
+    mode: 0o600,
+  });
 if (process.env.WG_ACCOUNT_UI === "1") {
   const buildPath = "./build/server/index.js";
   const handler = createRequestHandler(await import(buildPath), "production");
@@ -36,6 +47,17 @@ if (process.env.WG_ACCOUNT_UI === "1") {
   service.app.get("/account/*", (c) =>
     handler(c.req.raw, new RouterContextProvider()),
   );
+  service.app.get("/s/:shareId", (c) =>
+    handler(c.req.raw, new RouterContextProvider()),
+  );
+  if (moderation) {
+    moderation.app.get("/assets/*", (c) =>
+      fileResponse(c.req.raw, resolve("build/client"), c.req.path),
+    );
+    moderation.app.get("/share-admin", (c) =>
+      handler(c.req.raw, new RouterContextProvider()),
+    );
+  }
   service.app.get("/", (c) => c.redirect("/account"));
 }
 const port = Number(process.env.WG_ACCOUNT_PORT ?? 8383);
@@ -57,9 +79,22 @@ const server = serve(
 if ("requestTimeout" in server) server.requestTimeout = 300_000;
 if ("headersTimeout" in server) server.headersTimeout = 10_000;
 server.setTimeout(15_000);
-process.on("SIGTERM", () =>
+const adminServer = moderation
+  ? serve({
+      fetch: moderation.app.fetch,
+      hostname: "127.0.0.1",
+      port: Number(required("WG_SHARE_ADMIN_PORT")),
+      createServer,
+      serverOptions: {
+        key: readFileSync(required("WG_ACCOUNT_TLS_KEY")),
+        cert: readFileSync(required("WG_ACCOUNT_TLS_CERT")),
+      },
+    })
+  : null;
+process.on("SIGTERM", () => {
+  adminServer?.close();
   server.close(() => {
     service.close();
     process.exit(0);
-  }),
-);
+  });
+});

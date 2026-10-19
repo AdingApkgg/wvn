@@ -1160,3 +1160,10 @@ footer {
     max-width: 480px;
   }
 }
+
+.share-shell { max-width: 960px; padding-top: 3rem; padding-bottom: 5rem; display: grid; gap: 1.5rem; }
+.share-heading { display: grid; gap: 1rem; }
+.share-heading h1 { font-size: clamp(2rem, 5vw, 3.5rem); overflow-wrap: anywhere; }
+.share-gallery { margin-top: 3rem; }
+.share-gallery select { max-width: 100%; border: 1px solid var(--border); border-radius: .5rem; background: var(--background); padding: .5rem; }
+.account-sharing { margin: 2rem 0; }

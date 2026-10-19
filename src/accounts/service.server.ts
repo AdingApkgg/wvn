@@ -23,6 +23,11 @@ import { LibraryStore } from "./library.server.ts";
 import { mountSettings } from "./settings-http.server.ts";
 import { mountLibrary } from "./library-http.server.ts";
 import { mountRecovery } from "./recovery-http.server.ts";
+import { ShareStore } from "./shares.server.ts";
+import { ShareLedger } from "./share-ledger.server.ts";
+import { ShareClaims } from "./share-claims.server.ts";
+import { CatalogPolicy, catalogProvider } from "./catalog-policy.server.ts";
+import { mountShares } from "./shares-http.server.ts";
 export type Player = { session: PlayerSession; binding: string };
 export type AccountService = {
   app: Hono;
@@ -33,6 +38,8 @@ export type AccountService = {
   recovery: RecoveryStore;
   library: LibraryStore;
   saves: SaveStore | null;
+  sharing: ShareStore | null;
+  claims: ShareClaims | null;
   deletions: DeletionLedger;
   withLock: <T>(fn: () => T | Promise<T>) => Promise<T>;
   close: () => void;
@@ -53,6 +60,19 @@ export async function createAccountService(
   const recovery = new RecoveryStore(db);
   const library = new LibraryStore(db, config.catalog ?? []);
   const saves = config.blobRoot ? new SaveStore(db, config.blobRoot) : null;
+  const sharing =
+    config.shareLedger && saves
+      ? new ShareStore(
+          db,
+          saves,
+          new CatalogPolicy(
+            config.catalogProvider ??
+              catalogProvider(config.catalogOrigin ?? ""),
+          ),
+          new ShareLedger(config.shareLedger),
+        )
+      : null;
+  const claims = sharing ? new ShareClaims(sharing) : null;
   const deletions = new DeletionLedger(config.deletionLedger);
   const auth = makeAuth(db, config, (id) => deletions.entries.has(id));
   await (await getMigrations(auth.options)).runMigrations();
@@ -77,8 +97,10 @@ export async function createAccountService(
     }
   }
   app.use("/api/*", (c, next) =>
-    c.req.method === "PUT" &&
-    /^\/api\/me\/uploads\/[^/]+\/files\/[^/]+$/.test(c.req.path)
+    (c.req.method === "PUT" &&
+      /^\/api\/me\/uploads\/[^/]+\/files\/[^/]+$/.test(c.req.path)) ||
+    (c.req.method === "POST" &&
+      ["/api/me/share-claims", "/api/me/share-downloads"].includes(c.req.path))
       ? next()
       : withLock(next),
   );
@@ -342,7 +364,11 @@ export async function createAccountService(
   });
   const gc = saves
     ? setInterval(() => {
-        void withLock(() => saves.gc()).catch(() => {});
+        void withLock(() => {
+          sharing?.gc();
+          claims?.gc();
+          saves.gc();
+        }).catch(() => {});
       }, 6 * 3600_000)
     : null;
   gc?.unref();
@@ -355,6 +381,8 @@ export async function createAccountService(
     recovery,
     library,
     saves,
+    sharing,
+    claims,
     deletions,
     withLock,
     close() {
@@ -366,5 +394,6 @@ export async function createAccountService(
   mountLibrary(service);
   mountSettings(service);
   mountSaves(service);
+  mountShares(service);
   return service;
 }

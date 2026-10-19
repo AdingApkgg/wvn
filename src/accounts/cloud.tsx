@@ -28,6 +28,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
+import { SharePublish } from "./share-publish";
 export function CloudBackups({
   account,
   catalog,
@@ -40,6 +41,8 @@ export function CloudBackups({
   const owner = account.me!.user.id;
   const fileInput = useRef<HTMLInputElement>(null);
   const [enabled, setEnabled] = useState(false),
+    [sharing, setSharing] = useState(false),
+    [shareRevision, setShareRevision] = useState<SaveRevision | null>(null),
     [version, setVersion] = useState(""),
     [profile, setProfile] = useState<SaveProfile | null>(null),
     [history, setHistory] = useState<SaveRevision[]>([]),
@@ -77,9 +80,12 @@ export function CloudBackups({
   useEffect(() => {
     let live = true;
     void account
-      .request<{ manual: boolean }>("/api/cloud-options")
+      .request<{ manual: boolean; sharing: boolean }>("/api/cloud-options")
       .then((options) => {
-        if (live) setEnabled(options.manual);
+        if (live) {
+          setEnabled(options.manual);
+          setSharing(options.sharing);
+        }
       })
       .catch(() => {});
     return () => {
@@ -336,13 +342,24 @@ export function CloudBackups({
                   <div className="account-pending space-y-2" key={revision.id}>
                     <p>
                       {new Date(revision.createdAt).toLocaleString("zh-CN")} ·{" "}
-                      {revision.conflict
-                        ? "保留的冲突分支"
-                        : revision.id === profile?.head
-                          ? "当前云端备份"
-                          : "历史备份"}
+                      {revision.originKind === "share"
+                        ? "收到的存档副本"
+                        : revision.conflict
+                          ? "保留的冲突分支"
+                          : revision.id === profile?.head
+                            ? "当前云端备份"
+                            : "历史备份"}
                     </p>
                     <div className="flex flex-wrap gap-3">
+                      {sharing && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShareRevision(revision)}
+                        >
+                          分享这份存档
+                        </Button>
+                      )}
                       {revision.files.map((file) => (
                         <a
                           className="underline text-sm break-all max-w-full"
@@ -406,6 +423,20 @@ export function CloudBackups({
             {message}
           </p>
         )}
+        {shareRevision && profile && (
+          <SharePublish
+            account={account}
+            profile={profile}
+            revision={shareRevision}
+            versionTitle={
+              catalog
+                .flatMap((w) => w.versions)
+                .find((v) => v.id === profile.versionId)?.title ??
+              "所选游戏版本"
+            }
+            close={() => setShareRevision(null)}
+          />
+        )}
         <AlertDialog
           open={!!confirm}
           onOpenChange={(open) => {
@@ -425,7 +456,7 @@ export function CloudBackups({
                 {confirm?.kind === "restore"
                   ? "会保留原有历史并创建新的当前备份。浏览器游戏里的存档不会改变；请下载后自行导入。"
                   : confirm?.kind === "delete"
-                    ? "现有云端文件将不再可下载，旧上传不会重新创建它们。游戏本地存档不受影响。"
+                    ? "现有云端文件将不再可下载，此版本的所有分享链接也会撤回。旧上传不会重新创建它们。游戏本地存档不受影响。"
                     : "尚未上传的文件将从此设备移除。请先确认另有备份；云端已保存的历史不会改变。"}
               </AlertDialogDescription>
             </AlertDialogHeader>

@@ -1,5 +1,7 @@
 export type AccountConfig = {
   revision?: string;
+  shareLedger?: string;
+  catalogProvider?: () => Promise<import("./library.server.ts").CatalogItem[]>;
   origin: string;
   database: string;
   secret: string;

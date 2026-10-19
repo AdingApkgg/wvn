@@ -13,6 +13,7 @@ if (process.argv[2] === "restore") {
       prepareAccountRestore({
         backup: env("WG_ACCOUNT_BACKUP_FROM"),
         currentLedger: env("WG_ACCOUNT_DELETION_LEDGER"),
+        currentShareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
         destination: env("WG_ACCOUNT_RESTORE_DIR"),
       }),
       null,
@@ -24,6 +25,7 @@ if (process.argv[2] === "restore") {
     database: env("WG_ACCOUNT_DATABASE"),
     blobRoot: env("WG_ACCOUNT_BLOBS"),
     ledger: env("WG_ACCOUNT_DELETION_LEDGER"),
+    shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
     destination: env("WG_ACCOUNT_BACKUP_DIR"),
   });
   console.log(

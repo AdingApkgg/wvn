@@ -36,6 +36,11 @@ export function errorCopy(code: string) {
         SNAPSHOT_LIMIT: "存档超过文件数量或大小上限。",
         MANIFEST_INVALID: "文件名、数量或格式不符合备份要求。",
         CONTENT_CONFLICT: "云端已出现更新，请重新查看后再选择。",
+        SHARE_UNAVAILABLE: "分享已失效或暂不可用。",
+        SHARE_SELF: "这是你发布的快照，可从自己的备份历史下载。",
+        SHARE_LIMIT: "有效和待审分享已达到 20 份，请先撤回不再需要的分享。",
+        CATALOG_UNAVAILABLE: "游戏目录暂不可用，请稍后重试。",
+        VERSION_UNAVAILABLE: "对应游戏版本已下线，暂不能领取或发布。",
         SIGN_IN_REQUIRED: "请先登录账号。",
       } as Record<string, string>
     )[code] ?? "操作未完成。可重新尝试，或检查是否取消了系统验证。"
@@ -224,6 +229,33 @@ export function useAccount() {
       throw new AccountClientError(data.code ?? "NETWORK", data);
     }
   };
+  const download = async (
+    path: string,
+    body: unknown,
+    owner: string,
+  ): Promise<Blob> => {
+    if (current.current?.user.id !== owner)
+      throw new AccountClientError("IDENTITY_CHANGED");
+    const check = guard();
+    const response = await fetch(path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-wg-binding": current.current.binding,
+      },
+      body: JSON.stringify(body),
+      signal: controller.current.signal,
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new AccountClientError(data.code ?? "NETWORK");
+    }
+    const blob = await response.blob();
+    check();
+    if (current.current?.user.id !== owner)
+      throw new AccountClientError("IDENTITY_CHANGED");
+    return blob;
+  };
   const authClient = () =>
     createAuthClient({
       plugins: [passkeyClient()],
@@ -276,6 +308,7 @@ export function useAccount() {
     request,
     passkey,
     upload,
+    download,
     guard,
     withCeremony,
     isOwner: (id: string) => current.current?.user.id === id,

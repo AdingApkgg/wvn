@@ -53,6 +53,7 @@ export function createAccountBackup(options: {
   blobRoot: string;
   ledger: string;
   destination: string;
+  shareLedger?: string;
 }) {
   const destination = resolve(options.destination);
   if (existsSync(destination))
@@ -77,6 +78,17 @@ export function createAccountBackup(options: {
   });
   let files: BackupFile[];
   try {
+    if (
+      snapshot
+        .prepare(
+          "SELECT 1 FROM sqlite_master WHERE name='wg_save_shares' AND type='table'",
+        )
+        .get() &&
+      !options.shareLedger
+    )
+      throw new Error(
+        "Share revocation ledger required for sharing-enabled backups",
+      );
     files = snapshot
       .prepare(
         "SELECT b.owner,b.hash,b.bytes FROM wg_save_blobs b WHERE EXISTS(SELECT 1 FROM wg_save_refs r WHERE r.owner=b.owner AND r.hash=b.hash)",
@@ -112,8 +124,22 @@ export function createAccountBackup(options: {
       .join(""),
     { mode: 0o600 },
   );
+  if (options.shareLedger) {
+    const share = new DeletionLedger(options.shareLedger);
+    writeFileSync(
+      join(destination, "share-revocations.jsonl"),
+      [...share.entries]
+        .map(
+          ([userId, deletedAt]) => JSON.stringify({ userId, deletedAt }) + "\n",
+        )
+        .join(""),
+      { mode: 0o600 },
+    );
+  }
   const manifest = {
-    format: "wg-account-backup-v1",
+    format: options.shareLedger
+      ? "wg-account-backup-v2"
+      : "wg-account-backup-v1",
     createdAt: new Date().toISOString(),
     databaseSha256: hash(readFileSync(join(destination, "accounts.sqlite"))),
     files,
@@ -128,6 +154,7 @@ export function createAccountBackup(options: {
 export function prepareAccountRestore(options: {
   backup: string;
   currentLedger: string;
+  currentShareLedger?: string;
   destination: string;
 }) {
   const destination = resolve(options.destination);
@@ -139,7 +166,9 @@ export function prepareAccountRestore(options: {
     readFileSync(join(options.backup, "manifest.json"), "utf8"),
   );
   if (
-    manifest.format !== "wg-account-backup-v1" ||
+    !["wg-account-backup-v1", "wg-account-backup-v2"].includes(
+      manifest.format,
+    ) ||
     !Array.isArray(manifest.files) ||
     hash(readFileSync(join(options.backup, "accounts.sqlite"))) !==
       manifest.databaseSha256
@@ -176,7 +205,31 @@ export function prepareAccountRestore(options: {
       .join(""),
     { mode: 0o600 },
   );
+  if (
+    manifest.format === "wg-account-backup-v2" &&
+    (!options.currentShareLedger || !existsSync(options.currentShareLedger))
+  )
+    throw new Error("Current share revocation ledger required");
+  if (options.currentShareLedger) {
+    const current = new DeletionLedger(options.currentShareLedger);
+    const oldPath = join(options.backup, "share-revocations.jsonl");
+    const old = existsSync(oldPath) ? new DeletionLedger(oldPath) : null;
+    for (const [id, time] of old?.entries ?? [])
+      if (!current.entries.has(id)) current.entries.set(id, time);
+    writeFileSync(
+      join(destination, "share-revocations.jsonl"),
+      [...current.entries]
+        .map(
+          ([userId, deletedAt]) => JSON.stringify({ userId, deletedAt }) + "\n",
+        )
+        .join(""),
+      { mode: 0o600 },
+    );
+  }
   return {
+    ...(options.currentShareLedger
+      ? { shareLedger: join(destination, "share-revocations.jsonl") }
+      : {}),
     database: join(destination, "accounts.sqlite"),
     blobRoot: join(destination, "blobs"),
     deletionLedger: join(destination, "deletions.jsonl"),

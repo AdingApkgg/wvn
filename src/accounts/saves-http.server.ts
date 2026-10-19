@@ -7,10 +7,12 @@ export function mountSaves({
   saves,
   library,
   withLock,
+  sharing,
 }: AccountService) {
   app.get("/api/cloud-options", (c) =>
     c.json({
       manual: !!saves,
+      sharing: !!sharing,
       automatic: false,
       maxSnapshotBytes: 64 * 1024 ** 2,
       maxFileBytes: 32 * 1024 ** 2,

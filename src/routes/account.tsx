@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { Fingerprint, KeyRound, ShieldCheck, Monitor } from "lucide-react";
+import { ShareManagement } from "../accounts/share-management";
 import { Library } from "../accounts/library";
 import { useAccount, AccountClientError, errorCopy } from "../accounts/client";
 import { Button } from "../components/ui/button";
@@ -318,6 +319,11 @@ export default function Account() {
               </div>
             </section>
             <Library key={me.user.id} account={account} run={run} />
+            <ShareManagement
+              key={"shares-" + me.user.id}
+              account={account}
+              run={run}
+            />
             <div className="account-grid account-settings">
               <Card>
                 <CardHeader>
