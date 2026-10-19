@@ -64,7 +64,7 @@ WG_TEST_ROOT="$PWD" WG_TEST_PUBLIC_PORT=8391 WG_TEST_ADMIN_PORT=8392 bash tests/
 
 发布框重新打开后可以为同一快照再次创建分享（仍受额度限制）。发布时版本文字快照与条件来源链接仍待完善。
 
-验收脚本若异常中断，finally 清理暂未检查 DELETE 非2xx响应，错误日志可能不完整；本轮正常路径已逐一断言四个临时账号删除成功。
+验收清理现已核对本轮账号归属、DELETE状态及确认响应。失败台账位于远程 `state/sharing-preview/acceptance-runs/<runId>.json`，权限0600；记录账号标识、阶段、HTTP状态和错误码，不记录Cookie/绑定令牌/分享密钥。`reports/sharing-preview/latest-run.json` 始终记录最近运行状态，失败不会覆盖上一份成功验收报告。
 
 延迟分享响应恰逢切换账号的专用浏览器用例尚未覆盖；服务端binding及前端epoch校验不代表该交错已获浏览器验收。
 
@@ -95,3 +95,18 @@ WG_SHARING_POLISH_ACCEPTANCE=1 node scripts/verify-sharing-preview.mjs
 ```
 
 报告 `reports/sharing-preview/acceptance.json` 记录持久实例产品提交；`post-restart.json` 记录后续仅文档/测试提交的运行版本、完整源码哈希和与已验收相同的服务端构建哈希。审核token验收后重启刷新，仍只用SSH访问。真实游戏兼容性/实体Passkey未验收，生产未切换。
+
+## 验收失败清理与诊断
+
+注册开始即登记本轮临时账号，成功注册后记录确切ID；删除前通过当前会话核对该ID并取得binding。身份不符或无法确认时拒绝删除，台账保留待处理标识。401/403/500、网络异常、200但缺少确认均不算删除成功；失败账号不会阻止其他账号清理，原验收错误与后续清理错误分别保留。正常完成才保留两个展示账号；验收失败也会清理本轮新建的展示账号。不会扫描或删除历史/真实用户账号。
+
+验收脚本失败时退出码1，控制台给出runId、剩余数量及私有台账路径，不输出响应原文、Cookie或原始异常堆栈。台账使用临时文件、fsync及原子替换保存。进程被强制杀死或机器断电无法保证finally执行；登记信息保留在台账中，恢复后应核对，不能按昵称批量删账号。
+
+```sh
+# 在现有远程私有预览上验证中断、模拟500和断网；仅创建/清理本轮合成账号
+node scripts/verify-preview-cleanup.mjs
+# 仅测试用：故意在本轮作者注册后中断，预期退出码1并清理该账号
+WG_PREVIEW_FAIL_AFTER_REGISTER=1 node scripts/verify-sharing-preview.mjs
+```
+
+故障注入仅发生在验收客户端，不修改服务器删除逻辑。500/断网用例先确认失败日志及残留账号，再恢复真实传输，通过正常账号API清理，并只读查验该账号记录已消失。

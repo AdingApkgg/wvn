@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { hostname } from "node:os";
 import { chromium } from "@playwright/test";
+import { PreviewCleanup } from "./lib/preview-cleanup.mjs";
 async function authenticator(page) {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("WebAuthn.enable");
@@ -18,7 +19,16 @@ async function authenticator(page) {
     },
   });
 }
-async function register(page, nickname) {
+async function register(page, nickname, entry) {
+  assert.equal(
+    (
+      await page
+        .context()
+        .request.get(origin + "/api/me", { timeout: 5000, maxRedirects: 0 })
+    ).status(),
+    401,
+    "Synthetic registration must start in an anonymous fresh context",
+  );
   await page.getByLabel("昵称", { exact: true }).fill(nickname);
   await page.getByLabel("预览邀请码").fill(process.env.WG_ACCOUNT_TEST_INVITE);
   const result = page.waitForResponse(
@@ -29,6 +39,19 @@ async function register(page, nickname) {
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   const response = await result;
   assert.equal(response.status(), 200);
+  const registration = await response.json();
+  const registeredId =
+    registration.user?.id ??
+    registration.userId ??
+    registration.passkey?.userId;
+  if (typeof registeredId === "string") cleanup.identify(entry, registeredId);
+  const current = await page
+    .context()
+    .request.get(origin + "/api/me", { timeout: 5000, maxRedirects: 0 });
+  assert.equal(current.status(), 200);
+  const me = await current.json();
+  if (entry.accountId) assert.equal(me.user.id, entry.accountId);
+  else cleanup.identify(entry, me.user.id);
   await page.getByRole("heading", { name: "我的故事", exact: true }).waitFor();
   return { status: response.status() };
 }
@@ -52,30 +75,22 @@ async function api(page, path, body) {
 }
 assert.equal(hostname(), "localhost");
 assert.equal(process.cwd(), "/home/wvn/wg-accounts-preview-20261019");
-const manifest = JSON.parse(
-  readFileSync("reports/sharing-source-manifest.json", "utf8"),
-);
-for (const file of manifest.files)
-  assert.equal(
-    createHash("sha256").update(readFileSync(file.path)).digest("hex"),
-    file.sha256,
-    file.path,
-  );
-process.env.WG_ACCOUNT_TEST_INVITE = readFileSync(
-  "state/accounts-preview/invite",
-  "utf8",
-).trim();
 const origin = "https://localhost:18283",
   publicOrigin = "http://127.0.0.1:18284",
   adminOrigin = "https://localhost:18285";
-mkdirSync("reports/sharing-preview", { recursive: true });
-const browser = await chromium.launch({
-  executablePath: "/usr/bin/chromium",
-  args: ["--no-sandbox", "--disable-dev-shm-usage"],
+const cleanup = new PreviewCleanup({
+  directory: "state/sharing-preview/acceptance-runs",
+  origin,
 });
-const a = await browser.newContext({ ignoreHTTPSErrors: true }),
-  b = await browser.newContext({ ignoreHTTPSErrors: true }),
-  m = await browser.newContext({ ignoreHTTPSErrors: true });
+let manifest,
+  browser,
+  a,
+  b,
+  m,
+  receipt,
+  passed = false,
+  failure,
+  stage = "preflight";
 const errors = [],
   layouts = [],
   polish = process.env.WG_SHARING_POLISH_ACCEPTANCE === "1",
@@ -95,11 +110,49 @@ async function screenshot(page, name, width, height) {
 const synthetic =
   "WG sharing protocol preview only. This is NOT a game save and must not be imported into games.";
 try {
+  manifest = JSON.parse(
+    readFileSync("reports/sharing-source-manifest.json", "utf8"),
+  );
+  for (const file of manifest.files)
+    assert.equal(
+      createHash("sha256").update(readFileSync(file.path)).digest("hex"),
+      file.sha256,
+      file.path,
+    );
+  process.env.WG_ACCOUNT_TEST_INVITE = readFileSync(
+    "state/accounts-preview/invite",
+    "utf8",
+  ).trim();
+  mkdirSync("reports/sharing-preview", { recursive: true });
+  stage = "launch-browser";
+  browser = await chromium.launch({
+    executablePath: "/usr/bin/chromium",
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  a = await browser.newContext({ ignoreHTTPSErrors: true });
+  b = await browser.newContext({ ignoreHTTPSErrors: true });
+  m = await browser.newContext({ ignoreHTTPSErrors: true });
+  stage = "register-author";
   const author = await a.newPage();
   author.on("pageerror", (e) => errors.push(e.message));
   await author.goto(origin + "/account");
   await authenticator(author);
-  assert.equal((await register(author, "WG 分享示例 · 合成账号")).status, 200);
+  assert.equal(
+    (
+      await register(
+        author,
+        "WG 分享示例 · 合成账号",
+        cleanup.begin(a, "author", true),
+      )
+    ).status,
+    200,
+  );
+  if (process.env.WG_PREVIEW_FAIL_AFTER_REGISTER === "1") {
+    stage = "injected-after-registration";
+    throw Object.assign(new Error("Controlled preview cleanup acceptance"), {
+      code: "INJECTED_ACCEPTANCE_FAILURE",
+    });
+  }
   await author.reload();
   const health = await (await a.request.get(origin + "/health")).json();
   assert.equal(health.revision, manifest.revision);
@@ -128,6 +181,7 @@ try {
     await author.getByLabel("我确认分享所列文件").check();
     await author.getByRole("button", { name: "创建分享", exact: true }).click();
   }
+  stage = "publish-shares";
   await publish("link", "预览示例 · 私密链接（合成文件）");
   const link = await author.getByLabel("完整分享链接").inputValue();
   writeFileSync("state/sharing-preview/example-link", link + "\n", {
@@ -141,6 +195,7 @@ try {
   await author.getByRole("button", { name: "关闭", exact: true }).click();
   const own = (await api(author, "/api/me/save-shares")).data.items;
   const published = own.find((s) => s.mode === "public");
+  stage = "moderation";
   const manager = await m.newPage();
   manager.on("pageerror", (error) => errors.push(error.message));
   await manager.goto(adminOrigin + "/share-admin");
@@ -175,14 +230,12 @@ try {
     await author
       .getByRole("button", { name: "刷新分享列表", exact: true })
       .click();
-    const ownCard = author
-      .locator(".account-pending")
-      .filter({
-        has: author.getByRole("heading", {
-          name: published.title,
-          exact: true,
-        }),
-      });
+    const ownCard = author.locator(".account-pending").filter({
+      has: author.getByRole("heading", {
+        name: published.title,
+        exact: true,
+      }),
+    });
     await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
     const edit = author.getByRole("alertdialog");
     await edit.getByLabel("进度类型", { exact: true }).selectOption("complete");
@@ -218,14 +271,22 @@ try {
     assert.equal(after.spoiler, false);
   }
   await screenshot(manager, "moderation-desktop", 1440, 1000);
+  stage = "register-recipient";
   const recipient = await b.newPage();
   recipient.on("pageerror", (e) => errors.push(e.message));
   await recipient.goto(origin + "/account");
   await authenticator(recipient);
   assert.equal(
-    (await register(recipient, "WG 领取示例 · 合成账号")).status,
+    (
+      await register(
+        recipient,
+        "WG 领取示例 · 合成账号",
+        cleanup.begin(b, "recipient", true),
+      )
+    ).status,
     200,
   );
+  stage = "claim-download-revoke";
   await recipient.goto(origin + "/s/" + published.id);
   await recipient
     .getByRole("heading", { name: published.title, exact: true })
@@ -378,21 +439,25 @@ try {
     for (let n = 0; n < 4; n++) {
       const context = await browser.newContext({ ignoreHTTPSErrors: true });
       const fixture = await context.newPage();
-      ephemeral.push({ context, page: fixture });
+      const cleanupEntry = cleanup.begin(context, `pagination-${n + 1}`);
+      ephemeral.push({ context, page: fixture, cleanupEntry });
+      stage = `register-pagination-${n + 1}`;
       await fixture.goto(origin + "/account");
       await authenticator(fixture);
-      await register(fixture, `分页验收 ${n + 1} · 临时合成账号`);
+      await register(
+        fixture,
+        `分页验收 ${n + 1} · ${cleanup.runId.slice(0, 8)}`,
+        cleanupEntry,
+      );
       await fixture.reload();
       await fixture
         .getByRole("combobox", { name: "存档所属版本" })
         .selectOption(version);
-      await fixture
-        .getByLabel("游戏导出的存档文件")
-        .setInputFiles({
-          name: "pagination-synthetic.dat",
-          mimeType: "application/octet-stream",
-          buffer: Buffer.from(synthetic),
-        });
+      await fixture.getByLabel("游戏导出的存档文件").setInputFiles({
+        name: "pagination-synthetic.dat",
+        mimeType: "application/octet-stream",
+        buffer: Buffer.from(synthetic),
+      });
       await fixture
         .getByRole("button", { name: "保留云端历史，保存为新备份" })
         .click();
@@ -431,6 +496,7 @@ try {
         assert.equal(status, 200);
       }
     }
+    stage = "filtered-pagination";
     await gallery.goto(publicOrigin + work.url);
     await gallery.getByLabel("游戏版本", { exact: true }).selectOption(version);
     await gallery
@@ -478,28 +544,19 @@ try {
       (url) => url.searchParams.get("saveProgress") === "chapter",
     );
     assert.equal(new URL(gallery.url()).searchParams.has("saveCursor"), false);
-    // Delete only credentials created in this run; deletion withdraws the 20 temporary shares.
+    stage = "cleanup-pagination";
     for (const fixture of ephemeral) {
-      const status = await fixture.page.evaluate(async () => {
-        const me = await (await fetch("/api/me")).json();
-        return (
-          await fetch("/api/me", {
-            method: "DELETE",
-            headers: {
-              "content-type": "application/json",
-              "x-wg-binding": me.binding,
-            },
-            body: JSON.stringify({ confirmation: "DELETE" }),
-          })
-        ).status;
-      });
-      assert.equal(status, 200);
-      fixture.deleted = true;
+      const result = await cleanup.remove(fixture.cleanupEntry);
+      assert.equal(
+        result.ok,
+        true,
+        "Temporary account cleanup failed; inspect private run journal",
+      );
     }
   }
   await gallery.close();
   assert.deepEqual(errors, []);
-  const receipt = {
+  receipt = {
     status: "passed",
     checkedAt: new Date().toISOString(),
     host: hostname(),
@@ -516,7 +573,9 @@ try {
           combinedFilterPages: filteredPages,
           progressEditAndPendingApproval: "passed",
           moderationManifest: "passed",
-          temporaryPaginationAccountsDeleted: ephemeral.every((f) => f.deleted),
+          temporaryPaginationAccountsDeleted: ephemeral.every(
+            (f) => f.cleanupEntry.state === "deleted",
+          ),
         }
       : {}),
     authorNamespaceIndependent: true,
@@ -533,38 +592,49 @@ try {
     productionChanged: false,
     adminTokenConsumedByAcceptance: true,
   };
-  writeFileSync(
-    "reports/sharing-preview/acceptance.json",
-    JSON.stringify(receipt, null, 2) + "\n",
-  );
-  console.log(JSON.stringify(receipt));
+  passed = true;
+} catch (error) {
+  failure = error;
+  cleanup.recordFailure(stage, error);
 } finally {
-  for (const fixture of ephemeral) {
-    if (!fixture.deleted) {
-      try {
-        await fixture.page.evaluate(async () => {
-          const response = await fetch("/api/me");
-          if (!response.ok) return;
-          const me = await response.json();
-          await fetch("/api/me", {
-            method: "DELETE",
-            headers: {
-              "content-type": "application/json",
-              "x-wg-binding": me.binding,
-            },
-            body: JSON.stringify({ confirmation: "DELETE" }),
-          });
-        });
-      } catch {
-        console.error(
-          "Temporary synthetic account cleanup did not finish; inspect this run before retrying",
-        );
-      }
+  const result = await cleanup.finish({ passed, stage, error: failure });
+  for (const resource of [
+    ...ephemeral.map((f) => f.context),
+    a,
+    b,
+    m,
+    browser,
+  ]) {
+    if (!resource) continue;
+    try {
+      await resource.close();
+    } catch (error) {
+      cleanup.recordFailure("close-resources", error);
+      result.status = "failed";
     }
-    await fixture.context.close();
   }
-  await a.close();
-  await b.close();
-  await m.close();
-  await browser.close();
+  mkdirSync("reports/sharing-preview", { recursive: true });
+  writeFileSync(
+    "reports/sharing-preview/latest-run.json",
+    JSON.stringify(result, null, 2) + "\n",
+    { mode: 0o600 },
+  );
+  if (result.status === "passed") {
+    receipt.runId = cleanup.runId;
+    receipt.cleanup = {
+      deleted: result.deleted,
+      remaining: result.remaining,
+      privateJournal: result.report,
+    };
+    writeFileSync(
+      "reports/sharing-preview/acceptance.json",
+      JSON.stringify(receipt, null, 2) + "\n",
+    );
+    console.log(JSON.stringify(receipt));
+  } else {
+    console.error(
+      JSON.stringify({ code: "PREVIEW_ACCEPTANCE_FAILED", ...result }),
+    );
+    process.exitCode = 1;
+  }
 }
