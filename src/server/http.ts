@@ -56,6 +56,8 @@ export function createPublicApp(
     return fileResponse(c.req.raw, mediaRoot, "/" + file);
   });
   app.get("/health", (c) => c.json({ status: "ok", mode: "preview" }));
+  app.all("/account", (c) => c.notFound());
+  app.all("/account/*", (c) => c.notFound());
   app.all("/api/manage/*", (c) => c.notFound());
   app.all("/manage", (c) => c.notFound());
   app.all("/manage/*", (c) => c.notFound());

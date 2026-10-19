@@ -1,0 +1,481 @@
+import { registrationFixture } from "../helpers/webauthn.ts";
+import { test, expect, type Page } from "@playwright/test";
+const origin = process.env.WG_ACCOUNT_TEST_URL;
+test.use({ ignoreHTTPSErrors: true });
+test.skip(!origin, "Separate HTTPS account preview required");
+async function authenticator(page: Page, verified = true) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("WebAuthn.enable");
+  const { authenticatorId } = await cdp.send(
+    "WebAuthn.addVirtualAuthenticator",
+    {
+      options: {
+        protocol: "ctap2",
+        transport: verified ? "internal" : "usb",
+        hasResidentKey: true,
+        hasUserVerification: verified,
+        isUserVerified: verified,
+        automaticPresenceSimulation: true,
+      },
+    },
+  );
+  return { cdp, id: authenticatorId };
+}
+async function register(
+  page: Page,
+  nickname: string,
+  invite = process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite",
+  relaxUV = false,
+) {
+  return page.evaluate(
+    async ({ nickname, invite, relaxUV }) => {
+      const me = await fetch("/api/me");
+      const current = me.ok ? await me.json() : null;
+      const q = encodeURIComponent(JSON.stringify({ nickname, invite }));
+      const options = await fetch(
+        "/api/auth/passkey/generate-register-options?context=" + q,
+        { headers: current ? { "x-wg-binding": current.binding } : {} },
+      );
+      if (!options.ok) return { status: options.status };
+      const json = await options.json();
+      const decode = (v: string) =>
+        Uint8Array.from(atob(v.replace(/-/g, "+").replace(/_/g, "/")), (c) =>
+          c.charCodeAt(0),
+        );
+      if (relaxUV) json.authenticatorSelection.userVerification = "discouraged";
+      json.challenge = decode(json.challenge);
+      json.user.id = decode(json.user.id);
+      json.excludeCredentials = json.excludeCredentials.map(
+        (c: { id: string }) => ({ ...c, id: decode(c.id) }),
+      );
+      const credential = (await navigator.credentials.create({
+        publicKey: json,
+      })) as PublicKeyCredential;
+      const response = await fetch("/api/auth/passkey/verify-registration", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          response: credential.toJSON(),
+          createSession: true,
+        }),
+      });
+      return { status: response.status, body: await response.json() };
+    },
+    { nickname, invite, relaxUV },
+  );
+}
+async function login(page: Page) {
+  return page.evaluate(async () => {
+    const response = await fetch(
+      "/api/auth/passkey/generate-authenticate-options",
+    );
+    const json = await response.json();
+    const decode = (v: string) =>
+      Uint8Array.from(atob(v.replace(/-/g, "+").replace(/_/g, "/")), (c) =>
+        c.charCodeAt(0),
+      );
+    json.challenge = decode(json.challenge);
+    json.userVerification = "required";
+    if (json.allowCredentials)
+      json.allowCredentials = json.allowCredentials.map(
+        (c: { id: string }) => ({ ...c, id: decode(c.id) }),
+      );
+    const credential = (await navigator.credentials.get({
+      publicKey: json,
+    })) as PublicKeyCredential;
+    const result = await fetch("/api/auth/passkey/verify-authentication", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ response: credential.toJSON() }),
+    });
+    return result.status;
+  });
+}
+async function api(page: Page, path: string, body?: unknown, method?: string) {
+  return page.evaluate(
+    async ({ path, body, method }) => {
+      const me = await fetch("/api/me");
+      const current = me.ok ? await me.json() : null;
+      const response = await fetch(path, {
+        method: method ?? (body === undefined ? "GET" : "POST"),
+        headers: {
+          "content-type": "application/json",
+          ...(current ? { "x-wg-binding": current.binding } : {}),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+      return { status: response.status, data: await response.json() };
+    },
+    { path, body, method },
+  );
+}
+test("Passkey-first: registration, sign-out, login and last-key protection", async ({
+  page,
+}) => {
+  await page.goto(origin + "/health");
+  await authenticator(page);
+  expect((await register(page, "Reader A", "wrong-invite")).status).toBe(403);
+  const registration = await register(page, "Reader A");
+  expect(registration.status).toBe(200);
+  expect(registration.body).toEqual({ ok: true });
+  const me = await api(page, "/api/me");
+  expect(me.status).toBe(200);
+  expect(me.data.user.name).toBe("Reader A");
+  expect(me.data.passkeys).toHaveLength(1);
+  const remove = await api(
+    page,
+    `/api/me/passkeys/${me.data.passkeys[0].id}/delete`,
+    {},
+  );
+  expect(remove.status).toBe(409);
+  expect((await api(page, "/api/auth/sign-out", {})).status).toBe(200);
+  expect((await api(page, "/api/me")).status).toBe(401);
+  expect(await login(page)).toBe(200);
+  expect((await api(page, "/api/me")).data.user.id).toBe(me.data.user.id);
+});
+test("recovery ticket has no ordinary access and replacing a key revokes old sessions", async ({
+  page,
+  browser,
+}) => {
+  await page.goto(origin + "/health");
+  await authenticator(page);
+  expect((await register(page, "Recovery Reader")).status).toBe(200);
+  const me = await api(page, "/api/me");
+  const codes = await api(page, "/api/me/recovery-codes", {});
+  expect(codes.data.codes).toHaveLength(10);
+  const fresh = await browser.newContext({ ignoreHTTPSErrors: true });
+  try {
+    const target = await fresh.newPage();
+    await target.goto(origin + "/health");
+    await authenticator(target);
+    expect(
+      (
+        await api(target, "/api/recovery/start", {
+          accountId: me.data.user.id,
+          code: codes.data.codes[0],
+        })
+      ).status,
+    ).toBe(200);
+    expect((await api(target, "/api/me")).status).toBe(401);
+    const recovered = await target.evaluate(async () => {
+      const options = await (
+        await fetch("/api/recovery/options", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: "{}",
+        })
+      ).json();
+      const decode = (v: string) =>
+        Uint8Array.from(atob(v.replace(/-/g, "+").replace(/_/g, "/")), (c) =>
+          c.charCodeAt(0),
+        );
+      options.challenge = decode(options.challenge);
+      options.user.id = decode(options.user.id);
+      options.excludeCredentials = options.excludeCredentials.map(
+        (c: { id: string }) => ({ ...c, id: decode(c.id) }),
+      );
+      const cred = (await navigator.credentials.create({
+        publicKey: options,
+      })) as PublicKeyCredential;
+      const r = await fetch("/api/recovery/complete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ response: cred.toJSON() }),
+      });
+      return { status: r.status, data: await r.json() };
+    });
+    expect(recovered.status).toBe(200);
+    expect(recovered.data.codes).toHaveLength(10);
+    expect((await api(target, "/api/me")).status).toBe(401);
+    expect((await api(page, "/api/me")).status).toBe(401);
+    expect(await login(target)).toBe(200);
+    expect((await api(target, "/api/me")).data.user.id).toBe(me.data.user.id);
+    expect(
+      (
+        await api(target, "/api/recovery/start", {
+          accountId: me.data.user.id,
+          code: codes.data.codes[1],
+        })
+      ).status,
+    ).toBe(400);
+  } finally {
+    await fresh.close();
+  }
+});
+test("account page lets a player register and keep a recovery kit", async ({
+  page,
+}) => {
+  await page.goto(origin + "/account");
+  await authenticator(page);
+  await expect(
+    page.getByRole("heading", { name: "让进度，随你同行。" }),
+  ).toBeVisible();
+  await page.getByLabel("昵称").fill("UI Reader");
+  await page
+    .getByLabel("预览邀请码")
+    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  await expect(page.getByRole("heading", { name: "我的故事" })).toBeVisible();
+  await page.getByRole("button", { name: "生成恢复码" }).click();
+  await expect(
+    page.getByRole("heading", { name: "保存你的恢复码" }),
+  ).toBeVisible();
+  await expect(page.locator(".recovery-code")).toHaveCount(10);
+  await page.getByRole("button", { name: "我已保存，关闭" }).click();
+  await expect(page.locator(".recovery-code")).toHaveCount(0);
+  await page.getByRole("button", { name: "退出账号" }).click();
+  await expect(
+    page.getByRole("button", { name: "使用通行密钥登录", exact: true }),
+  ).toBeVisible();
+});
+
+test("server refuses valid none-attestation without user verification", async ({
+  page,
+}) => {
+  await page.goto(origin + "/health");
+  const options = await page.evaluate(async (invite) => {
+    const context = encodeURIComponent(
+      JSON.stringify({ nickname: "No UV Reader", invite }),
+    );
+    return (
+      await fetch(
+        "/api/auth/passkey/generate-register-options?context=" + context,
+      )
+    ).json();
+  }, process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  const response = registrationFixture(options.challenge, origin!, false);
+  // Characterize the fixture: upstream accepts its structure when UV is optional.
+  const { verifyRegistrationResponse } = await import("@simplewebauthn/server");
+  const verified = await verifyRegistrationResponse({
+    response,
+    expectedOrigin: origin!,
+    expectedRPID: new URL(origin!).hostname,
+    expectedChallenge: options.challenge,
+    requireUserVerification: false,
+  });
+  expect(verified.verified).toBe(true);
+  expect(verified.registrationInfo?.userVerified).toBe(false);
+  const status = await page.evaluate(
+    async (response) =>
+      (
+        await fetch("/api/auth/passkey/verify-registration", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ response, createSession: true }),
+        })
+      ).status,
+    response,
+  );
+  expect(status).toBe(400);
+  expect((await api(page, "/api/me")).status).toBe(401);
+});
+test("private library survives login and another account cannot read it", async ({
+  page,
+  browser,
+}) => {
+  await page.goto(origin + "/health");
+  await authenticator(page);
+  expect((await register(page, "Book Owner")).status).toBe(200);
+  const catalog = await api(page, "/api/account-catalog");
+  const work = catalog.data[0];
+  expect(work).toBeTruthy();
+  expect(
+    (
+      await api(
+        page,
+        `/api/me/library/${work.id}`,
+        { revision: 0, status: "playing", note: "private chapter" },
+        "PATCH",
+      )
+    ).status,
+  ).toBe(200);
+  expect(
+    (
+      await api(
+        page,
+        `/api/me/library/${work.id}`,
+        { revision: 0, status: "completed", note: "stale" },
+        "PATCH",
+      )
+    ).status,
+  ).toBe(409);
+  const exportA = await api(page, "/api/me/export");
+  expect(exportA.data.library[0].note).toBe("private chapter");
+  const other = await browser.newContext({ ignoreHTTPSErrors: true });
+  try {
+    const target = await other.newPage();
+    await target.goto(origin + "/health");
+    await authenticator(target);
+    expect((await register(target, "Other Reader")).status).toBe(200);
+    expect((await api(target, "/api/me/library")).data).toEqual([]);
+    expect((await api(target, "/api/me/export")).data.library).toEqual([]);
+  } finally {
+    await other.close();
+  }
+  expect((await api(page, "/api/me/library")).data[0].note).toBe(
+    "private chapter",
+  );
+});
+test("additional keys, safe names, stale bindings and account deletion", async ({
+  page,
+}) => {
+  await page.goto(origin + "/health");
+  const key = await authenticator(page);
+  expect((await register(page, "Manage Reader")).status).toBe(200);
+  const before = await api(page, "/api/me");
+  await key.cdp.send("WebAuthn.removeVirtualAuthenticator", {
+    authenticatorId: key.id,
+  });
+  await key.cdp.send("WebAuthn.addVirtualAuthenticator", {
+    options: {
+      protocol: "ctap2",
+      transport: "usb",
+      hasResidentKey: true,
+      hasUserVerification: true,
+      isUserVerified: true,
+      automaticPresenceSimulation: true,
+    },
+  });
+  expect((await register(page, "Manage Reader")).status).toBe(200);
+  const me = await api(page, "/api/me");
+  expect(me.data.passkeys).toHaveLength(2);
+  expect(
+    (
+      await api(
+        page,
+        `/api/me/passkeys/${me.data.passkeys[0].id}`,
+        { name: "备用钥匙" },
+        "PATCH",
+      )
+    ).status,
+  ).toBe(200);
+  const stale = await page.evaluate(async (binding) => {
+    const result = await fetch("/api/me/recovery-codes", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-wg-binding": binding },
+      body: "{}",
+    });
+    return { status: result.status, body: await result.json() };
+  }, before.data.binding);
+  expect(stale.status).toBe(409);
+  expect(stale.body.code).toBe("IDENTITY_CHANGED");
+  expect(
+    (await api(page, "/api/me", { confirmation: "wrong" }, "DELETE")).status,
+  ).toBe(400);
+  expect(
+    (await api(page, "/api/me", { confirmation: "DELETE" }, "DELETE")).status,
+  ).toBe(200);
+  expect((await api(page, "/api/me")).status).toBe(401);
+});
+test("manual cloud backup uploads exact files and restores history without touching game storage", async ({
+  page,
+}) => {
+  await page.goto(origin + "/account");
+  await authenticator(page);
+  await page.getByLabel("昵称").fill("Cloud Reader");
+  await page
+    .getByLabel("预览邀请码")
+    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  const select = page.getByRole("combobox", { name: "存档所属版本" });
+  await expect(select).toBeVisible();
+  const version = await select.locator("option").nth(1).getAttribute("value");
+  await select.selectOption(version!);
+  await page.getByLabel("游戏导出的存档文件").setInputFiles({
+    name: "save1.dat",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("progress-one"),
+  });
+  await page
+    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .click();
+  await expect(page.getByRole("status")).toContainText("文件备份已保存到云端");
+  const firstDownload = page.waitForEvent("download");
+  await page
+    .getByRole("link", { name: "下载 save1.dat", exact: true })
+    .first()
+    .click();
+  const first = await firstDownload;
+  expect(
+    await (
+      await import("node:fs/promises")
+    ).readFile((await first.path())!, "utf8"),
+  ).toBe("progress-one");
+  await page.getByLabel("游戏导出的存档文件").setInputFiles({
+    name: "save1.dat",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("progress-two"),
+  });
+  await page
+    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "下载 save1.dat", exact: true }),
+  ).toHaveCount(2);
+  await page.getByRole("button", { name: "设为当前云端备份" }).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "确认", exact: true })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "下载 save1.dat", exact: true }),
+  ).toHaveCount(3);
+  const restoredDownload = page.waitForEvent("download");
+  await page
+    .getByRole("link", { name: "下载 save1.dat", exact: true })
+    .first()
+    .click();
+  const restored = await restoredDownload;
+  expect(
+    await (
+      await import("node:fs/promises")
+    ).readFile((await restored.path())!, "utf8"),
+  ).toBe("progress-one");
+});
+test("interrupted cloud upload stays local after reload and is hidden from a different account", async ({
+  page,
+}) => {
+  await page.goto(origin + "/account");
+  await authenticator(page);
+  await page.getByLabel("昵称").fill("Draft Owner");
+  await page
+    .getByLabel("预览邀请码")
+    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  const select = page.getByRole("combobox", { name: "存档所属版本" });
+  await expect(select).toBeVisible();
+  const version = await select.locator("option").nth(1).getAttribute("value");
+  await select.selectOption(version!);
+  await page.route("**/api/me/uploads/*/files/*", (route) => route.abort());
+  await page.getByLabel("游戏导出的存档文件").setInputFiles({
+    name: "pending.dat",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("offline-progress"),
+  });
+  await page
+    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "继续上传", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await page
+    .getByRole("combobox", { name: "存档所属版本" })
+    .selectOption(version!);
+  await expect(
+    page.getByRole("button", { name: "继续上传", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "退出账号", exact: true }).click();
+  await page.getByLabel("昵称").fill("Other Draft Reader");
+  await page
+    .getByLabel("预览邀请码")
+    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  await page
+    .getByRole("combobox", { name: "存档所属版本" })
+    .selectOption(version!);
+  await expect(page.getByLabel("游戏导出的存档文件")).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "继续上传", exact: true }),
+  ).toHaveCount(0);
+});

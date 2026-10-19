@@ -2,20 +2,14 @@
   "include": [
     "src/**/*",
     "server.ts",
+    "accounts-server.ts",
     "scripts/*.ts",
     "tests/**/*.ts",
     ".react-router/types/**/*"
   ],
   "compilerOptions": {
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ES2023"
-    ],
-    "types": [
-      "node",
-      "vite/client"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "types": ["node", "vite/client"],
     "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -26,14 +20,9 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "rootDirs": [
-      ".",
-      "./.react-router/types"
-    ],
+    "rootDirs": [".", "./.react-router/types"],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   }
 }

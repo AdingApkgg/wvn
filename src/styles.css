@@ -225,8 +225,12 @@
   min-width: 0;
 }
 .story-card {
-  flex: var(--cover-ratio, 0.667) 1 calc(var(--cover-ratio, 0.667) * var(--cover-height));
-  max-width: min(100%, calc(var(--cover-ratio, 0.667) * var(--cover-max-height)));
+  flex: var(--cover-ratio, 0.667) 1
+    calc(var(--cover-ratio, 0.667) * var(--cover-height));
+  max-width: min(
+    100%,
+    calc(var(--cover-ratio, 0.667) * var(--cover-max-height))
+  );
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -252,7 +256,9 @@
   border: 1px solid #ffffff14;
   border-radius: 6px;
   box-shadow: 0 4px 16px #0003;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   background:
     radial-gradient(ellipse at 70% 40%, #58677977, transparent 65%), #252f3b;
   overflow: hidden;
@@ -991,4 +997,166 @@ footer {
 .cover-fit {
   object-fit: contain !important;
   background-color: #ede8e0;
+}
+
+/* Account portal: shares the screening-room palette, never the game origin. */
+.account-shell {
+  max-width: 1080px;
+  padding-block: 56px 80px;
+}
+.account-intro {
+  max-width: 680px;
+  margin-bottom: 36px;
+}
+.account-intro h1,
+.account-heading h1 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  letter-spacing: -0.04em;
+  margin: 16px 0;
+}
+.account-intro > p:not(.eyebrow),
+.account-heading p:not(.eyebrow) {
+  color: var(--muted-foreground);
+  line-height: 1.8;
+}
+.account-promises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 24px;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.account-promises span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.account-login {
+  max-width: 480px;
+}
+.account-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.account-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+.account-recovery-dialog {
+  max-width: min(640px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.account-code-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.recovery-code {
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  padding: 8px;
+  background: var(--muted);
+  border-radius: 4px;
+}
+@media (max-width: 640px) {
+  .account-shell {
+    padding-top: 32px;
+  }
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+  .account-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .account-code-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.account-library {
+  margin-bottom: 48px;
+}
+.account-library h2 {
+  font-family: Georgia, serif;
+  font-size: 1.5rem;
+}
+.account-library [data-slot="native-select-wrapper"] {
+  max-width: 100%;
+}
+.account-library select {
+  max-width: 100%;
+}
+.account-reader iframe {
+  width: 100%;
+  height: min(72vh, 800px);
+  border: 0;
+  background: #08090c;
+}
+.account-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.account-cloud {
+  margin-top: 32px;
+}
+.account-pending {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.account-anonymous {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+  gap: 48px;
+  align-items: center;
+}
+.account-anonymous .account-intro {
+  margin-bottom: 0;
+}
+.account-anonymous .account-login {
+  width: 100%;
+  max-width: none;
+}
+.account-anonymous > [role="alert"],
+.account-anonymous > noscript {
+  grid-column: 1 / -1;
+}
+.account-heading p {
+  overflow-wrap: anywhere;
+}
+.account-list-row > div {
+  min-width: 0;
+  flex: 1;
+}
+.account-pending button {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  height: auto;
+  min-height: 32px;
+}
+@media (max-width: 900px) {
+  .account-anonymous {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+  .account-anonymous .account-login {
+    max-width: 480px;
+  }
 }
