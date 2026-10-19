@@ -4,11 +4,52 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { hostname } from "node:os";
 import { chromium } from "@playwright/test";
-import {
-  authenticator,
-  register,
-  api,
-} from "../tests/helpers/account-browser.ts";
+async function authenticator(page) {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("WebAuthn.enable");
+  await cdp.send("WebAuthn.addVirtualAuthenticator", {
+    options: {
+      protocol: "ctap2",
+      transport: "internal",
+      hasResidentKey: true,
+      hasUserVerification: true,
+      isUserVerified: true,
+      automaticPresenceSimulation: true,
+    },
+  });
+}
+async function register(page, nickname) {
+  await page.getByLabel("昵称", { exact: true }).fill(nickname);
+  await page.getByLabel("预览邀请码").fill(process.env.WG_ACCOUNT_TEST_INVITE);
+  const result = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/auth/passkey/verify-registration") &&
+      response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  const response = await result;
+  assert.equal(response.status(), 200);
+  await page.getByRole("heading", { name: "我的故事", exact: true }).waitFor();
+  return { status: response.status() };
+}
+async function api(page, path, body) {
+  return page.evaluate(
+    async ({ path, body }) => {
+      const response = await fetch("/api/me");
+      const me = response.ok ? await response.json() : null;
+      const result = await fetch(path, {
+        method: body === undefined ? "GET" : "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(me ? { "x-wg-binding": me.binding } : {}),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+      return { status: result.status, data: await result.json() };
+    },
+    { path, body },
+  );
+}
 assert.equal(hostname(), "localhost");
 assert.equal(process.cwd(), "/home/wvn/wg-accounts-preview-20261019");
 const manifest = JSON.parse(
