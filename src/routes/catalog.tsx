@@ -1,3 +1,5 @@
+import { useState, type CSSProperties } from "react";
+import type { PublicWork } from "../types.ts";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -157,41 +159,7 @@ export default function Catalog() {
         </div>
         <div className="story-grid">
           {items.map((w, i) => (
-            <Link key={w.id} to={w.url} className="story-card">
-              <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
-                {w.metadata?.cover && (
-                  <img
-                    className={"cover-image" + (w.metadata.cover.kind ? " cover-fit" : "")}
-                    src={w.metadata.cover.url}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                )}
-                <span className="card-index">{workSlug(w.id)}</span>
-                <span className="art-line" />
-                <span className="art-symbol">
-                  {["✦", "◌", "✧", "◇", "⋆"][i % 5]}
-                </span>
-                <span className="art-word">
-                  STORY / {w.versions[0].engine.toUpperCase()}
-                </span>
-              </div>
-              <div className="card-body">
-                <span className="eyebrow">
-                  {[...new Set(w.versions.map((v) => v.engine))].join(" / ")}
-                </span>
-                <h3>{w.title}</h3>
-                <p>{w.originalTitle}</p>
-                <div className="card-footer">
-                  <Badge variant="secondary">{w.versions.length} 个版本</Badge>
-                  <span>阅读详情 ↗</span>
-                </div>
-              </div>
-            </Link>
+            <StoryCard key={w.id} work={w} index={i} />
           ))}
         </div>
         {!items.length && (
@@ -209,5 +177,60 @@ export default function Catalog() {
         </footer>
       </main>
     </>
+  );
+}
+
+
+function StoryCard({ work: w, index: i }: { work: PublicWork; index: number }) {
+  const cover = w.metadata?.cover;
+  const [naturalRatio, setNaturalRatio] = useState<number>();
+  const sourceRatio = naturalRatio ?? (
+    cover?.width && cover.height ? cover.width / cover.height :
+    cover?.kind === "logo" ? 2.4 : cover?.kind === "promotion" ? 16 / 9 : 2 / 3
+  );
+  const wide = cover?.kind === "logo" || sourceRatio > 2.2;
+  const ratio = Math.max(0.5, sourceRatio);
+  return (
+    <Link
+      to={w.url}
+      className={"story-card" + (wide ? " story-card-wide" : "")}
+      style={{ "--cover-ratio": ratio } as CSSProperties}
+    >
+      <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
+        {cover && (
+          <img
+            className={"cover-image" + (cover.kind ? " cover-fit" : "")}
+            src={cover.url}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            width={cover.width}
+            height={cover.height}
+            onLoad={(e) => {
+              const image = e.currentTarget;
+              if (image.naturalHeight) setNaturalRatio(image.naturalWidth / image.naturalHeight);
+            }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        )}
+        <span className="art-line" />
+        <span className="art-symbol">{["✦", "◌", "✧", "◇", "⋆"][i % 5]}</span>
+        <span className="art-word">STORY / {w.versions[0].engine.toUpperCase()}</span>
+      </div>
+      <div className="card-body">
+        <div className="card-meta">
+          <span className="eyebrow">
+            {[...new Set(w.versions.map((v) => v.engine))].join(" / ")}
+          </span>
+          <span className="card-work-id">{workSlug(w.id)}</span>
+        </div>
+        <h3>{w.title}</h3>
+        <p>{w.originalTitle}</p>
+        <div className="card-footer">
+          <Badge variant="secondary">{w.versions.length} 个版本</Badge>
+          <span>阅读详情 ↗</span>
+        </div>
+      </div>
+    </Link>
   );
 }

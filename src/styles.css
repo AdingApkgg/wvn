@@ -211,26 +211,48 @@
   color: var(--muted-foreground);
 }
 .story-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 26px 20px;
+  --cover-height: 230px;
+  --cover-max-height: 300px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 38px 24px;
+}
+/* Absorb the final row's spare space instead of enlarging its last cover. */
+.story-grid::after {
+  content: "";
+  flex: 10000 1 0;
+  min-width: 0;
 }
 .story-card {
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  overflow: hidden;
-  background: #191c24;
-  transition:
-    transform 0.2s,
-    border-color 0.2s;
+  flex: var(--cover-ratio, 0.667) 1 calc(var(--cover-ratio, 0.667) * var(--cover-height));
+  max-width: min(100%, calc(var(--cover-ratio, 0.667) * var(--cover-max-height)));
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 6px;
+  transition: transform 0.2s;
 }
 .story-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
+}
+.story-card:hover .card-art {
   border-color: #d3b9a166;
+  box-shadow: 0 12px 30px #0005;
+}
+.story-card:focus-visible {
+  outline: 2px solid var(--story-accent);
+  outline-offset: 6px;
 }
 .card-art {
-  aspect-ratio: 1.7;
+  aspect-ratio: var(--cover-ratio, 0.667);
+  width: 100%;
+  flex-shrink: 0;
   position: relative;
+  border: 1px solid #ffffff14;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px #0003;
+  transition: border-color 0.2s, box-shadow 0.2s;
   background:
     radial-gradient(ellipse at 70% 40%, #58677977, transparent 65%), #252f3b;
   overflow: hidden;
@@ -250,14 +272,6 @@
 .tone-4 {
   background:
     radial-gradient(ellipse at 20% 20%, #987b7b66, transparent 70%), #3b2d32;
-}
-.card-index {
-  position: absolute;
-  left: 17px;
-  top: 16px;
-  font: 10px monospace;
-  letter-spacing: 2px;
-  color: #ffffff77;
 }
 .art-symbol {
   font-size: 85px;
@@ -285,13 +299,32 @@
   color: #ffffff66;
 }
 .card-body {
-  padding: 20px;
+  min-width: 0;
+  padding: 14px 0 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.card-work-id {
+  color: var(--muted-foreground);
+  font: 10px monospace;
 }
 .card-body h3 {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.55;
-  margin: 10px 0 8px;
+  margin: 8px 0 4px;
+  min-height: 3.1em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .card-body > p {
   font-size: 11px;
@@ -301,14 +334,36 @@
   overflow: hidden;
 }
 .card-footer {
-  margin-top: 24px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  margin-top: auto;
+  padding-top: 12px;
   display: flex;
   justify-content: space-between;
   font-size: 10px;
   color: var(--muted-foreground);
 }
+/* Wide artwork reads as a feature strip; logos retain their transparent margins. */
+.story-card-wide {
+  flex: 0 0 100%;
+  max-width: 100%;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 18px 0;
+  border-block: 1px solid var(--line);
+}
+.story-card-wide .card-art {
+  width: min(48%, calc(var(--cover-ratio) * 190px));
+}
+.story-card-wide .card-body {
+  padding: 0;
+}
+.story-card-wide .card-body h3 {
+  min-height: 0;
+}
+.story-card-wide .card-footer {
+  margin-top: 12px;
+}
+
 footer {
   display: flex;
   justify-content: space-between;
@@ -601,9 +656,6 @@ footer {
   min-width: 160px;
 }
 @media (max-width: 1000px) {
-  .story-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
   .stats {
     gap: 20px;
   }
@@ -657,11 +709,23 @@ footer {
     min-width: 100px;
   }
   .story-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 12px;
+    --cover-height: 170px;
+    --cover-max-height: 250px;
+    gap: 28px 16px;
+  }
+  .story-card-wide {
+    gap: 16px;
+    padding-block: 14px;
+  }
+  .story-card-wide .card-art {
+    width: 43%;
+  }
+  .story-card-wide .card-meta {
+    flex-wrap: wrap;
+    gap: 4px;
   }
   .card-body {
-    padding: 14px;
+    padding: 12px 0 0;
   }
   .card-body h3 {
     font-size: 14px;
@@ -676,9 +740,6 @@ footer {
     font-size: 65px;
     right: 20px;
     top: 8px;
-  }
-  .card-art {
-    aspect-ratio: 1.4;
   }
   .section-title {
     margin-top: 30px;
@@ -755,16 +816,10 @@ footer {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 25%;
+  object-fit: contain;
+  object-position: center;
+  background: #15171d;
   z-index: 1;
-}
-.card-index {
-  z-index: 2;
-  background: #0009;
-  border-radius: 4px;
-  padding: 3px 6px;
-  color: #f2e9dd;
 }
 .work-heading-body {
   flex: 1;

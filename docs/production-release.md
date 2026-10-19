@@ -36,3 +36,19 @@
 - 回滚：`python3 /Users/developer/Code/temp/wg-deploy/remote_ps.py /Users/developer/Code/temp/wg-manager/reports/rollback-20261019-133308.ps1`。备份与实际数据库均保留在本次独立发布目录，不回写游戏资源和浏览器存档。
 
 本脚本是本次首次切换入口，严格校验旧生产配置哈希；已上线后的下一次升级需要基于当前发布记录安排，不能将首次发布脚本当成无条件覆盖脚本。
+
+## 自适应封面墙升级（20261019-141301）
+
+用户在预览验收后明确授权更新生产。此 UI 升级复用现有生产目录与启动任务，不进行目录导入或数据库迁移。构建来自 Linux 已验收版本，服务器产物 SHA256 为 `473c38138cd9fe7771666b296f2eb8c55dd489fc8b0b6041749eca1fb41f32a4`，运行时代码 32 个文件与原生产逐个一致。
+
+候选目录 `H:\wg-manager-ui-20261019-141301\candidate` 使用生产数据库的一致性副本与回环 8481/8482。候选通过 235 项路由、330 张图片和 4 项只读浏览器检查后关闭。生产服务短暂重启，仅替换 build、src/routes/catalog.tsx、src/styles.css；保留上一版客户端 assets，供已有页面继续请求。Caddyfile、生产端口、开机启动任务、资源目录和元数据配置保持一致。
+
+回滚文件与数据库快照保存在 `H:\wg-manager-ui-20261019-141301`，升级收据为该目录 receipt.json。回滚只恢复界面与两个源文件，复用当前数据库，保留切换后的记录。
+
+```sh
+python3 /Users/developer/Code/temp/wg-deploy/remote_ps.py /Users/developer/Code/temp/wg-manager/reports/rollback-gallery-20261019-141301.ps1
+```
+
+专用脚本 `scripts/upgrade-gallery-windows.ps1` 严格校验本次上线前的生产 build 与配置哈希；它是这次 UI 升级的执行与回滚入口。执行日志：reports/gallery-stage-20261019-141301.log、reports/gallery-publish-20261019-141301.log。
+
+最终验收：2026-10-19 14:19:13 +08:00，收据 status=complete；Windows 源站 235/235 项路由、330 张图片与 4 项浏览器验收通过，Linux 经 11090 代理对正式 HTTPS 站点的 4 项浏览器验收通过。确认六张业务表与停服前一致性快照逐条相同，生产任务 Running、8381/8382 仅回环，Caddy hash 保持 B62AE149…E06C01，H 盘剩余 117790691328 字节（约 109.7 GiB）。本地收据 reports/gallery-production-20261019-141301.json，公网验收 reports/gallery-public-acceptance-20261019-141301.json。
