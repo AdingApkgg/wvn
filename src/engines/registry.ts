@@ -14,7 +14,7 @@ const schema=z.object({schema:z.literal(1),releases:z.array(release),bindings:z.
 export type EngineRegistry=z.infer<typeof schema>;
 export const sha256=(bytes:string|Uint8Array)=>createHash('sha256').update(bytes).digest('hex');
 export function releaseIdentity(value:{kind:string;mode:string;files:{path:string;sha256:string}[]}){
- return value.kind.toLowerCase()+'-'+sha256(JSON.stringify({kind:value.kind,mode:value.mode,files:[...value.files].sort((a,b)=>a.path.localeCompare(b.path,'en'))}));
+ return value.kind.toLowerCase()+'-'+sha256(JSON.stringify({kind:value.kind,mode:value.mode,files:value.files.map(({path,sha256})=>({path,sha256})).sort((a,b)=>a.path.localeCompare(b.path,'en'))}));
 }
 export function validateEngineRegistry(input:unknown):EngineRegistry{
  const value=schema.parse(input),releases=new Map(value.releases.map(r=>[r.id,r]));
@@ -24,14 +24,14 @@ export function validateEngineRegistry(input:unknown):EngineRegistry{
  for(const p of players){
   const b=value.bindings.find(b=>b.versionId===p.versionId),r=b&&releases.get(b.releaseId);
   if(!b||!r||b.playerId!==p.id||b.legacyEngine!==p.engine||b.saveCompatibilityId!==`legacy:${p.versionId}:${p.engine}`)throw Error('Legacy save identity differs');
-  const kind=p.runtimeKind??'ONS';if(r.kind!==kind)throw Error('Mixed engine family');
+  const kind='runtimeKind' in p?p.runtimeKind:'ONS';if(r.kind!==kind)throw Error('Mixed engine family');
   const expected=kind==='ONS'?{'onsyuri.js':'334ee32249dce6c8d6cdf7e0c6b68e704129c58efa949336c8fad14742a882c1','onsyuri.wasm':p.engine}:(p as typeof players[number]&{engineFiles:Record<string,string>}).engineFiles;
   if(r.files.length!==Object.keys(expected).length||r.files.some(f=>expected[f.path]!==f.sha256))throw Error('Mixed or incomplete engine artifacts');
  }
  return value;
 }
 export function loadEngineRegistry(root=process.cwd()):EngineRegistry{
- const read=(name:string)=>JSON.parse(readFileSync(resolve(root,'engines',name),'utf8'));
+ const read=(name:string)=>{const value=JSON.parse(readFileSync(resolve(root,'engines',name),'utf8'));if(value.schema!==1)throw Error('Unknown engine lock schema');return value;};
  return validateEngineRegistry({schema:1,releases:read('releases.lock.json').releases,bindings:read('bindings.json').bindings,toolchains:read('toolchains.lock.json').toolchains});
 }
 export function engineSummary(root=process.cwd()){

@@ -21,3 +21,8 @@ test('private summary never claims imported engines have verified source builds'
  assert(summary.releases.every(r=>r.sourceCapability==='imported-prebuilt'));
  assert.doesNotMatch(JSON.stringify(summary),/\/home\/|token|secret|ssh/i);
 });
+
+test('release identity uses file paths and digests only, independent of inspection metadata',async()=>{
+ const {releaseIdentity}=await import('../src/engines/registry.ts'),file={path:'engine.wasm',sha256:'a'.repeat(64)};
+ assert.equal(releaseIdentity({kind:'ONS',mode:'factory',files:[file]}),releaseIdentity({kind:'ONS',mode:'factory',files:[{...file,bytes:123,wasm:{exports:[]}} as typeof file]}));
+});
