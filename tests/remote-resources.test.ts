@@ -1,7 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Hono } from 'hono';
-import { registerRemotePlayerResources } from '../src/player/remote.server.ts';
+import { registerRemotePlayerResources,previewResourceProjections } from '../src/player/remote.server.ts';
+
+test('preview archive projection is exact, integrity checked and leaves other resources on their original host',async()=>{
+ const row={id:'renpy-v50789-1',path:'game.zip',upstream:'http://192.0.2.20:18575',sha256:'a'.repeat(64),bytes:17},doc={schema:1,entries:[row]};
+ assert.throws(()=>previewResourceProjections(doc,'production'));
+ for(const changed of [{path:'renpy.js'},{upstream:'http://169.254.169.254'},{upstream:'http://192.0.2.20:18575/private'},{bytes:NaN},{sha256:'invalid'}])assert.throws(()=>previewResourceProjections({schema:1,entries:[{...row,...changed}]},'preview'));
+ const seen:Request[]=[],app=new Hono();let bad=false;
+ registerRemotePlayerResources(app,{upstream:'http://192.0.2.20:18571',projections:previewResourceProjections(doc,'preview'),fetcher:async(input,init)=>{const req=new Request(input,init);seen.push(req);return new Response(req.method==='HEAD'?null:'converted-archive',{headers:{etag:'"'+(bad?'b'.repeat(64):row.sha256)+'"','content-length':'17','content-type':'application/zip'}})}});
+ const path='/__player/resource/'+row.id+'/game.zip';
+ assert.equal((await app.request('https://localhost'+path,{headers:{Cookie:'private',Authorization:'private'}})).status,200);assert.equal(seen[0].url,row.upstream+path);assert.equal(seen[0].headers.get('cookie'),null);assert.equal(seen[0].headers.get('authorization'),null);
+ await app.request('https://localhost/__player/resource/renpy-v1286-1/game.zip');assert.equal(new URL(seen[1].url).port,'18571');
+ await app.request('https://localhost/__player/resource/'+row.id+'/renpy.js');assert.equal(new URL(seen[2].url).port,'18571');
+ bad=true;assert.equal((await app.request('https://localhost'+path)).status,502);
+});
 
 function setup(fetcher: typeof fetch) {
   const app = new Hono();

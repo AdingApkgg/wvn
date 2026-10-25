@@ -16,7 +16,7 @@ import {getStore} from './src/server/runtime.ts';
 import {registerTrustedCatalog} from './src/player/catalog.server.ts';
 import {registerOtherPlayers,isPlayerResourcePath} from './src/player/http.server.ts';
 import { registerOnsPilot, registerOnsModules } from './src/ons/http.server.ts';
-import { registerRemotePlayerResources } from './src/player/remote.server.ts';
+import { registerRemotePlayerResources,previewResourceProjections } from './src/player/remote.server.ts';
 import { isIP } from 'node:net';
 import { RemoteBlobStore } from './src/accounts/blob-remote.server.ts';
 import {configureResourceTimeout} from './src/server/resource-timeout.ts';
@@ -79,7 +79,7 @@ if (process.env.WG_ACCOUNT_UI === "1") {
     if(process.env.WG_ONS_PILOT!=='1')throw new Error('Cloud player requires the sandbox pilot');
     if (process.env.WG_RESOURCE_UPSTREAM) {
       registerOnsModules(service.app);
-      registerRemotePlayerResources(service.app, { upstream: process.env.WG_RESOURCE_UPSTREAM });
+      registerRemotePlayerResources(service.app, { upstream: process.env.WG_RESOURCE_UPSTREAM,projections:process.env.WG_PREVIEW_RESOURCE_PROJECTIONS?previewResourceProjections(JSON.parse(readFileSync(process.env.WG_PREVIEW_RESOURCE_PROJECTIONS,'utf8')),process.env.WG_DEPLOYMENT_MODE??'preview'):undefined });
     } else {
       registerOnsPilot(service.app,required('WG_RESOURCE_ROOT'));
       if(process.env.WG_ALL_ENGINES==='1')registerOtherPlayers(service.app,required('WG_RESOURCE_ROOT'));
