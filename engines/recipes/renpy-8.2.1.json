@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "renpy-8.2.1",
+  "kind": "RenPy",
+  "sdk": "emsdk-3.1.24-linux-x64",
+  "source": {
+    "url": "https://github.com/renpy/renpy.git",
+    "commit": "1a30d4dd8eb5d0f21ac8550703439db05fde0cc8"
+  },
+  "buildSystem": {
+    "url": "https://github.com/renpy/renpy-build.git",
+    "commit": "992db0ebeef20cf752a29eda9df503377e80e1b2"
+  },
+  "pygameSdl2": {
+    "url": "https://github.com/renpy/pygame_sdl2.git",
+    "commit": "4fadf87b8c3e9d607b97709d3bbf3df6a7fab102"
+  },
+  "inputs": {
+    "path": "engines/locks/renpy-8.2.1-inputs.json",
+    "sha256": "fcf0ac21a9d384ece30ec3ba6c2cd16732ffb8decc08681e1a0d6c75e72212d5"
+  },
+  "patches": [],
+  "outputs": [
+    "renpy-pre.js",
+    "renpy.js",
+    "renpy.wasm",
+    "renpy.data"
+  ]
+}

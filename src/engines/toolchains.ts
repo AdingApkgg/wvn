@@ -13,8 +13,12 @@ export async function run(command:string,args:string[],options:{cwd?:string;env?
 export function requireBuildHost(){if(process.platform!=='linux'||process.arch!=='x64'||hostname()!=='localhost')throw Error('Engine builds require the registered Linux1 build host');}
 export function sdkEnvironment(sdkRoot:string,cache?:string):NodeJS.ProcessEnv{
  const root=realpathSync(sdkRoot),config=readFileSync(join(root,'.emscripten'),'utf8');
- const match=/^NODE_JS\s*=\s*['"]([^'"]+)['"]/m.exec(config);if(!match)throw Error('Pinned SDK Node runtime is missing');
- const node=resolve(match[1].replace('$CFGDIR',root));if(!node.startsWith(root+'/'))throw Error('SDK Node escapes its prefix');
+ const literal=/^NODE_JS\s*=\s*(['"])([^'"]+)\1\s*$/m.exec(config),relative=/^NODE_JS\s*=\s*emsdk_path\s*\+\s*(['"])(\/[^'"]+)\1\s*$/m.exec(config);
+ // The pinned emsdk uses EM_CONFIG for older compilers and $CFGDIR for newer
+ // ones. Recognize its exact generated form; never evaluate Python config.
+ const declaration="emsdk_path = os.path.dirname(os.getenv('EM_CONFIG')).replace('\\\\', '/')";
+ if(!literal&&(!relative||!config.split(/\r?\n/).some(line=>line.trim()===declaration)))throw Error('Pinned SDK Node runtime is missing');
+ const node=resolve(literal?literal[2].replace('$CFGDIR',root):root+relative![2]);if(!node.startsWith(root+'/'))throw Error('SDK Node escapes its prefix');
  return {...process.env,EMSDK:root,EM_CONFIG:join(root,'.emscripten'),...(cache?{EM_CACHE:cache}:{}),PATH:[join(root,'upstream/emscripten'),join(root,'upstream/bin'),resolve(node,'..'),process.env.PATH].join(delimiter)};
 }
 export function inspectCompilerOutput(output:string){

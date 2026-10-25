@@ -4,7 +4,12 @@ import {join,resolve,basename} from 'node:path';import{z}from'zod';
 import {sha256,releaseIdentity,loadEngineRegistry,type EngineRegistry} from './registry.ts';
 import {createJob,updateJob,withBuildLock} from './jobs.ts';import{run,doctor,sdkEnvironment,requireBuildHost}from'./toolchains.ts';
 const hash=z.string().regex(/^[a-f0-9]{64}$/),safeName=z.string().regex(/^[a-zA-Z0-9_-]+\.(?:js|wasm|data)$/);
-const recipeSchema=z.object({schema:z.literal(1),id:z.literal('onsyuri'),kind:z.literal('ONS'),sdk:z.string(),source:z.object({url:z.literal('https://github.com/YuriSizuku/OnscripterYuri.git'),commit:z.string().regex(/^[a-f0-9]{40}$/)}).strict(),lua:z.object({url:z.literal('https://www.lua.org/ftp/lua-5.4.4.tar.gz'),sha256:hash}).strict(),patches:z.array(z.object({path:z.string().regex(/^engines\/patches\/[a-z0-9.-]+\.patch$/),sha256:hash}).strict()),outputs:z.array(safeName).min(2)}).strict();
+const patchesSchema=z.array(z.object({path:z.string().regex(/^engines\/patches\/[a-z0-9.-]+\.patch$/),sha256:hash}).strict());
+const commit=z.string().regex(/^[a-f0-9]{40}$/);
+const recipeSchema=z.discriminatedUnion('kind',[
+ z.object({schema:z.literal(1),id:z.literal('onsyuri'),kind:z.literal('ONS'),sdk:z.string(),source:z.object({url:z.literal('https://github.com/YuriSizuku/OnscripterYuri.git'),commit}).strict(),lua:z.object({url:z.literal('https://www.lua.org/ftp/lua-5.4.4.tar.gz'),sha256:hash}).strict(),patches:patchesSchema,outputs:z.array(safeName).min(2)}).strict(),
+ z.object({schema:z.literal(1),id:z.literal('renpy-8.2.1'),kind:z.literal('RenPy'),sdk:z.literal('emsdk-3.1.24-linux-x64'),source:z.object({url:z.literal('https://github.com/renpy/renpy.git'),commit}).strict(),buildSystem:z.object({url:z.literal('https://github.com/renpy/renpy-build.git'),commit}).strict(),pygameSdl2:z.object({url:z.literal('https://github.com/renpy/pygame_sdl2.git'),commit}).strict(),inputs:z.object({path:z.literal('engines/locks/renpy-8.2.1-inputs.json'),sha256:hash}).strict(),patches:patchesSchema,outputs:z.array(safeName).length(4)}).strict(),
+]);
 export type Recipe=z.infer<typeof recipeSchema>;
 const builderFiles=['src/engines/build.ts','src/engines/toolchains.ts','src/engines/jobs.ts','scripts/engine-manager.ts'];
 // source.tar 保留上游基线；配方和补丁本体共同组成可重建的实际输入。
@@ -13,7 +18,7 @@ export function captureBuildInputs(jobRoot:string,repo:string,recipeBytes:Buffer
  function put(path:string,bytes:Buffer){const target=join(root,path);mkdirSync(resolve(target,'..'),{recursive:true,mode:0o700});writeFileSync(target,bytes,{flag:'wx',mode:0o600});files[path]=sha256(bytes);}
  put('recipe.json',recipeBytes);put('toolchain.json',Buffer.from(JSON.stringify(sdk,null,2)));
  for(const path of builderFiles)put(path,readFileSync(join(repo,path)));
- const patches=recipeSchema.shape.patches.parse(JSON.parse(recipeBytes.toString()).patches);
+ const patches=patchesSchema.parse(JSON.parse(recipeBytes.toString()).patches);
  for(const patch of patches){const bytes=readFileSync(join(repo,patch.path));if(sha256(bytes)!==patch.sha256)throw Error('Patch fingerprint differs');put(patch.path,bytes);}
  writeFileSync(join(root,'manifest.json'),JSON.stringify({schema:1,files},null,2),{flag:'wx',mode:0o600});return verifyBuildInputs(jobRoot);
 }
@@ -25,10 +30,10 @@ export function verifyBuildInputs(jobRoot:string){
   const file=join(root,path);if(!lstatSync(file).isFile()||lstatSync(file).isSymbolicLink()||!realpathSync(file).startsWith(root+'/')||sha256(readFileSync(file))!==expected)throw Error('Build input fingerprint differs');
  }
  for(const path of ['recipe.json','toolchain.json',...builderFiles])if(!manifest.files[path])throw Error('Missing build input');
- const patches=recipeSchema.shape.patches.parse(JSON.parse(readFileSync(join(root,'recipe.json'),'utf8')).patches);
+ const patches=patchesSchema.parse(JSON.parse(readFileSync(join(root,'recipe.json'),'utf8')).patches);
  for(const patch of patches)if(manifest.files[patch.path]!==patch.sha256)throw Error('Patch fingerprint differs');return manifest;
 }
-export function validateRecipe(value:unknown,registry:EngineRegistry):Recipe{const r=recipeSchema.parse(value);if(!registry.toolchains.some(t=>t.id===r.sdk)||new Set(r.outputs).size!==r.outputs.length||!r.outputs.includes('onsyuri.js')||!r.outputs.includes('onsyuri.wasm'))throw Error('Unregistered SDK or incomplete outputs');return r;}
+export function validateRecipe(value:unknown,registry:EngineRegistry):Recipe{const r=recipeSchema.parse(value),required=r.kind==='ONS'?['onsyuri.js','onsyuri.wasm']:['renpy-pre.js','renpy.js','renpy.wasm','renpy.data'];if(!registry.toolchains.some(t=>t.id===r.sdk)||new Set(r.outputs).size!==r.outputs.length||!required.every(n=>r.outputs.includes(n)))throw Error('Unregistered SDK or incomplete outputs');return r;}
 export async function verifyArtifacts(root:string,names:string[]){
  const base=realpathSync(root),files=[];
  for(const path of names){if(!safeName.safeParse(path).success)throw Error('Invalid artifact path');const target=join(base,path);if(lstatSync(target).isSymbolicLink()||!lstatSync(target).isFile()||realpathSync(target)!==target)throw Error('Artifact is not a regular file');
@@ -51,6 +56,7 @@ export async function sourceDigest(root:string){
 
 export async function buildEngine({state,sdkRoot,recipePath,repo=process.cwd()}:{state:string;sdkRoot:string;recipePath:string;repo?:string}){
  requireBuildHost();const registry=loadEngineRegistry(repo),recipeBytes=readFileSync(recipePath),recipe=validateRecipe(JSON.parse(recipeBytes.toString()),registry),sdk=registry.toolchains.find(t=>t.id===recipe.sdk)!;
+ if(recipe.kind!=='ONS')throw Error('RenPy recipe is registered; its source builder has not been enabled');
  return await withBuildLock(state,async()=>{
   const job=createJob(state,recipe.id),log=openSync(join(job.root,'build.log'),'ax',0o600);
   const execute=(cmd:string,args:string[],cwd?:string,env?:NodeJS.ProcessEnv)=>run(cmd,args,{cwd,env,log});
