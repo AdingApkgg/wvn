@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { OnsCloud } from './cloud';
 import { ReadingSession } from '../accounts/reading-session';
 
-type Pilot = { id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string };
+type Pilot = { id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string; engineCandidate?: {releaseId:string;database:string;cloudEnabled:false;compatibility:"unknown"} };
 type History = Omit<SavedRevision, "snapshot" | "bytesHeld">;
 type StorageModule = typeof import("../../public/ons/storage.mjs");
 type ProtocolModule = typeof import("../../public/ons/protocol.mjs");
@@ -45,7 +45,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     active.current = true;
     let instance: SaveStore | null = null;
     void (async () => {
-      const { storage } = await modules(); instance = await storage.openSaveStore();
+      const { storage } = await modules(); instance = await storage.openSaveStore(pilot.engineCandidate?.database);
       if (!active.current) { instance.close(); return; }
       store.current = instance; await refresh();
       setReady(true); setStatus("本机存档已就绪");
@@ -55,7 +55,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
       for (const request of pending.current.values()) { clearTimeout(request.timer); request.reject(Error("播放器已关闭")); }
       pending.current.clear(); instance?.close();
     };
-  }, [pilot.id]);
+  }, [pilot.id,pilot.engineCandidate?.releaseId]);
   useEffect(() => {
     if (!running) return;
     const before = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
@@ -140,12 +140,13 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         </div>
         <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => setSavePanel(open => !open)}>存档管理</Button>
       </div>
+      {pilot.engineCandidate&&<p role="note" className="muted">候选引擎 · 存档保留在独立工作区，云端同步关闭。导入旧档仅创建副本，兼容性尚未确认。</p>}
       <div className="reader-save-status" role="status" aria-live="polite"><span>本机：{status}</span><span>{cloudStatus}</span></div>
       {error && blocker.state !== "blocked" && <div role="alert" className="reader-error"><p>{error}</p><Button variant="outline" size="sm" onClick={() => setSavePanel(true)}>打开存档管理并导出</Button></div>}
       <p className="reader-tip">请先在游戏菜单内保存，再保存并退出。本机备份不会自动上传云端。</p>
       <ReadingSession running={running} />
       <section id="reader-save-panel" className="reader-save-panel space-y-5" hidden={!savePanel} aria-label="存档管理面板">
-        <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档管理</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot), "backup"); })}>导出当前存档</Button></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档管理</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,pilot.engineCandidate?.releaseId), "backup"); })}>导出当前存档</Button></div>
         {pilot.runtimeKind === "Tyrano" && <p className="text-sm text-muted-foreground">新存档使用文字缩略图；旧存档中的图片预览继续保留。</p>}
       {cloud&&ready&&<OnsCloud pilot={pilot} running={running} onStatus={setCloudStatus} onBusy={setCloudBusy} capture={async()=>{
         const result=runningNow.current?await capture():null;
@@ -165,7 +166,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" disabled={!ready || running || busy} onClick={() => run(async () => { const { storage } = await modules(); if(pilot.legacyHint&&!window.confirm(pilot.legacyHint+"\n仍要备份并导入当前版本吗？原存档不会修改。"))return; const snapshot = await storage.readLegacy(pilot.id); if (!snapshot || !snapshot.files.length) throw Error("当前网站来源没有这款游戏的旧存档；原有存档不会修改"); download(await storage.exportBackup(snapshot), "legacy-original"); await adopt(snapshot, "legacy-import"); })}>备份并读取本来源旧档</Button>
           <Label className="inline-flex cursor-pointer items-center rounded-md border px-4 py-2 text-sm" htmlFor="ons-backup-file">导入存档备份</Label>
-          <input id="ons-backup-file" aria-label="导入存档备份" type="file" accept="application/json,.json" disabled={!ready || running || busy} className="max-w-full text-sm" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void run(async () => { if (file.size > 90 * 1024 * 1024) throw Error("备份文件过大"); const { storage } = await modules(); await adopt(await storage.importBackup(await file.text(), pilot.id), "file-import"); }); }} />
+          <input id="ons-backup-file" aria-label="导入存档备份" type="file" accept="application/json,.json" disabled={!ready || running || busy} className="max-w-full text-sm" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void run(async () => { if (file.size > 90 * 1024 * 1024) throw Error("备份文件过大"); const { storage } = await modules(); await adopt(await storage.importBackup(await file.text(), pilot.id,pilot.engineCandidate?{releaseId:pilot.engineCandidate.releaseId,allowLegacyCopy:true}:undefined), "file-import"); }); }} />
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Label htmlFor="ons-history">历史备份</Label>
@@ -174,7 +175,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
             {history.map(row => <NativeSelectOption key={row.id} value={row.id}>#{row.revision} · {new Date(row.createdAt).toLocaleString()} · {row.reason === "legacy-import" ? "旧档原始备份" : row.reason === "engine" ? "游戏存档" : "导入或恢复"}</NativeSelectOption>)}
           </NativeSelect>
           <Button variant="outline" disabled={!selected || running || busy} onClick={() => run(async () => { await adopt((await store.current!.getRevision(selected, pilot.id)).snapshot, "restore"); })}>下次启动使用此备份</Button>
-          <Button variant="ghost" disabled={!selected || busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await store.current!.getRevision(selected, pilot.id)).snapshot), "history"); })}>导出所选备份</Button>
+          <Button variant="ghost" disabled={!selected || busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await store.current!.getRevision(selected, pilot.id)).snapshot,pilot.engineCandidate?.releaseId), "history"); })}>导出所选备份</Button>
         </div>
         <p className="text-xs text-muted-foreground">共享引擎 <code>{pilot.engine.slice(0, 12)}</code> · 每个游戏版本使用独立存档空间。旧存档不会被清理。</p>
         <a href="https://github.com/YuriSizuku/OnscripterYuri" target="_blank" rel="noreferrer" className="text-xs underline">ONScripterYuri 源码与 GPL-2.0 许可</a>
@@ -189,7 +190,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
           {error && <p role="alert" className="text-destructive">{error}</p>}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>继续阅读</AlertDialogCancel>
-            <Button variant="outline" disabled={busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await capture()).snapshot), "before-leaving"); })}>导出当前存档</Button>
+            <Button variant="outline" disabled={busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await capture()).snapshot,pilot.engineCandidate?.releaseId), "before-leaving"); })}>导出当前存档</Button>
             <Button disabled={busy} onClick={() => run(async () => {
               if (blocker.state !== "blocked") return;
               const proceed = blocker.proceed;

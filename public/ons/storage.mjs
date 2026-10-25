@@ -4,9 +4,10 @@ import { createMemoryStorage, storageSnapshot, belongsToLegacyScope } from "../p
 const legacyNames = Object.freeze(Object.fromEntries(pilots.map(p => [p.id, p.legacySave])));
 const budget = 512 * 1024 * 1024;
 function scope(pilot) { if (!Object.hasOwn(legacyNames, pilot)) throw Error("未知存档版本"); return pilot; }
-export async function openSaveStore() {
+export async function openSaveStore(database = "wg-ons-pilot-v1") {
+  if(database!=="wg-ons-pilot-v1"&&!/^wvn-engine-candidates-v1-ons-[a-f0-9]{64}$/.test(database))throw Error("未知引擎工作区");
   const db = await new Promise((resolve, reject) => {
-    const r = indexedDB.open("wg-ons-pilot-v1", 1);
+    const r = indexedDB.open(database, 1);
     r.onupgradeneeded = () => {
       r.result.createObjectStore("heads", { keyPath: "pilot" });
       r.result.createObjectStore("snapshots", { keyPath: "id" }).createIndex("pilot", "pilot");
@@ -118,20 +119,27 @@ export async function readLegacy(pilot) {
   return found?validateSnapshot({schema:1,pilot,files},pilot):null;
 }
 
-export async function exportBackup(input) {
+export async function exportBackup(input, releaseId) {
+  if(releaseId!==undefined&&!/^ons-[a-f0-9]{64}$/.test(releaseId))throw Error("未知引擎版本");
   const s = validateSnapshot(input, input?.pilot);
   const files = s.files.map(f => {
     let binary = "";
     for (let offset = 0; offset < f.data.length; offset += 32768) binary += String.fromCharCode(...f.data.subarray(offset, offset + 32768));
     return { path: f.path, data: btoa(binary), ...(f.mtime === undefined ? {} : { mtime: f.mtime }) };
   });
-  return JSON.stringify({ format: "wg-ons-save", schema: 1, pilot: s.pilot, digest: await snapshotDigest(s), files });
+  return JSON.stringify({ format: releaseId ? "wvn-engine-save" : "wg-ons-save", schema: releaseId ? 2 : 1, ...(releaseId?{releaseId}:{}), pilot: s.pilot, digest: await snapshotDigest(s), files });
 }
-export async function importBackup(text, pilot) {
+export async function importBackup(text, pilot, candidate) {
   scope(pilot);
   if (typeof text !== "string" || text.length > 90 * 1024 * 1024) throw Error("备份文件过大");
   const value = JSON.parse(text);
-  if (value.format !== "wg-ons-save" || value.schema !== 1 || value.pilot !== pilot || !Array.isArray(value.files) || value.files.length > limits.files) throw Error("备份不属于当前游戏版本");
+  const legacy=value.format==="wg-ons-save"&&value.schema===1;
+  if(candidate){
+    if(!/^ons-[a-f0-9]{64}$/.test(candidate.releaseId))throw Error("未知引擎版本");
+    if(legacy&&!candidate.allowLegacyCopy)throw Error("旧引擎备份需要明确复制到独立候选工作区");
+    if(!legacy&&(value.format!=="wvn-engine-save"||value.schema!==2||value.releaseId!==candidate.releaseId))throw Error("备份不属于当前引擎版本");
+  }else if(!legacy)throw Error("备份不属于当前引擎版本");
+  if(value.pilot!==pilot||!Array.isArray(value.files)||value.files.length>limits.files)throw Error("备份不属于当前游戏版本");
   let total = 0;
   const files = value.files.map(f => {
     if (typeof f.data !== "string" || f.data.length > Math.ceil(limits.fileBytes / 3) * 4 || f.data.length % 4 !== 0 || /[^A-Za-z0-9+/=]/.test(f.data)) throw Error("备份内容无效");

@@ -25,7 +25,7 @@ export function loader({
     version: w.versions.find((x) => x.id === v.id)!,
     work: { title: w.title, url: w.url },
     pilot: player,
-    cloud: process.env.WG_ONS_CLOUD === '1',
+    cloud: process.env.WG_ONS_CLOUD === '1' && !player?.engineCandidate,
   };
 }
 export function meta({
@@ -54,7 +54,7 @@ import {
 } from "../components/ui/alert-dialog";
 export default function Play() {
   const { pilot, work, cloud } = useLoaderData<typeof loader>();
-  if (pilot) return <OnsPlayer key={pilot.id} pilot={pilot} workUrl={work.url} cloud={cloud} />;
+  if (pilot) return <OnsPlayer key={pilot.id+':'+(pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} workUrl={work.url} cloud={cloud} />;
   return <LegacyPlay />;
 }
 function LegacyPlay() {

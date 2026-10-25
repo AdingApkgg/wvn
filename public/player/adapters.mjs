@@ -1,3 +1,4 @@
+import {captureFilesystem} from './emscripten.mjs';
 /* Runtime-local persistence only. The opaque frame never opens browser databases. */
 const states = new WeakMap();
 const encoder = new TextEncoder(), decoder = new TextDecoder('utf-8', {fatal:true});
@@ -49,13 +50,8 @@ export function installMemoryPersistence({FS,IDBFS,MEMFS,mount,extraMount,files,
     return result;
   };
   function capture(){
-    if(!mounted)throw Error('Persistence mount is not ready');const result=[];let total=0;
-    function walk(dir,relative){for(const name of FS.readdir(dir)){
-      if(name==='.'||name==='..')continue;const full=dir+'/'+name,path=relative?relative+'/'+name:name,stat=FS.lstat(full);
-      if(path.length>240)throw Error('Save path exceeds limit');
-      if(FS.isDir(stat.mode))walk(full,path);
-      else{if(!FS.isFile(stat.mode)||stat.size>maxFileBytes||result.length>=maxFiles||(total+=stat.size)>maxBytes)throw Error('Save contents exceed limit');result.push({path,data:new Uint8Array(FS.readFile(full)),mtime:Math.trunc(Number(stat.mtime))})}
-    }}walk(mount,'');if(extraMount)walk(extraMount,'game-saves');return result;
+    if(!mounted)throw Error('Persistence mount is not ready');
+    return captureFilesystem(FS,[{path:mount,prefix:''},...(extraMount?[{path:extraMount,prefix:'game-saves'}]:[])]);
   }
   let queue=Promise.resolve();
   FS.syncfs=(populate,callback)=>{

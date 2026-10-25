@@ -1,3 +1,4 @@
+import {candidateForPlayer} from '../engines/candidate.ts';
 import type { Hono } from 'hono';
 import { pilots } from '../../public/ons/registry.mjs';
 import { otherPlayers } from '../../public/player/registry.mjs';
@@ -33,13 +34,22 @@ export function registerRemotePlayerResources(app: Hono, options: { upstream: st
       for (const key of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control', 'etag', 'last-modified', 'access-control-allow-origin', 'cross-origin-resource-policy', 'cross-origin-embedder-policy', 'x-content-type-options', 'referrer-policy']) {
         const value = response.headers.get(key); if (value) safe.set(key, value);
       }
+      const runtime=/^\/__ons\/runtime\/([^/]+)$/.exec(c.req.path),manifest=/^\/__ons\/manifest\/([^/]+)$/.exec(c.req.path);
+      const candidate=runtime||manifest?candidateForPlayer((runtime??manifest)![1]):null;
       const policy = response.headers.get('content-security-policy');
-      if (policy) safe.set('content-security-policy', policy.replaceAll('https://wg.saop.cc/', new URL(c.req.url).origin + '/'));
+      if (policy) {
+        let scoped=policy.replaceAll('https://wg.saop.cc/', new URL(c.req.url).origin + '/');
+        // 旧资源服务保持只读；仅为公共驱动补上精确脚本地址，不扩大游戏权限。
+        if(c.req.path.startsWith('/__ons/runtime/')&&!scoped.includes('/player/emscripten.mjs'))scoped=scoped.replace('script-src ',`script-src ${new URL(c.req.url).origin}/player/emscripten.mjs `);
+        if(candidate&&runtime){const prefix=new URL(c.req.url).origin+'/__engines/resource/'+candidate.release.id+'/';scoped=scoped.replace(/(script-src|connect-src) ([^;]*)/g,(_,directive,values)=>directive+' '+values+' '+prefix);}
+        safe.set('content-security-policy',scoped);
+      }
       const location = response.headers.get('location');
       if (location) {
         if (!location.startsWith('/') || location.startsWith('//') || !isPublicGamePath(location)) throw Error('Invalid resource redirect');
         safe.set('location', location);
       }
+      if(candidate&&manifest&&response.status===200){if(c.req.method==='HEAD'){safe.delete('content-length');return new Response(null,{status:200,headers:safe});}const value=await response.json();value.engineRelease={id:candidate.release.id,files:candidate.release.files};safe.delete('content-length');safe.set('cache-control','no-store');return new Response(c.req.method==='HEAD'?null:JSON.stringify(value),{status:200,headers:safe});}
       return new Response(c.req.method === 'HEAD' ? null : response.body, { status: response.status, headers: safe });
     } catch {
       return c.json({ error: '游戏资源暂时不可用，请稍后重试' }, 502);

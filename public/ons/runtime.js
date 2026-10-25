@@ -33,25 +33,11 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     let seq = 0, pending = null, queued = null, failed = false, started = false;
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
-    let validateSnapshot, limits;
-    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); }
+    let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem;
+    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); }
     catch (e) { status("启动失败：存档桥接模块不可用"); return; }
     function snapshot() {
-      const FS = g_onsyuri_module.FS, files = [];
-      let total = 0;
-      function walk(dir, relative) {
-        for (const name of FS.readdir(dir)) {
-          if (name === "." || name === "..") continue;
-          const full = dir + "/" + name, path = relative ? relative + "/" + name : name;
-          const stat = FS.lstat(full);
-          if (FS.isDir(stat.mode)) { if (path.length > 240) throw Error("存档目录过深"); walk(full, path); }
-          else {
-            if (!FS.isFile(stat.mode) || stat.size > limits.fileBytes || files.length >= limits.files || (total += stat.size) > limits.totalBytes) throw Error("存档大小或类型超出限制");
-            files.push({ path, data: new Uint8Array(FS.readFile(full)), mtime: Math.trunc(Number(stat.mtime)) });
-          }
-        }
-      }
-      walk("/save", "");
+      const files = captureFilesystem(g_onsyuri_module.FS, [{path:"/save",prefix:""}], limits);
       return validateSnapshot({ schema: 1, pilot, files }, pilot);
     }
     captureSave = requestId => {
@@ -82,12 +68,16 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       if (!r.ok) throw Error("资源清单不可用");
       g_onsyuri_index = await r.json();
       if (g_onsyuri_index.pilot !== pilot || g_onsyuri_index.savedir !== "/save") throw Error("资源版本不匹配");
-      const engine = origin + "/__ons/engine/" + g_onsyuri_index.engine + "/";
+      const release=g_onsyuri_index.engineRelease;
+      if(release&&(!/^ons-[a-f0-9]{64}$/.test(release.id)||!Array.isArray(release.files)))throw Error("候选引擎登记无效");
+      const engine = origin + (release?"/__engines/resource/"+release.id+"/":"/__ons/engine/" + g_onsyuri_index.engine + "/");
+      const scriptHash=release?.files.find(file=>file.path==="onsyuri.js")?.sha256;
+      if(release&&!/^[a-f0-9]{64}$/.test(scriptHash))throw Error("候选引擎脚本指纹缺失");
       const wasm = await fetch(engine + "onsyuri.wasm", { credentials: "omit" });
       if (!wasm.ok) throw Error("共享引擎校验失败");
       await new Promise((resolve, reject) => {
         const script = document.createElement("script"); script.src = engine + "onsyuri.js";
-        script.crossOrigin = "anonymous"; script.integrity = "sha256-M07jIknc5sjWzffgxraOcEEpxY76lJM2yPrRR0KogsE=";
+        script.crossOrigin = "anonymous"; script.integrity = scriptHash?"sha256-"+btoa(String.fromCharCode(...scriptHash.match(/../g).map(byte=>parseInt(byte,16)))):"sha256-M07jIknc5sjWzffgxraOcEEpxY76lJM2yPrRR0KogsE=";
         script.onload = resolve; script.onerror = () => reject(Error("引擎脚本加载或完整性校验失败")); document.head.append(script);
       });
       function mkdir(FS, path) { if (path) FS.mkdirTree(path); }
@@ -122,9 +112,11 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
           }
         },
       };
-      await onsyuri(g_onsyuri_module);
+      const driver = createEmscriptenDriver({kind:"ONS"});
+      g_onsyuri_module = await driver.startFactory(onsyuri, g_onsyuri_module);
       started = true;
       g_onsyuri_module.callMain(["--root", "/game", "--font", "/game/default.ttf", "--save-dir", "/save"]);
+      driver.running();
       scale_full(g_onsyuri_module.canvas, g_screen_width / g_screen_height);
       g_onsyuri_module.canvas.focus(); status("引擎已启动");
       setInterval(() => captureSave(), 5000);

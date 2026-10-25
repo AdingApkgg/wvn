@@ -1,3 +1,4 @@
+import {createEmscriptenDriver} from './emscripten.mjs';
 import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
 import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility} from './adapters.mjs';
@@ -41,21 +42,17 @@ addEventListener('message',async function initialize(event){
     // credentialed site. Resources are served by the scoped read-only projection.
     Object.defineProperty(navigator,'serviceWorker',{value:undefined});
     const nativeFetch=fetch.bind(window);window.fetch=(resource,options)=>nativeFetch(resource,{...options,credentials:'omit'});
-    let module={};
+    let driver;
     function instrument(){
-      const FS=window.FS??module.FS,IDBFS=window.IDBFS,MEMFS=window.MEMFS;
+      const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;
       if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
       if(capture)return;
       capture=installMemoryPersistence({FS,IDBFS,MEMFS,mount:entry.mount,extraMount:entry.extraMount,files:snapshot.files,persist:files=>persist(files)});
       status('存档适配已连接');
     }
     if(entry.runtimeKind!=='Tyrano'){
-      Object.defineProperty(window,'Module',{configurable:true,get:()=>module,set:value=>{
-        module=value;const runs=typeof value.preRun==='function'?[value.preRun]:value.preRun??[];
-        // Emscripten reverses these callbacks; reinsert after the
-        // upstream loader adds its own preRun callbacks below.
-        if(!runs.includes(instrument))runs.push(instrument);value.preRun=runs;
-      }});window.Module={};
+      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument});
+      driver.installGlobal(window);
     }
     if(entry.runtimeKind==='Tyrano')Object.defineProperty(document,'readyState',{configurable:true,get:()=>"loading"});
     const scripts=[...document.querySelectorAll('script[type="application/x-wg-script"]')];
@@ -67,7 +64,7 @@ addEventListener('message',async function initialize(event){
         if(entry.runtimeKind!=='Tyrano'&&/\/(?:artemis|renpy)\.js$/.test(url.pathname)){
           // These audited Emscripten builds unshift preRun callbacks internally,
           // so the final array callback must install persistence first.
-          module.preRun=(module.preRun??[]).filter(fn=>fn!==instrument);module.preRun.push(instrument);
+          driver.beforeScript();
         }
         script.src=url.href;script.crossOrigin='anonymous';
         await new Promise((resolve,reject)=>{script.onload=()=>{
@@ -79,12 +76,9 @@ addEventListener('message',async function initialize(event){
     if(entry.runtimeKind==='Tyrano'){installTyranoLoadCompatibility(window,id);delete document.readyState;document.dispatchEvent(new Event('DOMContentLoaded'));}
     // Tyrano entry handlers were declared after the inert document finished.
     if(typeof window.onload==='function')window.onload(new Event('load'));
-    if(entry.runtimeKind==='RenPy'){
+    if(driver){
       status('正在准备游戏；较大的作品可能需要数分钟');
-      while(!module.calledRun||(document.getElementById('canvas')?.width??0)<=400){
-        if(!document.getElementById('canvas'))throw Error('游戏已退出，请查看游戏画面');
-        await new Promise(resolve=>setTimeout(resolve,500));
-      }
+      await driver.waitReady(()=>driver.module.calledRun&&(document.getElementById('canvas')?.width??0)>400,{timeout:['renpy-v562-2','renpy-v3144-1'].includes(entry.id)?1800000:180000});
     }
     status('游戏已启动；请在游戏内保存进度');
   }catch(error){status('启动失败：'+error.message);console.error('WG runtime',error)}

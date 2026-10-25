@@ -54,7 +54,7 @@ export function registerOnsPilot(app: Hono, root: string) {
   app.get("/__ons/runtime/:id", c => {
     if (!findPilot(c.req.param("id"))) return c.notFound();
     const origin = new URL(c.req.url).origin;
-    c.header("Content-Security-Policy", `sandbox allow-scripts; default-src 'none'; script-src ${origin}/ons/ ${origin}/player/registry.mjs ${origin}/__ons/engine/ 'wasm-unsafe-eval'; connect-src ${origin}/__ons/; style-src 'unsafe-inline'; img-src ${origin}/__ons/data/ data: blob:; media-src ${origin}/__ons/data/ blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
+    c.header("Content-Security-Policy", `sandbox allow-scripts; default-src 'none'; script-src ${origin}/ons/ ${origin}/player/registry.mjs ${origin}/player/emscripten.mjs ${origin}/__ons/engine/ 'wasm-unsafe-eval'; connect-src ${origin}/__ons/; style-src 'unsafe-inline'; img-src ${origin}/__ons/data/ data: blob:; media-src ${origin}/__ons/data/ blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'`);
     c.header("Cache-Control", "no-store");
     return c.html(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${brand.shortName} ONS 运行区</title><style>html,body{margin:0;width:100%;height:100%;background:#08090b;overflow:hidden}canvas{display:block;margin:auto;max-width:100%;max-height:100%;outline:none}#status{position:absolute;bottom:8px;left:12px;color:#ddd;font:13px sans-serif;pointer-events:none}</style><canvas id="canvas" tabindex="0"></canvas><p id="status">等待播放器连接…</p><script src="/ons/runtime.js" defer></script></html>`);
   });

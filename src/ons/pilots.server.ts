@@ -1,3 +1,4 @@
+import {configuredCandidate,candidateSession} from '../engines/candidate.ts';
 import { pilots } from "../../public/ons/registry.mjs";
 import {players} from "../../public/player/registry.mjs";
 export { pilots, findPilot } from "../../public/ons/registry.mjs";
@@ -7,7 +8,8 @@ export function pilotForVersion(id: string) {
   const entry=available.find(p=>p.versionId===id);if(!entry)return;
   const scope=(player:typeof entry)=>'legacyDirectory' in player?player.legacyDirectory:undefined;
   const shared=available.filter(p=>p.legacySave===entry.legacySave&&scope(p)===scope(entry));
-  return {...entry,legacyHint:shared.length>1?'旧版有多个版本共用这份存档。请确认它属于当前版本；跨版本进度可能不兼容。':''};
+  const candidate=configuredCandidate(),engineCandidate=candidate?candidateSession(candidate,id):null;
+  return {...entry,...(engineCandidate?{engineCandidate}:{}),legacyHint:shared.length>1?'旧版有多个版本共用这份存档。请确认它属于当前版本；跨版本进度可能不兼容。':''};
 }
 // Exact trusted React routes only: never mount legacy HTML/JS on this listener.
 export function trustedOnsPaths() {

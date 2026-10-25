@@ -1,3 +1,5 @@
+import {configuredCandidate} from './src/engines/candidate.ts';
+import {registerEngineArtifacts} from './src/engines/artifacts.ts';
 import { serve } from "@hono/node-server";
 import { createServer } from "node:https";
 import { createShareAdminApp } from "./src/accounts/share-admin.server.ts";
@@ -23,6 +25,7 @@ function required(name: string) {
   return value;
 }
 const origin = required("WG_ACCOUNT_ORIGIN");
+const engineCandidate=configuredCandidate();
 const service = await createAccountService({
   origin,
   isolated:process.env.WG_ALL_ENGINES==='1',
@@ -50,6 +53,7 @@ if (moderation)
   writeFileSync(required("WG_SHARE_ADMIN_TOKEN_FILE"), moderation.token, {
     mode: 0o600,
   });
+if(engineCandidate)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineCandidate.release]});
 if (process.env.WG_ACCOUNT_UI === "1") {
   const buildPath = "./build/server/index.js";
   const handler = createRequestHandler(await import(buildPath), "production");
