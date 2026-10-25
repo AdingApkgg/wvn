@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import { chooseNativeStart,chooseNativeChoice,shouldAdvanceOpening,chooseManualSavePage,chooseNativeFileLoad,filesForNativeSlot,isAuditedOpeningNotice,nativeClickablePoint,nativeFocus } from '../scripts/lib/renpy-native-menu.mjs';
+import { chooseNativeStart,chooseNativeChoice,shouldAdvanceOpening,chooseManualSavePage,chooseNativeFileLoad,filesForNativeSlot,isAuditedOpeningNotice,nativeClickablePoint,nativeFocus,nativeDialogueChanged,activateNativeWithKeyboard } from '../scripts/lib/renpy-native-menu.mjs';
 
 test('nonrectangular native save buttons are discovered without inventing a clickable target',async()=>{
  const setup=`import types,json
@@ -16,7 +16,7 @@ disabled=types.SimpleNamespace(clicked=[FileSave('2',False)],visit=lambda:[])
 root=types.SimpleNamespace(visit=lambda:[wanted,disabled])
 scene=types.SimpleNamespace(layers={'screens':[types.SimpleNamespace(displayable=root)]})
 config=types.SimpleNamespace(screen_width=100,screen_height=100)
-renpy=types.SimpleNamespace(store=types.SimpleNamespace(FileLoad=FileLoad),game=types.SimpleNamespace(context=lambda:types.SimpleNamespace(scene_lists=scene)),display=types.SimpleNamespace(focus=types.SimpleNamespace(focus_list=[]),render=types.SimpleNamespace(focus_at_point=lambda x,y:types.SimpleNamespace(widget=wanted) if 20<x<35 and 20<y<35 else None)),get_screen=lambda name:None,get_widget=lambda *args:None)
+renpy=types.SimpleNamespace(store=types.SimpleNamespace(FileLoad=FileLoad),game=types.SimpleNamespace(context=lambda:types.SimpleNamespace(scene_lists=scene,current='body',return_stack=[])),display=types.SimpleNamespace(focus=types.SimpleNamespace(focus_list=[]),render=types.SimpleNamespace(focus_at_point=lambda x,y:types.SimpleNamespace(widget=wanted) if 20<x<35 and 20<y<35 else None)),get_screen=lambda name:None,get_widget=lambda *args:None)
 `;
  const command=async script=>{const r=spawnSync('python3',['-c',setup+'scope={}\nexec('+JSON.stringify(script)+',globals(),scope)\nprint(json.dumps(scope["result"]))'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout)};
  const focus=await nativeFocus(command,true);assert.equal(focus.buttons.length,1);assert.equal(focus.buttons[0].slot,'1-1');assert.equal(focus.buttons[0].unboundedFocus,true);
@@ -31,6 +31,12 @@ test('native click samples actual opaque target pixels and rejects an overlappin
   const result=spawnSync('python3',['-c',code],{encoding:'utf8'});assert.equal(result.status,0,result.stderr);return JSON.parse(result.stdout);
  },{rect:[0,0,100,100],action:'FileLoad',screen:'None',page:'None',slot:'1-1',loadConfirm:true})}
  assert.deepEqual(await run(false),[25,25]);assert.equal(await run(true),null);
+});
+
+test('native click finds the only opaque timestamp below a transparent save thumbnail',async()=>{
+ const setup="import types,json\ndef _test__slotname(name,page=None,slot=False): return '1-1'\nclass FileLoad:\n    def __init__(self): self.name='1';self.page=None;self.slot=False;self.confirm=True\n    def __call__(self): return _test__slotname(self.name,self.page,self.slot)\nwanted=types.SimpleNamespace(clicked=[FileLoad()])\nf=types.SimpleNamespace(widget=wanted,x=0,y=0,w=100,h=100)\nrenpy=types.SimpleNamespace(store=types.SimpleNamespace(FileLoad=FileLoad),display=types.SimpleNamespace(focus=types.SimpleNamespace(focus_list=[f]),render=types.SimpleNamespace(focus_at_point=lambda x,y:types.SimpleNamespace(widget=wanted) if 10<x<35 and 79<y<85 else None)))\n";
+ const point=await nativeClickablePoint(async script=>{const r=spawnSync('python3',['-c',setup+'scope={}\nexec('+JSON.stringify(script)+',globals(),scope)\nprint(json.dumps(scope["result"]))'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout)},{rect:[0,0,100,100],action:'FileLoad',screen:'None',page:'None',slot:'1-1',loadConfirm:true});
+ assert(point);assert(point[1]>79&&point[1]<85);
 });
 
 test('cold-start disclaimer advance is restricted to the observed notice and version family',()=>{
@@ -100,4 +106,18 @@ test('a real Start action takes precedence over warning and rejects unusable foc
   const start={rect:[10,20,30,40],action:'Start'};
   assert.deepEqual(chooseNativeStart({warning:false,buttons:[start]}),{kind:'start',rect:start.rect});
   assert.equal(chooseNativeStart({warning:false,buttons:[{...start,rect:[10,20,0,40]}]}),null);
+});
+
+// 同一句对白的序列化形态变化不能作为剧情推进证据。
+test('visible dialogue comparison rejects list versus native-say serialization changes',()=>{
+ const a={text:"['你好']",visibleText:'你好',choice:false};
+ assert.equal(nativeDialogueChanged(a,{text:'你好',visibleText:'你好',choice:false}),false);
+ assert.equal(nativeDialogueChanged(a,{text:"['再见']",visibleText:'再见',choice:false}),true);
+ assert.equal(nativeDialogueChanged(a,{text:'请选择',visibleText:'请选择',choice:true}),false);
+});
+
+test('keyboard confirmation occurs only after the exact native slot owns focus',async()=>{
+ const keys=[],frame={locator:()=>({focus:async()=>{},press:async key=>keys.push(key)})};let calls=0;
+ await activateNativeWithKeyboard(frame,async()=>({available:true,matched:++calls===2,rect:[0,0,20,20]}),{action:'FileLoad',slot:'1-1',rect:[100,0,20,20]});assert.deepEqual(keys,['ArrowRight','Enter']);
+ keys.length=0;await assert.rejects(activateNativeWithKeyboard(frame,async()=>({available:false,matched:false}),{action:'FileLoad',slot:'1-1',rect:[0,0,20,20]}),/no keyboard focus/);assert.deepEqual(keys,[]);
 });
