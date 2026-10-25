@@ -2,7 +2,7 @@ import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} 
 import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
 import {installNativeInput} from './native-input.mjs';
-import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility} from './adapters.mjs';
+import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility,waitForTyranoReady} from './adapters.mjs';
 const origin=new URL(location.href).origin,id=/^\/__player\/resource\/([^/]+)\/index\.html$/.exec(location.pathname)?.[1],entry=findPlayer(id);
 let initialized=false;
 addEventListener('message',async function initialize(event){
@@ -79,10 +79,10 @@ addEventListener('message',async function initialize(event){
     if(entry.runtimeKind==='Tyrano'){installTyranoLoadCompatibility(window,id);delete document.readyState;document.dispatchEvent(new Event('DOMContentLoaded'));}
     // Tyrano entry handlers were declared after the inert document finished.
     if(typeof window.onload==='function')window.onload(new Event('load'));
+    status('正在准备游戏；较大的作品可能需要数分钟');
     if(driver){
-      status('正在准备游戏；较大的作品可能需要数分钟');
       await driver.waitReady(()=>driver.module.calledRun&&(document.getElementById('canvas')?.width??0)>400,{timeout:['renpy-v562-2','renpy-v3144-1'].includes(entry.id)?1800000:180000});
-    }
+    }else await waitForTyranoReady(()=>window.TYRANO?.kag);
     send({type:'started'});
     status('游戏已启动；请在游戏内保存进度');
   }catch(error){status('启动失败：'+error.message);console.error('WG runtime',error)}

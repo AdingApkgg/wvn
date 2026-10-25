@@ -142,3 +142,10 @@ export function installAnonymousMedia(win){
   win.document.querySelectorAll('img,video,audio,link').forEach(element=>element.crossOrigin='anonymous');
   return ()=>observer.disconnect();
 }
+export function isTyranoReady(kag){
+ return typeof kag?.config?.projectID==='string'&&!!kag.config.projectID.trim()&&typeof kag?.stat?.current_scenario==='string'&&!!kag.stat.current_scenario&&Number.isInteger(kag?.ftag?.current_order_index)&&kag.ftag.current_order_index>=0&&Array.isArray(kag.ftag.array_tag)&&kag.ftag.array_tag.length>0;
+}
+export async function waitForTyranoReady(getKag,{timeout=180000,interval=100}={}){
+ const deadline=Date.now()+timeout;
+ while(!isTyranoReady(getKag())){if(Date.now()>=deadline)throw Error('游戏场景尚未就绪');await new Promise(resolve=>setTimeout(resolve,interval))}
+}
