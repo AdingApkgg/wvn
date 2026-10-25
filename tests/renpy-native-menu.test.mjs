@@ -1,7 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import { chooseNativeStart,chooseNativeChoice,shouldAdvanceOpening,chooseManualSavePage,chooseNativeFileLoad,filesForNativeSlot,isAuditedOpeningNotice,nativeClickablePoint } from '../scripts/lib/renpy-native-menu.mjs';
+import { chooseNativeStart,chooseNativeChoice,shouldAdvanceOpening,chooseManualSavePage,chooseNativeFileLoad,filesForNativeSlot,isAuditedOpeningNotice,nativeClickablePoint,nativeFocus } from '../scripts/lib/renpy-native-menu.mjs';
+
+test('nonrectangular native save buttons are discovered without inventing a clickable target',async()=>{
+ const setup=`import types,json
+def _test__slotname(name,page=None,slot=False): return '1-'+name
+class FileLoad:
+    def __call__(self): return _test__slotname(self.name,self.page,self.slot)
+class FileSave:
+    def __init__(self,name,sensitive=True): self.name=name;self.page=None;self.slot=False;self.confirm=True;self.sensitive=sensitive
+    def get_sensitive(self): return self.sensitive
+wanted=types.SimpleNamespace(clicked=[FileSave('1')],visit=lambda:[])
+disabled=types.SimpleNamespace(clicked=[FileSave('2',False)],visit=lambda:[])
+root=types.SimpleNamespace(visit=lambda:[wanted,disabled])
+scene=types.SimpleNamespace(layers={'screens':[types.SimpleNamespace(displayable=root)]})
+config=types.SimpleNamespace(screen_width=100,screen_height=100)
+renpy=types.SimpleNamespace(store=types.SimpleNamespace(FileLoad=FileLoad),game=types.SimpleNamespace(context=lambda:types.SimpleNamespace(scene_lists=scene)),display=types.SimpleNamespace(focus=types.SimpleNamespace(focus_list=[]),render=types.SimpleNamespace(focus_at_point=lambda x,y:types.SimpleNamespace(widget=wanted) if 20<x<35 and 20<y<35 else None)),get_screen=lambda name:None,get_widget=lambda *args:None)
+`;
+ const command=async script=>{const r=spawnSync('python3',['-c',setup+'scope={}\nexec('+JSON.stringify(script)+',globals(),scope)\nprint(json.dumps(scope["result"]))'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout)};
+ const focus=await nativeFocus(command,true);assert.equal(focus.buttons.length,1);assert.equal(focus.buttons[0].slot,'1-1');assert.equal(focus.buttons[0].unboundedFocus,true);
+ const point=await nativeClickablePoint(command,focus.buttons[0]);assert(point[0]>20&&point[0]<35&&point[1]>20&&point[1]<35);
+ assert.equal(await nativeClickablePoint(async()=>({value:null}),focus.buttons[0]),null);
+});
 
 test('native click samples actual opaque target pixels and rejects an overlapping widget',async()=>{
  const setup="import types,json\ndef _test__slotname(name,page=None,slot=False): return '1-1'\nclass FileLoad:\n    def __init__(self): self.name='1';self.page=None;self.slot=False;self.confirm=True\n    def __call__(self): return _test__slotname(self.name,self.page,self.slot)\nwanted=types.SimpleNamespace(clicked=[FileLoad()])\nforeign=types.SimpleNamespace(clicked=[FileLoad()])\nf=types.SimpleNamespace(widget=wanted,x=0,y=0,w=100,h=100)\nrenpy=types.SimpleNamespace(store=types.SimpleNamespace(FileLoad=FileLoad),display=types.SimpleNamespace(focus=types.SimpleNamespace(focus_list=[f]),render=types.SimpleNamespace()))\n";

@@ -23,13 +23,34 @@ export function filesForNativeSlot(files,slot){return files.filter(file=>{const 
 export function isAuditedOpeningNotice(id,data){return /^renpy-v44184-[1-4]$/.test(id)&&!data.mainMenu&&!data.confirm&&data.buttons.length===0&&(data.text.includes('本作品免费首发于')&&data.text.includes('请务必支持正版')||data.text.includes('本移植仅供日语学习使用')&&data.text.includes('本组不负任何责任')||data.text.includes('本次移植增加了多语言框架')&&data.text.includes('切换为原语言')||/当前版本是v0\.9[0-3]?测试版/.test(data.text)&&data.text.includes('未完成的功能')||data.text.includes('STAFF')&&data.text.includes('移植')&&data.text.includes('翻译')||data.text.toLowerCase().includes('github')&&data.text.includes('翻译')&&data.text.includes('提交'))}
 export const NATIVE_ACTIONS_PYTHON = "def _wvn_actions(value):\n    pending=[(value,0)]\n    while pending:\n        item,depth=pending.pop()\n        if depth>16: continue\n        if isinstance(item,(list,tuple)):\n            pending.extend((child,depth+1) for child in reversed(item))\n        elif item is not None: yield item";
 export async function nativeFocus(command,includeSlots=false){
- const body="result = (lambda _slot,_actions: {'size':(config.screen_width,config.screen_height),'mainMenu':renpy.get_screen('main_menu') is not None,'warning':renpy.get_screen('warning') is not None,'text':str(getattr(renpy.get_widget('say','what'),'text','')),'choice':renpy.get_screen('choice') is not None,'confirm':renpy.get_screen('confirm') is not None or renpy.get_screen('yesno_prompt') is not None,'buttons':[{'rect':(f.x,f.y,f.w,f.h),'action':type(a).__name__,'screen':str(getattr(a,'screen',None)),'value':str(getattr(a,'value',None)),'loadConfirm':bool(getattr(a,'confirm',True)),'page':str(getattr(a,'page',None)),'slot':_slot(a.name,a.page,a.slot) if _slot is not None and type(a).__name__ in ('FileLoad','FileSave') else None} for f in renpy.display.focus.focus_list if f.x is not None and f.w and f.h for a in _actions(getattr(f.widget,'clicked',None))]})("+(includeSlots?nativeSlotFunction:'None')+",_wvn_actions)";
- return command(NATIVE_ACTIONS_PYTHON+'\n'+body+'\ndel _wvn_actions');
+ const lines=[
+  "def _wvn_collect_focus(_actions=_wvn_actions,_slot="+(includeSlots?nativeSlotFunction:'None')+"):",
+  "    rows=[];seen=set()",
+  "    def add(widget,rect,unbounded=False):",
+  "        for a in _actions(getattr(widget,'clicked',None)):",
+  "            kind=type(a).__name__",
+  "            if unbounded and (kind not in ('FileLoad','FileSave') or not a.get_sensitive()): continue",
+  "            rows.append({'rect':rect,'unboundedFocus':unbounded,'action':kind,'screen':str(getattr(a,'screen',None)),'value':str(getattr(a,'value',None)),'loadConfirm':bool(getattr(a,'confirm',True)),'page':str(getattr(a,'page',None)),'slot':_slot(a.name,a.page,a.slot) if _slot is not None and kind in ('FileLoad','FileSave') else None})",
+  "    for f in renpy.display.focus.focus_list:",
+  "        if f.x is not None and f.w and f.h: add(f.widget,(f.x,f.y,f.w,f.h));seen.add(id(f.widget))",
+ ];
+ if(includeSlots)lines.push(
+  "    todo=[e.displayable for es in renpy.game.context().scene_lists.layers.values() for e in es]",
+  "    while todo and len(seen)<6000:",
+  "        d=todo.pop()",
+  "        if id(d) in seen: continue",
+  "        seen.add(id(d));add(d,(0,0,config.screen_width,config.screen_height),True)",
+  "        try: children=d.visit() or []",
+  "        except Exception: children=[]",
+  "        todo.extend(c for c in children if c is not None)",
+ );
+ lines.push("    return {'size':(config.screen_width,config.screen_height),'mainMenu':renpy.get_screen('main_menu') is not None,'warning':renpy.get_screen('warning') is not None,'text':str(getattr(renpy.get_widget('say','what'),'text','')),'choice':renpy.get_screen('choice') is not None,'confirm':renpy.get_screen('confirm') is not None or renpy.get_screen('yesno_prompt') is not None,'buttons':rows}","result=_wvn_collect_focus()","del _wvn_collect_focus","del _wvn_actions");
+ return command(NATIVE_ACTIONS_PYTHON+'\n'+lines.join('\n'));
 }
 const nativeSlotFunction="renpy.store.FileLoad.__call__.__globals__[next(n for n in renpy.store.FileLoad.__call__.__code__.co_names if n.endswith('__slotname'))]";
 export async function nativeClickablePoint(command,button){
  const expected=[button.action,button.screen??'None',button.page??'None',button.slot??'None',button.loadConfirm?'True':'False'];
- const code=NATIVE_ACTIONS_PYTHON+'\ndef _wvn_click_point(_actions=_wvn_actions,_slot='+nativeSlotFunction+',expected='+JSON.stringify(expected)+',rect='+JSON.stringify(button.rect)+'):\n'+[
+ const code=NATIVE_ACTIONS_PYTHON+'\ndef _wvn_click_point(_actions=_wvn_actions,_slot='+nativeSlotFunction+',expected='+JSON.stringify(expected)+',rect='+JSON.stringify(button.rect)+',unbounded='+(button.unboundedFocus?'True':'False')+'):\n'+[
   "    def matches(widget):",
   "        for a in _actions(getattr(widget,'clicked',None)):",
   "            kind=type(a).__name__",
@@ -37,25 +58,39 @@ export async function nativeClickablePoint(command,button){
   "            actual=[kind,str(getattr(a,'screen',None)),str(getattr(a,'page',None)),str(slot),str(bool(getattr(a,'confirm',True)))]",
   "            if actual==expected: return True",
   "        return False",
-  "    widgets={id(f.widget) for f in renpy.display.focus.focus_list if f.x is not None and [f.x,f.y,f.w,f.h]==rect and matches(f.widget)}",
+  "    candidates=[f for f in renpy.display.focus.focus_list if f.x is not None and f.w and f.h and matches(f.widget)]",
+  "    if not unbounded and candidates:",
+  "        f=min(candidates,key=lambda f:sum((a-b)**2 for a,b in zip((f.x,f.y,f.w,f.h),rect)));rect=[f.x,f.y,f.w,f.h];widgets={id(f.widget)}",
+  "    else: widgets=set()",
+  "    if unbounded:",
+  "        todo=[e.displayable for es in renpy.game.context().scene_lists.layers.values() for e in es];seen=set()",
+  "        while todo and len(seen)<6000:",
+  "            d=todo.pop()",
+  "            if id(d) in seen: continue",
+  "            seen.add(id(d))",
+  "            if matches(d): widgets.add(id(d))",
+  "            try: children=d.visit() or []",
+  "            except Exception: children=[]",
+  "            todo.extend(c for c in children if c is not None)",
   "    def hit(x,y):",
   "        f=renpy.display.render.focus_at_point(x,y)",
   "        return f is not None and id(f.widget) in widgets",
   "    fallback=[]",
-  "    for fy in (.5,.25,.75,.1,.9,.4,.6,.05,.95):",
-  "        for fx in (.5,.25,.75,.1,.9,.4,.6,.05,.95):",
+  "    fractions=tuple(i/32.0 for i in range(1,32)) if unbounded else (.5,.25,.75,.1,.9,.4,.6,.05,.95)",
+  "    for fy in fractions:",
+  "        for fx in fractions:",
   "            x=int(rect[0]+rect[2]*fx);y=int(rect[1]+rect[3]*fy)",
   "            if not hit(x,y): continue",
   "            if all(hit(x+dx,y+dy) for dx in (-1,0,1) for dy in (-1,0,1)): return [x,y]",
   "            fallback.append([x,y])",
   "    return fallback[0] if fallback else None",
  ].join('\n')+'\nresult=_wvn_click_point()\ndel _wvn_click_point\ndel _wvn_actions';
- return command(code);
+ const value=await command(code);return Array.isArray(value)&&value.length===2&&value.every(Number.isFinite)?value:null;
 }
 async function clickNativeButton(page,frame,command,button,size,wait=1800){
  assert(button,'Native button unavailable');const point=await nativeClickablePoint(command,button);assert(point,'Native button has no clickable pixels: '+JSON.stringify(button));
  const b=await frame.locator('#canvas').boundingBox();assert(b);const scale=Math.min(b.width/size[0],b.height/size[1]);
- if(Math.abs(point[0]-button.rect[0]-button.rect[2]/2)>2||Math.abs(point[1]-button.rect[1]-button.rect[3]/2)>2)console.log(JSON.stringify({nativeClick:'mask-adjusted',action:button.action,point}));
+ if(Math.abs(point[0]-button.rect[0]-button.rect[2]/2)>2||Math.abs(point[1]-button.rect[1]-button.rect[3]/2)>2)console.log(JSON.stringify({nativeClick:'verified-point',action:button.action,point}));
  await page.mouse.click(b.x+(b.width-size[0]*scale)/2+point[0]*scale,b.y+(b.height-size[1]*scale)/2+point[1]*scale,{delay:150});await page.waitForTimeout(wait);
 }
 export async function nativeSlotName(command,number){
