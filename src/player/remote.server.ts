@@ -1,4 +1,4 @@
-import {candidateForPlayer} from '../engines/candidate.ts';
+import {candidateForPlayer,type Candidate} from '../engines/candidate.ts';
 import type { Hono } from 'hono';
 import { pilots } from '../../public/ons/registry.mjs';
 import { otherPlayers } from '../../public/player/registry.mjs';
@@ -15,13 +15,16 @@ export function isPublicGamePath(path: string) {
   return !!other && otherPlayers.some(p => p.id === other[2]) && (other[1] === 'resource' ? !!other[3] && other[3].length > 1 : !other[3]);
 }
 
-export function registerRemotePlayerResources(app: Hono, options: { upstream: string; fetcher?: typeof fetch }) {
+export function registerRemotePlayerResources(app: Hono, options: { upstream: string; fetcher?: typeof fetch; candidate?:(id:string)=>Candidate|null }) {
   const upstream = new URL(options.upstream);
   if (!['http:', 'https:'].includes(upstream.protocol) || upstream.username || upstream.password || upstream.pathname !== '/' || upstream.search || upstream.hash) throw Error('Resource upstream must be an exact origin');
   const fetcher = options.fetcher ?? fetch;
   for (const prefix of ['/__ons/*', '/__player/*']) app.all(prefix, async c => {
     if (!isPublicGamePath(c.req.path)) return c.notFound();
     if (!['GET', 'HEAD'].includes(c.req.method)) return c.body(null, 405);
+    const other=/^\/__player\/(?:runtime|resource)\/([^/]+)(?:\/(.*))?$/.exec(c.req.path),ons=/^\/__ons\/(?:runtime|manifest)\/([^/]+)$/.exec(c.req.path);
+    const candidate=(other||ons)?(options.candidate??candidateForPlayer)((other??ons)![1]):null;
+    // 旧资源地址始终属于旧引擎；候选通过父页握手固定不可变地址，避免在服务重启时混组。
     const target = new URL(upstream);
     target.pathname = new URL(c.req.url).pathname;
     const headers = new Headers({ 'accept-encoding': 'identity' });
@@ -35,13 +38,12 @@ export function registerRemotePlayerResources(app: Hono, options: { upstream: st
         const value = response.headers.get(key); if (value) safe.set(key, value);
       }
       const runtime=/^\/__ons\/runtime\/([^/]+)$/.exec(c.req.path),manifest=/^\/__ons\/manifest\/([^/]+)$/.exec(c.req.path);
-      const candidate=runtime||manifest?candidateForPlayer((runtime??manifest)![1]):null;
       const policy = response.headers.get('content-security-policy');
       if (policy) {
         let scoped=policy.replaceAll('https://wg.saop.cc/', new URL(c.req.url).origin + '/');
         // 旧资源服务保持只读；仅为公共驱动补上精确脚本地址，不扩大游戏权限。
         if(c.req.path.startsWith('/__ons/runtime/')&&!scoped.includes('/player/emscripten.mjs'))scoped=scoped.replace('script-src ',`script-src ${new URL(c.req.url).origin}/player/emscripten.mjs `);
-        if(candidate&&runtime){const prefix=new URL(c.req.url).origin+'/__engines/resource/'+candidate.release.id+'/';scoped=scoped.replace(/(script-src|connect-src) ([^;]*)/g,(_,directive,values)=>directive+' '+values+' '+prefix);}
+        if(candidate&&(runtime||other)){const prefix=new URL(c.req.url).origin+'/__engines/resource/'+candidate.release.id+'/';scoped=scoped.replace(/(script-src|connect-src) ([^;]*)/g,(_,directive,values)=>directive+' '+values+' '+prefix);safe.set('cache-control','no-store');}
         safe.set('content-security-policy',scoped);
       }
       const location = response.headers.get('location');

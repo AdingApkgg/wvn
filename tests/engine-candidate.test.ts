@@ -11,3 +11,9 @@ test('new engine candidates use a separate workspace and cannot enable old cloud
  assert.equal(candidateSession(verified,registry.bindings[1].versionId),null);
  for(const change of [(v:any)=>v.compatibility='compatible',(v:any)=>v.versionIds=['unknown'],(v:any)=>v.release.files[0].sha256='d'.repeat(64)]){const v=structuredClone(value);change(v);assert.throws(()=>validateCandidate(v,registry,'preview'));}
 });
+
+test('RenPy candidates require a full coherent group and only registered RenPy versions',()=>{
+ const registry=loadEngineRegistry(),files=['renpy-pre.js','renpy.js','renpy.wasm','renpy.data'].map((path,i)=>({path,sha256:String(i+1).repeat(64)})),release={id:releaseIdentity({kind:'RenPy',mode:'global',files}),kind:'RenPy',mode:'global',files,sourceCapability:'source-build',sourceCommit:'c'.repeat(40),sdk:'emsdk-3.1.24-linux-x64'},binding=registry.bindings.find(b=>registry.releases.find(r=>r.id===b.releaseId)?.kind==='RenPy')!,value={schema:1,release,versionIds:[binding.versionId],compatibility:'unknown'};
+ const verified=validateCandidate(value,registry,'preview');assert.match(candidateSession(verified,binding.versionId)!.database,/^wvn-engine-candidates-v1-renpy-/);
+ for(const change of [(v:any)=>v.release.files.pop(),(v:any)=>v.release.files[3]=v.release.files[0],(v:any)=>v.release.mode='factory',(v:any)=>v.release.sdk='emsdk-6.0.10-linux-x64',(v:any)=>v.versionIds=[registry.bindings[0].versionId]]){const v=structuredClone(value);change(v);v.release.id=releaseIdentity(v.release);assert.throws(()=>validateCandidate(v,registry,'preview'))}
+});

@@ -56,3 +56,20 @@ test('global preRun assignments during engine loading always retain the one-time
  win.Module.preRun=[()=>calls.push('array')];for(const fn of [...win.Module.preRun].reverse())fn();assert.deepEqual(calls,['fs','array']);
  win.Module.preRun=()=>calls.push('function');for(const fn of [...win.Module.preRun].reverse())fn();assert.deepEqual(calls,['fs','array','function']);
 });
+
+test('RenPy candidate backups remain scoped to their family release and game',async()=>{
+ const {exportBackup,importBackup}=await import('../public/ons/storage.mjs');const s={schema:1,pilot:'renpy-v1286-1',files:[{path:'test.save',data:new Uint8Array([4,5]),mtime:12}]},id='renpy-'+'a'.repeat(64),text=await exportBackup(s,id);
+ assert.equal((await importBackup(text,s.pilot,{releaseId:id})).files[0].path,'test.save');await assert.rejects(importBackup(text,s.pilot,{releaseId:'ons-'+'a'.repeat(64)}));await assert.rejects(importBackup(text,s.pilot));
+});
+
+
+test('RenPy session pins its whole engine group and rejects partial or foreign releases',async()=>{
+ const {engineResourcesForSession}=await import('../public/player/emscripten.mjs');const release={id:'renpy-'+'a'.repeat(64),kind:'RenPy',files:['renpy-pre.js','renpy.js','renpy.wasm','renpy.data'].map(path=>({path,sha256:'b'.repeat(64)}))};
+ const resources=engineResourcesForSession(release,'RenPy','https://localhost:18557');assert.equal(resolveEngineResource('renpy.data',resources),'https://localhost:18557/__engines/resource/'+release.id+'/renpy.data');assert.equal(engineResourcesForSession(undefined,'RenPy','https://localhost:18557'),undefined);
+ for(const mutate of [r=>r.files.pop(),r=>r.files[3]=r.files[0],r=>r.id='ons-'+'a'.repeat(64),r=>r.files[0].path='../renpy-pre.js',r=>r.files[0].sha256='invalid']){const value=structuredClone(release);mutate(value);assert.throws(()=>engineResourcesForSession(value,'RenPy','https://localhost:18557'))}
+ assert.throws(()=>engineResourcesForSession(release,'Artemis','https://localhost:18557'));assert.throws(()=>engineResourcesForSession(release,'RenPy','https://evil.test/path/'));assert.throws(()=>resolveEngineResource('game.zip',resources));
+});
+
+test('candidate backup release family must match the game even when envelope fields agree',async()=>{
+ const {exportBackup,importBackup}=await import('../public/ons/storage.mjs');const snapshot={schema:1,pilot:'saya',files:[{path:'save1.dat',data:new Uint8Array([4]),mtime:1}]},id='renpy-'+'a'.repeat(64);await assert.rejects(exportBackup(snapshot,id),/引擎|版本/);const legacy=JSON.parse(await exportBackup(snapshot));const text=JSON.stringify({...legacy,format:'wvn-engine-save',schema:2,releaseId:id});await assert.rejects(importBackup(text,snapshot.pilot,{releaseId:id}),/引擎|版本/);
+});

@@ -1,4 +1,4 @@
-import {createEmscriptenDriver} from './emscripten.mjs';
+import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} from './emscripten.mjs';
 import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
 import {installNativeInput} from './native-input.mjs';
@@ -44,7 +44,7 @@ addEventListener('message',async function initialize(event){
     // credentialed site. Resources are served by the scoped read-only projection.
     Object.defineProperty(navigator,'serviceWorker',{value:undefined});
     const nativeFetch=fetch.bind(window);window.fetch=(resource,options)=>nativeFetch(resource,{...options,credentials:'omit'});
-    let driver;
+    let driver;const engineResources=engineResourcesForSession(init.engineRelease,entry.runtimeKind,origin);
     function instrument(){
       const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;
       if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
@@ -53,7 +53,7 @@ addEventListener('message',async function initialize(event){
       status('存档适配已连接');
     }
     if(entry.runtimeKind!=='Tyrano'){
-      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument});
+      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument,resources:engineResources});
       driver.installGlobal(window);
     }
     if(entry.runtimeKind==='Tyrano')Object.defineProperty(document,'readyState',{configurable:true,get:()=>"loading"});
@@ -68,7 +68,8 @@ addEventListener('message',async function initialize(event){
           // so the final array callback must install persistence first.
           driver.beforeScript();
         }
-        script.src=url.href;script.crossOrigin='anonymous';
+        const engineFile=url.pathname.slice(`/__player/resource/${id}/`.length);
+        script.src=engineResources?.files.includes(engineFile)?resolveEngineResource(engineFile,engineResources):url.href;script.crossOrigin='anonymous';
         await new Promise((resolve,reject)=>{script.onload=()=>{
           if(entry.runtimeKind==='Tyrano'&&/\/html2canvas(?:\.min)?\.js$/i.test(url.pathname))window.html2canvas=sandboxThumbnail(()=>document.createElement('canvas'),()=>({title:entry.title,text:window.TYRANO?.kag?.stat?.current_save_str||window.TYRANO?.kag?.stat?.current_message_str||''}));
           resolve();

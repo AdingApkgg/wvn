@@ -56,3 +56,11 @@ test('split resources fail closed on upstream errors and redirect to another hos
     assert.equal(r.status, 502); assert.doesNotMatch(await r.text(), /private network/);
   }
 });
+
+test('RenPy unqualified resources stay legacy while the session uses immutable candidate URLs',async()=>{
+ const {validateCandidate}=await import('../src/engines/candidate.ts'),{loadEngineRegistry,releaseIdentity}=await import('../src/engines/registry.ts');const r=loadEngineRegistry(),files=['renpy-pre.js','renpy.js','renpy.wasm','renpy.data'].map(path=>({path,sha256:'a'.repeat(64)})),release={id:releaseIdentity({kind:'RenPy',mode:'global',files}),kind:'RenPy',mode:'global',files,sourceCapability:'source-build',sourceCommit:'c'.repeat(40),sdk:'emsdk-3.1.24-linux-x64'},candidate=validateCandidate({schema:1,release,versionIds:['legacy-2bc9744f4a39fda45c162027'],compatibility:'unknown'},r,'preview');
+ let requests=0;const app=new Hono();registerRemotePlayerResources(app,{upstream:'http://192.0.2.20:18571',candidate: id=>id==='renpy-v1286-1'?candidate:null,fetcher:async()=>{requests++;return new Response('legacy',{headers:{'Content-Security-Policy':"sandbox allow-scripts; script-src https://wg.saop.cc/player/; connect-src https://wg.saop.cc/__player/"}})}});
+ for(const f of files){const response=await app.request('https://localhost:18556/__player/resource/renpy-v1286-1/'+f.path);assert.equal(response.status,200);assert.equal(response.headers.get('location'),null);assert.equal(await response.text(),'legacy')}
+ assert.equal(requests,4);const html=await app.request('https://localhost:18556/__player/resource/renpy-v1286-1/index.html');assert.match(html.headers.get('content-security-policy')!,new RegExp('/__engines/resource/'+release.id+'/'));assert.doesNotMatch(html.headers.get('content-security-policy')!,/allow-same-origin/);assert.equal(html.headers.get('cache-control'),'no-store');
+ await app.request('https://localhost:18556/__player/resource/renpy-v1286-1/game.zip');await app.request('https://localhost:18556/__player/resource/renpy-v10597-1/renpy.js');assert.equal(requests,7);
+});

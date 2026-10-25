@@ -4,8 +4,11 @@ import { createMemoryStorage, storageSnapshot, belongsToLegacyScope } from "../p
 const legacyNames = Object.freeze(Object.fromEntries(pilots.map(p => [p.id, p.legacySave])));
 const budget = 512 * 1024 * 1024;
 function scope(pilot) { if (!Object.hasOwn(legacyNames, pilot)) throw Error("未知存档版本"); return pilot; }
+function releaseForGame(releaseId,pilot){
+  if(!/^(?:ons|renpy)-[a-f0-9]{64}$/.test(releaseId)||!releaseId.startsWith((findPlayer(pilot)?.runtimeKind??'ONS').toLowerCase()+'-'))throw Error("备份引擎版本不属于当前游戏");
+}
 export async function openSaveStore(database = "wg-ons-pilot-v1") {
-  if(database!=="wg-ons-pilot-v1"&&!/^wvn-engine-candidates-v1-ons-[a-f0-9]{64}$/.test(database))throw Error("未知引擎工作区");
+  if(database!=="wg-ons-pilot-v1"&&!/^wvn-engine-candidates-v1-(?:ons|renpy)-[a-f0-9]{64}$/.test(database))throw Error("未知引擎工作区");
   const db = await new Promise((resolve, reject) => {
     const r = indexedDB.open(database, 1);
     r.onupgradeneeded = () => {
@@ -120,7 +123,7 @@ export async function readLegacy(pilot) {
 }
 
 export async function exportBackup(input, releaseId) {
-  if(releaseId!==undefined&&!/^ons-[a-f0-9]{64}$/.test(releaseId))throw Error("未知引擎版本");
+  if(releaseId!==undefined)releaseForGame(releaseId,input?.pilot);
   const s = validateSnapshot(input, input?.pilot);
   const files = s.files.map(f => {
     let binary = "";
@@ -135,7 +138,7 @@ export async function importBackup(text, pilot, candidate) {
   const value = JSON.parse(text);
   const legacy=value.format==="wg-ons-save"&&value.schema===1;
   if(candidate){
-    if(!/^ons-[a-f0-9]{64}$/.test(candidate.releaseId))throw Error("未知引擎版本");
+    releaseForGame(candidate.releaseId,pilot);
     if(legacy&&!candidate.allowLegacyCopy)throw Error("旧引擎备份需要明确复制到独立候选工作区");
     if(!legacy&&(value.format!=="wvn-engine-save"||value.schema!==2||value.releaseId!==candidate.releaseId))throw Error("备份不属于当前引擎版本");
   }else if(!legacy)throw Error("备份不属于当前引擎版本");
