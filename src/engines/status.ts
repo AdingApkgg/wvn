@@ -3,7 +3,7 @@ export function jobSummary(job:Job){
  if(!/^[a-f0-9-]{36}$/.test(job.id)||!phases.includes(job.state))throw Error('Invalid job status');
  const at=job.history.at(-1)?.at,sdk=job.details.sdk as any;
  const safeSdk=sdk&&/^emsdk-\d+\.\d+\.\d+-linux-x64$/.test(sdk.id)&&/^\d+\.\d+\.\d+$/.test(sdk.version)&&sdk.status==='verified'?{id:sdk.id,version:sdk.version,status:'verified'}:null;
- return {id:job.id,recipe:['onsyuri','emsdk-install'].includes(job.recipe)?job.recipe:'unknown',state:job.state,at:typeof at==='string'&&/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(at)?at:undefined,sdk:safeSdk,releaseId:typeof job.details.releaseId==='string'&&/^ons-[a-f0-9]{64}$/.test(job.details.releaseId)?job.details.releaseId:null,compatibility:job.details.compatibility==='unknown'?'unknown':null,errorCode:job.state==='failed'?(job.recipe==='emsdk-install'?'SDK_INSTALL_FAILED':'BUILD_FAILED'):null};
+ return {id:job.id,recipe:['onsyuri','renpy-8.2.1','emsdk-install'].includes(job.recipe)?job.recipe:'unknown',state:job.state,at:typeof at==='string'&&/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(at)?at:undefined,sdk:safeSdk,releaseId:typeof job.details.releaseId==='string'&&/^(?:ons|renpy)-[a-f0-9]{64}$/.test(job.details.releaseId)?job.details.releaseId:null,compatibility:job.details.compatibility==='unknown'?'unknown':null,errorCode:job.state==='failed'?(job.recipe==='emsdk-install'?'SDK_INSTALL_FAILED':'BUILD_FAILED'):null};
 }
 export function buildStatus(state:string){
  let jobs:ReturnType<typeof jobSummary>[]=[];
