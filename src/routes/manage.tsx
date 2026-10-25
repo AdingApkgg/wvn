@@ -1,3 +1,4 @@
+import {EngineManagement} from '../engines/management';
 import { brand } from "../brand";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -180,7 +181,9 @@ export default function Manage() {
               <TabsTrigger value="catalog">作品与版本</TabsTrigger>
               <TabsTrigger value="sources">来源与映射</TabsTrigger>
               <TabsTrigger value="reports">验证报告</TabsTrigger>
+              <TabsTrigger value="engines">引擎与 SDK</TabsTrigger>
             </TabsList>
+            <TabsContent value="engines"><EngineManagement /></TabsContent>
             <TabsContent
               value="catalog"
               forceMount

@@ -1,3 +1,4 @@
+import {managementSummary} from '../engines/status.ts';
 import { parseWorkSlug } from "../identity.ts";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -153,6 +154,7 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
     auth.set(c, session);
     return c.json({ ok: true });
   });
+  app.get("/api/manage/engines", c=>c.json(managementSummary()));
   app.get("/api/manage/catalog", (c) => c.json(store.list(true)));
   app.get("/api/manage/pending", (c) => c.json(store.pending()));
   app.post("/api/manage/works", async (c) =>
