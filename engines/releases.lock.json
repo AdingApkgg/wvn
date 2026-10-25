@@ -1,0 +1,927 @@
+{
+  "schema": 1,
+  "releases": [
+    {
+      "id": "ons-c8dc80118e5c385d6fa6ee67e89499f9363cc1f04abac20d479a486b777fe29e",
+      "kind": "ONS",
+      "mode": "factory",
+      "files": [
+        {
+          "path": "onsyuri.js",
+          "sha256": "334ee32249dce6c8d6cdf7e0c6b68e704129c58efa949336c8fad14742a882c1"
+        },
+        {
+          "path": "onsyuri.wasm",
+          "sha256": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-c4ab7e1834f755bf9f7cb0855f849e56a117491592020f16c189eeb291376190",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "ed43d224fa56e653f19b5320b45d8bdf033ca59209b2644a5532246bed6e42e8"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-22e0f226870e5db3124040c80a4f2ad049d1d5aafd45116d7446266a979d7d3f",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "16f85df07ed6dc629d75f36bf595e2ff8fec6abb1a3573a30cad380bfcbe5c50"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "0b7e637face8037f02d134646750206bb8fc0cddd5b41acd5777e24f21665e41"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "1d22cbd4fe3aa0e601a3aacbaa048f3b830a3e2cbf836405d1823a01cb51e191"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "da2ad72b8c630bd08e6a528e59981a222a49e5b3c283e778ba38f21a6153d784"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "69eab36421c5d7a7cffdc4793371d07dfbb63db44662f492388e7e5be127f715"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "16ad1b7538190e0c4a54dad27f7678673a494d6a4ecf9a4a3708c962f665d02a"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "renpy-6dad7419eecc91880c32fcf83dc1bc2921920314b70becbd1b32ff0ad4817579",
+      "kind": "RenPy",
+      "mode": "global",
+      "files": [
+        {
+          "path": "renpy-pre.js",
+          "sha256": "f5a20badae637015627245db268fb71d028bcb665bbc50f8ff8e65810b85beaa"
+        },
+        {
+          "path": "renpy.js",
+          "sha256": "c71eb9067db49057def550cad33959cb9098a79a1b10860f2bd2653ca9ea975d"
+        },
+        {
+          "path": "renpy.wasm",
+          "sha256": "d510bc18b98109b11962230bcbc78618e91b915bc63e5385e9fac70d98d57d12"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-5c1d1ef0c7b38ee5d6231c1469342fc1e5eb44e8ab9c93888f3c24053807b2cd",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "d41a25c78fcd5577b473f3a78abc78f0e0828ce5301d40c932a32b76bd17f9d0"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-59277cd42206d06442d4c21a683a9cff27d62453be95ef25016e3bdd52857c80",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "59c50aa217d83fda784c03abeeb8f924f6a2874942d292664d4c62f98068ad7f"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-ec83f0a5f9e884d8b86f1f2a1db5a8e8f9f33a6708ca739f9f704f726b242ee3",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "810491ae33ff270fbb0dc60a9b98d95fb7873bd2b2e2c90e08824a02834f381c"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "renpy-35d84ba3de9d5426230cb5b2805d84f09f9f5c0da1a80cbf382f2bf89e70278c",
+      "kind": "RenPy",
+      "mode": "global",
+      "files": [
+        {
+          "path": "renpy-pre.js",
+          "sha256": "f5a20badae637015627245db268fb71d028bcb665bbc50f8ff8e65810b85beaa"
+        },
+        {
+          "path": "renpy.js",
+          "sha256": "1fc254761a324cf142a7258d04df5af29c15b43a3e09503037f8ff97903b69c7"
+        },
+        {
+          "path": "renpy.wasm",
+          "sha256": "7e279d27fb425d3829ce934bf64c351a606053d8880bbb0b68bc1a7f59e118f6"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-b1932a52467e26fc7c963d4423f0e652dc0c00c880c3d0f94318a581b459cfcd",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "c1195aef81b8605a2555100a0ac4537ab6bd4f0b53f507b779a4b2917bbe1dd5"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-da2f141cd79f95d3261fda97a1eff460c6d72d51db5290989c3177a030000d65",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "34b08b6405f59e810c2fb890821d7f9f82cb1f50fa7f0f46a5be5f13a2ecea02"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-522926dc63f75788b8942653ce282700b064c29f9920d84f14100bc226ac7563",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "f6c1639e7041c0ac538867f90d0e9fc96ed683d06ae39fe53abcda812b30e4c0"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-dbe0fc71163436bb54d70bb2f15dcddcb4a80fe62aba75597f667346e76e92d6",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "6119cc210c3477c6a17150e8ec55bbc38b7aee0b38eb47fb66099ce9adc87886"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "9f781229c1d01aa5602d7f9baf3e91b4248bd81e836a6b65f9eca5019c13499c"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "21b1730a9c27c6fa466f021778708f463d482508f5c97a8bc4ee9d6162ef216f"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "5c4cbf90147d7f95ef554fe3729c4d6288bde5d972ea1505dd104fbac15f9b58"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "8f7988517237524dc4ab6c2d9a5f54d364ff047c78eec6f53dd81902827cd034"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "9378afc664dcb4dd577ca5de2baf8f6bed298c8851334d0f3e450d846a09d00c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-545094a8560bf32b17c068ba581ac1690f591bda8c2ec690a018268d5fac87a6",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "bf5b621eaad171af985be28453496997be807344e96425ed58c1532dc62999fb"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-eaa647c9691dca24f9f464f92cfd7ba4e02f5880e9a928a410f6fc54a3c5fe44",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "601f8422cb6ca0c7b3a60b46ee262418530d82f7bc94d6d1b816473f6fbd0ea0"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-00c93b6311dacef7d3eb8c1a381989712c358f1cb85e391cd6b1d11a9207e920",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "f2f54b59f39dbc6e89ee166d4d83966714b2c59017f9fdfe94b3dc549aca5cf2"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-97c705ee58a0aa4da83fb9cf71bb677d0888a90f2f44697d059f131a4f649566",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "e80657157ab095ff89763c8c954c890efef089463824aee3671fe2bc91357a72"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-3857d8425dfdda94a0ea7893b903e60abf3396329091bb01fde958e5dec2ee20",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "a95b6c387052f86478834912c85dd59b27aca1db6234d6e78599fa4398c6faa7"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-1aff2f55a69039c0cb8106f3b159245cf282016d306ca717ed1f676c32ec7d74",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "c1cc0542910db38baf74428c417f0029074fe774dd08d226503277ee05246bac"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "b444b20ca76ad727585342b0c138e996b7eb4ea3a3177bc510a10980f8b33e0a"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "385bfd54e029b9f7fe7e68fbc68b14380ff4019edf947f82dc156ef1aac4c39c"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "9289b5fe397a160af501679a4fafa9ed101132b33f10cb71eb751ee0f9077e08"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "9f9b7541fc35f42cdfd2302e02707272f7fd7da38a20d91f700ed03c072957ab"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "df4d4ea585a6e7fe41c84b6e624bb3cab79eb00be39a2318ef7aa3b403e2c596"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-c51f327dbc2926b0ba2c90caf546c43595f8271c2f13725b9c1ca744392df5b0",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "37ad6fea5aea8bc70a3fe2c76cd397dc6eb695e91260962979aada649313d720"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "9b1155748e0cf2723e842c489966a5db73e7ed822a7b19a5c43f087f8801548b"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "385bfd54e029b9f7fe7e68fbc68b14380ff4019edf947f82dc156ef1aac4c39c"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "9289b5fe397a160af501679a4fafa9ed101132b33f10cb71eb751ee0f9077e08"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "9f9b7541fc35f42cdfd2302e02707272f7fd7da38a20d91f700ed03c072957ab"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "df4d4ea585a6e7fe41c84b6e624bb3cab79eb00be39a2318ef7aa3b403e2c596"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-561789af6b42aafb1615b4ca10a1bb1f4e951ca266a56d5e210535cb2d451c5f",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "c81ab4c8d6a6f499dfeb9b558b5f31e1eea6db350bb973a0daf4b198badf166a"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "9b1155748e0cf2723e842c489966a5db73e7ed822a7b19a5c43f087f8801548b"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "385bfd54e029b9f7fe7e68fbc68b14380ff4019edf947f82dc156ef1aac4c39c"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "9289b5fe397a160af501679a4fafa9ed101132b33f10cb71eb751ee0f9077e08"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "9f9b7541fc35f42cdfd2302e02707272f7fd7da38a20d91f700ed03c072957ab"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "df4d4ea585a6e7fe41c84b6e624bb3cab79eb00be39a2318ef7aa3b403e2c596"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-0eb44ad1770674bbe4de2dde2a2670aa33cf62f5927e614b61d2c53736cf599c",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "d17287cfdcf9ccc00a6cf2d78cd199fb5dc79a8cc76b1d5cbb907642343e8d05"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "51ce27d866f98094e7605e8986a3eb2ebf802db5ec3256ef5d27378cf95ea1b7"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "7008f237973dc7b2170ad426dfebe33b27f59527a038066e039dd613be3ca204"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "9edad95c5949f001934b551900064888bc31ad131954d05534410c3fb7f81c9a"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "138f009e700a74fcbad75c2cb86c14f594ee3081c2391ecb6876302eb413fb03"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "9378afc664dcb4dd577ca5de2baf8f6bed298c8851334d0f3e450d846a09d00c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-1bd27d35212ead2440bd8f4cc43bbd0a8f89da9d1297edd8512e7bd9251beeb6",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "dad43cbfee9e29583c1d585f345202dd55d18c4d8907b6cd01bfd72c6375ce39"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "51ce27d866f98094e7605e8986a3eb2ebf802db5ec3256ef5d27378cf95ea1b7"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "7008f237973dc7b2170ad426dfebe33b27f59527a038066e039dd613be3ca204"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "9edad95c5949f001934b551900064888bc31ad131954d05534410c3fb7f81c9a"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "138f009e700a74fcbad75c2cb86c14f594ee3081c2391ecb6876302eb413fb03"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "9378afc664dcb4dd577ca5de2baf8f6bed298c8851334d0f3e450d846a09d00c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-b13dbcd6084dad8114cb24a4ef11d03d34956ad07bff0cbd21b941d4ae209c18",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "43db98e95096bacb4d92a6c2d50aeddaa77f92a4acd0b555dd9b384137308891"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "d3815112b19661010391abd28142ac841afb0a165d0d3265b84720c0edb63040"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "97502d22c00dc4affa92fccd9c6b7588f7723a9d1666b7093eec6c6c9a904800"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "afc362d4ecfc75c901531a18d1e1836a144e8413335cc7de0d05bf972c978c4d"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "ffc473443f751266e0e94263ccb8ad47f311076a474d015d87f05666b8bfc656"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "4d5611ddfdd9cb196fd32d9c3dcb012d2293456f1a84014ee8ab851cf66403d5"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-28405d4f7dfddd546eefeaf4bf4184e974b366fb432508abe0184617e0f78f75",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "bed7ace7ef7a9dc7cedbd6b1c4e755da21c994e4693e52c7e365735509b17b94"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "af34bcfad1ffaf64d2b0b58e4f56d24a57542d045d2f02f951ec383297b24ef3"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "a5d6a6dd219288dea43d84ec4503cdc6f9adb00b76a6499f6301ce680cd7292a"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "2f6c2bd604bd2dc5afad9fb7427212a33bd8182e635728d4e0b108f6dd547831"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "138f009e700a74fcbad75c2cb86c14f594ee3081c2391ecb6876302eb413fb03"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "9378afc664dcb4dd577ca5de2baf8f6bed298c8851334d0f3e450d846a09d00c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-e0c139d33d286cc82cbfc55f89bf8724e5bd84f04da181004aa3be6aafcccd10",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "0db72743d0cc0aefbb1225163be961df0f6f703ad444d496852e7ab8246c1047"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-894b0fc65b8911301c531ff2fd4256d1e8604b4227bbd378175f46ac32199af8",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "9b312c22451a3b62629b5efeac39f65283a49ece5a3068e75e4a09e01800092e"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-61c1d23e5a1c56632d4356e16fc1c42fc7afd3c90cee7beacf9a68d017573eee",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "43e7cd475f467fa1aa41d53b03b51c8d51208d8706cda24023e0547a10218008"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-95b5b56063684647f6ec3908c12b5b33f91a90161e1d91ce448b8902556051d0",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "319b0096a54e00225997555857c89be9e2390a38b284b77d9e2280321ae4f923"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-f28ea697bc4e40593facd2246106a5b8b196eddbb065abc19da223710406891e",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "fbd8e6b35450eb866e1cdabebccd3183924466ee0562f907193b91bc54d11ef5"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-3cc95ce13397e9a26f133f079a45ad1fd13b4771c028601d771052467b0c4708",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "5b4d923902fdfe9792df409749d5250dff4dd3e137fef4df9301a67fb1eca973"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "9b1155748e0cf2723e842c489966a5db73e7ed822a7b19a5c43f087f8801548b"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "976453751244904aa233643948e2dcce5cfd371b480334bec4afdd4b7986872a"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "9289b5fe397a160af501679a4fafa9ed101132b33f10cb71eb751ee0f9077e08"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "9f9b7541fc35f42cdfd2302e02707272f7fd7da38a20d91f700ed03c072957ab"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "df4d4ea585a6e7fe41c84b6e624bb3cab79eb00be39a2318ef7aa3b403e2c596"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "tyrano-a60077689d1277446a76150a30cfe25270f7691b3494da1a411a0d4bb1b0cabf",
+      "kind": "Tyrano",
+      "mode": "javascript",
+      "files": [
+        {
+          "path": "data/system/Config.tjs",
+          "sha256": "3a57f90ed3249d2ba17848c2248e32b4f49f14f358fafcecfea27051d3e95054"
+        },
+        {
+          "path": "tyrano/libs.js",
+          "sha256": "9f781229c1d01aa5602d7f9baf3e91b4248bd81e836a6b65f9eca5019c13499c"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.js",
+          "sha256": "21b1730a9c27c6fa466f021778708f463d482508f5c97a8bc4ee9d6162ef216f"
+        },
+        {
+          "path": "tyrano/plugins/kag/kag.menu.js",
+          "sha256": "5c4cbf90147d7f95ef554fe3729c4d6288bde5d972ea1505dd104fbac15f9b58"
+        },
+        {
+          "path": "tyrano/tyrano.base.js",
+          "sha256": "8f7988517237524dc4ab6c2d9a5f54d364ff047c78eec6f53dd81902827cd034"
+        },
+        {
+          "path": "tyrano/tyrano.js",
+          "sha256": "9378afc664dcb4dd577ca5de2baf8f6bed298c8851334d0f3e450d846a09d00c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-a49f831eeba6e2868ca78726243bef22c2de3d4be34610d2b1f39a51b1ba1c55",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "99dc4c1d030c1b29f0dc3cd50ea37a1418aec50a925b8fcd947b204100630e21"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-284c5b12b192d2b1f6c63dfdc8fee06cbd31b8aef4cee81263db1a46f5619d5f",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "8821db316277707c06b32172624f462cd20a1224e0854ecf3820baae3f098534"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-0cd848eb462283ff98ed8bf92b5c5eb07f04d9dbfd17159e12958902a439f8b8",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "4898afe81f07ab3123d17502a5958ad4c98fd360ff4f479e95b3d89ad5edf695"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-11613128e66eab2ee636615ddf8d7d32476c921b58c516451dfb6b888f25c325",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "f5c5e708181badb9947840d6025a2f214b2bb4516cfef9794536fc3f285308e8"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "7ceabed28b84e7689fc4b629fa232e2857f15c3b6e6fa3e09fc39dba082d145e"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-e07eba21f592a928b00d2c4968d84f0175f9e04c76ea48e9da55aed9c4b286b2",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "64181be6b4ad69b6be41f137dff3f927e4301e9cefd32e814001ffb995c83357"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-5907a1f94a71e6537d05f42689d9bd649633576c14e0205567dd133f07d06779",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "da106e9887e69cd0655679d63d680778ab943e60ae1b1edfc30a0adf09e13aca"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-4ba2be9258ed3b3c798fab17fe2e04a1443f08c56aca6690dac421ba7f806752",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "d7c6898e0b90df2042007eb428ca203ea05595dc3536488ac6d588b726d9fd0b"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-4f797dc02b54560f27b6a424945ee4d286fcf65dd7d675b1f9caa2e39296061c",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "b65956fefb07dfec80baade859db9c04edd9981896712e065fcf0112f12a2ff8"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-d274ba58e624ed7d8363f5bd62c8460216e8f67df732c0319c87ef8e3b531493",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "dad2b6512920aea67d918ab1af1eeda026a20006ad8848cca6c4bd634926a608"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-ad45bb3458285153525274c842ae1d59e56757e87fd22e52af8acdb7d43950dc",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "00ece238a6e371bf7526fd9e8d5631c65677b5fba91e819bd53b26f93bb1e809"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    }
+  ]
+}
