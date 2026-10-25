@@ -18,6 +18,55 @@ from renpy_host_python import digest, check_file, inventory, command, unpack, ho
 SOURCE_PATHS = ['README.rst', 'build.py', 'requirements.txt', 'renpybuild', 'tasks',
                 'patches', 'runtime', 'extensions', 'tools', 'source', ':(exclude)source/MetalANGLE*']
 
+def patch_web_unpack(path):
+    """保留 data 内固定的引擎 Python/标准库，旧包只贡献游戏资源。"""
+    path = Path(path)
+    needle = '    for i, zi in enumerate(infolist):\n        zf.extract(zi, "/")\n'
+    replacement = '''    for i, zi in enumerate(infolist):
+        _wvn_parts = [p for p in zi.filename.split("/") if p not in ("", ".", "..")]
+        if not _wvn_parts or _wvn_parts[0] not in ("renpy", "pygame_sdl2", "lib"):
+            zf.extract(zi, "/")
+'''
+    source = path.read_text()
+    if source.count(needle) != 1:
+        raise ValueError('Upstream Web unpack shape differs')
+    path.write_text(source.replace(needle, replacement))
+
+
+def install_runtime(sources, dist, version_file):
+    """仅从已捕获固定源码复制 Python 包；不把构建生成文件或旧游戏代码混入。"""
+    sources, dist = Path(sources), Path(dist)
+    files = {}
+    for name in ('renpy', 'pygame_sdl2'):
+        archives = list(sources.glob(name + '-' + '[0-9a-f]' * 40 + '.tar'))
+        if len(archives) != 1:
+            raise ValueError('Exactly one captured runtime source is required')
+        prefix = 'renpy/renpy/' if name == 'renpy' else 'pygame_sdl2/src/pygame_sdl2/'
+        copied = 0
+        with tarfile.open(archives[0]) as archive_file:
+            for member in archive_file:
+                if not member.name.startswith(prefix) or member.isdir():
+                    continue
+                relative = PurePosixPath(name) / member.name[len(prefix):]
+                if not member.isfile() or '..' in relative.parts or '\\' in str(relative):
+                    raise ValueError('Invalid captured runtime file')
+                target = dist / str(relative)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(archive_file.extractfile(member).read())
+                target.chmod(0o644)
+                epoch = int(os.environ.get('SOURCE_DATE_EPOCH', '1709553600'))
+                os.utime(target, (epoch, epoch))
+                files[str(relative)] = digest(target)
+                copied += 1
+        if not copied:
+            raise ValueError('Captured runtime package is empty')
+    target = dist / 'renpy/vc_version.py'
+    shutil.copyfile(version_file, target)
+    target.chmod(0o644)
+    epoch = int(os.environ.get('SOURCE_DATE_EPOCH', '1709553600'))
+    os.utime(target, (epoch, epoch))
+    files['renpy/vc_version.py'] = digest(target)
+    return {'schema': 1, 'packages': ['renpy', 'pygame_sdl2'], 'files': dict(sorted(files.items()))}
 
 
 
@@ -101,6 +150,7 @@ def build(job, cache, sdk, host_cache):
     if original_cmake.count(launchers) != 1:
         raise ValueError('Upstream CMake launcher shape differs')
     cmake_variables.write_text(original_cmake.replace(launchers, 'set(CMAKE_C_COMPILER_LAUNCHER "")\nset(CMAKE_CXX_COMPILER_LAUNCHER "")'))
+    patch_web_unpack(root / 'runtime/site3.py')
     prefix, compiler, host_key = host_python(job, root, packages, host_cache, recipe['inputs']['sha256'])
     # detached 源码缺少分支语义；从固定发行标签记录版本，但明确这是非官方构建。
     (root / 'renpy/renpy/vc_version.py').write_text("version = '8.2.1.24030407'\nversion_name = '64bit Sensation'\nbranch = 'fix'\nofficial = False\nnightly = False\n")
@@ -123,11 +173,11 @@ def build(job, cache, sdk, host_cache):
     files = ['renpy-pre.js', 'renpy.js', 'renpy.wasm', 'renpy.data']
     for name in files:
         shutil.copyfile(root / 'renpy/web3' / name, output / name)
-    receipt = {'schema': 1, 'engine': 'RenPy', 'version': lock['version'], 'official': False, 'features': {'live2d': False},
+    receipt = {'schema': 1, 'engine': 'RenPy', 'version': lock['version'], 'official': False, 'features': {'live2d': False, 'pinnedPythonRuntime': True},
                'hostCompiler': compiler, 'hostToolCache': host_key, 'sdk': recipe['sdk'],
                'sources': lock['sources'], 'dependencyLock': recipe['inputs']['sha256'],
                'adapter': digest(__file__), 'hostPythonModule': digest(Path(__file__).with_name('renpy_host_python.py')),
-               'sourceDateEpoch': int(os.environ['SOURCE_DATE_EPOCH']), 'files': {name: digest(output / name) for name in files}}
+               'sourceDateEpoch': int(os.environ['SOURCE_DATE_EPOCH']), 'runtimePython': json.loads((job / 'runtime-python.json').read_text()), 'files': {name: digest(output / name) for name in files}}
     (job / 'renpy-receipt.json').write_text(json.dumps(receipt, indent=2))
 
 
@@ -192,6 +242,10 @@ def tasks(config):
 
     def bounded_run(c, text, *args, **kwargs):
         expanded = c.expand(text, **kwargs)
+        if c.name == 'renpython' and '--preload-file' in expanded:
+            receipt = install_runtime(root.parent.parent / 'sources', c.path('{{ dist }}'), root / 'renpy/renpy/vc_version.py')
+            (root.parent.parent / 'runtime-python.json').write_text(json.dumps(receipt, indent=2))
+            print('WVN pinned Python runtime files:', len(receipt['files']), flush=True)
         makefile = c.cwd / 'Makefile'
         if 'make' in expanded and 'install' in expanded and makefile.is_file():
             content = makefile.read_text()
@@ -247,7 +301,7 @@ def tasks(config):
     Context.rmtree = lambda c, text: remove(c, text)
     Context.unlink = lambda c, text: remove(c, text)
     overrides.extend(['run.llvm=gcc', 'run.emsdk_environment=explicit', 'run.build_environment=bounded',
-                      'RunGroup.run=serial-communicate', 'Context.cleanup=job-only', 'vc_version=locked-unofficial', 'CMake.launcher=direct', 'Python.compileall=2', 'source.mtime=fixed-positive', 'pygame_sdl2.install=static', 'librenpy.generate=emscripten'])
+                      'RunGroup.run=serial-communicate', 'Context.cleanup=job-only', 'vc_version=locked-unofficial', 'CMake.launcher=direct', 'Python.compileall=2', 'source.mtime=fixed-positive', 'pygame_sdl2.install=static', 'librenpy.generate=emscripten', 'Web.unpack=game-only', 'Web.data=pinned-Python-runtime'])
     print('WVN overrides:', json.dumps(overrides), flush=True)
     (root.parent.parent / 'adapter-overrides.json').write_text(json.dumps(overrides, indent=2))
     upstream.root = root
