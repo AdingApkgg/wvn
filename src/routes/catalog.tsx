@@ -14,13 +14,16 @@ import { Search } from "lucide-react";
 import { Form, Link, useLoaderData } from "react-router";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
+import {projectWorkCounts} from '../analytics/projection.server';
+import {WorkCountSummary} from '../components/work-stats';
+import type {WorkCounts} from '../accounts/work-stats.server';
 export function meta() {
   return [
     { title: brand.title },
     { name: "description", content: brand.description },
   ];
 }
-export function loader({ request }: { request: Request }) {
+export async function loader({ request }: { request: Request }) {
   const all = getStore()
     .list()
     .filter((w) => w.versions.length);
@@ -54,6 +57,7 @@ export function loader({ request }: { request: Request }) {
   );
   return {
     items,
+    counts:await projectWorkCounts(items.map(w=>w.id)),
     recentWorks: all.map(w => ({ title: w.title, versions: w.versions.map(v => ({id:v.id,url:v.url,number:v.number})) })),
     q,
     engine,
@@ -65,7 +69,7 @@ export function loader({ request }: { request: Request }) {
   };
 }
 export default function Catalog() {
-  const { items, recentWorks, q, engine, state, tag, total, versions } =
+  const { items,counts, recentWorks, q, engine, state, tag, total, versions } =
     useLoaderData<typeof loader>();
   return (
     <>
@@ -100,7 +104,7 @@ export default function Catalog() {
         </div>
         <div className="story-grid">
           {items.map((w, i) => (
-            <StoryCard key={w.id} work={w} index={i} />
+            <StoryCard key={w.id} work={w} index={i} counts={counts?.[w.id]}/>
           ))}
         </div>
         {!items.length && (
@@ -122,7 +126,7 @@ export default function Catalog() {
 }
 
 
-function StoryCard({ work: w, index: i }: { work: PublicWork; index: number }) {
+function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: number;counts?:WorkCounts }) {
   const cover = w.metadata?.cover;
   const [naturalRatio, setNaturalRatio] = useState<number>();
   const sourceRatio = naturalRatio ?? (
@@ -167,6 +171,7 @@ function StoryCard({ work: w, index: i }: { work: PublicWork; index: number }) {
         </div>
         <h3>{w.title}</h3>
         <p>{w.originalTitle}</p>
+        <WorkCountSummary counts={counts}/>
         <div className="card-footer">
           <Badge variant="secondary">{w.versions.length} 个版本</Badge>
           <span>阅读详情 ↗</span>

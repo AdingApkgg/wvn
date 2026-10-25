@@ -12,6 +12,9 @@ import { NativeSelect, NativeSelectOption } from "../components/ui/native-select
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "../components/ui/alert-dialog";
 import { OnsCloud } from './cloud';
 import { ReadingSession } from '../accounts/reading-session';
+import {consumeStartupNotice} from '../analytics/startup';
+import {recordReading,trackPublicEvent} from '../analytics/client';
+import {parseWorkSlug} from '../identity';
 
 type Pilot = { id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string; engineCandidate?: {releaseId:string;database:string;cloudEnabled:false;compatibility:"unknown";engineRelease?:{id:string;kind:string;files:{path:string;sha256:string}[]}} };
 type History = Omit<SavedRevision, "snapshot" | "bytesHeld">;
@@ -26,6 +29,7 @@ async function modules() {
 }
 export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; workUrl: string; cloud?: boolean }) {
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false);
+  const [gameStarted,setGameStarted]=useState(false);
   const [status, setStatus] = useState("正在读取本机存档…"), [error, setError] = useState("");
   const [localBusy, setBusy] = useState(false), [cloudBusy,setCloudBusy]=useState(false), [history, setHistory] = useState<History[]>([]), [selected, setSelected] = useState("");
   const busy=localBusy||cloudBusy;
@@ -34,11 +38,11 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
   const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
-  const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean } | null>(null);
+  const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean;started:boolean } | null>(null);
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const active = useRef(true);
   const runningNow = useRef(false);
-  function changeRunning(value: boolean) { runningNow.current = value; setRunning(value); }
+  function changeRunning(value: boolean) { runningNow.current = value; setRunning(value);setGameStarted(false); }
   const blocker = useBlocker(({ currentLocation, nextLocation }) => runningNow.current && currentLocation.pathname !== nextLocation.pathname);
   async function refresh() {
     const value = await store.current!.get(pilot.id);
@@ -74,10 +78,13 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     if (!store.current || !frame.current?.contentWindow) return;
     channel.current?.port.close();
     const ports = new MessageChannel(), nonce = crypto.randomUUID();
-    const connection = { port: ports.port1, nonce, seq: 0, writing: false }; channel.current = connection;
+    const connection = { port: ports.port1, nonce, seq: 0, writing: false,started:false }; channel.current = connection;
     const { protocol } = await modules();
     ports.port1.onmessage = async ({ data }) => {
       if (channel.current !== connection || !active.current || !data || data.nonce !== nonce || data.pilot !== pilot.id) return;
+      if(consumeStartupNotice(data,connection,pilot.id)){
+        setGameStarted(true);const id=parseWorkSlug(workUrl.split('/')[1]??'');if(id)void recordReading(id,pilot.versionId);trackPublicEvent('reading_start',undefined,window.location.pathname);return;
+      }
       if (data.type === "status" && typeof data.message === "string" && data.message.length <= 500) { setStatus(data.message); return; }
       if (data.type !== "snapshot" || !Number.isSafeInteger(data.seq) || data.seq !== connection.seq + 1 || connection.writing) return;
       connection.seq = data.seq; connection.writing = true;
@@ -148,7 +155,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
       <div className="reader-save-status" role="status" aria-live="polite"><span>本机：{status}</span><span>{cloudStatus}</span></div>
       {error && blocker.state !== "blocked" && <div role="alert" className="reader-error"><p>{error}</p><Button variant="outline" size="sm" onClick={() => setSavePanel(true)}>打开存档管理并导出</Button></div>}
       <p className="reader-tip">请先在游戏菜单内保存，再保存并退出。本机备份不会自动上传云端。</p>
-      <ReadingSession running={running} />
+      <ReadingSession running={running&&gameStarted} />
       <section id="reader-save-panel" className="reader-save-panel space-y-5" hidden={!savePanel} aria-label="存档管理面板">
         <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档管理</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,pilot.engineCandidate?.releaseId), "backup"); })}>导出当前存档</Button></div>
         {pilot.runtimeKind === "Tyrano" && <p className="text-sm text-muted-foreground">新存档使用文字缩略图；旧存档中的图片预览继续保留。</p>}

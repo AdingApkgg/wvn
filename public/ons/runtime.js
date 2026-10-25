@@ -118,7 +118,7 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       g_onsyuri_module.callMain(["--root", "/game", "--font", "/game/default.ttf", "--save-dir", "/save"]);
       driver.running();
       scale_full(g_onsyuri_module.canvas, g_screen_width / g_screen_height);
-      g_onsyuri_module.canvas.focus(); status("引擎已启动");
+      g_onsyuri_module.canvas.focus();send({type:'started'}); status("引擎已启动");
       setInterval(() => captureSave(), 5000);
     } catch (e) { status("启动失败：" + e.message); }
   }

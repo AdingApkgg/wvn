@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { CloudBackups } from "./cloud";
+import {Favorites} from './favorites';
 import type { useAccount } from "./client";
 import type { CatalogItem, LibraryEntry } from "./library.server";
 import { Button } from "../components/ui/button";
@@ -68,6 +69,7 @@ export function Library({
   return (
     <section className="account-library space-y-6" hidden={!["library", "saves"].includes(view)}>
       <div hidden={view !== "library"} className="space-y-6">
+      <Favorites account={account}/>
       <div className="space-y-3">
         <h2>私人书架</h2>
         <Label htmlFor="library-search">寻找一部故事</Label>

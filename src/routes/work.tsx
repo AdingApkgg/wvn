@@ -10,6 +10,8 @@ import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { projectShares } from "../server/share-projection";
 import { SHARE_PROGRESS, isShareProgress } from "../accounts/share-metadata";
+import {projectWorkCounts} from '../analytics/projection.server';
+import {WorkInteractions} from '../components/work-stats';
 export async function loader({
   params,
   request,
@@ -43,7 +45,8 @@ export async function loader({
           publicProjectionFetch(),
         )
       : null;
-  return { ...w, shares, saveVersion, saveProgress };
+  const counts=await projectWorkCounts([w.id]);
+  return { ...w, shares, saveVersion, saveProgress,counts:counts?.[w.id]??null };
 }
 export function meta({ loaderData: data }: { loaderData?: { title: string } }) {
   return [{ title: data ? `${data.title} — ${brand.shortName}` : brand.title }];
@@ -80,6 +83,7 @@ export default function Work() {
             {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
           <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>
+          <WorkInteractions key={w.id} workId={w.id} workUrl={w.url} counts={w.counts}/>
           <div className="work-section-links"><a href="#story-description">故事简介</a><a href="#player-saves">玩家存档</a><a href={providerLink(w.id)} target="_blank" rel="noreferrer">{providerName(w.id)} ↗</a></div>
         </div>
       </section>

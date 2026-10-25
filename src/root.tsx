@@ -14,6 +14,7 @@ import {
 import "./styles.css";
 import { Button } from "./components/ui/button";
 import { SiteNavigation } from "./components/site-navigation";
+import {Analytics} from './analytics/client';
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN" className="dark">
@@ -31,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
-export function loader(){return {isolated:process.env.WG_ALL_ENGINES==='1',release:process.env.WG_DEPLOYMENT_MODE==='production'}}
+export function loader(){return {isolated:process.env.WG_ALL_ENGINES==='1',release:process.env.WG_DEPLOYMENT_MODE==='production',analyticsWebsiteId:process.env.WG_UMAMI_INTERNAL_URL?process.env.WG_UMAMI_WEBSITE_ID??null:null}}
 export default function Root() {
   const flags=useLoaderData<typeof loader>();const [notice,setNotice]=useState(false),[workerError,setWorkerError]=useState('');
   const location = useLocation();
@@ -50,6 +51,7 @@ export default function Root() {
     return()=>{active=false;window.removeEventListener('wg-legacy-tabs-acknowledged',acknowledged)};
   },[flags.isolated,flags.release]);
   return <>
+    <Analytics websiteId={flags.analyticsWebsiteId}/>
     {!privatePage && !playerPage && <SiteNavigation preview={!flags.release} />}
     {(notice||workerError)&&<aside className="container rounded-md border p-4 text-sm" role="status">
       {workerError||'统一播放器已升级。请先关闭其他仍在运行的旧版游戏页面，再登录账号。旧存档可在播放器内按版本迁移。'}

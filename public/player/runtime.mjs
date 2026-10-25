@@ -83,6 +83,7 @@ addEventListener('message',async function initialize(event){
       status('正在准备游戏；较大的作品可能需要数分钟');
       await driver.waitReady(()=>driver.module.calledRun&&(document.getElementById('canvas')?.width??0)>400,{timeout:['renpy-v562-2','renpy-v3144-1'].includes(entry.id)?1800000:180000});
     }
+    send({type:'started'});
     status('游戏已启动；请在游戏内保存进度');
   }catch(error){status('启动失败：'+error.message);console.error('WG runtime',error)}
 });
