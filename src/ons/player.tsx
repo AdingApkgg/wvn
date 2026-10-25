@@ -6,6 +6,8 @@ import type { SaveStore, SavedRevision } from "../../public/ons/storage.mjs";
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Label } from "../components/ui/label";
+import { Input } from "../components/ui/input";
+import { nativeInputSpec, validatePlayerName } from "../../public/player/native-input.mjs";
 import { NativeSelect, NativeSelectOption } from "../components/ui/native-select";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "../components/ui/alert-dialog";
 import { OnsCloud } from './cloud';
@@ -29,6 +31,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const busy=localBusy||cloudBusy;
   const [savePanel, setSavePanel] = useState(false), [cloudStatus, setCloudStatus] = useState(cloud ? "云端：正在确认账号" : "云端：未启用");
   const [head, setHead] = useState<SavedRevision | null>(null);
+  const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
   const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
   const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean } | null>(null);
@@ -99,7 +102,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     };
     // Opaque frames have no serializable target origin. Bind one dedicated port to
     // this exact frame; never broadcast credentials or expose a general fetch API.
-    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
+    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
   }
   function capture(): Promise<{ snapshot: Snapshot; saved: boolean }> {
     const connection = channel.current;
@@ -130,9 +133,10 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
       <div ref={surface} className="reader-surface" style={{ minHeight: running ? "min(72vh, 850px)" : "min(50vh, 520px)" }}>
         {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen; gamepad" allowFullScreen onLoad={() => { void connect().catch(e => setError(e.message)); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
       </div>
+      {!running&&inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
       <div className="reader-toolbar" aria-label="阅读操作">
         <div className="reader-controls">
-          {!running ? <Button disabled={!ready || busy} onClick={() => run(async () => { await refresh(); setStatus("正在连接沙箱…"); changeRunning(true); })}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
+          {!running ? <Button disabled={!ready || busy} onClick={() => run(async () => { if(inputSpec)validatePlayerName(playerName); await refresh(); setStatus("正在连接沙箱…"); changeRunning(true); })}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
             <Button variant="outline" disabled={busy} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
             <Button variant="outline" disabled={busy} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.port.close(); channel.current = null; changeRunning(false); setStatus("阅读已结束，存档已保留"); })}>保存并退出</Button>
             <Button variant="ghost" onClick={() => run(async () => { await surface.current?.requestFullscreen(); })}>全屏</Button>

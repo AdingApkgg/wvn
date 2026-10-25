@@ -56,6 +56,8 @@ test("runtime and projected data stay bounded and sandboxed even on direct navig
     assert.match(runtime.headers.get("content-security-policy")!,/http:\/\/localhost\/player\/registry\.mjs/);
     assert.equal((await app.request("http://localhost/player/registry.mjs")).status,200);
     assert.equal((await app.request("http://localhost/player/adapters.mjs")).status,200);
+    assert.equal((await app.request("http://localhost/player/native-input.mjs")).status,200);
+    assert.equal((await app.request("http://localhost/player/native-input.d.mts")).status,404);
     const bridge = await app.request("http://localhost/ons/runtime.js");
     assert.equal(bridge.status, 200);
     assert.equal(bridge.headers.get("cross-origin-resource-policy"), "cross-origin");

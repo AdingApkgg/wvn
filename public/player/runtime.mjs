@@ -1,6 +1,7 @@
 import {createEmscriptenDriver} from './emscripten.mjs';
 import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
+import {installNativeInput} from './native-input.mjs';
 import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility} from './adapters.mjs';
 const origin=new URL(location.href).origin,id=/^\/__player\/resource\/([^/]+)\/index\.html$/.exec(location.pathname)?.[1],entry=findPlayer(id);
 let initialized=false;
@@ -34,6 +35,7 @@ addEventListener('message',async function initialize(event){
   };
   try{
     const snapshot=validateSnapshot(init.snapshot,id);
+    installNativeInput(window,id,init.nativeInput);
     installAnonymousMedia(window);
     const memory=createMemoryStorage(()=>{if(entry.runtimeKind==='Tyrano')queueMicrotask(()=>{if(!failed)void persist(storageSnapshot(memory)).catch(()=>{})})});
     if(entry.runtimeKind==='Tyrano'){restoreStorage(memory,snapshot.files);capture=()=>storageSnapshot(memory)}
