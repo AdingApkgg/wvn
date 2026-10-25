@@ -53,3 +53,10 @@ test('failed artifact export never publishes a partial release or overwrites an 
   await exportEngine(job,destination);assert(existsSync(join(destination,release.id,'onsyuri.wasm')));await assert.rejects(exportEngine(job,destination),/exists|immutable/);
  }finally{rmSync(root,{recursive:true,force:true})}
 });
+
+test('compiler version detection tolerates initial cache notices and rejects ambiguous versions',async()=>{
+ const {inspectCompilerOutput}=await import('../src/engines/toolchains.ts');
+ const actual='emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.10 (d6c521a7)';
+ assert.equal(inspectCompilerOutput('cache:INFO: preparing cache\n'+actual+'\nCopyright').version,'6.0.10');
+ assert.throws(()=>inspectCompilerOutput('cache:INFO only'),/version/i);assert.throws(()=>inspectCompilerOutput(actual+'\n'+actual.replace('6.0.10','6.0.11')),/version/i);
+});

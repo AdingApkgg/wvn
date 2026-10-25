@@ -16,19 +16,24 @@ export function sdkEnvironment(sdkRoot:string,cache?:string):NodeJS.ProcessEnv{
  const node=resolve(match[1].replace('$CFGDIR',root));if(!node.startsWith(root+'/'))throw Error('SDK Node escapes its prefix');
  return {...process.env,EMSDK:root,EM_CONFIG:join(root,'.emscripten'),...(cache?{EM_CACHE:cache}:{}),PATH:[join(root,'upstream/emscripten'),join(root,'upstream/bin'),resolve(node,'..'),process.env.PATH].join(delimiter)};
 }
+export function inspectCompilerOutput(output:string){
+ const lines=output.split(/\r?\n/).map(line=>({line,match:/^emcc \(.+\) (\d+\.\d+\.\d+)(?: |$)/.exec(line)})).filter(x=>x.match);
+ if(!lines.length||new Set(lines.map(x=>x.match![1])).size!==1)throw Error('Compiler version output is missing or ambiguous');
+ return {version:lines[0].match![1],line:lines[0].line};
+}
 export async function doctor(sdk:Toolchain,sdkRoot:string){
  const root=realpathSync(sdkRoot);
  for(const f of sdk.files)if(sha256(readFileSync(join(root,f.path)))!==f.sha256)throw Error('SDK fingerprint differs: '+f.path);
  const commit=(await run('git',['-C',root,'rev-parse','HEAD'],{timeout:10000})).trim();if(commit!==sdk.emsdkCommit)throw Error('emsdk revision differs');
  const tags=JSON.parse(readFileSync(join(root,'emscripten-releases-tags.json'),'utf8'));if(tags.releases[sdk.version]!==sdk.releaseCommit)throw Error('SDK release mapping differs');
  const env=sdkEnvironment(root),version=await run(join(root,'upstream/emscripten/emcc'),['--version'],{env,timeout:30000});
- if(!version.split('\n')[0].includes(' '+sdk.version+' '))throw Error('Compiler version differs');
- return {status:'verified',id:sdk.id,version:sdk.version,emsdkCommit:commit,compiler:version.split('\n')[0],host:hostname(),proxyConfigured:!!(process.env.HTTPS_PROXY||process.env.https_proxy)};
+ const compiler=inspectCompilerOutput(version);if(compiler.version!==sdk.version)throw Error('Compiler version differs');
+ return {status:'verified',id:sdk.id,version:sdk.version,emsdkCommit:commit,compiler:compiler.line,host:hostname(),proxyConfigured:!!(process.env.HTTPS_PROXY||process.env.https_proxy)};
 }
-export async function installSdk(sdk:Toolchain,state:string){
+export async function installSdk(sdk:Toolchain,state:string,options:{resume?:boolean}={}){
  requireBuildHost();if(!(process.env.https_proxy||process.env.HTTPS_PROXY))throw Error('Build host proxy is required');
  const root=join(state,'toolchains',sdk.id);if(existsSync(root))return await doctor(sdk,root);
- mkdirSync(join(state,'toolchains'),{recursive:true,mode:0o700});const candidate=root+'.installing';if(existsSync(candidate))throw Error('Previous SDK installation requires inspection');
+ mkdirSync(join(state,'toolchains'),{recursive:true,mode:0o700});const candidate=root+'.installing';if(existsSync(candidate)){if(!options.resume)throw Error('Previous SDK installation requires inspection; use explicit --resume after inspection');await doctor(sdk,candidate);renameSync(candidate,root);return await doctor(sdk,root);}
  await run('git',['clone','--filter=blob:none','--no-checkout','https://github.com/emscripten-core/emsdk.git',candidate]);
  await run('git',['-C',candidate,'checkout','--detach',sdk.emsdkCommit]);
  for(const f of sdk.files.filter(f=>!f.path.startsWith('upstream/')))if(sha256(readFileSync(join(candidate,f.path)))!==f.sha256)throw Error('SDK bootstrap fingerprint differs');

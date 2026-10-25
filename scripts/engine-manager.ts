@@ -5,7 +5,7 @@ import{doctor,installSdk}from'../src/engines/toolchains.ts';
 import{exportEngine,buildEngine,validateRecipe,verifyArtifacts,compareArtifacts}from'../src/engines/build.ts';
 import{readJob,updateJob,withBuildLock}from'../src/engines/jobs.ts';
 
-const {values,positionals}=parseArgs({allowPositionals:true,options:{state:{type:'string'},sdk:{type:'string'},'sdk-root':{type:'string'},recipe:{type:'string'},job:{type:'string'},other:{type:'string'},evidence:{type:'string'},destination:{type:'string'}}});
+const {values,positionals}=parseArgs({allowPositionals:true,options:{state:{type:'string'},sdk:{type:'string'},'sdk-root':{type:'string'},recipe:{type:'string'},job:{type:'string'},other:{type:'string'},evidence:{type:'string'},destination:{type:'string'},resume:{type:'boolean'}}});
 const command=positionals[0],registry=loadEngineRegistry(),state=values.state?resolve(values.state):undefined;
 const requireState=()=>{if(!state)throw Error('Explicit --state is required');return state;};
 const jobRoot=(id:string|undefined)=>{if(!id||!/^[a-f0-9-]{36}$/.test(id))throw Error('Explicit job UUID is required');return join(requireState(),'jobs',id);};
@@ -16,7 +16,7 @@ try{
   case 'list':result={...engineSummary(),...(state?{status:buildStatus(state)}:{})};break;
   case 'status':result=buildStatus(requireState());break;
   case 'doctor':if(!sdk||!values['sdk-root'])throw Error('Registered SDK and --sdk-root are required');result=await doctor(sdk,resolve(values['sdk-root']));break;
-  case 'install':if(!sdk)throw Error('Unknown SDK');result=await withBuildLock(requireState(),()=>installSdk(sdk,requireState()));break;
+  case 'install':if(!sdk)throw Error('Unknown SDK');result=await withBuildLock(requireState(),()=>installSdk(sdk,requireState(),{resume:values.resume}));break;
   case 'build':{
    if(!values.recipe||!/^[-a-z0-9]+$/.test(values.recipe))throw Error('Registered --recipe is required');if(!values['sdk-root'])throw Error('--sdk-root is required');
    const path=resolve('engines/recipes',values.recipe+'.json');validateRecipe(JSON.parse(readFileSync(path,'utf8')),registry);
