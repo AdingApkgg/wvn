@@ -32,6 +32,7 @@ const service = await createAccountService({
   deployment:process.env.WG_DEPLOYMENT_MODE === "production"?"production":"preview",
   publicResourcePreflight:process.env.WG_ALL_ENGINES==='1'?isPlayerResourcePath:undefined,
   cookiePrefix: process.env.WG_ACCOUNT_COOKIE_PREFIX,
+  analytics:process.env.WG_UMAMI_WEBSITE_ID||process.env.WG_UMAMI_INTERNAL_URL?{websiteId:required('WG_UMAMI_WEBSITE_ID'),internalUrl:required('WG_UMAMI_INTERNAL_URL')}:undefined,
   revision: process.env.WG_ACCOUNT_REVISION,
   shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
   catalogOrigin: process.env.WG_ACCOUNT_CATALOG_ORIGIN,

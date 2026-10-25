@@ -1,0 +1,55 @@
+name: wvn-analytics-preview-20261026
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+services:
+  postgres:
+    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: wvn_analytics_owner
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?仅从原机私有env读取}
+      UMAMI_DB_PASSWORD: ${UMAMI_DB_PASSWORD:?仅从原机私有env读取}
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./init.sh:/docker-entrypoint-initdb.d/10-umami.sh:ro
+    networks: [analytics]
+    mem_limit: 512m
+    cpus: 1
+    healthcheck:
+      test: [CMD, pg_isready, -U, wvn_analytics_owner, -d, postgres]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  umami:
+    image: ghcr.io/umami-software/umami:3.4.0@sha256:85909afc45bdcda1917394594a087421fdbb05610fded0fa9f6fb861abb2f367
+    restart: unless-stopped
+    init: true
+    logging: *logging
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?仅从原机私有env读取}@postgres:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?仅从原机私有env读取}
+      DISABLE_TELEMETRY: "1"
+    ports: ["127.0.0.1:18561:3000"]
+    networks: [analytics, frontend]
+    mem_limit: 1g
+    cpus: 2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1:3000/api/heartbeat]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+networks:
+  analytics:
+    internal: true
+  frontend: {}
+volumes:
+  pgdata:

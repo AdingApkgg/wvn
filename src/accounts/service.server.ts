@@ -27,6 +27,9 @@ import { ShareLedger } from "./share-ledger.server.ts";
 import { ShareClaims } from "./share-claims.server.ts";
 import { CatalogPolicy, catalogProvider } from "./catalog-policy.server.ts";
 import { mountShares } from "./shares-http.server.ts";
+import { WorkStatsStore } from "./work-stats.server.ts";
+import { mountWorkStats } from "./work-stats-http.server.ts";
+import {createAnalyticsApp} from '../analytics/proxy.server.ts';
 export type Player = { session: PlayerSession; binding: string };
 export type AccountService = {
   app: Hono;
@@ -36,6 +39,7 @@ export type AccountService = {
   player: (c: Context, recent?: boolean) => Promise<Player>;
   recovery: RecoveryStore;
   library: LibraryStore;
+  workStats: WorkStatsStore;
   saves: SaveStore | null;
   sharing: ShareStore | null;
   claims: ShareClaims | null;
@@ -47,6 +51,7 @@ export async function createAccountService(
   input: AccountConfig,
 ): Promise<AccountService> {
   const config = validateAccountConfig(input);
+  const analytics=config.analytics?createAnalyticsApp({...config.analytics,origin:config.origin}):null;
   if (config.database !== ":memory:")
     mkdirSync(dirname(config.database), { recursive: true });
   const db = new DatabaseSync(config.database);
@@ -75,6 +80,7 @@ export async function createAccountService(
   const deletions = new DeletionLedger(config.deletionLedger);
   const auth = makeAuth(db, config, (id) => deletions.entries.has(id));
   await (await getMigrations(auth.options)).runMigrations();
+  const workStats = new WorkStatsStore(db,config.catalog??[]);
   db.exec(
     "CREATE TABLE IF NOT EXISTS wg_deleted_accounts(user_id TEXT PRIMARY KEY,deleted_at INTEGER NOT NULL)",
   );
@@ -393,6 +399,7 @@ export async function createAccountService(
     player,
     recovery,
     library,
+    workStats,
     saves,
     sharing,
     claims,
@@ -405,8 +412,10 @@ export async function createAccountService(
   };
   mountRecovery(service);
   mountLibrary(service);
+  mountWorkStats(service);
   mountSettings(service);
   mountSaves(service);
   mountShares(service);
+  if(analytics)app.route('/_s',analytics);
   return service;
 }

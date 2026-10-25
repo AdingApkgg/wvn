@@ -1,4 +1,5 @@
 export type AccountConfig = {
+  analytics?: import('../analytics/proxy.server.ts').AnalyticsConfig;
   revision?: string;
   deployment?: "preview"|"production";
   isolated?: boolean;

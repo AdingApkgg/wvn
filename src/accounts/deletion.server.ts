@@ -91,6 +91,9 @@ export function deleteAccountRows(
   deletedAt: number,
 ) {
   saves?.deleteOwner(userId, deletedAt);
+  // 离线旧备份恢复可能没有开启 foreign_keys；账本重放也必须移除个人关系。
+  if(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='wg_work_reactions'").get())
+    db.prepare('DELETE FROM wg_work_reactions WHERE user_id=?').run(userId);
   for (const table of [
     "wg_library",
     "wg_plays",

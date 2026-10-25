@@ -8,6 +8,7 @@ export function mountSettings({
   auth,
   player,
   library,
+  workStats,
   saves,
   deletions,
 }: AccountService) {
@@ -34,6 +35,7 @@ export function mountSettings({
       exportedAt: new Date().toISOString(),
       user: { id: session.user.id, name: session.user.name },
       library: library.list(session.user.id),
+      workReactions: workStats.export(session.user.id),
       saveProfiles:
         saves?.profiles(session.user.id).map((p) => ({
           ...p,
