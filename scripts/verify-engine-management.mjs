@@ -9,6 +9,7 @@ try{for(const entry of targets){
  const context=await browser.newContext({viewport:{width:1280,height:960}}),page=await context.newPage(),errors=[],startedAt=new Date().toISOString();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());let record={id:entry.id,kind:entry.runtimeKind??'ONS',startedAt};
  try{
   const response=await page.goto(origin+entry.route,{waitUntil:'domcontentloaded',timeout:45000});assert.equal(response.status(),200);await page.waitForFunction(()=>window.__reactRouterDataRouter?.state.initialized);
+  if(await page.getByLabel('主角名字',{exact:true}).count())await page.getByLabel('主角名字',{exact:true}).fill('预览验收');
   await page.getByRole('button',{name:'开始阅读',exact:true}).click();
   const deadline=Date.now()+15000;let frame;while(!(frame=page.frames().find(f=>/\/__(ons\/runtime|player\/resource)\//.test(f.url())))){assert(Date.now()<deadline,'Runtime frame missing');await page.waitForTimeout(100);}
   const timeout=['renpy-v562-2','renpy-v3144-1'].includes(entry.id)?1800000:180000;
