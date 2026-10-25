@@ -7,6 +7,17 @@ import {shareHttpFixture} from './helpers/share-http.ts';
 import {createAccountService} from '../src/accounts/service.server.ts';
 const origin='https://accounts.wg.test';
 
+test('visitor signing has a persistent site limit even behind a loopback proxy',async()=>{
+ const f=await shareHttpFixture();
+ try{
+  const path='/api/public/works/v4/read',first=await f.api(path,'',{versionId:'version-a'});assert.equal(first.status,202);const cookie=first.headers.getSetCookie()[0].split(';',1)[0];
+  for(let i=1;i<600;i++)assert.equal((await f.api(path,'',{versionId:'version-a'})).status,202);
+  const capped=await f.api(path,'',{versionId:'version-a'});assert.equal(capped.status,429);assert.equal(capped.headers.getSetCookie().length,0);
+  assert.equal((await f.api(path,cookie,{versionId:'version-a'})).status,200,'Existing visitors remain usable');
+  assert.equal((await f.api('/api/login-options')).status,200,'Account APIs do not share the signing quota');
+ }finally{f.close()}
+});
+
 test('public reads bootstrap a signed visitor before counting and reject opaque or foreign requests',async()=>{
  const f=await shareHttpFixture();
  try{

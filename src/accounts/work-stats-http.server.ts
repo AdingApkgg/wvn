@@ -25,6 +25,9 @@ export function mountWorkStats({app,config,workStats,player}:AccountService){
   }
   const visitor=readVisitorKey(getCookie(c,cookieName),config.secret);
   if(!visitor){
+   // 单独限制新身份签发；即使通过回环代理，也不能靠丢弃 Cookie 无限获取新计数身份。
+   // 触限只让新访客统计降级，已有访客、游戏、存档及账号 API 不使用这份配额。
+   if(!workStats.allow('reading-visitor-signing',600,600_000))throw new AccountError(429,'TRY_LATER');
    setCookie(c,cookieName,issueReadVisitor(config.secret),{httpOnly:true,secure:true,sameSite:'Lax',path:'/',maxAge:30*86400});
    return c.json({visitorRequired:true},202);
   }
