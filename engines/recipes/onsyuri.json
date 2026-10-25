@@ -1,0 +1,1 @@
+{"schema":1,"id":"onsyuri","kind":"ONS","sdk":"emsdk-6.0.10-linux-x64","source":{"url":"https://github.com/YuriSizuku/OnscripterYuri.git","commit":"08f744b31cc1907b66a15f0402e62321a131ed81"},"lua":{"url":"https://www.lua.org/ftp/lua-5.4.4.tar.gz","sha256":"164c7849653b80ae67bec4b7473b884bf5cc8d2dca05653475ec2ed27b9ebf61"},"patches":[],"outputs":["onsyuri.js","onsyuri.wasm"]}

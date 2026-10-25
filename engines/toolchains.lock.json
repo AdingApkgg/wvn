@@ -1,1 +1,154 @@
-{"schema":1,"toolchains":[{"id":"emsdk-6.0.10-linux-x64","version":"6.0.10","emsdkCommit":"35ff8a6d150541276abbc6bae512ca90bcfbe220","releaseCommit":"666337b525e673e769121856d175f6f52b8ead64","platform":"linux-x64","files":[{"path":"emsdk.py","sha256":"680db2f6d2e49f3e0c1b452784c9ed0c58f08925b0f985a341297163269e5748"},{"path":"emscripten-releases-tags.json","sha256":"7ca0de1daeb269526980c3acedb5bce576a2c97b119619a91f28fb14cf8b9267"},{"path":"upstream/emscripten/emcc.py","sha256":"5ccd3b66c9433389b0338706182197340bfdf241777cc8985821e7d150818e46"},{"path":"upstream/emscripten/emscripten-version.txt","sha256":"f5c26cdc9cd96d88463f2466e003ac30c21097e95c28914ff126ebcd688175bc"}]}]}
+{
+  "schema": 1,
+  "toolchains": [
+    {
+      "id": "emsdk-6.0.10-linux-x64",
+      "version": "6.0.10",
+      "emsdkCommit": "35ff8a6d150541276abbc6bae512ca90bcfbe220",
+      "releaseCommit": "666337b525e673e769121856d175f6f52b8ead64",
+      "platform": "linux-x64",
+      "files": [
+        {
+          "path": "emsdk.py",
+          "sha256": "680db2f6d2e49f3e0c1b452784c9ed0c58f08925b0f985a341297163269e5748"
+        },
+        {
+          "path": "emscripten-releases-tags.json",
+          "sha256": "7ca0de1daeb269526980c3acedb5bce576a2c97b119619a91f28fb14cf8b9267"
+        },
+        {
+          "path": "upstream/emscripten/emcc.py",
+          "sha256": "5ccd3b66c9433389b0338706182197340bfdf241777cc8985821e7d150818e46"
+        },
+        {
+          "path": "upstream/emscripten/emscripten-version.txt",
+          "sha256": "f5c26cdc9cd96d88463f2466e003ac30c21097e95c28914ff126ebcd688175bc"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/__init__.py",
+          "sha256": "d300f0d220f113d72d8610ecbad074ae77835a3d5f065e3b457f7b724a086d43"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/boost_headers.py",
+          "sha256": "a089356d5b1440e0d378ce7ec4de653bff5f66bcada5b077041c2c57e95ee52b"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/bullet.py",
+          "sha256": "0ade8208faa742a96cb2eb730cf8763eb3542a1b17a0ebbffc7a9d5c67d17d98"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/bzip2.py",
+          "sha256": "8202632f46e4315ac192ac65cf2c536d181cccba365bfa6ae65715bada2d581b"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/cocos2d.py",
+          "sha256": "31c18fba4e94d90bba6cd8ba2e5255a2c152c423f680b983264db737c244faab"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/contrib/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/contrib/glfw3.py",
+          "sha256": "f93faae91df7f779d8f3e832a3cca6b4581334518038907b711efa749b3ff975"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/contrib/libwebp.py",
+          "sha256": "4bc35c43676b3e8f4930366ceac7cbcca8502bed75bfeff2aef1ecb4fe3ebaf0"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/contrib/lua.py",
+          "sha256": "54b49fbcd7af8772025fac086e6780c6cb4d8f8fd06617f9cadf23cc7f4ccc75"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/emdawnwebgpu.py",
+          "sha256": "2b7d064ed0952771eaecac3b67c703f8da5d9a49f1af9d4c0fe6d6af1e221e0d"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/freetype.py",
+          "sha256": "028ac50afb8db8f51c7ec3a9f5c2b9486b2290f7df96f3592e692241b4114631"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/giflib.py",
+          "sha256": "4b017300e562020979000522ae43f32c4201c5cbb337fa3ab38ab12de2e60962"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/harfbuzz.py",
+          "sha256": "5058d1929f15990d46be5f73565c054fa5d1ca2af3d902d4f2f6a5fa9927ff90"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/icu.py",
+          "sha256": "6067065fbda16c9b54c2ea7249893d3b6ea2cc8f821ea3794074bbc5b9b2b748"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/libjpeg.py",
+          "sha256": "717c363a434da21b5eadae16550dc2a9e27343285e434ff711f2765a39cda05f"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/libmodplug.py",
+          "sha256": "0f9d08484b83b707ec220ecba67e4adc5598e0f4bf1c25c7cab1030b670c13d9"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/libpng.py",
+          "sha256": "d467c233f7c242f0108e136481b2d4a54898efb344fe06da95c9d4bf75553707"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/mpg123.py",
+          "sha256": "90497366a24f3ba2e1432d0a7bcb38ce3344e1068945be63640174cd66eea43a"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/ogg.py",
+          "sha256": "4a3c90b5882b07e5bb868ce0e98ed34445002e9d3c0d04ae9fbc6233bb0a2bcf"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/regal.py",
+          "sha256": "c0be37fdc2704d7f4d60f707e675bd05419f23cd778bbf21505c602ed1b5eaa3"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl2.py",
+          "sha256": "c82c75a8fc54136afb7446c21a6acdf65957531d8482b839ad494fc3c2dbdfec"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl2_gfx.py",
+          "sha256": "be63a0e6ed8ae7e20b50c5da0b4dc1ec0c90d446097931b34ba53c4b07b5044a"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl2_image.py",
+          "sha256": "ee548172c3d5772413e189f008269669c246f831fcfd4a6011269ac30e9239a4"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl2_mixer.py",
+          "sha256": "4449e87e8f77db2b43c6047fd967d958e6d6d6b3d51ad97b40d5590603dc1f12"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl2_net.py",
+          "sha256": "5028198258ffacd4ef70227eb9646fb1b64e3e45a1d75fe1ec3f9a8c2d52db05"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl2_ttf.py",
+          "sha256": "71526a04332d34071af4e64e129d7f64d713d5d9cb06ffcb97d2bc5a25350533"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl3.py",
+          "sha256": "0d97e4664d9c6d2de42be150648a873bb5c0214ac8e18f8cc905ea0b85fbdde0"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sdl3_ttf.py",
+          "sha256": "e6bba3b8e3eea084cc49642f5cb406b3d9a4e05fe9a198cd349c6f41ef47c5bb"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/sqlite3.py",
+          "sha256": "2bfb066c38dc5b5031dd197effa885f83d79eb007236486fb1902952137a9ef6"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/vorbis.py",
+          "sha256": "1c1f178d3abd296f67ed476b6ac8cd404bccaac4f6574adbb3b823a1e3f85d94"
+        },
+        {
+          "path": "upstream/emscripten/tools/ports/zlib.py",
+          "sha256": "2e744c843aecb320cbc005abb980d0cc264cf87791db25624d17dcd712a9c411"
+        }
+      ]
+    }
+  ]
+}
