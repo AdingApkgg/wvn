@@ -1,6 +1,7 @@
-import {readFileSync,realpathSync,mkdirSync,existsSync,renameSync} from 'node:fs';
+import {readFileSync,realpathSync,mkdirSync,existsSync,renameSync,openSync,closeSync,writeSync} from 'node:fs';
 import {join,delimiter,resolve} from 'node:path';import {hostname} from 'node:os';import {spawn} from 'node:child_process';
 import {sha256,type EngineRegistry} from './registry.ts';
+import {createJob,updateJob,withBuildLock} from './jobs.ts';
 export type Toolchain=EngineRegistry['toolchains'][number];
 export async function run(command:string,args:string[],options:{cwd?:string;env?:NodeJS.ProcessEnv;log?:number;timeout?:number}={}):Promise<string>{
  return await new Promise((yes,no)=>{let out='';const child=spawn(command,args,{cwd:options.cwd,env:options.env??process.env,stdio:['ignore',options.log??'pipe',options.log??'pipe']});
@@ -30,13 +31,26 @@ export async function doctor(sdk:Toolchain,sdkRoot:string){
  const compiler=inspectCompilerOutput(version);if(compiler.version!==sdk.version)throw Error('Compiler version differs');
  return {status:'verified',id:sdk.id,version:sdk.version,emsdkCommit:commit,compiler:compiler.line,host:hostname(),proxyConfigured:!!(process.env.HTTPS_PROXY||process.env.https_proxy)};
 }
-export async function installSdk(sdk:Toolchain,state:string,options:{resume?:boolean}={}){
+export async function installSdk(sdk:Toolchain,state:string,options:{resume?:boolean;log?:number;building?:()=>void}={}){
  requireBuildHost();if(!(process.env.https_proxy||process.env.HTTPS_PROXY))throw Error('Build host proxy is required');
- const root=join(state,'toolchains',sdk.id);if(existsSync(root))return await doctor(sdk,root);
- mkdirSync(join(state,'toolchains'),{recursive:true,mode:0o700});const candidate=root+'.installing';if(existsSync(candidate)){if(!options.resume)throw Error('Previous SDK installation requires inspection; use explicit --resume after inspection');await doctor(sdk,candidate);renameSync(candidate,root);return await doctor(sdk,root);}
- await run('git',['clone','--filter=blob:none','--no-checkout','https://github.com/emscripten-core/emsdk.git',candidate]);
- await run('git',['-C',candidate,'checkout','--detach',sdk.emsdkCommit]);
+ const execute=(command:string,args:string[],cwd?:string)=>run(command,args,{cwd,log:options.log});
+ const root=join(state,'toolchains',sdk.id);if(existsSync(root)){options.building?.();return await doctor(sdk,root);}
+ mkdirSync(join(state,'toolchains'),{recursive:true,mode:0o700});const candidate=root+'.installing';if(existsSync(candidate)){if(!options.resume)throw Error('Previous SDK installation requires inspection; use explicit --resume after inspection');options.building?.();await doctor(sdk,candidate);renameSync(candidate,root);return await doctor(sdk,root);}
+ await execute('git',['clone','--filter=blob:none','--no-checkout','https://github.com/emscripten-core/emsdk.git',candidate]);
+ await execute('git',['-C',candidate,'checkout','--detach',sdk.emsdkCommit]);
  for(const f of sdk.files.filter(f=>!f.path.startsWith('upstream/')))if(sha256(readFileSync(join(candidate,f.path)))!==f.sha256)throw Error('SDK bootstrap fingerprint differs');
- await run(join(candidate,'emsdk'),['install',sdk.version],{cwd:candidate});await run(join(candidate,'emsdk'),['activate',sdk.version],{cwd:candidate});
+ options.building?.();await execute(join(candidate,'emsdk'),['install',sdk.version],candidate);await execute(join(candidate,'emsdk'),['activate',sdk.version],candidate);
  await doctor(sdk,candidate);renameSync(candidate,root);return await doctor(sdk,root);
+}
+
+export async function installSdkJob(sdk:Toolchain,state:string,options:{resume?:boolean}={}){
+ return withBuildLock(state,async()=>{
+  const job=createJob(state,'emsdk-install'),log=openSync(join(job.root,'build.log'),'ax',0o600);
+  try{
+   updateJob(job,'fetching',{toolchainId:sdk.id});
+   const receipt=await installSdk(sdk,state,{...options,log,building:()=>{if(job.state==='fetching')updateJob(job,'building');}});
+   updateJob(job,'artifact_verified',{sdk:receipt});return {jobId:job.id,...receipt};
+  }catch(error){writeSync(log,String((error as Error).message)+'\n');updateJob(job,'failed',{errorCode:'SDK_INSTALL_FAILED',failedStage:job.state,error:String((error as Error).message).slice(0,2000)});throw Object.assign(error as Error,{jobId:job.id});}
+  finally{closeSync(log);}
+ });
 }

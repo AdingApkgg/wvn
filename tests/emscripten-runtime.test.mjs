@@ -43,3 +43,16 @@ test('candidate exports cannot be mistaken for legacy backups or another engine 
  const old=await exportBackup(snapshot);await assert.rejects(importBackup(old,'saya',{releaseId:id}),/复制|引擎|版本/);
  assert.deepEqual((await importBackup(old,'saya',{releaseId:id,allowLegacyCopy:true})).files[0].data,snapshot.files[0].data);
 });
+
+test('chained hook assignments retain each previous callback without recursion',()=>{
+ const win={},calls=[],owner={},driver=createEmscriptenDriver({kind:'RenPy'});driver.installGlobal(win);
+ win.Module.onRuntimeInitialized=function(value){assert.equal(this,owner);calls.push('base:'+value);return 7;};
+ const first=win.Module.onRuntimeInitialized;win.Module.onRuntimeInitialized=function(value){calls.push('outer');return first.call(this,value)+1;};
+ const second=win.Module.onRuntimeInitialized;win.Module.onRuntimeInitialized=function(value){calls.push('last');return second.call(this,value)+1;};
+ assert.equal(win.Module.onRuntimeInitialized.call(owner,'x'),9);assert.deepEqual(calls,['last','outer','base:x']);assert.equal(driver.state,'initialized');
+});
+test('global preRun assignments during engine loading always retain the one-time filesystem hook',()=>{
+ const win={},calls=[],driver=createEmscriptenDriver({kind:'Artemis',prepareFilesystem:()=>calls.push('fs')});driver.installGlobal(win);driver.beforeScript();
+ win.Module.preRun=[()=>calls.push('array')];for(const fn of [...win.Module.preRun].reverse())fn();assert.deepEqual(calls,['fs','array']);
+ win.Module.preRun=()=>calls.push('function');for(const fn of [...win.Module.preRun].reverse())fn();assert.deepEqual(calls,['fs','array','function']);
+});

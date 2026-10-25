@@ -6,6 +6,28 @@ import {createJob,updateJob,withBuildLock} from './jobs.ts';import{run,doctor,sd
 const hash=z.string().regex(/^[a-f0-9]{64}$/),safeName=z.string().regex(/^[a-zA-Z0-9_-]+\.(?:js|wasm|data)$/);
 const recipeSchema=z.object({schema:z.literal(1),id:z.literal('onsyuri'),kind:z.literal('ONS'),sdk:z.string(),source:z.object({url:z.literal('https://github.com/YuriSizuku/OnscripterYuri.git'),commit:z.string().regex(/^[a-f0-9]{40}$/)}).strict(),lua:z.object({url:z.literal('https://www.lua.org/ftp/lua-5.4.4.tar.gz'),sha256:hash}).strict(),patches:z.array(z.object({path:z.string().regex(/^engines\/patches\/[a-z0-9.-]+\.patch$/),sha256:hash}).strict()),outputs:z.array(safeName).min(2)}).strict();
 export type Recipe=z.infer<typeof recipeSchema>;
+const builderFiles=['src/engines/build.ts','src/engines/toolchains.ts','src/engines/jobs.ts','scripts/engine-manager.ts'];
+// source.tar 保留上游基线；配方和补丁本体共同组成可重建的实际输入。
+export function captureBuildInputs(jobRoot:string,repo:string,recipeBytes:Buffer,sdk:unknown){
+ const root=join(jobRoot,'inputs'),files:Record<string,string>={};mkdirSync(root,{mode:0o700});
+ function put(path:string,bytes:Buffer){const target=join(root,path);mkdirSync(resolve(target,'..'),{recursive:true,mode:0o700});writeFileSync(target,bytes,{flag:'wx',mode:0o600});files[path]=sha256(bytes);}
+ put('recipe.json',recipeBytes);put('toolchain.json',Buffer.from(JSON.stringify(sdk,null,2)));
+ for(const path of builderFiles)put(path,readFileSync(join(repo,path)));
+ const patches=recipeSchema.shape.patches.parse(JSON.parse(recipeBytes.toString()).patches);
+ for(const patch of patches){const bytes=readFileSync(join(repo,patch.path));if(sha256(bytes)!==patch.sha256)throw Error('Patch fingerprint differs');put(patch.path,bytes);}
+ writeFileSync(join(root,'manifest.json'),JSON.stringify({schema:1,files},null,2),{flag:'wx',mode:0o600});return verifyBuildInputs(jobRoot);
+}
+export function verifyBuildInputs(jobRoot:string){
+ const root=realpathSync(join(jobRoot,'inputs')),value=JSON.parse(readFileSync(join(root,'manifest.json'),'utf8'));
+ const manifest=z.object({schema:z.literal(1),files:z.record(z.string(),hash)}).strict().parse(value);
+ for(const [path,expected] of Object.entries(manifest.files)){
+  if(!['recipe.json','toolchain.json',...builderFiles].includes(path)&&!/^engines\/patches\/[a-z0-9.-]+\.patch$/.test(path))throw Error('Invalid build input path');
+  const file=join(root,path);if(!lstatSync(file).isFile()||lstatSync(file).isSymbolicLink()||!realpathSync(file).startsWith(root+'/')||sha256(readFileSync(file))!==expected)throw Error('Build input fingerprint differs');
+ }
+ for(const path of ['recipe.json','toolchain.json',...builderFiles])if(!manifest.files[path])throw Error('Missing build input');
+ const patches=recipeSchema.shape.patches.parse(JSON.parse(readFileSync(join(root,'recipe.json'),'utf8')).patches);
+ for(const patch of patches)if(manifest.files[patch.path]!==patch.sha256)throw Error('Patch fingerprint differs');return manifest;
+}
 export function validateRecipe(value:unknown,registry:EngineRegistry):Recipe{const r=recipeSchema.parse(value);if(!registry.toolchains.some(t=>t.id===r.sdk)||new Set(r.outputs).size!==r.outputs.length||!r.outputs.includes('onsyuri.js')||!r.outputs.includes('onsyuri.wasm'))throw Error('Unregistered SDK or incomplete outputs');return r;}
 export async function verifyArtifacts(root:string,names:string[]){
  const base=realpathSync(root),files=[];
@@ -34,10 +56,10 @@ export async function buildEngine({state,sdkRoot,recipePath,repo=process.cwd()}:
   const execute=(cmd:string,args:string[],cwd?:string,env?:NodeJS.ProcessEnv)=>run(cmd,args,{cwd,env,log});
   try{
    const free=statfsSync(state);if(free.bavail*free.bsize<10*1024**3)throw Error('Build requires at least 10 GiB free');
-   const sdkReceipt=await doctor(sdk,sdkRoot);updateJob(job,'fetching',{recipeDigest:sha256(recipeBytes),sdk:sdkReceipt,sourceCommit:recipe.source.commit,builderDigest:sha256(['src/engines/build.ts','src/engines/toolchains.ts','src/engines/jobs.ts','scripts/engine-manager.ts'].map(n=>sha256(readFileSync(join(repo,n)))).join(':'))});
+   const sdkReceipt=await doctor(sdk,sdkRoot),inputs=captureBuildInputs(job.root,repo,recipeBytes,sdk);updateJob(job,'fetching',{recipeDigest:sha256(recipeBytes),sdk:sdkReceipt,sourceCommit:recipe.source.commit,builderDigest:sha256(builderFiles.map(n=>inputs.files[n]).join(':')),inputManifestDigest:sha256(JSON.stringify(inputs))});
    const source=join(job.root,'source');await execute('git',['clone','--filter=blob:none','--no-checkout',recipe.source.url,source]);await execute('git',['checkout','--detach',recipe.source.commit],source);
    if((await run('git',['status','--porcelain'],{cwd:source})).trim())throw Error('Dirty source tree');
-   for(const patch of recipe.patches){const file=resolve(repo,patch.path);if(sha256(readFileSync(file))!==patch.sha256)throw Error('Patch fingerprint differs');await execute('git',['apply','--check',file],source);await execute('git',['apply',file],source);}
+   for(const patch of recipe.patches){const file=join(job.root,'inputs',patch.path);if(sha256(readFileSync(file))!==patch.sha256)throw Error('Patch fingerprint differs');await execute('git',['apply','--check',file],source);await execute('git',['apply',file],source);}
    const inputDigest=await sourceDigest(source),archive=join(job.root,'lua.tar.gz');await execute('curl',['--fail','--location','--max-time','120',recipe.lua.url,'--output',archive]);if(sha256(readFileSync(archive))!==recipe.lua.sha256)throw Error('Dependency fingerprint differs');
    await execute('tar',['-xzf',archive,'-C',job.root]);
    const env=sdkEnvironment(sdkRoot,join(state,'cache',sdk.id));env.SOURCE_DATE_EPOCH=(await run('git',['show','-s','--format=%ct','HEAD'],{cwd:source})).trim();env.CFLAGS=`-ffile-prefix-map=${job.root}=.`;env.CXXFLAGS=env.CFLAGS;
@@ -60,6 +82,7 @@ export async function buildEngine({state,sdkRoot,recipePath,repo=process.cwd()}:
 }
 
 export async function exportEngine(jobRoot:string,destination:string){
+ const inputs=verifyBuildInputs(jobRoot);
  const record=JSON.parse(readFileSync(join(jobRoot,'artifacts.json'),'utf8')),actual=await verifyArtifacts(join(jobRoot,'output'),record.files.map((f:{path:string})=>f.path));
  if(actual.id!==record.id||!record.release||releaseIdentity(record.release)!==record.release.id||record.release.files.length!==actual.files.length||record.release.files.some((f:{path:string;sha256:string})=>!actual.files.some(a=>a.path===f.path&&a.sha256===f.sha256)))throw Error('Candidate artifact identity differs');
  const root=resolve(destination);mkdirSync(root,{recursive:true,mode:0o700});
@@ -69,6 +92,8 @@ export async function exportEngine(jobRoot:string,destination:string){
   try{
    for(const file of actual.files)copyFileSync(join(jobRoot,'output',file.path),join(staging,file.path));
    for(const [source,dest]of [['source.tar','source.tar'],['lua.tar.gz','lua.tar.gz'],['source/LICENSE','LICENSE'],['job.json','build-receipt.json']])copyFileSync(join(jobRoot,source),join(staging,dest));
+   for(const path of [...Object.keys(inputs.files),'manifest.json']){const target=join(staging,'inputs',path);mkdirSync(resolve(target,'..'),{recursive:true,mode:0o700});copyFileSync(join(jobRoot,'inputs',path),target);}
+   verifyBuildInputs(staging);
    writeFileSync(join(staging,'release.json'),JSON.stringify(record,null,2),{mode:0o600});
    if(lstatExists(target))throw Error('Export already exists');renameSync(staging,target);
    return {release:record.release,root:target,compatibility:'unknown'};

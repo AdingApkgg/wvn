@@ -49,8 +49,9 @@ test('failed artifact export never publishes a partial release or overwrites an 
   const artifacts=await verifyArtifacts(join(job,'output'),['onsyuri.js','onsyuri.wasm']),release={id:releaseIdentity({kind:'ONS',mode:'factory',files:artifacts.files}),kind:'ONS',mode:'factory',files:artifacts.files.map(({path,sha256})=>({path,sha256})),sourceCapability:'source-build',sourceCommit:'c'.repeat(40),sdk:'emsdk-6.0.10-linux-x64'};
   writeFileSync(join(job,'artifacts.json'),JSON.stringify({...artifacts,release}));
   await assert.rejects(exportEngine(job,destination));assert.equal(existsSync(join(destination,release.id)),false);
+  const {captureBuildInputs}=await import('../src/engines/build.ts');captureBuildInputs(job,process.cwd(),readFileSync('engines/recipes/onsyuri.json'),loadEngineRegistry().toolchains[0]);
   mkdirSync(join(job,'source'));for(const n of ['source.tar','lua.tar.gz','job.json','source/LICENSE'])writeFileSync(join(job,n),'fixture');
-  await exportEngine(job,destination);assert(existsSync(join(destination,release.id,'onsyuri.wasm')));await assert.rejects(exportEngine(job,destination),/exists|immutable/);
+  await exportEngine(job,destination);assert(existsSync(join(destination,release.id,'inputs/manifest.json')));assert(existsSync(join(destination,release.id,'onsyuri.wasm')));await assert.rejects(exportEngine(job,destination),/exists|immutable/);
  }finally{rmSync(root,{recursive:true,force:true})}
 });
 
@@ -59,4 +60,31 @@ test('compiler version detection tolerates initial cache notices and rejects amb
  const actual='emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.10 (d6c521a7)';
  assert.equal(inspectCompilerOutput('cache:INFO: preparing cache\n'+actual+'\nCopyright').version,'6.0.10');
  assert.throws(()=>inspectCompilerOutput('cache:INFO only'),/version/i);assert.throws(()=>inspectCompilerOutput(actual+'\n'+actual.replace('6.0.10','6.0.11')),/version/i);
+});
+
+test('SDK installation failures remain visible as immutable jobs with a private log',async()=>{
+ const {installSdkJob}=await import('../src/engines/toolchains.ts');const {mkdirSync,readdirSync}=await import('node:fs');const {buildStatus}=await import('../src/engines/status.ts');
+ const state=mkdtempSync(join(tmpdir(),'wvn-install-receipt-')),sdk=loadEngineRegistry().toolchains[0];
+ try{
+  mkdirSync(join(state,'toolchains',sdk.id+'.installing'),{recursive:true});
+  await assert.rejects(installSdkJob(sdk,state),/inspection/i);
+  const ids=readdirSync(join(state,'jobs'));assert.equal(ids.length,1);const job=JSON.parse(readFileSync(join(state,'jobs',ids[0],'job.json'),'utf8'));
+  assert.equal(job.recipe,'emsdk-install');assert.equal(job.state,'failed');assert.equal(job.details.failedStage,'fetching');assert(existsSync(join(job.root,'build.log')));assert.match(readFileSync(join(job.root,'build.log'),'utf8'),/inspection/i);
+  const summary=buildStatus(state).jobs[0];assert.equal(summary.recipe,'emsdk-install');assert.equal(summary.errorCode,'SDK_INSTALL_FAILED');assert.doesNotMatch(JSON.stringify(summary),new RegExp(state));
+ }finally{rmSync(state,{recursive:true,force:true})}
+});
+
+test('export retains exact patch and recipe inputs and rejects missing or modified build inputs',async()=>{
+ const {captureBuildInputs,verifyBuildInputs}=await import('../src/engines/build.ts');const {mkdirSync}=await import('node:fs');const {sha256}=await import('../src/engines/registry.ts');
+ const root=mkdtempSync(join(tmpdir(),'wvn-patch-inputs-')),repo=join(root,'repo'),job=join(root,'job');
+ try{
+  mkdirSync(join(repo,'engines/patches'),{recursive:true});mkdirSync(job);for(const n of ['src/engines','scripts'])mkdirSync(join(repo,n),{recursive:true});
+  for(const n of ['src/engines/build.ts','src/engines/toolchains.ts','src/engines/jobs.ts','scripts/engine-manager.ts'])writeFileSync(join(repo,n),'source '+n);
+  const patch='diff --git a/main.c b/main.c\n--- a/main.c\n+++ b/main.c\n@@ -1 +1 @@\n-old\n+new\n';writeFileSync(join(repo,'engines/patches/fix.patch'),patch);
+  const recipe={patches:[{path:'engines/patches/fix.patch',sha256:sha256(patch)}]},bytes=Buffer.from(JSON.stringify(recipe));
+  captureBuildInputs(job,repo,bytes,loadEngineRegistry().toolchains[0]);
+  assert.equal(readFileSync(join(job,'inputs/engines/patches/fix.patch'),'utf8'),patch);assert.deepEqual(readFileSync(join(job,'inputs/recipe.json')),bytes);verifyBuildInputs(job);
+  writeFileSync(join(job,'inputs/engines/patches/fix.patch'),'changed');assert.throws(()=>verifyBuildInputs(job),/fingerprint/i);
+  rmSync(join(job,'inputs/engines/patches/fix.patch'));assert.throws(()=>verifyBuildInputs(job));
+ }finally{rmSync(root,{recursive:true,force:true})}
 });

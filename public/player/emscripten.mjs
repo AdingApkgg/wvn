@@ -1,6 +1,6 @@
 // 生命周期、资源解析与文件捕获共用；引擎格式、挂载和原生入口由驱动调用方负责。
 const wrappedHooks=new WeakMap();
-const unwrap=fn=>{while(typeof fn==='function'&&wrappedHooks.has(fn))fn=wrappedHooks.get(fn)();return fn;};
+const unwrap=fn=>{while(typeof fn==='function'&&wrappedHooks.has(fn))fn=wrappedHooks.get(fn);return fn;};
 export function resolveEngineResource(path,{baseURL,files}){
  if(typeof path!=='string'||!files.includes(path)||path.startsWith('/')||path.split('/').some(p=>!p||p==='.'||p==='..')||/[\\%?#:]/.test(path))throw Error('Unregistered engine resource path');
  const base=new URL(baseURL);if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash||!base.pathname.endsWith('/'))throw Error('Invalid engine resource base');
@@ -25,10 +25,14 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,res
  const change=next=>{if(state==='failed'&&next!=='failed')throw Error('Emscripten driver failed');state=next;status(next);};
  const fail=()=>{if(state!=='failed')change('failed');};
  function hook(value,name,before,after){
-  let original=unwrap(value[name]);
-  const wrapper=function(...args){try{before?.(...args);const result=typeof original==='function'?original.apply(this,args):undefined;after?.(...args);return result;}catch(e){fail();throw e;}};
-  wrappedHooks.set(wrapper,()=>original);
-  Object.defineProperty(value,name,{configurable:true,enumerable:true,get:()=>wrapper,set:fn=>{if(fn!==wrapper)original=unwrap(fn);}});
+  function wrap(fn){
+   const original=unwrap(fn);
+   const wrapper=function(...args){try{before?.(...args);const result=typeof original==='function'?original.apply(this,args):undefined;after?.(...args);return result;}catch(e){fail();throw e;}};
+   wrappedHooks.set(wrapper,original);return wrapper;
+  }
+  // 已被上游保存的 callback 必须继续引用赋值当时的实现。
+  let current=wrap(value[name]);
+  Object.defineProperty(value,name,{configurable:true,enumerable:true,get:()=>current,set:fn=>{if(fn!==current)current=wrap(fn);}});
  }
  function prepare(){
   if(filesystemPrepared)return;change('initializing');prepareFilesystem?.(module);filesystemPrepared=true;
@@ -42,7 +46,12 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,res
    const wrap=fn=>function(...args){change('initializing');try{return fn.apply(this,args);}catch(error){fail();throw error;}};
    if(typeof value.preRun==='function')value.preRun=wrap(value.preRun);
    else if(Array.isArray(value.preRun))value.preRun=value.preRun.map(wrap);
-  }else{const runs=typeof value.preRun==='function'?[value.preRun]:value.preRun??[];value.preRun=[...runs.filter(fn=>fn!==prepare),prepare];}
+  }else{
+   let runs;
+   const assign=input=>{const callbacks=typeof input==='function'?[input]:input??[];if(!Array.isArray(callbacks)||callbacks.some(fn=>typeof fn!=='function'))throw Error('Invalid preRun hooks');runs=[...callbacks.filter(fn=>fn!==prepare),prepare];};
+   assign(value.preRun);
+   Object.defineProperty(value,'preRun',{configurable:true,enumerable:true,get:()=>runs,set:assign});
+  }
   if(resources)value.locateFile=path=>resolveEngineResource(path,resources);
   return value;
  }

@@ -1,7 +1,7 @@
 import{buildStatus}from'../src/engines/status.ts';
 import {parseArgs} from 'node:util';import{resolve,join}from'node:path';import{readFileSync,writeFileSync}from'node:fs';
 import {loadEngineRegistry,engineSummary,sha256} from '../src/engines/registry.ts';
-import{doctor,installSdk}from'../src/engines/toolchains.ts';
+import{doctor,installSdkJob}from'../src/engines/toolchains.ts';
 import{exportEngine,buildEngine,validateRecipe,verifyArtifacts,compareArtifacts}from'../src/engines/build.ts';
 import{readJob,updateJob,withBuildLock}from'../src/engines/jobs.ts';
 
@@ -16,7 +16,7 @@ try{
   case 'list':result={...engineSummary(),...(state?{status:buildStatus(state)}:{})};break;
   case 'status':result=buildStatus(requireState());break;
   case 'doctor':if(!sdk||!values['sdk-root'])throw Error('Registered SDK and --sdk-root are required');result=await doctor(sdk,resolve(values['sdk-root']));break;
-  case 'install':if(!sdk)throw Error('Unknown SDK');result=await withBuildLock(requireState(),()=>installSdk(sdk,requireState(),{resume:values.resume}));break;
+  case 'install':if(!sdk)throw Error('Unknown SDK');result=await installSdkJob(sdk,requireState(),{resume:values.resume});break;
   case 'build':{
    if(!values.recipe||!/^[-a-z0-9]+$/.test(values.recipe))throw Error('Registered --recipe is required');if(!values['sdk-root'])throw Error('--sdk-root is required');
    const path=resolve('engines/recipes',values.recipe+'.json');validateRecipe(JSON.parse(readFileSync(path,'utf8')),registry);
