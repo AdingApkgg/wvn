@@ -19,6 +19,8 @@ import { registerOnsPilot, registerOnsModules } from './src/ons/http.server.ts';
 import { registerRemotePlayerResources } from './src/player/remote.server.ts';
 import { isIP } from 'node:net';
 import { RemoteBlobStore } from './src/accounts/blob-remote.server.ts';
+import {configureResourceTimeout} from './src/server/resource-timeout.ts';
+import type {IncomingMessage,ServerResponse} from 'node:http';
 function required(name: string) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required`);
@@ -123,6 +125,7 @@ const server = serve(
 if ("requestTimeout" in server) server.requestTimeout = 300_000;
 if ("headersTimeout" in server) server.headersTimeout = 10_000;
 server.setTimeout(15_000);
+server.prependListener('request',(request:IncomingMessage,response:ServerResponse)=>configureResourceTimeout(request,response));
 const adminServer = moderation
   ? serve({
       fetch: moderation.app.fetch,
