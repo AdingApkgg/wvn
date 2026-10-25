@@ -25,23 +25,23 @@ test("private snapshot commits are complete, immutable, idempotent and owner sco
   const f = fixture();
   try {
     const profile = f.store.createProfile("alice", "version-a");
-    const upload = f.store.reserve("alice", profile.id, {
+    const upload = (await f.store.reserve("alice", profile.id, {
       expectedHead: null,
       generation: 1,
       captureId: "capture-a",
       files,
-    });
-    assert.throws(() => f.store.commit("alice", upload.id));
+    }));
+    await assert.rejects(() => f.store.commit("alice", upload.id));
     await f.store.write(
       "alice",
       upload.id,
       upload.files[0].id,
       new Blob(["hello"]).stream(),
     );
-    const result = f.store.commit("alice", upload.id);
+    const result = (await f.store.commit("alice", upload.id));
     assert.equal(result.conflict, false);
     assert.equal(
-      f.store.commit("alice", upload.id).revision.id,
+      (await f.store.commit("alice", upload.id)).revision.id,
       result.revision.id,
     );
     assert.equal(
@@ -62,18 +62,18 @@ test("parallel saves preserve a conflict and deleted generation cannot resurrect
   const f = fixture();
   try {
     const p = f.store.createProfile("alice", "version-a");
-    const one = f.store.reserve("alice", p.id, {
+    const one = (await f.store.reserve("alice", p.id, {
       expectedHead: null,
       generation: 1,
       captureId: "first",
       files,
-    });
-    const two = f.store.reserve("alice", p.id, {
+    }));
+    const two = (await f.store.reserve("alice", p.id, {
       expectedHead: null,
       generation: 1,
       captureId: "second",
       files,
-    });
+    }));
     await f.store.write(
       "alice",
       one.id,
@@ -86,10 +86,10 @@ test("parallel saves preserve a conflict and deleted generation cannot resurrect
       two.files[0].id,
       new Blob(["hello"]).stream(),
     );
-    const head = f.store.commit("alice", one.id);
-    assert.equal(f.store.commit("alice", two.id).conflict, true);
+    const head = (await f.store.commit("alice", one.id));
+    assert.equal((await f.store.commit("alice", two.id)).conflict, true);
     f.store.remove("alice", p.id, head.revision.id, 1);
-    assert.throws(() =>
+    await assert.rejects(() =>
       f.store.reserve("alice", p.id, {
         expectedHead: head.revision.id,
         generation: 1,
@@ -105,7 +105,7 @@ test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse write
   const f = fixture();
   try {
     const p = f.store.createProfile("alice", "version-a");
-    assert.throws(() =>
+    await assert.rejects(() =>
       f.store.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
@@ -114,7 +114,7 @@ test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse write
       }),
     );
     for (const name of ["\ud800", "save:stream", "save?bad"])
-      assert.throws(
+      await assert.rejects(
         () =>
           f.store.reserve("alice", p.id, {
             expectedHead: null,
@@ -124,7 +124,7 @@ test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse write
           }),
         /MANIFEST_INVALID/,
       );
-    assert.throws(() =>
+    await assert.rejects(() =>
       f.store.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
@@ -132,12 +132,12 @@ test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse write
         files: [{ ...files[0], bytes: 32 * 1024 ** 2 + 1 }],
       }),
     );
-    const upload = f.store.reserve("alice", p.id, {
+    const upload = (await f.store.reserve("alice", p.id, {
       expectedHead: null,
       generation: 1,
       captureId: "bad",
       files,
-    });
+    }));
     await assert.rejects(() =>
       f.store.write(
         "alice",
@@ -146,9 +146,9 @@ test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse write
         new Blob(["wrong"]).stream(),
       ),
     );
-    assert.throws(() => f.store.commit("alice", upload.id));
+    await assert.rejects(() => f.store.commit("alice", upload.id));
     const low = new SaveStore(f.db, f.root, () => 60 * 1024 ** 3);
-    assert.throws(() =>
+    await assert.rejects(() =>
       low.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
@@ -184,15 +184,15 @@ test("interleaved retries cannot replace bytes of an existing historical blob", 
         captureId,
         files,
       });
-    const original = reserve("history");
+    const original = (await reserve("history"));
     await f.store.write(
       "alice",
       original.id,
       original.files[0].id,
       new Blob(["hello"]).stream(),
     );
-    const history = f.store.commit("alice", original.id);
-    const retry = reserve("retry");
+    const history = (await f.store.commit("alice", original.id));
+    const retry = (await reserve("retry"));
     let calls = 0;
     const first = f.store.write(
       "alice",
@@ -262,15 +262,15 @@ test("expired captures renew after GC with quota checks and preserve the origina
       captureId: "offline",
       files,
     };
-    const offline = f.store.reserve("alice", p.id, input);
+    const offline = (await f.store.reserve("alice", p.id, input));
     f.db
       .prepare("UPDATE wg_save_uploads SET expires=0 WHERE id=?")
       .run(offline.id);
-    f.store.gc();
-    const newer = f.store.reserve("alice", p.id, {
+    (await f.store.gc());
+    const newer = (await f.store.reserve("alice", p.id, {
       ...input,
       captureId: "newer",
-    });
+    }));
     await f.store.write(
       "alice",
       newer.id,
@@ -280,9 +280,9 @@ test("expired captures renew after GC with quota checks and preserve the origina
     f.db
       .prepare("UPDATE wg_save_uploads SET total=? WHERE id=?")
       .run(512 * 1024 ** 2, newer.id);
-    assert.throws(() => f.store.reserve("alice", p.id, input), /ACCOUNT_QUOTA/);
-    const head = f.store.commit("alice", newer.id);
-    const resumed = f.store.reserve("alice", p.id, input);
+    await assert.rejects(() => f.store.reserve("alice", p.id, input), /ACCOUNT_QUOTA/);
+    const head = (await f.store.commit("alice", newer.id));
+    const resumed = (await f.store.reserve("alice", p.id, input));
     assert.equal(resumed.files.length, 1);
     await f.store.write(
       "alice",
@@ -290,12 +290,12 @@ test("expired captures renew after GC with quota checks and preserve the origina
       resumed.files[0].id,
       new Blob(["hello"]).stream(),
     );
-    const branch = f.store.commit("alice", resumed.id);
+    const branch = (await f.store.commit("alice", resumed.id));
     assert.equal(branch.conflict, true);
     assert.equal(branch.revision.parent, null);
     assert.equal(f.store.profiles("alice")[0].head, head.revision.id);
     f.store.remove("alice", p.id, head.revision.id, 1);
-    assert.throws(
+    await assert.rejects(
       () => f.store.reserve("alice", p.id, input),
       /PROFILE_DELETED/,
     );
@@ -311,18 +311,18 @@ test("two devices finding no profile share a canonical version and preserve both
     const one = f.store.createProfile("alice", "version-a");
     const two = f.store.createProfile("alice", "version-a");
     assert.equal(one.id, two.id);
-    const a = f.store.reserve("alice", one.id, {
+    const a = (await f.store.reserve("alice", one.id, {
       expectedHead: null,
       generation: 1,
       captureId: "device-a",
       files,
-    });
-    const b = f.store.reserve("alice", two.id, {
+    }));
+    const b = (await f.store.reserve("alice", two.id, {
       expectedHead: null,
       generation: 1,
       captureId: "device-b",
       files,
-    });
+    }));
     await f.store.write(
       "alice",
       a.id,
@@ -335,8 +335,8 @@ test("two devices finding no profile share a canonical version and preserve both
       b.files[0].id,
       new Blob(["hello"]).stream(),
     );
-    assert.equal(f.store.commit("alice", a.id).conflict, false);
-    assert.equal(f.store.commit("alice", b.id).conflict, true);
+    assert.equal((await f.store.commit("alice", a.id)).conflict, false);
+    assert.equal((await f.store.commit("alice", b.id)).conflict, true);
     assert.equal(f.store.history("alice", one.id).length, 2);
     assert.notEqual(f.store.createProfile("bob", "version-a").id, one.id);
   } finally {
@@ -350,12 +350,12 @@ test("stable history pages and account exports retain records beyond 200 includi
     const p = f.store.createProfile("alice", "version-a");
     let head = "";
     for (let n = 0; n < 201; n++) {
-      const u = f.store.reserve("alice", p.id, {
+      const u = (await f.store.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
         captureId: "history-" + n,
         files,
-      });
+      }));
       if (!n)
         await f.store.write(
           "alice",
@@ -363,7 +363,7 @@ test("stable history pages and account exports retain records beyond 200 includi
           u.files[0].id,
           new Blob(["hello"]).stream(),
         );
-      const r = f.store.commit("alice", u.id);
+      const r = (await f.store.commit("alice", u.id));
       if (!n) head = r.revision.id;
     }
     const first = f.store.historyPage("alice", p.id);
@@ -382,4 +382,18 @@ test("stable history pages and account exports retain records beyond 200 includi
   } finally {
     f.close();
   }
+});
+
+test('asynchronous storage checks preserve one reservation and one revision for simultaneous retries', async () => {
+  const f = fixture();
+  try {
+    const p = f.store.createProfile('alice', 'version-a');
+    const input = { expectedHead: null, generation: 1, captureId: 'same-network-retry', files };
+    const [one, two] = await Promise.all([f.store.reserve('alice', p.id, input), f.store.reserve('alice', p.id, input)]);
+    assert.equal(one.id, two.id);
+    await f.store.write('alice', one.id, one.files[0].id, new Blob(['hello']).stream());
+    const [first, second] = await Promise.all([f.store.commit('alice', one.id), f.store.commit('alice', one.id)]);
+    assert.equal(first.revision.id, second.revision.id);
+    assert.equal(f.store.history('alice', p.id).length, 1);
+  } finally { f.close(); }
 });

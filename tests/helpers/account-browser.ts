@@ -20,14 +20,13 @@ export async function authenticator(page: Page, verified = true) {
 export async function register(
   page: Page,
   nickname: string,
-  invite = process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite",
   relaxUV = false,
 ) {
   return page.evaluate(
-    async ({ nickname, invite, relaxUV }) => {
+    async ({ nickname, relaxUV }) => {
       const me = await fetch("/api/me");
       const current = me.ok ? await me.json() : null;
-      const q = encodeURIComponent(JSON.stringify({ nickname, invite }));
+      const q = encodeURIComponent(JSON.stringify({ nickname }));
       const options = await fetch(
         "/api/auth/passkey/generate-register-options?context=" + q,
         { headers: current ? { "x-wg-binding": current.binding } : {} },
@@ -57,7 +56,7 @@ export async function register(
       });
       return { status: response.status, body: await response.json() };
     },
-    { nickname, invite, relaxUV },
+    { nickname, relaxUV },
   );
 }
 export async function login(page: Page) {

@@ -31,7 +31,7 @@ async function register(page, nickname, entry) {
     "Synthetic registration must start in an anonymous fresh context",
   );
   await page.getByLabel("昵称", { exact: true }).fill(nickname);
-  await page.getByLabel("预览邀请码").fill(process.env.WG_ACCOUNT_TEST_INVITE);
+  
   const result = page.waitForResponse(
     (response) =>
       response.url().endsWith("/api/auth/passkey/verify-registration") &&
@@ -149,10 +149,6 @@ try {
       file.sha256,
       file.path,
     );
-  process.env.WG_ACCOUNT_TEST_INVITE = readFileSync(
-    "state/accounts-preview/invite",
-    "utf8",
-  ).trim();
   mkdirSync("reports/sharing-preview", { recursive: true });
   stage = "launch-browser";
   browser = await chromium.launch(

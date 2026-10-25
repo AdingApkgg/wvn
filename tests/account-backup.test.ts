@@ -34,7 +34,6 @@ test("joint backup restores exact save bytes and replays newer account deletions
     blobRoot: join(root, "blobs"),
     deletionLedger: join(root, "deleted.jsonl"),
     secret: "synthetic-secret-that-is-at-least-48-characters-long",
-    signupInvite: "test-invite",
     catalog,
   };
   const source = await createAccountService(config);
@@ -59,19 +58,19 @@ test("joint backup restores exact save bytes and replays newer account deletions
     );
     const profile = source.saves!.createProfile(survivor.id, "version-a");
     const sha256 = createHash("sha256").update("original-save").digest("hex");
-    const upload = source.saves!.reserve(survivor.id, profile.id, {
+    const upload = (await source.saves!.reserve(survivor.id, profile.id, {
       expectedHead: null,
       generation: 1,
       captureId: "backup-test",
       files: [{ name: "slot.dat", bytes: 13, sha256 }],
-    });
+    }));
     await source.saves!.write(
       survivor.id,
       upload.id,
       upload.files[0].id,
       new Blob(["original-save"]).stream(),
     );
-    const revision = source.saves!.commit(survivor.id, upload.id).revision;
+    const revision = (await source.saves!.commit(survivor.id, upload.id)).revision;
     createAccountBackup({
       database: config.database,
       blobRoot: config.blobRoot,

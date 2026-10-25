@@ -1,0 +1,91 @@
+import {findPlayer} from './registry.mjs';
+import {validateSnapshot} from '../ons/protocol.mjs';
+import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility} from './adapters.mjs';
+const origin=new URL(location.href).origin,id=/^\/__player\/resource\/([^/]+)\/index\.html$/.exec(location.pathname)?.[1],entry=findPlayer(id);
+let initialized=false;
+addEventListener('message',async function initialize(event){
+  const init=event.data;
+  if(initialized||event.source!==parent||parent===window||event.origin!==origin||init?.type!=='WG_ONS_INIT'||init.pilot!==id||!/^[a-f0-9-]{36}$/.test(init.nonce)||event.ports.length!==1||!entry?.runtimeKind)return;
+  initialized=true;removeEventListener('message',initialize);
+  const port=event.ports[0],nonce=init.nonce;let seq=0,queue=Promise.resolve(),capture,failed=false;
+  const acknowledgements=new Map(),send=message=>port.postMessage({...message,pilot:id,nonce});
+  const status=message=>send({type:'status',message:String(message).slice(0,500)});
+  function persist(files,requestId){
+    // Serialize snapshots, retaining the bytes as they were at the native fsync.
+    const snapshot=validateSnapshot({schema:1,pilot:id,files},id);
+    const operation=queue.then(()=>new Promise((resolve,reject)=>{
+      const number=++seq,timer=setTimeout(()=>{acknowledgements.delete(number);reject(Error('本机存档确认超时'))},28000);
+      acknowledgements.set(number,{resolve,reject,timer});send({type:'snapshot',seq:number,snapshot,requestId});
+    }));
+    queue=operation.catch(error=>{failed=true;status('保存失败：'+error.message)});return operation;
+  }
+  port.onmessage=({data})=>{
+    if(!data||data.nonce!==nonce||data.pilot!==id)return;
+    if(data.type==='ack'){
+      const ack=acknowledgements.get(data.seq);if(!ack)return;clearTimeout(ack.timer);acknowledgements.delete(data.seq);
+      if(data.ok){failed=false;ack.resolve();status('本机存档已保留')}else ack.reject(Error('存档写入失败，请保留页面并导出备份'));
+    }else if(data.type==='snapshot'&&/^[a-f0-9-]{36}$/.test(data.requestId)){
+      try{if(!capture)throw Error('引擎存档尚未就绪');void persist(capture(),data.requestId).catch(()=>{})}catch(e){status(e.message)}
+    }else if(data.type==='menu'){
+      const canvas=document.getElementById('canvas')??document.body;
+      void requestNativeMenu(window,entry.runtimeKind,canvas).catch(error=>status(error.message));
+    }
+  };
+  try{
+    const snapshot=validateSnapshot(init.snapshot,id);
+    installAnonymousMedia(window);
+    const memory=createMemoryStorage(()=>{if(entry.runtimeKind==='Tyrano')queueMicrotask(()=>{if(!failed)void persist(storageSnapshot(memory)).catch(()=>{})})});
+    if(entry.runtimeKind==='Tyrano'){restoreStorage(memory,snapshot.files);capture=()=>storageSnapshot(memory)}
+    Object.defineProperty(window,'localStorage',{value:memory});Object.defineProperty(window,'sessionStorage',{value:createMemoryStorage()});
+    // Optional upstream PWA caching is disabled; never register a worker on the
+    // credentialed site. Resources are served by the scoped read-only projection.
+    Object.defineProperty(navigator,'serviceWorker',{value:undefined});
+    const nativeFetch=fetch.bind(window);window.fetch=(resource,options)=>nativeFetch(resource,{...options,credentials:'omit'});
+    let module={};
+    function instrument(){
+      const FS=window.FS??module.FS,IDBFS=window.IDBFS,MEMFS=window.MEMFS;
+      if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
+      if(capture)return;
+      capture=installMemoryPersistence({FS,IDBFS,MEMFS,mount:entry.mount,extraMount:entry.extraMount,files:snapshot.files,persist:files=>persist(files)});
+      status('存档适配已连接');
+    }
+    if(entry.runtimeKind!=='Tyrano'){
+      Object.defineProperty(window,'Module',{configurable:true,get:()=>module,set:value=>{
+        module=value;const runs=typeof value.preRun==='function'?[value.preRun]:value.preRun??[];
+        // Emscripten reverses these callbacks; reinsert after the
+        // upstream loader adds its own preRun callbacks below.
+        if(!runs.includes(instrument))runs.push(instrument);value.preRun=runs;
+      }});window.Module={};
+    }
+    if(entry.runtimeKind==='Tyrano')Object.defineProperty(document,'readyState',{configurable:true,get:()=>"loading"});
+    const scripts=[...document.querySelectorAll('script[type="application/x-wg-script"]')];
+    for(const placeholder of scripts){
+      const config=JSON.parse(placeholder.textContent),script=document.createElement('script');
+      if(config.src){
+        const url=new URL(config.src,document.baseURI),prefix=`${origin}/__player/resource/${id}/`;
+        if(!url.href.startsWith(prefix))throw Error('脚本路径不属于当前游戏');
+        if(entry.runtimeKind!=='Tyrano'&&/\/(?:artemis|renpy)\.js$/.test(url.pathname)){
+          // These audited Emscripten builds unshift preRun callbacks internally,
+          // so the final array callback must install persistence first.
+          module.preRun=(module.preRun??[]).filter(fn=>fn!==instrument);module.preRun.push(instrument);
+        }
+        script.src=url.href;script.crossOrigin='anonymous';
+        await new Promise((resolve,reject)=>{script.onload=()=>{
+          if(entry.runtimeKind==='Tyrano'&&/\/html2canvas(?:\.min)?\.js$/i.test(url.pathname))window.html2canvas=sandboxThumbnail(()=>document.createElement('canvas'),()=>({title:entry.title,text:window.TYRANO?.kag?.stat?.current_save_str||window.TYRANO?.kag?.stat?.current_message_str||''}));
+          resolve();
+        };script.onerror=()=>reject(Error('游戏脚本加载失败'));placeholder.replaceWith(script)});
+      }else{script.textContent=config.body;placeholder.replaceWith(script)}
+    }
+    if(entry.runtimeKind==='Tyrano'){installTyranoLoadCompatibility(window,id);delete document.readyState;document.dispatchEvent(new Event('DOMContentLoaded'));}
+    // Tyrano entry handlers were declared after the inert document finished.
+    if(typeof window.onload==='function')window.onload(new Event('load'));
+    if(entry.runtimeKind==='RenPy'){
+      status('正在准备游戏；较大的作品可能需要数分钟');
+      while(!module.calledRun||(document.getElementById('canvas')?.width??0)<=400){
+        if(!document.getElementById('canvas'))throw Error('游戏已退出，请查看游戏画面');
+        await new Promise(resolve=>setTimeout(resolve,500));
+      }
+    }
+    status('游戏已启动；请在游戏内保存进度');
+  }catch(error){status('启动失败：'+error.message);console.error('WG runtime',error)}
+});

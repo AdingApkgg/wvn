@@ -14,7 +14,6 @@ test("Passkey-first: registration, sign-out, login and last-key protection", asy
 }) => {
   await page.goto(origin + "/health");
   await authenticator(page);
-  expect((await register(page, "Reader A", "wrong-invite")).status).toBe(403);
   const registration = await register(page, "Reader A");
   expect(registration.status).toBe(200);
   expect(registration.body).toEqual({ ok: true });
@@ -111,9 +110,7 @@ test("account page lets a player register and keep a recovery kit", async ({
     page.getByRole("heading", { name: "让进度，随你同行。" }),
   ).toBeVisible();
   await page.getByLabel("昵称").fill("UI Reader");
-  await page
-    .getByLabel("预览邀请码")
-    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   await expect(page.getByRole("heading", { name: "我的故事" })).toBeVisible();
   await page.getByRole("button", { name: "生成恢复码" }).click();
@@ -133,16 +130,16 @@ test("server refuses valid none-attestation without user verification", async ({
   page,
 }) => {
   await page.goto(origin + "/health");
-  const options = await page.evaluate(async (invite) => {
+  const options = await page.evaluate(async () => {
     const context = encodeURIComponent(
-      JSON.stringify({ nickname: "No UV Reader", invite }),
+      JSON.stringify({ nickname: "No UV Reader" }),
     );
     return (
       await fetch(
         "/api/auth/passkey/generate-register-options?context=" + context,
       )
     ).json();
-  }, process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  });
   const response = registrationFixture(options.challenge, origin!, false);
   // Characterize the fixture: upstream accepts its structure when UV is optional.
   const { verifyRegistrationResponse } = await import("@simplewebauthn/server");
@@ -273,9 +270,7 @@ test("manual cloud backup uploads exact files and restores history without touch
   await page.goto(origin + "/account");
   await authenticator(page);
   await page.getByLabel("昵称").fill("Cloud Reader");
-  await page
-    .getByLabel("预览邀请码")
-    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
@@ -338,9 +333,7 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
   await page.goto(origin + "/account");
   await authenticator(page);
   await page.getByLabel("昵称").fill("Draft Owner");
-  await page
-    .getByLabel("预览邀请码")
-    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
@@ -367,9 +360,7 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
   ).toBeVisible();
   await page.getByRole("button", { name: "退出账号", exact: true }).click();
   await page.getByLabel("昵称").fill("Other Draft Reader");
-  await page
-    .getByLabel("预览邀请码")
-    .fill(process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite");
+  await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   await page
     .getByRole("combobox", { name: "存档所属版本" })
@@ -511,7 +502,6 @@ test("old signup and add-key challenges cannot complete after switching accounts
   const context = encodeURIComponent(
     JSON.stringify({
       nickname: "Stale Signup",
-      invite: process.env.WG_ACCOUNT_TEST_INVITE ?? "test-invite",
     }),
   );
   const oldSignup = await page.evaluate(

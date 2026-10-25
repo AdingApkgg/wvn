@@ -1,16 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import {
-  mkdirSync,
-  statfsSync,
-  openSync,
-  writeSync,
-  fsyncSync,
-  closeSync,
-  linkSync,
-  unlinkSync,
-  readFileSync,
-} from "node:fs";
-import { resolve, join } from "node:path";
+import { LocalBlobStore, type BlobStore } from './blob-store.server.ts';
 import type { DatabaseSync, SQLOutputValue } from "node:sqlite";
 import { AccountError } from "./errors.server.ts";
 export type SaveFile = { name: string; bytes: number; sha256: string };
@@ -41,21 +30,15 @@ const SHA = (value: string | Uint8Array) =>
 const GiB = 1024 ** 3;
 export class SaveStore {
   onRemove?: (owner: string, profileId?: string) => void;
-  private root: string;
-  private free: () => number;
+  private blobs: BlobStore;
+  private writes = 0;
   constructor(
     private db: DatabaseSync,
     root: string,
     free?: () => number,
+    backend?: BlobStore,
   ) {
-    this.root = resolve(root);
-    mkdirSync(this.root, { recursive: true, mode: 0o700 });
-    this.free =
-      free ??
-      (() => {
-        const stat = statfsSync(this.root);
-        return stat.bavail * stat.bsize;
-      });
+    this.blobs = backend ?? new LocalBlobStore(root, free);
     db.exec(`CREATE TABLE IF NOT EXISTS wg_save_profiles(id TEXT PRIMARY KEY,owner TEXT NOT NULL,version_id TEXT NOT NULL,generation INTEGER NOT NULL,head TEXT,deleted INTEGER NOT NULL DEFAULT 0,created INTEGER NOT NULL);
   CREATE INDEX IF NOT EXISTS wg_profiles_owner ON wg_save_profiles(owner,version_id);
   CREATE UNIQUE INDEX IF NOT EXISTS wg_profile_active_version ON wg_save_profiles(owner,version_id) WHERE deleted=0;
@@ -80,8 +63,8 @@ export class SaveStore {
       throw e;
     }
   }
-  private space(bytes = 0) {
-    if (this.free() < 62 * GiB + bytes)
+  private async space(bytes = 0) {
+    if (await this.blobs.free() < 62 * GiB + bytes)
       throw new AccountError(507, "SPACE_STOP");
   }
   private profile(owner: string, id: string): SaveProfile {
@@ -172,7 +155,7 @@ export class SaveStore {
       a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     );
   }
-  reserve(
+  async reserve(
     owner: string,
     profileId: string,
     input: {
@@ -181,7 +164,7 @@ export class SaveStore {
       captureId: string;
       files: SaveFile[];
     },
-  ): { id: string; files: UploadFile[]; complete: boolean } {
+  ): Promise<{ id: string; files: UploadFile[]; complete: boolean }> {
     const profile = this.profile(owner, profileId);
     if (input.generation !== profile.generation)
       throw new AccountError(410, "GENERATION_CHANGED");
@@ -209,7 +192,7 @@ export class SaveStore {
         generation: input.generation,
       }),
     );
-    const previous = this.db
+    let previous = this.db
       .prepare(
         "SELECT * FROM wg_save_uploads WHERE owner=? AND profile=? AND capture=?",
       )
@@ -225,7 +208,8 @@ export class SaveStore {
         };
     }
     const total = files.reduce((n, f) => n + f.bytes, 0);
-    this.space(total);
+    await this.space(total);
+    this.profile(owner, profileId);
     const added = [...new Map(files.map((f) => [f.sha256, f])).values()].reduce(
       (n, f) =>
         n +
@@ -239,6 +223,14 @@ export class SaveStore {
       0,
     );
     return this.tx(() => {
+      const freshProfile = this.profile(owner, profileId);
+      if (freshProfile.generation !== input.generation) throw new AccountError(410, 'GENERATION_CHANGED');
+      previous = this.db.prepare("SELECT * FROM wg_save_uploads WHERE owner=? AND profile=? AND capture=?").get(owner, profileId, input.captureId);
+      if (previous) {
+        if (previous.manifest !== manifest) throw new AccountError(409, 'CAPTURE_CHANGED');
+        if (previous.result || Number(previous.expires) >= Date.now()) return { id: String(previous.id), files: JSON.parse(String(previous.files)) as UploadFile[], complete: !!previous.result };
+      }
+
       const used = Number(
         this.db
           .prepare(
@@ -302,16 +294,14 @@ export class SaveStore {
       throw new AccountError(410, "UPLOAD_EXPIRED");
     return row;
   }
-  gc() {
+  async gc() {
     // Known request parts only; never scan unrelated files or erase capture manifests.
     const parts = this.db
       .prepare("SELECT * FROM wg_save_parts WHERE created<? LIMIT 100")
       .all(Date.now() - 3600_000);
     for (const part of parts) {
       try {
-        unlinkSync(
-          join(this.root, SHA(String(part.owner)), String(part.id) + ".upload"),
-        );
+        await this.blobs.remove(SHA(String(part.owner)), String(part.id) + ".upload");
       } catch (e) {
         if ((e as NodeJS.ErrnoException).code !== "ENOENT") continue;
       }
@@ -325,7 +315,7 @@ export class SaveStore {
       .all(cutoff, Date.now());
     for (const row of rows) {
       try {
-        unlinkSync(this.blobPath(String(row.owner), String(row.hash)));
+        await this.blobs.remove(SHA(String(row.owner)), String(row.hash) + ".bin");
       } catch (e) {
         if ((e as NodeJS.ErrnoException).code !== "ENOENT") continue;
       }
@@ -334,7 +324,7 @@ export class SaveStore {
         .run(row.owner, row.hash);
     }
   }
-  snapshot(owner: string, profileId: string, revisionId: string) {
+  snapshotMetadata(owner: string, profileId: string, revisionId: string) {
     const profile = this.profile(owner, profileId);
     const row = this.db
       .prepare(
@@ -343,13 +333,17 @@ export class SaveStore {
       .get(owner, profileId, revisionId);
     if (!row) throw new AccountError(404, "NOT_FOUND");
     const revision = this.revision(row);
-    for (const file of revision.files) this.readBlob(owner, file);
     return { profile, revision };
   }
-  readBlob(owner: string, file: SaveFile): Buffer {
+  async snapshot(owner: string, profileId: string, revisionId: string) {
+    const value = this.snapshotMetadata(owner, profileId, revisionId);
+    for (const file of value.revision.files) await this.readBlob(owner, file);
+    return this.snapshotMetadata(owner, profileId, revisionId);
+  }
+  async readBlob(owner: string, file: SaveFile): Promise<Buffer> {
     let bytes: Buffer;
     try {
-      bytes = readFileSync(this.blobPath(owner, file.sha256));
+      bytes = await this.blobs.read(SHA(owner), file.sha256);
     } catch {
       throw new AccountError(503, "FILE_UNAVAILABLE");
     }
@@ -373,92 +367,40 @@ export class SaveStore {
       .prepare("DELETE FROM wg_save_refs WHERE owner=? AND revision=?")
       .run(owner, key);
   }
-  private blobPath(owner: string, hash: string) {
-    return join(this.root, SHA(owner), hash + ".bin");
-  }
   async write(
-    owner: string,
-    uploadId: string,
-    fileId: string,
+    owner: string, uploadId: string, fileId: string,
     stream: ReadableStream<Uint8Array>,
-    locked: <T>(fn: () => T) => Promise<T> = async (fn) => fn(),
+    locked: <T>(fn: () => T | Promise<T>) => Promise<T> = async (fn) => fn(),
   ): Promise<void> {
-    const partId = randomUUID();
-    const file = await locked(() => {
+    if (this.writes >= 4) throw new AccountError(429, 'UPLOAD_BUSY');
+    this.writes++;
+    try {
+    const file = await locked(async () => {
       const current = this.upload(owner, uploadId);
       if (current.result) throw new AccountError(409, "UPLOAD_COMMITTED");
-      const item = (JSON.parse(String(current.files)) as UploadFile[]).find(
-        (f) => f.id === fileId,
-      );
+      const item = (JSON.parse(String(current.files)) as UploadFile[]).find(f => f.id === fileId);
       if (!item) throw new AccountError(404, "NOT_FOUND");
-      this.space(item.bytes);
-      this.db
-        .prepare("INSERT INTO wg_save_parts VALUES (?,?,?,?)")
-        .run(partId, owner, uploadId, Date.now());
-      return item;
+      await this.space(item.bytes); return item;
     });
-    const dir = join(this.root, SHA(owner));
-    mkdirSync(dir, { recursive: true, mode: 0o700 });
-    const temp = join(dir, partId + ".upload");
-    const hash = createHash("sha256");
-    let fd: number | undefined,
-      bytes = 0;
-    try {
-      fd = openSync(temp, "wx", 0o600);
-      for await (const chunk of stream) {
-        bytes += chunk.byteLength;
-        if (bytes > file.bytes || bytes > 32 * 1024 ** 2)
-          throw new AccountError(413, "FILE_LIMIT");
-        this.space(chunk.byteLength);
-        hash.update(chunk);
-        let offset = 0;
-        while (offset < chunk.byteLength) {
-          const count = writeSync(fd, chunk, offset, chunk.byteLength - offset);
-          if (count < 1) throw new Error("Incomplete disk write");
-          offset += count;
-        }
-      }
-      if (bytes !== file.bytes || hash.digest("hex") !== file.sha256)
-        throw new AccountError(400, "FILE_HASH_MISMATCH");
-      fsyncSync(fd);
-      closeSync(fd);
-      fd = undefined;
-      await locked(() => {
-        const current = this.upload(owner, uploadId);
-        if (current.result) throw new AccountError(409, "UPLOAD_COMMITTED");
-        if (
-          !(JSON.parse(String(current.files)) as UploadFile[]).some(
-            (f) => f.id === fileId,
-          )
-        )
-          throw new AccountError(409, "UPLOAD_RENEWED");
-        const target = this.blobPath(owner, file.sha256);
-        try {
-          linkSync(temp, target);
-        } catch (e) {
-          if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
-          const existing = readFileSync(target);
-          if (
-            existing.byteLength !== file.bytes ||
-            SHA(existing) !== file.sha256
-          )
-            throw new AccountError(503, "FILE_CORRUPT");
-        }
-        this.db
-          .prepare(
-            "INSERT INTO wg_save_blobs(owner,hash,bytes,created) VALUES (?,?,?,?) ON CONFLICT(owner,hash) DO UPDATE SET bytes=excluded.bytes",
-          )
-          .run(owner, file.sha256, bytes, Date.now());
-      });
-    } finally {
-      if (fd !== undefined) closeSync(fd);
-      try {
-        unlinkSync(temp);
-      } catch {}
-      await locked(() =>
-        this.db.prepare("DELETE FROM wg_save_parts WHERE id=?").run(partId),
-      ).catch(() => {});
+    const hash = createHash("sha256"), chunks: Uint8Array[] = [];
+    let bytes = 0;
+    for await (const chunk of stream) {
+      bytes += chunk.byteLength;
+      if (bytes > file.bytes || bytes > 32 * 1024 ** 2) throw new AccountError(413, "FILE_LIMIT");
+      hash.update(chunk); chunks.push(chunk);
     }
+    if (bytes !== file.bytes || hash.digest("hex") !== file.sha256) throw new AccountError(400, "FILE_HASH_MISMATCH");
+    await locked(async () => {
+      const current = this.upload(owner, uploadId);
+      if (current.result) throw new AccountError(409, "UPLOAD_COMMITTED");
+      if (!(JSON.parse(String(current.files)) as UploadFile[]).some(f => f.id === fileId)) throw new AccountError(409, "UPLOAD_RENEWED");
+      await this.blobs.write(SHA(owner), file.sha256, Buffer.concat(chunks));
+      // The caller holds the account lock through durable storage acknowledgement.
+      this.upload(owner, uploadId);
+      this.db.prepare("INSERT INTO wg_save_blobs(owner,hash,bytes,created) VALUES (?,?,?,?) ON CONFLICT(owner,hash) DO UPDATE SET bytes=excluded.bytes")
+        .run(owner, file.sha256, bytes, Date.now());
+    });
+      } finally { this.writes--; }
   }
   private revision(row: Row): SaveRevision {
     return {
@@ -511,12 +453,12 @@ export class SaveStore {
   ) {
     return this.commit(owner, uploadId, shareId, onCommit);
   }
-  commit(
+  async commit(
     owner: string,
     uploadId: string,
     receivedShare?: string,
     onCommit?: (result: { conflict: boolean; revision: SaveRevision }) => void,
-  ): { conflict: boolean; revision: SaveRevision } {
+  ): Promise<{ conflict: boolean; revision: SaveRevision }> {
     const upload = this.upload(owner, uploadId);
     if (upload.result) return JSON.parse(String(upload.result));
     const files = (JSON.parse(String(upload.files)) as UploadFile[]).map(
@@ -530,7 +472,7 @@ export class SaveStore {
         throw new AccountError(409, "FILES_INCOMPLETE");
       let bytes: Buffer;
       try {
-        bytes = readFileSync(this.blobPath(owner, file.sha256));
+        bytes = await this.blobs.read(SHA(owner), file.sha256);
       } catch {
         throw new AccountError(409, "FILES_INCOMPLETE");
       }
@@ -538,6 +480,10 @@ export class SaveStore {
         throw new AccountError(400, "FILE_HASH_MISMATCH");
     }
     return this.tx(() => {
+      const current = this.upload(owner, uploadId);
+      if (current.result) return JSON.parse(String(current.result));
+      if (current.files !== upload.files) throw new AccountError(409, 'UPLOAD_RENEWED');
+
       const profile = this.profile(owner, String(upload.profile));
       if (profile.generation !== upload.generation)
         throw new AccountError(410, "GENERATION_CHANGED");
@@ -634,7 +580,7 @@ export class SaveStore {
     if (!file) throw new AccountError(404, "NOT_FOUND");
     let bytes: Buffer;
     try {
-      bytes = readFileSync(this.blobPath(owner, file.sha256));
+      bytes = await this.blobs.read(SHA(owner), file.sha256);
     } catch {
       throw new AccountError(503, "FILE_UNAVAILABLE");
     }
@@ -642,13 +588,15 @@ export class SaveStore {
       throw new AccountError(503, "FILE_CORRUPT");
     return bytes;
   }
-  restore(
+  async restore(
     owner: string,
     profileId: string,
     sourceId: string,
     head: string | null,
     generation: number,
-  ): SaveRevision {
+  ): Promise<SaveRevision> {
+    const sourceValue = this.snapshotMetadata(owner, profileId, sourceId);
+    for (const file of sourceValue.revision.files) await this.readBlob(owner, file);
     return this.tx(() => {
       const profile = this.profile(owner, profileId);
       if (profile.generation !== generation)
@@ -662,16 +610,6 @@ export class SaveStore {
         .get(owner, profileId, sourceId);
       if (!source) throw new AccountError(404, "NOT_FOUND");
       const files = JSON.parse(String(source.files)) as SaveFile[];
-      for (const file of files) {
-        let bytes: Buffer;
-        try {
-          bytes = readFileSync(this.blobPath(owner, file.sha256));
-        } catch {
-          throw new AccountError(503, "FILE_UNAVAILABLE");
-        }
-        if (bytes.length !== file.bytes || SHA(bytes) !== file.sha256)
-          throw new AccountError(503, "FILE_CORRUPT");
-      }
       const revision = this.insertRevision(
         owner,
         profileId,

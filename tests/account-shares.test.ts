@@ -4,7 +4,7 @@ import { sharingFixture } from "./helpers/sharing.ts";
 test("link shares freeze one owned snapshot and reveal neither private IDs nor secrets", async () => {
   const f = await sharingFixture();
   try {
-    const made = f.shares.create("alice", f.input);
+    const made = (await f.shares.create("alice", f.input));
     assert.ok(made.secret);
     assert.throws(
       () => f.shares.inspect(made.id, "wrong"),
@@ -18,9 +18,9 @@ test("link shares freeze one owned snapshot and reveal neither private IDs nor s
     const json = JSON.stringify(view);
     for (const secret of ["alice", f.p.id, f.revision.id, made.secret, f.root])
       assert.ok(!json.includes(secret));
-    assert.equal(f.shares.create("alice", f.input).id, made.id);
-    assert.equal(f.shares.create("alice", f.input).secret, undefined);
-    assert.throws(
+    assert.equal((await f.shares.create("alice", f.input)).id, made.id);
+    assert.equal((await f.shares.create("alice", f.input)).secret, undefined);
+    await assert.rejects(
       () => f.shares.create("bob", { ...f.input, requestId: "steal" }),
       /NOT_FOUND/,
     );
@@ -31,7 +31,7 @@ test("link shares freeze one owned snapshot and reveal neither private IDs nor s
 test("public moderation and metadata CAS retain approved text until the new edit is approved", async () => {
   const f = await sharingFixture();
   try {
-    const made = f.shares.create("alice", { ...f.input, mode: "public" });
+    const made = (await f.shares.create("alice", { ...f.input, mode: "public" }));
     assert.throws(() => f.shares.inspect(made.id), /SHARE_UNAVAILABLE/);
     f.shares.moderate(made.id, 1, "approve", "checked");
     assert.equal(f.shares.listPublic("v4").items[0].title, "Chapter one");
@@ -62,20 +62,20 @@ test("public moderation and metadata CAS retain approved text until the new edit
 test("expiration, live catalog changes and the durable revocation ledger fail closed", async () => {
   const f = await sharingFixture();
   try {
-    const made = f.shares.create("alice", f.input);
+    const made = (await f.shares.create("alice", f.input));
     f.db.prepare("UPDATE wg_save_shares SET expires=0 WHERE id=?").run(made.id);
     assert.throws(
       () => f.shares.inspect(made.id, made.secret),
       /SHARE_UNAVAILABLE/,
     );
-    const next = f.shares.create("alice", { ...f.input, requestId: "next" });
+    const next = (await f.shares.create("alice", { ...f.input, requestId: "next" }));
     f.ledger.record(next.id);
     assert.throws(
       () => f.shares.inspect(next.id, next.secret),
       /SHARE_UNAVAILABLE/,
     );
     await f.hide();
-    assert.throws(
+    await assert.rejects(
       () => f.shares.create("alice", { ...f.input, requestId: "hidden" }),
       /VERSION_UNAVAILABLE/,
     );
@@ -87,7 +87,7 @@ test("expiration, live catalog changes and the durable revocation ledger fail cl
 test("moderators can resolve a benign report without revoking a valid share", async () => {
   const f = await sharingFixture();
   try {
-    const s = f.shares.create("alice", f.input);
+    const s = (await f.shares.create("alice", f.input));
     f.shares.report("bob", s.id, s.secret, "Please check");
     f.shares.moderate(s.id, 1, "resolve", "No issue found");
     assert.equal(f.shares.inspect(s.id, s.secret).title, f.input.title);
@@ -123,7 +123,7 @@ test("expired download leases are durable, bounded and reclaimed by GC", async (
 test("public and owner lists page stably through 201 records without duplicate or missing IDs", async () => {
   const f = await sharingFixture();
   try {
-    const first = f.shares.create("alice", { ...f.input, mode: "public" });
+    const first = (await f.shares.create("alice", { ...f.input, mode: "public" }));
     f.shares.moderate(first.id, 1, "approve", "checked");
     for (let n = 1; n <= 200; n++)
       f.db
@@ -162,7 +162,7 @@ test("public and owner lists page stably through 201 records without duplicate o
 test("missing source profiles fail closed even if a legacy process omitted the share deletion hook", async () => {
   const f = await sharingFixture();
   try {
-    const made = f.shares.create("alice", f.input);
+    const made = (await f.shares.create("alice", f.input));
     f.db.prepare("DELETE FROM wg_save_profiles WHERE id=?").run(f.p.id);
     assert.throws(
       () => f.shares.inspect(made.id, made.secret),
@@ -176,7 +176,7 @@ test("missing source profiles fail closed even if a legacy process omitted the s
 test("version and approved-progress filters page before limiting and ignore pending edits", async () => {
   const f = await sharingFixture();
   try {
-    const made = f.shares.create("alice", { ...f.input, mode: "public" });
+    const made = (await f.shares.create("alice", { ...f.input, mode: "public" }));
     f.shares.moderate(made.id, 1, "approve", "checked");
     for (let n = 0; n < 65; n++) {
       const progress = n % 3 === 0 ? "complete" : "route";
@@ -230,7 +230,7 @@ test("version and approved-progress filters page before limiting and ignore pend
 test("private moderation projects full metadata and immutable manifest even when catalog is hidden", async () => {
   const f = await sharingFixture();
   try {
-    const made = f.shares.create("alice", { ...f.input, mode: "public" });
+    const made = (await f.shares.create("alice", { ...f.input, mode: "public" }));
     let item = f.shares.queue()[0];
     assert.equal(item.work?.title, "Story");
     assert.equal(item.version?.id, "version-a");

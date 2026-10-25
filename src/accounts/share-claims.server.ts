@@ -7,6 +7,14 @@ type Result = { profile: SaveProfile; revision: SaveRevision };
 type Locked = <T>(fn: () => T | Promise<T>) => Promise<T>;
 export class ShareClaims {
   private flights = new Map<string, Promise<Result>>();
+  private preparation = Promise.resolve();
+  private async prepare<T>(fn: () => Promise<T>): Promise<T> {
+    const before = this.preparation;
+    let release!: () => void;
+    this.preparation = new Promise<void>(resolve => { release = resolve; });
+    await before;
+    try { return await fn(); } finally { release(); }
+  }
   constructor(readonly shares: ShareStore) {
     const previous = shares.saves.onRemove;
     shares.saves.onRemove = (owner, profile) => {
@@ -17,12 +25,12 @@ export class ShareClaims {
       .exec(`CREATE TABLE IF NOT EXISTS wg_save_share_claims(id TEXT PRIMARY KEY,owner TEXT NOT NULL,share TEXT NOT NULL,source_owner TEXT NOT NULL,profile TEXT NOT NULL,generation INTEGER NOT NULL,upload TEXT NOT NULL,status TEXT NOT NULL,result TEXT,expires INTEGER NOT NULL,UNIQUE(owner,share,profile,generation));
   CREATE TABLE IF NOT EXISTS wg_share_claim_keys(owner TEXT NOT NULL,request TEXT NOT NULL,claim_id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(owner,request));`);
   }
-  private completed(owner: string, result: string): Result {
+  private async completed(owner: string, result: string): Promise<Result> {
     const value = JSON.parse(result) as Result;
-    this.shares.saves.snapshot(owner, value.profile.id, value.revision.id);
+    await this.shares.saves.snapshot(owner, value.profile.id, value.revision.id);
     return value;
   }
-  status(owner: string, requestId: string) {
+  async status(owner: string, requestId: string) {
     const row = this.shares.db
       .prepare(
         "SELECT c.status,c.result FROM wg_save_share_claims c JOIN wg_share_claim_keys k ON k.claim_id=c.id WHERE k.owner=? AND k.request=? AND c.owner=?",
@@ -30,7 +38,7 @@ export class ShareClaims {
       .get(owner, requestId, owner);
     if (!row) throw new AccountError(404, "NOT_FOUND");
     return row.status === "complete"
-      ? { status: "complete", ...this.completed(owner, String(row.result)) }
+      ? { status: "complete", ...await this.completed(owner, String(row.result)) }
       : { status: String(row.status) };
   }
   async claim(
@@ -52,9 +60,9 @@ export class ShareClaims {
         JSON.stringify({ share: input.shareId, secret: input.secret ?? null }),
       )
       .digest("hex");
-    const prepared = await locked(async () => {
+    const prepared = await this.prepare(() => locked(async () => {
       await check();
-      return this.shares.atomic(() => {
+      {
         const key = db
           .prepare(
             "SELECT * FROM wg_share_claim_keys WHERE owner=? AND request=?",
@@ -70,7 +78,7 @@ export class ShareClaims {
               .get(key.claim_id, owner)
           : null;
         if (previous?.status === "complete")
-          return { complete: this.completed(owner, String(previous.result)) };
+          return { complete: await this.completed(owner, String(previous.result)) };
         const source = this.shares.authorize(input.shareId, input.secret);
         if (source.owner === owner) throw new AccountError(400, "SHARE_SELF");
         const profile = previous
@@ -90,12 +98,12 @@ export class ShareClaims {
           db.prepare(
             "INSERT OR IGNORE INTO wg_share_claim_keys VALUES (?,?,?,?)",
           ).run(owner, input.requestId, row.id, payload);
-          return { complete: this.completed(owner, String(row.result)) };
+          return { complete: await this.completed(owner, String(row.result)) };
         }
         const id = row ? String(row.id) : randomUUID();
         if (!row) this.shares.limit("claim:" + owner, 30);
         const files = JSON.parse(String(source.files)) as SaveFile[];
-        const reservation = saves.reserve(owner, profile.id, {
+        const reservation = await saves.reserve(owner, profile.id, {
           captureId: "share:" + id,
           expectedHead: null,
           generation: profile.generation,
@@ -131,8 +139,8 @@ export class ShareClaims {
           files,
           sourceOwner: String(source.owner),
         };
-      });
-    });
+      }
+    }));
     if ("complete" in prepared) return prepared.complete!;
     const id = prepared.id!;
     let flight = this.flights.get(id);
@@ -163,7 +171,7 @@ export class ShareClaims {
             await check();
             this.shares.authorize(input.shareId, input.secret);
             let value!: Result;
-            saves.commitReceived(
+            await saves.commitReceived(
               owner,
               prepared.reservation!.id,
               input.shareId,

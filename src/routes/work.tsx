@@ -1,3 +1,5 @@
+import { brand } from "../brand";
+import {publicProjectionFetch}from"../accounts/public-projection.server.ts";
 import { WorkMetadataPanel } from "../components/work-metadata";
 import { coverKindLabel } from "../metadata-sources.ts";
 import { Button } from "../components/ui/button";
@@ -38,23 +40,22 @@ export async function loader({
             progress: saveProgress || undefined,
             cursor: url.searchParams.get("saveCursor") ?? undefined,
           },
+          publicProjectionFetch(),
         )
       : null;
   return { ...w, shares, saveVersion, saveProgress };
 }
 export function meta({ loaderData: data }: { loaderData?: { title: string } }) {
-  return [{ title: data ? `${data.title} — WG` : "WG · 故事放映室" }];
+  return [{ title: data ? `${data.title} — ${brand.shortName}` : brand.title }];
 }
 export default function Work() {
   const w = useLoaderData<typeof loader>();
+  const primary = w.versions.find(v => v.id === w.defaultVersionId) ?? w.versions[0];
+  const description = w.metadata?.description ?? "";
+  const summary = (description.split("[中文简介]")[1] ?? description).trim().split(/\n\s*\n/)[0];
   return (
     <main className="container work">
-      <Link className="brand" to="/">
-        WG<span>故事放映室</span>
-      </Link>
-      <nav>
-        <Link to="/">故事目录</Link> / {w.title}
-      </nav>
+      <nav className="work-breadcrumb" aria-label="面包屑"><Link to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
       <section
         className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
       >
@@ -70,62 +71,33 @@ export default function Work() {
           />
         )}
         <div className="work-heading-body">
-          <p className="eyebrow">
-            {w.id.toUpperCase()} / {w.versions.length} VERSIONS
-          </p>
+          <p className="eyebrow">{providerName(w.id)} / {w.id.replace(/^v/, "")}</p>
           <h1>{w.title}</h1>
           <p className="original">{w.originalTitle}</p>
-          <div className="aliases">
-            {w.aliases.slice(0, 8).map((x) => (
-              <Badge key={x} variant="secondary">
-                {x}
-              </Badge>
-            ))}
+          {summary && <p className="work-summary">{summary}</p>}
+          <div className="work-read-actions">
+            <Button asChild size="lg"><Link to={primary.url}>开始阅读</Link></Button>
+            {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
+          <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>
+          <div className="work-section-links"><a href="#story-description">故事简介</a><a href="#player-saves">玩家存档</a><a href={providerLink(w.id)} target="_blank" rel="noreferrer">{providerName(w.id)} ↗</a></div>
         </div>
-        <Button asChild variant="outline" className="external">
-          <a href={providerLink(w.id)} target="_blank" rel="noreferrer">
-            在 {providerName(w.id)} 查看 ↗
-          </a>
-        </Button>
       </section>
-      <div className="section-title">
-        <h2>选择一个版本</h2>
-        <span>编号固定，存档各自保留</span>
-      </div>
-      <div className="version-list">
-        {w.versions.map((v) => (
-          <Card key={v.id} className="version">
+      {w.metadata && <WorkMetadataPanel metadata={w.metadata} title={w.title} />}
+      <details id="work-versions" className="work-versions" open={w.versions.length > 1 || undefined}>
+        <summary>{w.versions.length > 1 ? `版本选择 · ${w.versions.length} 个版本` : "版本与检查记录"}</summary>
+        <div className="version-list">
+          {w.versions.map(v => <Card key={v.id} className="version">
             <span className="slot">{String(v.number).padStart(2, "0")}</span>
-            <div className="version-info">
-              <p className="eyebrow">
-                {v.engine} · {v.language}{" "}
-                {v.id === w.defaultVersionId && "· 默认版本"}
-              </p>
-              <h2>{v.title}</h2>
+            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>
               {v.notes && <p className="muted">{v.notes}</p>}
-              <p className="muted">
-                {v.checks.length
-                  ? v.checks
-                      .map(
-                        (c) =>
-                          `${{ resources: "资源", http: "HTTP", startup: "启动" }[c.kind]}：${{ passed: "通过", failed: "失败", incomplete: "未完成" }[c.status]}`,
-                      )
-                      .join(" · ")
-                  : "尚未导入本版本的检查记录"}
-              </p>
-              {v.checks.map((c) => (
-                <small key={c.kind}>
-                  {c.detail} · {c.checkedAt.slice(0, 10)}
-                </small>
-              ))}
+              <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>
-            <Button asChild className="story-start">
-              <Link to={v.url}>开始 ↗</Link>
-            </Button>
-          </Card>
-        ))}
-      </div>
+            <Button asChild variant="outline"><Link to={v.url}>阅读版本 {v.number}</Link></Button>
+          </Card>)}
+        </div>
+        {!!w.aliases.length && <details className="metadata-titles"><summary>别名 · {w.aliases.length}</summary><div className="aliases">{w.aliases.map(x => <Badge key={x} variant="secondary">{x}</Badge>)}</div></details>}
+      </details>
       {w.shares && (
         <section className="share-gallery space-y-5" id="player-saves">
           <div className="section-title">
@@ -240,9 +212,6 @@ export default function Work() {
             <a href={w.shares.account + "/account"}>从我的云备份分享</a>
           </Button>
         </section>
-      )}
-      {w.metadata && (
-        <WorkMetadataPanel metadata={w.metadata} title={w.title} />
       )}
       <p className="note">
         启动检查与完整游玩体验分别记录。旧版执行入口暂时保留，以兼容已有的存档命名。

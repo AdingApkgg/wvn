@@ -38,7 +38,7 @@ try {
   await cdp.send("WebAuthn.enable");
   await cdp.send("WebAuthn.addVirtualAuthenticator", { options: { protocol: "ctap2", transport: "internal", hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true } });
   await page.getByLabel("昵称").fill("预览验收 · 合成账号");
-  await page.getByLabel("预览邀请码").fill(readFileSync("state/accounts-preview/invite", "utf8").trim());
+  
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   await page.getByRole("heading", { name: "我的故事", exact: true }).waitFor();
   await layout("library-mobile", 390, 844);

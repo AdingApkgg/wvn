@@ -46,10 +46,13 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
   const other = await browser.newContext({ ignoreHTTPSErrors: false });
   try {
     const recipient = await other.newPage();
-    await recipient.goto(origin + "/account");
-    await authenticator(recipient);
-    expect((await register(recipient, "Sharing Recipient")).status).toBe(200);
     await recipient.goto(url);
+    await authenticator(recipient);
+    await recipient.getByText("还没有账号？", {exact:true}).click();
+    await expect(recipient.locator("#share-signup-invite")).toHaveCount(0);
+    await recipient.getByLabel("昵称", {exact:true}).fill("Sharing Recipient");
+    await recipient.getByRole("button", {name:"创建通行密钥并注册", exact:true}).click();
+    await expect(recipient.getByRole("button", {name:"保存到我的云存档", exact:true})).toBeVisible();
     await expect(
       recipient.getByRole("heading", { name: "A quiet chapter", exact: true }),
     ).toBeVisible();
@@ -135,7 +138,28 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
       expect(bounds!.y).toBeGreaterThanOrEqual(0);
       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(391);
       expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(845);
+      let releaseRefresh!: () => void;
+      let refreshContinued!: () => void;
+      const delayedRefresh = new Promise<void>(resolve => releaseRefresh = resolve);
+      const continued = new Promise<void>(resolve => refreshContinued = resolve);
+      let held = false;
+      const refreshRequest = page.waitForRequest(request => request.method() === "GET" && new URL(request.url()).pathname === "/api/me/save-shares");
+      const delayRefresh = async (route: import("@playwright/test").Route) => {
+        if (route.request().method() === "GET" && !held) {
+          held = true;
+          await delayedRefresh;
+          try { await route.continue(); } finally { refreshContinued(); }
+        } else await route.continue();
+      };
+      await page.route("**/api/me/save-shares", delayRefresh);
       await edit.getByRole("button", { name: "保存说明", exact: true }).click();
+      await refreshRequest;
+      try { await expect(edit).toBeVisible(); }
+      finally {
+        releaseRefresh();
+        await continued;
+        await page.unroute("**/api/me/save-shares", delayRefresh);
+      }
       await expect(page.getByRole("alertdialog")).toHaveCount(0);
       await ownCard.getByRole("button", { name: "编辑分享说明" }).click();
       await expect(edit.getByLabel("进度类型", { exact: true })).toHaveValue(

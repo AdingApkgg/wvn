@@ -56,7 +56,10 @@ test("cleanup checks owner and confirmed deletion, journals no session secrets a
     assert.equal(saved.accounts[0].accountId, "created-a");
     assert.equal(saved.accounts[0].state, "deleted");
     assert.ok(!raw.includes("private-binding"));
-    assert.equal(statSync(result.report).mode & 0o777, 0o600);
+    // Windows preview directories are restricted with NTFS ACLs by the
+    // launcher; POSIX mode bits are only meaningful on the Linux runner.
+    if (process.platform !== "win32")
+      assert.equal(statSync(result.report).mode & 0o777, 0o600);
   } finally {
     f.close();
   }

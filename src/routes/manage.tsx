@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -46,7 +47,7 @@ import { workSlug, providerLink } from "../identity.ts";
 import type { PublicWork, PublicVersion } from "../types.ts";
 export function meta() {
   return [
-    { title: "WG · 私有管理" },
+    { title: `${brand.shortName} · 私有管理` },
     { name: "robots", content: "noindex, nofollow" },
   ];
 }
@@ -103,7 +104,7 @@ export default function Manage() {
     <main className="container manage">
       <div className="admin-heading">
         <a className="brand" href="/manage">
-          WG<span>私有管理</span>
+          {brand.shortName}<span>私有管理</span>
         </a>
         <Badge variant="outline">私有管理</Badge>
       </div>

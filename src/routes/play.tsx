@@ -1,7 +1,10 @@
+import { brand } from "../brand";
 import { useEffect, useState, useRef } from "react";
 import { useLoaderData, useBlocker, redirect } from "react-router";
 import { parseWorkSlug, workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
+import { pilotForVersion } from "../ons/pilots.server.ts";
+import { OnsPlayer } from "../ons/player.tsx";
 export function loader({
   params,
 }: {
@@ -15,10 +18,14 @@ export function loader({
     String(v.number) !== params.slot
   )
     return redirect(`/${workSlug(v.workId)}/${v.number}/`);
+  const player=pilotForVersion(v.id);
+  if(process.env.WG_ALL_ENGINES==='1'&&!player)throw new Response("此版本尚未完成播放器适配",{status:503});
   const w = store.get(v.workId)!;
   return {
     version: w.versions.find((x) => x.id === v.id)!,
     work: { title: w.title, url: w.url },
+    pilot: player,
+    cloud: process.env.WG_ONS_CLOUD === '1',
   };
 }
 export function meta({
@@ -29,8 +36,8 @@ export function meta({
   return [
     {
       title: data
-        ? `${data.work.title} · 版本 ${data.version.number} — WG`
-        : "WG · 故事放映室",
+        ? `${data.work.title} · 版本 ${data.version.number} — ${brand.shortName}`
+        : brand.title,
     },
   ];
 }
@@ -46,6 +53,11 @@ import {
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
 export default function Play() {
+  const { pilot, work, cloud } = useLoaderData<typeof loader>();
+  if (pilot) return <OnsPlayer key={pilot.id} pilot={pilot} workUrl={work.url} cloud={cloud} />;
+  return <LegacyPlay />;
+}
+function LegacyPlay() {
   const { version, work } = useLoaderData<typeof loader>();
   const [expanded, setExpanded] = useState(false);
   const [exitRequested, setExitRequested] = useState(false);

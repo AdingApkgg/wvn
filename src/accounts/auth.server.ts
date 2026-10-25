@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { betterAuth } from "better-auth";
@@ -20,7 +21,7 @@ export function makeAuth(
   isDeleted: (id: string) => boolean = () => false,
 ) {
   return betterAuth({
-    appName: "WG · 故事放映室",
+    appName: brand.title,
     baseURL: config.origin,
     secret: config.secret,
     database: db,
@@ -37,7 +38,7 @@ export function makeAuth(
     advanced: {
       ipAddress: { ipAddressHeaders: ["x-wg-client-ip"] },
       useSecureCookies: true,
-      cookiePrefix: "__Host-wg",
+      cookiePrefix: config.cookiePrefix ?? "__Host-wg",
       disableOriginCheck: false,
       disableCSRFCheck: false,
     },
@@ -82,7 +83,7 @@ export function makeAuth(
     plugins: [
       passkey({
         rpID: new URL(config.origin).hostname,
-        rpName: "WG · 故事放映室",
+        rpName: brand.title,
         origin: config.origin,
         authenticatorSelection: {
           residentKey: "required",

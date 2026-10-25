@@ -9,7 +9,7 @@ test("two devices claim the same snapshot once without replacing the current hea
   const f = await sharingFixture();
   try {
     const shares = new module.ShareClaims(f.shares);
-    const made = f.shares.create("alice", f.input);
+    const made = (await f.shares.create("alice", f.input));
     const input = {
       shareId: made.id,
       secret: made.secret,
@@ -49,7 +49,7 @@ test("revocation or identity change during copying cannot commit a partial recei
   const f = await sharingFixture();
   try {
     const claims = new module.ShareClaims(f.shares),
-      made = f.shares.create("alice", f.input);
+      made = (await f.shares.create("alice", f.input));
     let count = 0;
     const locked = async <T>(fn: () => T | Promise<T>) => {
       if (++count === 3) f.shares.revoke("alice", made.id);
@@ -73,10 +73,10 @@ test("revocation or identity change during copying cannot commit a partial recei
         .get()?.n,
       0,
     );
-    const second = f.shares.create("alice", {
+    const second = (await f.shares.create("alice", {
       ...f.input,
       requestId: "second-share",
-    });
+    }));
     await assert.rejects(
       () =>
         claims.claim(
@@ -97,7 +97,7 @@ test("an expired receipt resumes the original generation and a deleted target ne
   const f = await sharingFixture();
   try {
     const claims = new module.ShareClaims(f.shares),
-      made = f.shares.create("alice", f.input);
+      made = (await f.shares.create("alice", f.input));
     const input = { shareId: made.id, secret: made.secret, requestId: "retry" };
     let count = 0;
     await assert.rejects(() =>
@@ -114,7 +114,7 @@ test("an expired receipt resumes the original generation and a deleted target ne
     f.db
       .prepare("UPDATE wg_save_uploads SET expires=0 WHERE owner='bob'")
       .run();
-    f.saves.gc();
+    (await f.saves.gc());
     const result = await claims.claim("bob", () => {}, input);
     assert.equal(result.revision.originKind, "share");
     f.saves.remove("bob", result.profile.id, null, 1);
@@ -132,7 +132,7 @@ test("low disk and receiver deletion during copying leave no committed receipt",
   try {
     const { ShareStore } = await import("../src/accounts/shares.server.ts");
     const { SaveStore } = await import("../src/accounts/saves.server.ts");
-    const made = f.shares.create("alice", f.input);
+    const made = (await f.shares.create("alice", f.input));
     const low = new ShareStore(
       f.db,
       new SaveStore(f.db, f.root, () => 60 * 1024 ** 3),

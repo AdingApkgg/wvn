@@ -46,7 +46,7 @@ export function mountSaves({
   app.post("/api/me/save-profiles/:id/uploads", async (c) => {
     const { session } = await player(c);
     return c.json(
-      saves.reserve(session.user.id, c.req.param("id"), await c.req.json()),
+      await saves.reserve(session.user.id, c.req.param("id"), await c.req.json()),
     );
   });
   app.put("/api/me/uploads/:id/files/:file", async (c) => {
@@ -69,7 +69,7 @@ export function mountSaves({
   });
   app.post("/api/me/uploads/:id/commit", async (c) => {
     const { session } = await player(c);
-    const result = saves.commit(session.user.id, c.req.param("id"));
+    const result = await saves.commit(session.user.id, c.req.param("id"));
     return c.json(
       { ...result, ...(result.conflict ? { code: "CONTENT_CONFLICT" } : {}) },
       result.conflict ? 409 : 200,
@@ -95,7 +95,7 @@ export function mountSaves({
     const { session } = await player(c);
     const body = await c.req.json();
     return c.json(
-      saves.restore(
+      await saves.restore(
         session.user.id,
         c.req.param("id"),
         body.sourceId,

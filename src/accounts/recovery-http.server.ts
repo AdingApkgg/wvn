@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { createHash } from "node:crypto";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import {
@@ -6,11 +7,11 @@ import {
 } from "@simplewebauthn/server";
 import { AccountError } from "./errors.server.ts";
 import type { createAccountService } from "./service.server.ts";
-const COOKIE = "__Host-wg-recovery";
 export function mountRecovery(
   service: Awaited<ReturnType<typeof createAccountService>>,
 ) {
   const { app, db, config, player, recovery } = service;
+  const COOKIE = `${config.cookiePrefix ?? '__Host-wg'}-recovery`;
   db.exec(
     "CREATE TABLE IF NOT EXISTS wg_rate(key TEXT PRIMARY KEY,window INTEGER NOT NULL,count INTEGER NOT NULL)",
   );
@@ -62,7 +63,7 @@ export function mountRecovery(
       .get(state.userId);
     if (!user) throw new AccountError(401, "RECOVERY_EXPIRED");
     const options = await generateRegistrationOptions({
-      rpName: "WG · 故事放映室",
+      rpName: brand.title,
       rpID: new URL(config.origin).hostname,
       userName: String(user.name),
       userID: new TextEncoder().encode(state.userId),

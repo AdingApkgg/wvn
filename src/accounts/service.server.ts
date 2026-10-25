@@ -9,7 +9,6 @@ import { validateAccountConfig, type AccountConfig } from "./config.server.ts";
 import {
   makeAuth,
   newUserId,
-  secureEqual,
   RECENT_MS,
   ABSOLUTE_MS,
   type PlayerSession,
@@ -59,7 +58,7 @@ export async function createAccountService(
   );
   const recovery = new RecoveryStore(db);
   const library = new LibraryStore(db, config.catalog ?? []);
-  const saves = config.blobRoot ? new SaveStore(db, config.blobRoot) : null;
+  const saves = config.blobRoot ? new SaveStore(db, config.blobRoot, undefined, config.blobBackend) : null;
   const sharing =
     config.shareLedger && saves
       ? new ShareStore(
@@ -107,7 +106,7 @@ export async function createAccountService(
   app.use("*", async (c, next) => {
     if (
       c.req.path.startsWith("/api/") &&
-      ["same-site", "cross-site"].includes(c.req.header("sec-fetch-site") ?? "")
+      (c.req.header('origin') === 'null' || ["same-site", "cross-site"].includes(c.req.header("sec-fetch-site") ?? ""))
     )
       return c.json({ code: "ORIGIN_INVALID" }, 403);
     c.header("Cache-Control", "private, no-store");
@@ -122,13 +121,32 @@ export async function createAccountService(
     );
     if (new URL(c.req.url).origin !== config.origin)
       return c.json({ code: "HOST_MISMATCH" }, 421);
+    if(c.req.method==='OPTIONS'){
+      const requested=(c.req.header('access-control-request-headers')??'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+      if(config.publicResourcePreflight?.(c.req.path)&&['GET','HEAD'].includes(c.req.header('access-control-request-method')??'')&&requested.every(name=>['x-requested-with','range'].includes(name))){
+        return c.body(null,204,{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, HEAD','Access-Control-Allow-Headers':'X-Requested-With, Range','Access-Control-Max-Age':'600'});
+      }
+      return c.body(null,403);
+    }
     if (
       !["GET", "HEAD"].includes(c.req.method) &&
       c.req.header("origin") !== config.origin
     )
       return c.json({ code: "ORIGIN_INVALID" }, 403);
     if (c.req.method === "OPTIONS") return c.body(null, 403);
-    return next();
+    await next();
+    // Framework/file handlers can return their own Response, bypassing Hono's
+    // prepared headers. Fill missing defaults after dispatch without replacing
+    // the runtime sandbox CSP or explicitly immutable engine responses.
+    for (const [name, value] of Object.entries({
+      "Cache-Control": "private, no-store",
+      "Vary": "Cookie",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "no-referrer",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Content-Security-Policy": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+    })) if (!c.res.headers.has(name)) c.header(name, value);
   });
   const smallBody = bodyLimit({
     maxSize: 65536,
@@ -219,12 +237,12 @@ export async function createAccountService(
     c.json({
       status: "ok",
       service: "wg-accounts",
-      mode: "preview",
+      mode: config.deployment ?? "preview",
       revision: config.revision ?? null,
     }),
   );
   app.get("/api/login-options", (c) =>
-    c.json({ passkey: true, signup: "invite", password: false }),
+    c.json({ passkey: true, signup: "open", password: false, mode:config.deployment??"preview", isolated:config.isolated===true }),
   );
   app.get("/api/me", async (c) => {
     const { session, binding } = await player(c);
@@ -288,11 +306,6 @@ export async function createAccountService(
         };
       } else {
         const raw = JSON.parse(url.searchParams.get("context") ?? "{}");
-        if (
-          typeof raw.invite !== "string" ||
-          !secureEqual(raw.invite, config.signupInvite)
-        )
-          throw new AccountError(403, "INVITATION_REQUIRED");
         const name = String(raw.nickname ?? "")
           .normalize("NFKC")
           .trim();
@@ -364,10 +377,10 @@ export async function createAccountService(
   });
   const gc = saves
     ? setInterval(() => {
-        void withLock(() => {
+        void withLock(async () => {
           sharing?.gc();
           claims?.gc();
-          saves.gc();
+          await saves.gc();
         }).catch(() => {});
       }, 6 * 3600_000)
     : null;

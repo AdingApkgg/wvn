@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -37,7 +38,7 @@ function ReviewText({ label, text }: { label: string; text: ShareText }) {
 }
 export function meta() {
   return [
-    { title: "分享审核 · WG" },
+    { title: `分享审核 · ${brand.shortName}` },
     { name: "robots", content: "noindex,nofollow" },
   ];
 }
@@ -86,7 +87,7 @@ export default function ShareAdmin() {
   }
   return (
     <main className="container share-shell">
-      <p className="eyebrow">WG PRIVATE MODERATION</p>
+      <p className="eyebrow">{brand.shortName} PRIVATE MODERATION</p>
       <h1>分享审核</h1>
       <p className="text-muted-foreground">
         独立管理权限 · 批准发布不代表实机兼容性验证

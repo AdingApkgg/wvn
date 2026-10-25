@@ -9,7 +9,7 @@ mkdir -p "$sharing_state"
 chmod 700 "$sharing_state"
 # Verify prerequisites and actual ownership before changing any running process.
 source scripts/lib/sharing-preflight.sh
-for required in reports/sharing-source-revision reports/sharing-source-manifest.json build/server/index.js "$account_state/accounts.sqlite" "$account_state/tls.crt" "$account_state/tls.key" "$account_state/secret" "$account_state/invite" "$account_state/deletions.jsonl"; do
+for required in reports/sharing-source-revision reports/sharing-source-manifest.json build/server/index.js "$account_state/accounts.sqlite" "$account_state/tls.crt" "$account_state/tls.key" "$account_state/secret" "$account_state/deletions.jsonl"; do
  test -s "$required" || { test "$required" = "$account_state/deletions.jsonl" && test -f "$required"; } || { echo "Missing prerequisite: $required"; exit 1; }
 done
 preflight_listener 18283 "$account_state/pid" "$sharing_root" accounts-server.ts
@@ -44,7 +44,7 @@ nohup node --import tsx server.ts > "$sharing_state/catalog.log" 2>&1 < /dev/nul
 printf '%s\n' "$!" > "$sharing_state/catalog.pid"
 export WG_ACCOUNT_ORIGIN=https://localhost:18283 WG_ACCOUNT_PORT=18283 WG_ACCOUNT_UI=1 WG_ACCOUNT_REVISION=$(cat reports/sharing-source-revision)
 export WG_ACCOUNT_SHARE_LEDGER="$account_state/share-revocations.jsonl" WG_ACCOUNT_CATALOG_ORIGIN=http://127.0.0.1:18284
-export WG_ACCOUNT_SECRET_FILE="$account_state/secret" WG_ACCOUNT_INVITE_FILE="$account_state/invite" WG_ACCOUNT_TLS_KEY="$account_state/tls.key" WG_ACCOUNT_TLS_CERT="$account_state/tls.crt"
+export WG_ACCOUNT_SECRET_FILE="$account_state/secret" WG_ACCOUNT_TLS_KEY="$account_state/tls.key" WG_ACCOUNT_TLS_CERT="$account_state/tls.crt"
 export WG_SHARE_ADMIN_ORIGIN=https://localhost:18285 WG_SHARE_ADMIN_PORT=18285 WG_SHARE_ADMIN_TOKEN_FILE="$account_state/share-admin-token"
 nohup node --import tsx accounts-server.ts > "$account_state/server.log" 2>&1 < /dev/null &
 printf '%s\n' "$!" > "$account_state/pid"

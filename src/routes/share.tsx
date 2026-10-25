@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { SHARE_PROGRESS } from "../accounts/share-metadata";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
@@ -17,7 +18,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 export function meta() {
   return [
-    { title: "玩家存档 · WG" },
+    { title: `玩家存档 · ${brand.shortName}` },
     { name: "robots", content: "noindex,nofollow" },
   ];
 }
@@ -31,7 +32,6 @@ export default function Share() {
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [name, setName] = useState(""),
-    [invite, setInvite] = useState(""),
     [report, setReport] = useState("");
   const claimKey = useRef({ owner: "", id: "" });
   useEffect(() => {
@@ -99,15 +99,15 @@ export default function Share() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = name?.split("/").at(-1) ?? "WG-存档分享.zip";
+    link.download = name?.split("/").at(-1) ?? `${brand.shortName}-存档分享.zip`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
     <>
       <header className="site-header">
-        <a className="brand" href="https://wg.saop.cc/">
-          WG<span>故事放映室</span>
+        <a className="brand" href="/">
+          {brand.shortName}<span>{brand.translation}</span>
         </a>
         <Button asChild variant="outline">
           <a href="/account">我的账号</a>
@@ -225,14 +225,14 @@ export default function Share() {
                   </Button>
                   <details>
                     <summary className="cursor-pointer">
-                      还没有预览账号？
+                      还没有账号？
                     </summary>
                     <form
                       className="space-y-3 mt-4"
                       onSubmit={(e) => {
                         e.preventDefault();
                         void action(() =>
-                          account.passkey("signup", name, invite),
+                          account.passkey("signup", name),
                         );
                       }}
                     >
@@ -243,14 +243,6 @@ export default function Share() {
                         onChange={(e) => setName(e.target.value)}
                         required
                         maxLength={40}
-                      />
-                      <Label htmlFor="share-signup-invite">预览邀请码</Label>
-                      <Input
-                        id="share-signup-invite"
-                        type="password"
-                        value={invite}
-                        onChange={(e) => setInvite(e.target.value)}
-                        required
                       />
                       <Button type="submit" disabled={busy}>
                         创建通行密钥并注册

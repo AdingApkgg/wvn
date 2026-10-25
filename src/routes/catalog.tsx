@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { useState, type CSSProperties } from "react";
 import type { PublicWork } from "../types.ts";
 import { Button } from "../components/ui/button";
@@ -8,14 +9,15 @@ import {
   NativeSelectOption,
 } from "../components/ui/native-select";
 import { Badge } from "../components/ui/badge";
+import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
 import { Form, Link, useLoaderData } from "react-router";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 export function meta() {
   return [
-    { title: "WG · 故事放映室" },
-    { name: "description", content: "按作品与版本整理的浏览器视觉小说目录。" },
+    { title: brand.title },
+    { name: "description", content: brand.description },
   ];
 }
 export function loader({ request }: { request: Request }) {
@@ -52,104 +54,43 @@ export function loader({ request }: { request: Request }) {
   );
   return {
     items,
+    recentWorks: all.map(w => ({ title: w.title, versions: w.versions.map(v => ({id:v.id,url:v.url,number:v.number})) })),
     q,
     engine,
     state,
     tag,
+    release: process.env.WG_DEPLOYMENT_MODE === "production",
     total: all.length,
     versions: all.reduce((n, w) => n + w.versions.length, 0),
   };
 }
 export default function Catalog() {
-  const { items, q, engine, state, tag, total, versions } =
+  const { items, recentWorks, q, engine, state, tag, total, versions } =
     useLoaderData<typeof loader>();
   return (
     <>
-      <header className="site-header">
-        <Link className="brand" to="/">
-          WG<span>故事放映室</span>
-        </Link>
-        <Badge variant="outline" className="preview-badge">
-          远程预览
-        </Badge>
-      </header>
-      <main className="container">
-        <section className="hero">
-          <p className="eyebrow">A PLACE FOR EVERY STORY</p>
-          <h1>
-            让故事，
-            <br />
-            <em>有处可寻。</em>
-          </h1>
-          <p className="intro">
-            作品归于一处，版本各有其名。
-            <br />
-            选一段故事，从上次停下的地方继续。
-          </p>
-          <div className="stats">
-            <span>
-              <b>{total}</b> 部作品
-            </span>
-            <span>
-              <b>{versions}</b> 个版本
-            </span>
-            <span>ONS · Artemis · Ren'Py · Tyrano</span>
-          </div>
+      <main className="container catalog-page">
+        <section className="catalog-heading">
+          <div><p className="eyebrow">{brand.fullName}</p><h1>{brand.translation}</h1><p className="catalog-description">{brand.description}</p></div>
+          <p>{total} 部作品 <span aria-hidden="true">·</span> {versions} 个版本</p>
         </section>
-        <Form
-          key={q + engine + state + tag}
-          className="filters"
-          method="get"
-          role="search"
-        >
+        <Form key={q + engine + state + tag} className="catalog-search" method="get" role="search">
           {tag && <input type="hidden" name="tag" value={tag} />}
-          <div className="search field">
-            <Label htmlFor="catalog-search">搜索作品</Label>
-            <Input
-              id="catalog-search"
-              type="search"
-              name="q"
-              defaultValue={q}
-              placeholder="标题、别名或 VNDB / BGM 编号"
-            />
+          <div className="search-row">
+            <div className="search field"><Label htmlFor="catalog-search">搜索作品</Label><Input id="catalog-search" type="search" name="q" defaultValue={q} placeholder="标题、别名或 VNDB / BGM 编号" /></div>
+            <Button type="submit"><Search aria-hidden="true" />查找</Button>
+            {(q || engine || state || tag) && <Button asChild variant="ghost"><Link to="/">清除</Link></Button>}
           </div>
-          <div className="field">
-            <Label htmlFor="catalog-engine">引擎</Label>
-            <NativeSelect
-              id="catalog-engine"
-              name="engine"
-              defaultValue={engine}
-            >
-              <NativeSelectOption value="">全部引擎</NativeSelectOption>
-              {["ONS", "Artemis", "RenPy", "Tyrano"].map((x) => (
-                <NativeSelectOption key={x}>{x}</NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="field">
-            <Label htmlFor="catalog-state">检查记录</Label>
-            <NativeSelect id="catalog-state" name="state" defaultValue={state}>
-              <NativeSelectOption value="">全部状态</NativeSelectOption>
-              <NativeSelectOption value="unchecked">
-                未导入检查
-              </NativeSelectOption>
-              <NativeSelectOption value="passed">有通过记录</NativeSelectOption>
-              <NativeSelectOption value="failed">有失败记录</NativeSelectOption>
-              <NativeSelectOption value="incomplete">
-                检查未完成
-              </NativeSelectOption>
-            </NativeSelect>
-          </div>
-          <Button type="submit">
-            <Search aria-hidden="true" />
-            查找
-          </Button>
-          {(q || engine || state || tag) && (
-            <Button asChild variant="ghost">
-              <Link to="/">清除</Link>
-            </Button>
-          )}
+          <details className="advanced-filters" open={!!(engine || state) || undefined}>
+            <summary>高级筛选</summary>
+            <div className="advanced-filter-fields">
+              <div className="field"><Label htmlFor="catalog-engine">引擎</Label><NativeSelect id="catalog-engine" name="engine" defaultValue={engine}><NativeSelectOption value="">全部引擎</NativeSelectOption>{["ONS", "Artemis", "RenPy", "Tyrano"].map(x => <NativeSelectOption key={x}>{x}</NativeSelectOption>)}</NativeSelect></div>
+              <div className="field"><Label htmlFor="catalog-state">检查记录</Label><NativeSelect id="catalog-state" name="state" defaultValue={state}><NativeSelectOption value="">全部状态</NativeSelectOption><NativeSelectOption value="unchecked">未导入检查</NativeSelectOption><NativeSelectOption value="passed">有通过记录</NativeSelectOption><NativeSelectOption value="failed">有失败记录</NativeSelectOption><NativeSelectOption value="incomplete">检查未完成</NativeSelectOption></NativeSelect></div>
+              <p className="text-xs text-muted-foreground">检查记录仅反映已执行的项目。</p>
+            </div>
+          </details>
         </Form>
+        {!q && !engine && !state && !tag && <RecentReading works={recentWorks} />}
         <div className="section-title">
           <h2>故事目录</h2>
           <span>
@@ -172,7 +113,7 @@ export default function Catalog() {
           </div>
         )}
         <footer>
-          <span>WG · 每段故事，都值得好好收录。</span>
+          <span>{brand.shortName} · {brand.fullName} · {brand.translation}</span>
           <span>检查记录仅反映已执行的项目。</span>
         </footer>
       </main>

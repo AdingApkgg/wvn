@@ -11,7 +11,6 @@ test("independent deletion ledger is replayed after restoring an older database"
     database: join(root, "current.sqlite"),
     deletionLedger: join(root, "deletions.jsonl"),
     secret: "synthetic-secret-that-is-at-least-48-characters-long",
-    signupInvite: "test-invite",
   };
   let service = await createAccountService(config);
   try {

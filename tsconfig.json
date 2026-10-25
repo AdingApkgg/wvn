@@ -3,6 +3,7 @@
     "src/**/*",
     "server.ts",
     "accounts-server.ts",
+    "resource-server.ts",
     "scripts/*.ts",
     "tests/**/*.ts",
     ".react-router/types/**/*"

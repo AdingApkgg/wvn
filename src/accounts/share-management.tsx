@@ -242,8 +242,8 @@ export function ShareManagement({
                       "PATCH",
                       owner,
                     );
-                    setEdit(null);
                     await load();
+                    setEdit(null);
                   });
               }}
             >

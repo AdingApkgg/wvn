@@ -61,14 +61,14 @@ export async function sharingFixture(persistent = false) {
         sha256: createHash("sha256").update(content).digest("hex"),
       },
     ];
-  const u = saves.reserve("alice", p.id, {
+  const u = (await saves.reserve("alice", p.id, {
     expectedHead: null,
     generation: 1,
     captureId: "original",
     files,
-  });
+  }));
   await saves.write("alice", u.id, u.files[0].id, new Blob([content]).stream());
-  const revision = saves.commit("alice", u.id).revision;
+  const revision = (await saves.commit("alice", u.id)).revision;
   const input: import("../../src/accounts/share-types.ts").ShareInput = {
     profileId: p.id,
     generation: 1,

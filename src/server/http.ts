@@ -5,6 +5,8 @@ import { ZodError } from "zod";
 import { Conflict, Store } from "./store.ts";
 import { Auth } from "./auth.ts";
 import { fileResponse } from "./resources.ts";
+import { registerOnsPilot } from "../ons/http.server.ts";
+import { pilotForVersion } from "../ons/pilots.server.ts";
 function base() {
   const app = new Hono();
   app.use("*", async (c, next) => {
@@ -35,6 +37,7 @@ export function createPublicApp(
   mediaRoot?: string,
 ) {
   const app = base();
+  if (process.env.WG_ONS_PILOT === "1") registerOnsPilot(app, root);
   app.get("/favicon.ico", (c) =>
     c.body(
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#13151b"/><text x="32" y="42" fill="#d3b9a1" text-anchor="middle" font-family="serif" font-size="30">W</text></svg>',
@@ -98,6 +101,14 @@ export function createPublicApp(
           encodeURI(match.legacyPath) + new URL(c.req.url).search,
           302,
         );
+      const pilot = pilotForVersion(match.id);
+      if (pilot) {
+        // Check the same decoded path used by resource matching. All legacy
+        // files for a pilot are closed; its data is served only via manifests.
+        // This also avoids Windows trailing-dot/space filename aliases.
+        if ([match.legacyPath, match.legacyPath + "index.html", match.legacyPath + "onsyuri.html"].includes(decoded)) return c.redirect(pilot.route, 302);
+        return c.notFound();
+      }
       return fileResponse(
         c.req.raw,
         root,

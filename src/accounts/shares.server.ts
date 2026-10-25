@@ -204,10 +204,10 @@ export class ShareStore {
       return null;
     }
   }
-  create(
+  async create(
     owner: string,
     input: ShareInput,
-  ): { id: string; secret?: string; state: string; duplicate?: boolean } {
+  ): Promise<{ id: string; secret?: string; state: string; duplicate?: boolean }> {
     const text = this.text(input);
     if (
       !["public", "link"].includes(input.mode) ||
@@ -218,6 +218,7 @@ export class ShareStore {
     )
       throw new AccountError();
     const payload = sha(JSON.stringify({ ...input, ...text }));
+    await this.saves.snapshot(owner, input.profileId, input.revisionId);
     return this.atomic(() => {
       const key = this.db
         .prepare(
@@ -241,7 +242,7 @@ export class ShareStore {
           duplicate: true,
         };
       }
-      const source = this.saves.snapshot(
+      const source = this.saves.snapshotMetadata(
         owner,
         input.profileId,
         input.revisionId,

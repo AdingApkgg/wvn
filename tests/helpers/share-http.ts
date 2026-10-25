@@ -28,7 +28,6 @@ export async function shareHttpFixture() {
     database: ":memory:",
     blobRoot: root,
     secret: "synthetic-test-secret-that-is-at-least-48-characters",
-    signupInvite: "test-invite",
     shareLedger: join(root, "revoked.jsonl"),
     catalogProvider: async () => catalog,
     catalog,
@@ -38,7 +37,7 @@ export async function shareHttpFixture() {
       origin +
         "/api/auth/passkey/generate-register-options?context=" +
         encodeURIComponent(
-          JSON.stringify({ nickname: name, invite: "test-invite" }),
+          JSON.stringify({ nickname: name }),
         ),
     );
     const data = await options.json();

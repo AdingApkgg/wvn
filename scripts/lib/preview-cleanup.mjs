@@ -68,6 +68,9 @@ export class PreviewCleanup {
       closeSync(fd);
     }
     renameSync(temporary, this.report);
+    // Windows cannot fsync a directory handle. The report file itself is
+    // already flushed before the atomic rename on every platform.
+    if (process.platform === "win32") return;
     const directory = openSync(this.directory, "r");
     try {
       fsyncSync(directory);

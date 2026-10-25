@@ -49,7 +49,7 @@ test("long downloads refresh live catalog and stop if their version becomes hidd
     const saves = f.service.saves!;
     const profile = saves.createProfile(me.user.id, "version-a");
     const bytes = Buffer.alloc(1024 * 1024, 42);
-    const upload = saves.reserve(me.user.id, profile.id, {
+    const upload = (await saves.reserve(me.user.id, profile.id, {
       expectedHead: null,
       generation: 1,
       captureId: "slow",
@@ -60,16 +60,16 @@ test("long downloads refresh live catalog and stop if their version becomes hidd
           sha256: createHash("sha256").update(bytes).digest("hex"),
         },
       ],
-    });
+    }));
     await saves.write(
       me.user.id,
       upload.id,
       upload.files[0].id,
       new Blob([bytes]).stream(),
     );
-    const revision = saves.commit(me.user.id, upload.id).revision;
+    const revision = (await saves.commit(me.user.id, upload.id)).revision;
     await f.service.sharing!.catalog.refresh(true);
-    const made = f.service.sharing!.create(me.user.id, {
+    const made = (await f.service.sharing!.create(me.user.id, {
       profileId: profile.id,
       generation: 1,
       revisionId: revision.id,
@@ -80,7 +80,7 @@ test("long downloads refresh live catalog and stop if their version becomes hidd
       description: "",
       progress: "chapter",
       spoiler: false,
-    });
+    }));
     const response = await f.api(
       "/api/me/share-downloads",
       cookie,

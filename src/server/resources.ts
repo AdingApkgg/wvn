@@ -38,6 +38,7 @@ export async function fileResponse(
   root: string,
   path: string,
   namespace?: string,
+  allowListedHiddenOgg = false,
 ): Promise<Response> {
   try {
     const decoded = decodeURIComponent(path);
@@ -45,7 +46,7 @@ export async function fileResponse(
       /[\\%\u0000-\u001f]/.test(decoded) ||
       decoded
         .split("/")
-        .some((x) => x === "." || x === ".." || x.startsWith(".")) ||
+        .some((x, i, parts) => x === "." || x === ".." || (x.startsWith(".") && !(allowListedHiddenOgg && i === parts.length - 1 && /^\.[^.]+\.ogg$/i.test(x)))) ||
       /\.(?:ps1|py|exe|sqlite|db|env)$/i.test(decoded)
     )
       return new Response(null, { status: 404 });

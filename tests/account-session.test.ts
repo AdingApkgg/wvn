@@ -12,7 +12,6 @@ test("sessions survive a process restart and absolute expiration removes stale s
     database: join(root, "accounts.sqlite"),
     deletionLedger: join(root, "deletions.jsonl"),
     secret: "synthetic-secret-that-is-at-least-48-characters-long",
-    signupInvite: "test-invite",
   };
   let service = await createAccountService(config);
   try {
@@ -22,7 +21,7 @@ test("sessions survive a process restart and absolute expiration removes stale s
         encodeURIComponent(
           JSON.stringify({
             nickname: "Persistent Reader",
-            invite: config.signupInvite,
+            
           }),
         ),
     );
@@ -84,7 +83,6 @@ test("a renewal Cookie delivered after sign-out cannot revive the revoked sessio
     database: join(root, "accounts.sqlite"),
     deletionLedger: join(root, "deletions.jsonl"),
     secret: "synthetic-secret-that-is-at-least-48-characters-long",
-    signupInvite: "test-invite",
   };
   const service = await createAccountService(config);
   try {
@@ -94,7 +92,7 @@ test("a renewal Cookie delivered after sign-out cannot revive the revoked sessio
         encodeURIComponent(
           JSON.stringify({
             nickname: "Late Cookie",
-            invite: config.signupInvite,
+            
           }),
         ),
     );

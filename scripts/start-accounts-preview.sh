@@ -22,12 +22,12 @@ if ! test -f "$preview_state/tls.key"; then
 fi
 node --input-type=module - "$preview_state" <<'NODE'
 import {existsSync,writeFileSync} from 'node:fs';import {randomBytes}from'node:crypto';
-for(const name of ['secret','invite']){const path=process.argv[2]+'/'+name;if(!existsSync(path))writeFileSync(path,randomBytes(name==='secret'?48:24).toString('base64url'),{mode:0o600});}
+for(const name of ['secret']){const path=process.argv[2]+'/'+name;if(!existsSync(path))writeFileSync(path,randomBytes(48).toString('base64url'),{mode:0o600});}
 NODE
 export WG_ACCOUNT_REVISION=$(cat reports/accounts-source-revision)
 export WG_ACCOUNT_ORIGIN=https://localhost:18283 WG_ACCOUNT_PORT=18283 WG_ACCOUNT_UI=1
 export WG_ACCOUNT_DATABASE="$preview_state/accounts.sqlite" WG_ACCOUNT_BLOBS="$preview_state/blobs" WG_ACCOUNT_DELETION_LEDGER="$preview_state/deletions.jsonl"
-export WG_ACCOUNT_SECRET_FILE="$preview_state/secret" WG_ACCOUNT_INVITE_FILE="$preview_state/invite"
+export WG_ACCOUNT_SECRET_FILE="$preview_state/secret"
 export WG_ACCOUNT_TLS_KEY="$preview_state/tls.key" WG_ACCOUNT_TLS_CERT="$preview_state/tls.crt"
 nohup node --import tsx accounts-server.ts > "$preview_state/server.log" 2>&1 < /dev/null &
 account_pid=$!

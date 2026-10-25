@@ -77,9 +77,7 @@ try {
       await page
         .getByLabel("昵称", { exact: true })
         .fill("清理验收 · " + run.runId.slice(0, 8));
-      await page
-        .getByLabel("预览邀请码")
-        .fill(readFileSync("state/accounts-preview/invite", "utf8").trim());
+      
       const registration = page.waitForResponse(
         (response) =>
           response.url().endsWith("/api/auth/passkey/verify-registration") &&

@@ -16,7 +16,7 @@ test("joint backups include share-only references and replay a newer revocation 
   const f = await sharingFixture(true);
   let restored: DatabaseSync | undefined;
   try {
-    const made = f.shares.create("alice", f.input);
+    const made = (await f.shares.create("alice", f.input));
     new DeletionLedger(join(f.root, "deletions.jsonl"));
     f.db
       .prepare("DELETE FROM wg_save_refs WHERE revision=?")

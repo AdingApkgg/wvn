@@ -7,6 +7,7 @@ function env(name: string) {
   if (!value) throw new Error(`${name} is required`);
   return value;
 }
+if (process.env.WG_BLOB_UPSTREAM) throw new Error("Split storage requires scripts/backup-split-web.py to join metadata and Windows blobs; local-only backup is refused");
 if (process.argv[2] === "restore") {
   console.log(
     JSON.stringify(

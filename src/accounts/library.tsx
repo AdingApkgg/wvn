@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
 import { CloudBackups } from "./cloud";
 import type { useAccount } from "./client";
 import type { CatalogItem, LibraryEntry } from "./library.server";
@@ -24,23 +25,20 @@ const statuses = {
   dropped: "放弃",
 };
 type Account = ReturnType<typeof useAccount>;
-type Playback = {
-  id: string;
-  work: CatalogItem;
-  version: CatalogItem["versions"][number];
-};
 export function Library({
   account,
   run,
+  view = "library",
 }: {
   account: Account;
+  view?: string;
   run: (fn: () => Promise<void>) => Promise<void>;
 }) {
   const [catalog, setCatalog] = useState<CatalogItem[]>([]),
     [entries, setEntries] = useState<LibraryEntry[]>([]),
     [query, setQuery] = useState(""),
-    [selected, setSelected] = useState(""),
-    [play, setPlay] = useState<Playback | null>(null);
+    [selected, setSelected] = useState("");
+  const navigate = useNavigate();
   const { request } = account;
   async function reload() {
     setEntries(await request<LibraryEntry[]>("/api/me/library"));
@@ -68,7 +66,8 @@ export function Library({
     w.title.toLowerCase().includes(query.toLowerCase()),
   );
   return (
-    <section className="account-library space-y-6">
+    <section className="account-library space-y-6" hidden={!["library", "saves"].includes(view)}>
+      <div hidden={view !== "library"} className="space-y-6">
       <div className="space-y-3">
         <h2>私人书架</h2>
         <Label htmlFor="library-search">寻找一部故事</Label>
@@ -115,16 +114,6 @@ export function Library({
           </Button>
         </div>
       </div>
-      {play && (
-        <AccountPlayer
-          play={play}
-          account={account}
-          close={() => {
-            setPlay(null);
-            void run(reload);
-          }}
-        />
-      )}
       {entries.length === 0 ? (
         <p className="text-muted-foreground">
           书架还空着。选一部故事，让下一次重逢有迹可循。
@@ -150,16 +139,11 @@ export function Library({
                 }
                 start={(versionId) =>
                   run(async () => {
-                    const session = await request<{ id: string }>(
-                      "/api/me/play-sessions",
-                      { versionId, eventId: crypto.randomUUID() },
-                    );
-                    setPlay({
-                      id: session.id,
-                      work,
-                      version: work.versions.find((v) => v.id === versionId)!,
-                    });
-                    await reload();
+                    const check = account.guard();
+                    const session = await request<{ id: string }>("/api/me/play-sessions", { versionId, eventId: crypto.randomUUID() });
+                    check();
+                    const version = work.versions.find(v => v.id === versionId)!;
+                    navigate(`${version.url}?session=${encodeURIComponent(session.id)}`);
                   })
                 }
               />
@@ -167,8 +151,9 @@ export function Library({
           })}
         </div>
       )}
-      <CloudBackups account={account} catalog={catalog} run={run} />
-      <p className="text-sm text-muted-foreground">
+      </div>
+      <div hidden={view !== "saves"}><h2>我的存档</h2><p className="text-sm text-muted-foreground">管理云端备份与历史版本。本机存档在各作品的播放器内管理。</p><CloudBackups account={account} catalog={catalog} run={run} /></div>
+      <p hidden={view !== "library"} className="text-sm text-muted-foreground">
         游玩时长是前台停留的估算。自动存档同步尚未启用，游戏内仍需手动保存。
       </p>
     </section>
@@ -242,103 +227,7 @@ function Book({
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <Button onClick={() => start(version)}>继续阅读</Button>
-      </CardContent>
-    </Card>
-  );
-}
-function AccountPlayer({
-  play,
-  account,
-  close,
-}: {
-  play: Playback;
-  account: Account;
-  close: () => void;
-}) {
-  const sequence = useRef(0),
-    lastInput = useRef(Date.now());
-  const [ready, setReady] = useState(false),
-    [idle, setIdle] = useState(false),
-    [online, setOnline] = useState(true);
-  useEffect(() => {
-    const pulse = () => {
-      const inactive = Date.now() - lastInput.current >= 300_000;
-      setIdle(inactive);
-      const active =
-        ready &&
-        document.visibilityState === "visible" &&
-        document.hasFocus() &&
-        !inactive;
-      void account
-        .request(`/api/me/play-sessions/${play.id}/heartbeat`, {
-          seq: ++sequence.current,
-          active,
-        })
-        .then(() => setOnline(true))
-        .catch(() => setOnline(false));
-    };
-    const timer = setInterval(pulse, 30_000);
-    pulse();
-    document.addEventListener("visibilitychange", pulse);
-
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", pulse);
-
-      void account
-        .request(`/api/me/play-sessions/${play.id}/heartbeat`, {
-          seq: ++sequence.current,
-          active: false,
-        })
-        .catch(() => {});
-    };
-  }, [play.id, account.request, ready]);
-  const url = "https://wg.saop.cc" + play.version.url;
-  return (
-    <Card className="account-reader">
-      <CardHeader>
-        <CardTitle>
-          {play.work.title} · 版本 {play.version.number}
-        </CardTitle>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={close}>
-            结束本次阅读
-          </Button>
-          <Button
-            variant="outline"
-            disabled={ready && !idle}
-            onClick={() => {
-              lastInput.current = Date.now();
-              setIdle(false);
-              setReady(true);
-            }}
-          >
-            {!ready
-              ? "画面已就绪，开始记录"
-              : idle
-                ? "继续记录时间"
-                : "正在记录（每 5 分钟手动续期）"}
-          </Button>
-          <Button variant="link" asChild>
-            <a href={url} target="_blank" rel="noreferrer">
-              在原入口打开
-            </a>
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <iframe
-          title={`${play.work.title} 阅读画面`}
-          src={url}
-          allow="autoplay; fullscreen; cross-origin-isolated"
-          allowFullScreen
-        />
-        {!online && <p role="status">计时连接中断，断线时长暂未计入。</p>}
-        <p className="text-sm text-muted-foreground mt-3">
-          若画面无法载入，可使用原入口。原浏览器存档仍保留在游戏站点；此处暂不自动上传或恢复。请确认游戏可正常阅读后开始记录。此预览无法检测游戏画面内的操作；每
-          5 分钟暂停一次，请手动点击“继续记录时间”续期。
-        </p>
+        <Button onClick={() => start(version)}>{entry.lastVersionId ? "继续阅读" : "开始阅读"}</Button>
       </CardContent>
     </Card>
   );

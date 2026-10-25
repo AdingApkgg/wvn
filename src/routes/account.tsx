@@ -1,4 +1,6 @@
+import { brand } from "../brand";
 import { useEffect, useState } from "react";
+import {useLoaderData, useSearchParams} from "react-router";
 import { startRegistration } from "@simplewebauthn/browser";
 import { Fingerprint, KeyRound, ShieldCheck, Monitor } from "lucide-react";
 import { ShareManagement } from "../accounts/share-management";
@@ -34,17 +36,24 @@ import {
 } from "../components/ui/alert-dialog";
 export function meta() {
   return [
-    { title: "我的故事 · WG" },
+    { title: `账号与存档 · ${brand.shortName}` },
     { name: "robots", content: "noindex,nofollow" },
   ];
 }
+export function loader(){return {release:process.env.WG_DEPLOYMENT_MODE === "production"}}
 type RecoveryKit = {
   accountId: string;
   codes: string[];
   signInRequired?: boolean;
 };
 export default function Account() {
+  const {release}=useLoaderData<typeof loader>();
   const account = useAccount();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const candidate = searchParams.get("tab") ?? "library";
+  const tab = ["library", "saves", "shares", "security"].includes(candidate) ? candidate : "library";
+  const [authMode, setAuthMode] = useState("login");
+  useEffect(() => { if (!account.me) setAuthMode("login"); }, [account.me?.user.id]);
   const {
     me,
     options,
@@ -58,8 +67,7 @@ export default function Account() {
   } = account;
   const [busy, setBusy] = useState(false),
     [supported, setSupported] = useState(false),
-    [nickname, setNickname] = useState(""),
-    [invite, setInvite] = useState("");
+    [nickname, setNickname] = useState("");
   const [recoveryId, setRecoveryId] = useState(""),
     [recoveryCode, setRecoveryCode] = useState(""),
     [kit, setKit] = useState<RecoveryKit | null>(null),
@@ -70,7 +78,6 @@ export default function Account() {
     const clear = () => {
       setKit(null);
       setRecoveryCode("");
-      setInvite("");
     };
     window.addEventListener("wg-account-invalidated", clear);
     return () => window.removeEventListener("wg-account-invalidated", clear);
@@ -118,25 +125,19 @@ export default function Account() {
     if (!kit) return;
     const blob = new Blob(
       [
-        `WG 恢复码\n账号标识：${kit.accountId}\n每枚码只能使用一次，请保存在可信的离线位置。\n\n${kit.codes.join("\n")}\n`,
+        `${brand.shortName} 恢复码\n账号标识：${kit.accountId}\n每枚码只能使用一次，请保存在可信的离线位置。\n\n${kit.codes.join("\n")}\n`,
       ],
       { type: "text/plain;charset=utf-8" },
     );
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "WG-恢复码.txt";
+    link.download = `${brand.shortName}-恢复码.txt`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
     <>
-      <header className="site-header">
-        <a className="brand" href="https://wg.saop.cc/">
-          WG<span>故事放映室</span>
-        </a>
-        <Badge variant="outline">账号远程预览</Badge>
-      </header>
       <main
         className={
           "container account-shell" + (!me ? " account-anonymous" : "")
@@ -145,12 +146,12 @@ export default function Account() {
         {!me ? (
           <>
             <section className="account-intro">
-              <p className="eyebrow">YOUR STORIES, YOUR KEY</p>
-              <h1>让进度，随你同行。</h1>
+              <p className="eyebrow">{brand.fullName}</p>
+              <h1>管理你的作品与存档</h1>
               <p>
-                用通行密钥开启你的私人书架。
+                使用通行密钥登录 {brand.shortName}。
                 <br />
-                一把密钥，留住每次重逢。
+                管理作品收藏、阅读进度和云存档。
               </p>
               <div className="account-promises">
                 <span>
@@ -166,7 +167,7 @@ export default function Account() {
             <Card className="account-login">
               <CardHeader>
                 <CardTitle>
-                  <h2>进入故事放映室</h2>
+                  <h2>登录 {brand.shortName}</h2>
                 </CardTitle>
                 <CardDescription>
                   通行密钥由你的设备或密码管理器保管。
@@ -177,25 +178,18 @@ export default function Account() {
                   <p role="status">正在确认账号状态…</p>
                 ) : (
                   <>
-                    <Button
-                      className="w-full"
-                      disabled={busy || !supported || !options?.passkey}
-                      onClick={() => run(() => passkey("login"))}
-                    >
-                      <Fingerprint />
-                      使用通行密钥登录
-                    </Button>
-                    <Tabs defaultValue="signup">
-                      <TabsList>
-                        <TabsTrigger value="signup">创建账号</TabsTrigger>
-                        <TabsTrigger value="recover">恢复账号</TabsTrigger>
-                      </TabsList>
+                    <Tabs value={authMode} onValueChange={setAuthMode}>
+                      <TabsList aria-label="账号入口"><TabsTrigger value="login">登录</TabsTrigger><TabsTrigger value="signup">创建账号</TabsTrigger></TabsList>
+                      <TabsContent value="login" className="space-y-4 pt-4">
+                        <p className="text-sm text-muted-foreground">登录后继续管理书架、云存档和分享。</p>
+                        <Button className="w-full" disabled={busy || !supported || !options?.passkey} onClick={() => run(() => passkey("login"))}><Fingerprint />使用通行密钥登录</Button>
+                      </TabsContent>
                       <TabsContent value="signup">
                         <form
                           className="space-y-4 pt-4"
                           onSubmit={(e) => {
                             e.preventDefault();
-                            void run(() => passkey("signup", nickname, invite));
+                            void run(() => passkey("signup", nickname));
                           }}
                         >
                           <div className="space-y-2">
@@ -209,17 +203,6 @@ export default function Account() {
                               onChange={(e) => setNickname(e.target.value)}
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="account-invite">预览邀请码</Label>
-                            <Input
-                              id="account-invite"
-                              type="password"
-                              autoComplete="off"
-                              required
-                              value={invite}
-                              onChange={(e) => setInvite(e.target.value)}
-                            />
-                          </div>
                           <Button
                             variant="outline"
                             type="submit"
@@ -229,7 +212,7 @@ export default function Account() {
                             创建通行密钥并注册
                           </Button>
                           <p className="text-sm text-muted-foreground">
-                            预览账号与正式账号分开。请勿把测试凭据当作正式备份。
+                            {release?"每账号提供 512 MiB 云存档空间，请妥善保管通行密钥与恢复码。":"预览账号与正式账号分开。请勿把测试凭据当作正式备份。"}
                           </p>
                         </form>
                       </TabsContent>
@@ -275,6 +258,7 @@ export default function Account() {
                         </form>
                       </TabsContent>
                     </Tabs>
+                    <Button variant="link" size="sm" onClick={() => setAuthMode(authMode === "recover" ? "login" : "recover")}>{authMode === "recover" ? "返回登录" : "丢失通行密钥？恢复账号"}</Button>
                   </>
                 )}
                 {!loading && !supported && (
@@ -318,12 +302,11 @@ export default function Account() {
                 </Button>
               </div>
             </section>
-            <Library key={me.user.id} account={account} run={run} />
-            <ShareManagement
-              key={"shares-" + me.user.id}
-              account={account}
-              run={run}
-            />
+            <Tabs value={tab} onValueChange={value => { const next = new URLSearchParams(searchParams); next.set("tab", value); setSearchParams(next, { preventScrollReset: true }); }} className="account-sections">
+              <TabsList aria-label="我的故事分区" className="account-section-tabs"><TabsTrigger value="library">书架</TabsTrigger><TabsTrigger value="saves">存档</TabsTrigger><TabsTrigger value="shares">我的分享</TabsTrigger><TabsTrigger value="security">账号安全</TabsTrigger></TabsList>
+              <Library key={me.user.id} account={account} run={run} view={tab} />
+              <TabsContent value="shares" forceMount hidden={tab !== "shares"}><ShareManagement key={"shares-" + me.user.id} account={account} run={run} /></TabsContent>
+              <TabsContent value="security" forceMount hidden={tab !== "security"}>
             <div className="account-grid account-settings">
               <Card>
                 <CardHeader>
@@ -489,7 +472,7 @@ export default function Account() {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement("a");
                     link.href = url;
-                    link.download = "WG-我的故事.json";
+                    link.download = `${brand.shortName}-我的故事.json`;
                     link.click();
                     setTimeout(() => URL.revokeObjectURL(url), 1000);
                   })
@@ -505,6 +488,8 @@ export default function Account() {
                 删除账号
               </Button>
             </div>
+              </TabsContent>
+            </Tabs>
           </>
         )}
         {error && (

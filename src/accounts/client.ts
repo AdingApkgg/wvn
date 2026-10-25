@@ -1,3 +1,4 @@
+import { readAccountView } from "./response";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createAuthClient } from "better-auth/client";
 import { passkeyClient } from "@better-auth/passkey/client";
@@ -20,7 +21,6 @@ export function errorCopy(code: string) {
   return (
     (
       {
-        INVITATION_REQUIRED: "请输入有效的预览邀请码。",
         NICKNAME_INVALID: "昵称需要 1–40 个可见字符。",
         REAUTH_REQUIRED: "请再使用通行密钥验证一次，然后重试。",
         IDENTITY_CHANGED: "账号状态已变化，请重新操作。",
@@ -29,8 +29,11 @@ export function errorCopy(code: string) {
         RECOVERY_EXPIRED: "恢复已过期，请使用另一枚恢复码重新开始。",
         TRY_LATER: "尝试过于频繁，请稍后再试。",
         NETWORK: "连接暂时中断，请重试。",
+        LEGACY_CONTEXT: "请关闭旧版游戏页面并刷新后重试；原存档未修改。",
         LOCAL_STORAGE:
           "此设备无法持久保存待上传副本，请先导出文件或清理浏览器存储后再试。",
+        STORAGE_UNAVAILABLE: "云存档存储暂时无法连接，请稍后重试；原备份保留。",
+        UPLOAD_BUSY: "当前上传较多，请稍后重试。",
         SPACE_STOP: "服务器已到预留空间红线，暂停新上传；已有备份仍可下载。",
         ACCOUNT_QUOTA: "云端额度不足，请导出并移除不再需要的备份。",
         SNAPSHOT_LIMIT: "存档超过文件数量或大小上限。",
@@ -50,6 +53,8 @@ export function useAccount() {
   const [options, setOptions] = useState<{
     passkey: boolean;
     signup: string;
+    mode?: string;
+    isolated?: boolean;
   } | null>(null);
   const [me, setMe] = useState<AccountView | null>(null),
     [loading, setLoading] = useState(true),
@@ -104,9 +109,7 @@ export function useAccount() {
         const available = await capabilities.json();
         if (!response.ok && response.status !== 401)
           throw new AccountClientError("NETWORK");
-        const next = response.ok
-          ? ((await response.json()) as AccountView)
-          : null;
+        const next = await readAccountView(response);
         if (
           !alive.current ||
           seq !== sequence.current ||
@@ -267,20 +270,56 @@ export function useAccount() {
           : {},
       },
     });
+  const readFile = async (path: string, owner: string, expectedBytes: number): Promise<Blob> => {
+    if (!Number.isSafeInteger(expectedBytes) || expectedBytes < 0 || expectedBytes > 32 * 1024 ** 2) throw new AccountClientError('SNAPSHOT_LIMIT');
+    if (current.current?.user.id !== owner) throw new AccountClientError('IDENTITY_CHANGED');
+    const check = guard();
+    const response = await fetch(path, { cache: 'no-store', signal: controller.current.signal });
+    check();
+    if (!response.ok) {
+      await response.body?.cancel();
+      if(response.status===401)await refresh(true);
+      throw new AccountClientError(response.status === 401 ? 'SIGN_IN_REQUIRED' : 'NETWORK');
+    }
+    if (!response.body) throw new AccountClientError('NETWORK');
+    const reader = response.body.getReader(), chunks: Uint8Array<ArrayBuffer>[] = []; let total = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read(); check();
+        if (done) break;
+        total += value.length;
+        if (total > expectedBytes) throw new AccountClientError('SNAPSHOT_LIMIT');
+        chunks.push(new Uint8Array(value));
+      }
+      if (total !== expectedBytes) throw new AccountClientError('NETWORK');
+      check(); return new Blob(chunks);
+    } finally { await reader.cancel().catch(() => {}); }
+  };
   const passkey = async (
     kind: "signup" | "login" | "add",
     nickname = "",
-    invite = "",
   ) => {
     ceremony.current = true;
     const start = epoch.current,
       client = authClient();
     try {
+      if(options?.mode==='production'&&options.isolated){
+        const path='/player/legacy-context.mjs';
+        try{
+          const module=await import(/* @vite-ignore */ path) as typeof import('../../public/player/legacy-context.mjs');
+          await module.prepareCurrentContext();
+          if(localStorage.getItem('wg-isolation-upgrade-20261020')!=='acknowledged'){
+            if(!window.confirm('登录前请先关闭其他仍在运行的旧版游戏页面。旧存档不会清除，可在统一播放器内迁移。关闭旧版页面后，点击确定继续。'))throw Error('Legacy tabs acknowledgement cancelled');
+            localStorage.setItem('wg-isolation-upgrade-20261020','acknowledged');window.dispatchEvent(new Event('wg-legacy-tabs-acknowledged'));
+          }
+        }catch{throw new AccountClientError('LEGACY_CONTEXT')}
+        if(start!==epoch.current)throw new AccountClientError('IDENTITY_CHANGED');
+      }
       const result =
         kind === "login"
           ? await client.signIn.passkey()
           : await client.passkey.addPasskey({
-              context: JSON.stringify({ nickname, invite }),
+              context: JSON.stringify({ nickname }),
               createSession: true,
             });
       if (start !== epoch.current)
@@ -309,6 +348,7 @@ export function useAccount() {
     passkey,
     upload,
     download,
+    readFile,
     guard,
     withCeremony,
     isOwner: (id: string) => current.current?.user.id === id,

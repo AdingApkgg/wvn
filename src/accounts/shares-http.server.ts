@@ -1,3 +1,4 @@
+import { brand } from "../brand";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { randomUUID } from "node:crypto";
 import type { AccountService } from "./service.server.ts";
@@ -50,7 +51,7 @@ export function mountShares(service: AccountService) {
   app.post("/api/me/save-shares", async (c) => {
     const { session } = await player(c, true);
     await sharing.catalog.refresh(true);
-    return c.json(sharing.create(session.user.id, await c.req.json()), 201);
+    return c.json(await sharing.create(session.user.id, await c.req.json()), 201);
   });
   app.patch("/api/me/save-shares/:id", async (c) => {
     const { session } = await player(c, true),
@@ -87,7 +88,7 @@ export function mountShares(service: AccountService) {
   });
   app.get("/api/me/share-claims/:request", async (c) => {
     const { session } = await player(c);
-    return c.json(claims.status(session.user.id, c.req.param("request")));
+    return c.json(await claims.status(session.user.id, c.req.param("request")));
   });
   app.post("/api/me/share-reports", async (c) => {
     const { session } = await player(c);
@@ -147,7 +148,7 @@ export function mountShares(service: AccountService) {
           await check();
           yield {
             name: "files/" + file.name,
-            bytes: sharing!.saves.readBlob(owner, file),
+            bytes: await sharing!.saves.readBlob(owner, file),
           };
         }
       }
@@ -196,7 +197,7 @@ export function mountShares(service: AccountService) {
       );
       c.header(
         "Content-Disposition",
-        `attachment; filename*=UTF-8''${encodeURIComponent(input.name === undefined ? "WG-存档分享.zip" : selected[0].name.split("/").at(-1)!)}`,
+        `attachment; filename*=UTF-8''${encodeURIComponent(input.name === undefined ? `${brand.shortName}-存档分享.zip` : selected[0].name.split("/").at(-1)!)}`,
       );
       return c.body(body);
     } catch (e) {

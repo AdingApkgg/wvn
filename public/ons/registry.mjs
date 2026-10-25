@@ -1,0 +1,290 @@
+// Audited against WVN-STORAGE manifests; legacy database names are read-only sources.
+export const pilots = Object.freeze([
+  {
+    "id": "clannad",
+    "workId": "v4",
+    "slot": 1,
+    "versionId": "legacy-a1a835ec6184bfd5142f454f",
+    "title": "CLANNAD",
+    "directory": "clannad",
+    "legacySave": "/onsyuri_save/clannad",
+    "route": "/4/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "saya",
+    "workId": "v97",
+    "slot": 1,
+    "versionId": "legacy-37a5c1365c6dec71ede5d1a3",
+    "title": "沙耶之歌",
+    "directory": "song-of-saya",
+    "legacySave": "/onsyuri_save/沙耶之歌",
+    "route": "/97/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v1194-1",
+    "workId": "v1194",
+    "slot": 1,
+    "versionId": "legacy-caa815636729e8cfa7a09a46",
+    "title": "缘之空",
+    "directory": "yosuga",
+    "legacySave": "/onsyuri_save/缘之空",
+    "route": "/1194/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v1085-1",
+    "workId": "v1085",
+    "slot": 1,
+    "versionId": "legacy-fb8b326a69b71beee0e909a0",
+    "title": "3days～満ちてゆく刻の彼方で～",
+    "directory": "3days～満ちてゆく刻の彼方で～",
+    "legacySave": "/onsyuri_save/3days～満ちてゆく刻の彼方で～",
+    "route": "/1085/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v14365-1",
+    "workId": "v14365",
+    "slot": 1,
+    "versionId": "legacy-434dbf1e3ea7d9835fbff5ec",
+    "title": "万华镜系列 · 万华镜3",
+    "directory": "万华镜系列/万华镜3",
+    "legacySave": "/onsyuri_save/美少女万华镜-神明创造的少女们-",
+    "route": "/14365/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v14365-2",
+    "workId": "v14365",
+    "slot": 2,
+    "versionId": "legacy-4739feefe694a036c750c25c",
+    "title": "万华镜系列 · 万华镜3 修复",
+    "directory": "万华镜系列/万华镜3 修复",
+    "legacySave": "/onsyuri_save/美少女万华镜-神明创造的少女们-",
+    "route": "/14365/2/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v14365-3",
+    "workId": "v14365",
+    "slot": 3,
+    "versionId": "legacy-a05a24c64b95e9e4c73d69f1",
+    "title": "万华镜系列 · 万华镜3 跳kaleidoscope",
+    "directory": "万华镜系列/万华镜3 跳kaleidoscope",
+    "legacySave": "/onsyuri_save/美少女万华镜-神明创造的少女们-",
+    "route": "/14365/3/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v27057-1",
+    "workId": "v27057",
+    "slot": 1,
+    "versionId": "legacy-16310c7b01d5049f9ffa78ea",
+    "title": "万华镜系列 · 万华镜5",
+    "directory": "万华镜系列/万华镜5",
+    "legacySave": "/onsyuri_save/万华镜5 v5.0 青桔移植组",
+    "route": "/27057/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v27057-2",
+    "workId": "v27057",
+    "slot": 2,
+    "versionId": "legacy-9d58bcf41c683470e5771057",
+    "title": "万华镜系列 · 万华镜5 修复",
+    "directory": "万华镜系列/万华镜5 修复",
+    "legacySave": "/onsyuri_save/万华镜5 v5.0 青桔移植组",
+    "route": "/27057/2/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v27057-3",
+    "workId": "v27057",
+    "slot": 3,
+    "versionId": "legacy-032e99675c2271819eea7e73",
+    "title": "万华镜系列 · 万华镜5 跳kaleidoscope",
+    "directory": "万华镜系列/万华镜5 跳kaleidoscope",
+    "legacySave": "/onsyuri_save/万华镜5 v5.0 青桔移植组",
+    "route": "/27057/3/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v8158-1",
+    "workId": "v8158",
+    "slot": 1,
+    "versionId": "legacy-eec29e88f9c64b1a6ba50d5c",
+    "title": "大图书馆的牧羊人",
+    "directory": "大图书馆的牧羊人",
+    "legacySave": "/onsyuri_save/大图书馆的牧羊人",
+    "route": "/8158/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v6589-1",
+    "workId": "v6589",
+    "slot": 1,
+    "versionId": "legacy-a8c2e67a990feed19dedb3aa",
+    "title": "女装山脉",
+    "directory": "女装山脉",
+    "legacySave": "/onsyuri_save/女装山脉",
+    "route": "/6589/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v9303-1",
+    "workId": "v9303",
+    "slot": 1,
+    "versionId": "legacy-9a1261272a5772ecb5592bcc",
+    "title": "妹调教日记",
+    "directory": "妹调教日记",
+    "legacySave": "/onsyuri_save/妹调教日记",
+    "route": "/9303/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v13190-1",
+    "workId": "v13190",
+    "slot": 1,
+    "versionId": "legacy-28ccd8d92b51623f2011170e",
+    "title": "妹调教日记fd",
+    "directory": "妹调教日记fd",
+    "legacySave": "/onsyuri_save/妹调教日记fd",
+    "route": "/13190/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v11071-1",
+    "workId": "v11071",
+    "slot": 1,
+    "versionId": "legacy-46214980e42483df202ceab1",
+    "title": "万华镜系列 · 万华镜2",
+    "directory": "万华镜系列/万华镜2",
+    "legacySave": "/onsyuri_save/美少女万华镜2 勿忘草与永远的少女 ons v1.0 正式版 青桔移植组",
+    "route": "/11071/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v11071-2",
+    "workId": "v11071",
+    "slot": 2,
+    "versionId": "legacy-67520f0d0345af13ed1be2ec",
+    "title": "万华镜系列 · 万华镜2 修复",
+    "directory": "万华镜系列/万华镜2 修复",
+    "legacySave": "/onsyuri_save/美少女万华镜2 勿忘草与永远的少女 ons v1.0 正式版 青桔移植组",
+    "route": "/11071/2/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v11071-3",
+    "workId": "v11071",
+    "slot": 3,
+    "versionId": "legacy-ff6a61f773272d2a1e61609b",
+    "title": "万华镜系列 · 万华镜2 跳kaleidoscope",
+    "directory": "万华镜系列/万华镜2 跳kaleidoscope",
+    "legacySave": "/onsyuri_save/美少女万华镜2 勿忘草与永远的少女 ons v1.0 正式版 青桔移植组",
+    "route": "/11071/3/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v19182-1",
+    "workId": "v19182",
+    "slot": 1,
+    "versionId": "legacy-dbdae3ca10bd76d1ab998ba6",
+    "title": "万华镜系列 · 万华镜4",
+    "directory": "万华镜系列/万华镜4",
+    "legacySave": "/onsyuri_save/万华镜4 v1.0 正式版 青桔移植组",
+    "route": "/19182/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v19182-2",
+    "workId": "v19182",
+    "slot": 2,
+    "versionId": "legacy-e1e29253c2fd43ddc771365f",
+    "title": "万华镜系列 · 万华镜4 修复",
+    "directory": "万华镜系列/万华镜4 修复",
+    "legacySave": "/onsyuri_save/万华镜4 v1.0 正式版 青桔移植组",
+    "route": "/19182/2/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v19182-3",
+    "workId": "v19182",
+    "slot": 3,
+    "versionId": "legacy-a378c290085945c2a66a5e1e",
+    "title": "万华镜系列 · 万华镜4 跳kaleidoscope",
+    "directory": "万华镜系列/万华镜4 跳kaleidoscope",
+    "legacySave": "/onsyuri_save/万华镜4 v1.0 正式版 青桔移植组",
+    "route": "/19182/3/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v8436-1",
+    "workId": "v8436",
+    "slot": 1,
+    "versionId": "legacy-110fc755bff5f71cb2a6c32c",
+    "title": "是谁杀了知更鸟",
+    "directory": "是谁杀了知更鸟",
+    "legacySave": "/onsyuri_save/是谁杀了知更鸟",
+    "route": "/8436/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v2968-1",
+    "workId": "v2968",
+    "slot": 1,
+    "versionId": "legacy-c0cc212cf2992cc7c3681e85",
+    "title": "架向星空之桥",
+    "directory": "架向星空之桥",
+    "legacySave": "/onsyuri_save/架向星空之桥",
+    "route": "/2968/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v15637-1",
+    "workId": "v15637",
+    "slot": 1,
+    "versionId": "legacy-a9b121de2f7151e661a702c8",
+    "title": "永不落幕的前奏诗",
+    "directory": "永不落幕的前奏诗",
+    "legacySave": "/onsyuri_save/永不落幕的前奏诗",
+    "route": "/15637/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v3770-1",
+    "workId": "v3770",
+    "slot": 1,
+    "versionId": "legacy-5d0fc085f59f8b32b0607d9a",
+    "title": "秽翼的尤斯蒂娅",
+    "directory": "秽翼的尤斯蒂娅",
+    "legacySave": "/onsyuri_save/秽翼的尤斯蒂娅",
+    "route": "/3770/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v10680-1",
+    "workId": "v10680",
+    "slot": 1,
+    "versionId": "legacy-2d0044119e0bad2c44e29dff",
+    "title": "近月少女的礼仪",
+    "directory": "近月少女的礼仪",
+    "legacySave": "/onsyuri_save/近月少女的礼仪1",
+    "route": "/10680/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  },
+  {
+    "id": "ons-v182-1",
+    "workId": "v182",
+    "slot": 1,
+    "versionId": "legacy-b2daa513541305560c3fcbae",
+    "title": "青空下的约定",
+    "directory": "青空下的约定",
+    "legacySave": "/onsyuri_save/青空下的约定",
+    "route": "/182/1/",
+    "engine": "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04"
+  }
+].map(p => Object.freeze(p)));
+export function findPilot(id) { return pilots.find(p => p.id === id); }
