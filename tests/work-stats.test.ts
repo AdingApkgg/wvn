@@ -4,10 +4,23 @@ import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fork} from 'node:child_process';
 import {WorkStatsStore,READ_WINDOW_MS,issueReadVisitor,readVisitorKey} from '../src/accounts/work-stats.server.ts';
 
 const catalog=[{id:'v1',title:'One',url:'/1/',versions:[{id:'version-1',number:1,title:'A',engine:'ONS',url:'/1/1/'},{id:'version-2',number:2,title:'B',engine:'RenPy',url:'/1/2/'}]},{id:'v2',title:'Two',url:'/2/',versions:[{id:'version-3',number:1,title:'C',engine:'RenPy',url:'/2/1/'}]}];
 const visitor='a'.repeat(64),secret='s'.repeat(64);
+test('simultaneous processes share the same SQLite read dedup transaction',async()=>{
+ const root=mkdtempSync(join(tmpdir(),'wvn-stats-concurrent-')),file=join(root,'accounts.sqlite'),db=database(file);new WorkStatsStore(db,catalog,()=>1000);
+ const children=[1,2].map(()=>fork(new URL('./fixtures/work-stats-worker.mjs',import.meta.url),[file],{execArgv:['--import','tsx'],stdio:['ignore','ignore','pipe','ipc']}));
+ try{
+  const results=children.map(child=>new Promise<{counted:boolean}>((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(Error('Concurrent SQLite worker timeout')),15000);let err='';child.stderr?.on('data',s=>{err+=s});
+   child.on('message',(value:{type:string;counted:boolean})=>{if(value.type==='result'){clearTimeout(timer);resolve(value)}});child.on('error',reject);child.on('exit',code=>{if(code){clearTimeout(timer);reject(Error(err||'Worker exit '+code))}});
+  }));
+  await Promise.all(children.map(child=>new Promise<void>(resolve=>child.on('message',(v:{type:string})=>{if(v.type==='ready')resolve()}))));
+  children.forEach(c=>c.send('go'));const values=await Promise.all(results);assert.equal(values.filter(v=>v.counted).length,1);assert.equal(new WorkStatsStore(db,catalog,()=>1000).counts(['v1']).v1.reads,1);
+ }finally{children.forEach(c=>{if(c.exitCode===null)c.kill()});db.close();rmSync(root,{recursive:true,force:true})}
+});
 function database(file=':memory:'){
  const db=new DatabaseSync(file);db.exec('PRAGMA foreign_keys=ON;PRAGMA busy_timeout=5000;CREATE TABLE IF NOT EXISTS "user"(id TEXT PRIMARY KEY)');
  db.prepare('INSERT OR IGNORE INTO "user" VALUES (?)').run('alice');db.prepare('INSERT OR IGNORE INTO "user" VALUES (?)').run('bob');return db;

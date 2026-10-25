@@ -12,9 +12,9 @@ export function analyticsPayload(input:unknown,websiteId:string,hostname:string)
  if(typeof p.language==='string'&&/^[a-zA-Z0-9-]{1,35}$/.test(p.language))payload.language=p.language;
  if(typeof p.screen==='string'&&/^\d{1,5}x\d{1,5}$/.test(p.screen))payload.screen=p.screen;
  if(p.name!==undefined){
-  if(!['reading_start','like','favorite'].includes(String(p.name)))return null;
+  if(typeof p.name!=='string'||!['reading_start','like','favorite'].includes(p.name))return null;
   const match=/^\/(b?)([1-9]\d*)\//.exec(path);if(!match)return null;
-  payload.name=String(p.name);payload.data={workId:(match[1]?'b':'v')+match[2]};
+  payload.name=p.name;payload.data={workId:(match[1]?'b':'v')+match[2]};
   if(p.name!=='reading_start'){
    const enabled=(p.data as {enabled?:unknown}|undefined)?.enabled;if(typeof enabled!=='boolean')return null;payload.data.enabled=enabled;
   }

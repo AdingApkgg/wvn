@@ -13,6 +13,7 @@ test('analytics only admits canonical public pages and rebuilds payloads without
  assert.equal(analyticsPayload({type:'event',payload:{website:site,url:'/account'}},site,'wvn.test'),null);
  const event=analyticsPayload({type:'event',payload:{website:site,url:'/4/',name:'like',data:{enabled:true,email:'no',workId:'v99'}}},site,'wvn.test');
  assert.deepEqual(event?.payload.data,{workId:'v4',enabled:true});
+ assert.equal(analyticsPayload({type:'event',payload:{website:site,url:'/4/',name:{toString:null}}},site,'wvn.test'),null);
 });
 test('same-origin proxy is a small whitelist and strips account and response credentials',async()=>{
  const requests:{url:string;init:RequestInit}[]=[];
