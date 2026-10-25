@@ -1,5 +1,12 @@
 import fs from'node:fs';import{createHash}from'node:crypto';import assert from'node:assert/strict';
 export const frameOf=page=>page.frames().find(f=>/\/__player\/resource\/[^/]+\/index\.html$/.test(f.url()));
+// started 被父页确认后才发出阅读请求；存档回执会覆盖瞬时状态文案，因此不靠提示文字等待。
+export function playerStartedRequest(page,entry,timeout=300000){
+ const pending=page.waitForRequest(request=>{
+  if(request.method()!=='POST'||new URL(request.url()).pathname!=='/api/public/works/'+entry.workId+'/read')return false;
+  try{return request.postDataJSON().versionId===entry.versionId}catch{return false}
+ },{timeout});pending.catch(()=>{});return pending;
+}
 export const describe=files=>files.map(f=>({path:f.path,mtime:f.mtime,bytes:f.data.length,sha256:createHash('sha256').update(Buffer.from(f.data)).digest('hex')})).sort((a,b)=>a.path.localeCompare(b.path));
 export async function nativeFiles(page,entry){return frameOf(page).evaluate(async entry=>{
  if(entry.runtimeKind==='Tyrano'){const {storageSnapshot}=await import('/player/adapters.mjs');return storageSnapshot(localStorage).map(f=>({...f,data:Array.from(f.data)}))}
