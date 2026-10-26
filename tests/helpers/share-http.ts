@@ -1,3 +1,4 @@
+import {LocalBlobStore} from "../../src/accounts/blob-store.server.ts";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -27,6 +28,7 @@ export async function shareHttpFixture() {
     origin,
     database: ":memory:",
     blobRoot: root,
+    blobBackend: new LocalBlobStore(root,()=>1024**4),
     secret: "synthetic-test-secret-that-is-at-least-48-characters",
     shareLedger: join(root, "revoked.jsonl"),
     catalogProvider: async () => catalog,

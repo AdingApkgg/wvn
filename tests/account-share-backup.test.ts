@@ -1,3 +1,4 @@
+import {fixtureDiskSpace} from "./helpers/disk-space.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, writeFileSync } from "node:fs";
@@ -12,8 +13,9 @@ import {
   createAccountBackup,
   prepareAccountRestore,
 } from "../src/accounts/backup.server.ts";
-test("joint backups include share-only references and replay a newer revocation after rollback", async () => {
+test("joint backups include share-only references and replay a newer revocation after rollback", async (t) => {
   const f = await sharingFixture(true);
+  fixtureDiskSpace(t,f.root);
   let restored: DatabaseSync | undefined;
   try {
     const made = (await f.shares.create("alice", f.input));
@@ -64,8 +66,9 @@ test("joint backups include share-only references and replay a newer revocation 
   }
 });
 
-test("sharing-enabled backups refuse to omit the independent share deny ledger", async () => {
+test("sharing-enabled backups refuse to omit the independent share deny ledger", async (t) => {
   const f = await sharingFixture(true);
+  fixtureDiskSpace(t,f.root);
   try {
     new DeletionLedger(join(f.root, "deleted.jsonl"));
     assert.throws(
@@ -83,8 +86,9 @@ test("sharing-enabled backups refuse to omit the independent share deny ledger",
   }
 });
 
-test("backup never creates a missing source revocation ledger or accepts malformed records", async () => {
+test("backup never creates a missing source revocation ledger or accepts malformed records", async (t) => {
   const f = await sharingFixture(true);
+  fixtureDiskSpace(t,f.root);
   try {
     new DeletionLedger(join(f.root, "deleted.jsonl"));
     const missing = join(f.root, "missing.jsonl");

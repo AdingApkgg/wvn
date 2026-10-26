@@ -1,3 +1,4 @@
+import {fixtureDiskSpace} from "./helpers/disk-space.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, mkdirSync } from "node:fs";
@@ -9,9 +10,10 @@ import {
   createAccountBackup,
   prepareAccountRestore,
 } from "../src/accounts/backup.server.ts";
-test("joint backup restores exact save bytes and replays newer account deletions", async () => {
+test("joint backup restores exact save bytes and replays newer account deletions", async (t) => {
   mkdirSync(join(process.cwd(), "state"), { recursive: true });
   const root = mkdtempSync(join(process.cwd(), "state", "wg-backup-"));
+  fixtureDiskSpace(t,root);
   const catalog = [
     {
       id: "v4",

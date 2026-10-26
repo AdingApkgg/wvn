@@ -1,3 +1,4 @@
+import {fixtureDiskSpace} from "./helpers/disk-space.ts";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
@@ -6,8 +7,9 @@ import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { createAccountService } from '../src/accounts/service.server.ts';
 import { prepareSplitBackup, finalizeSplitBackup } from '../src/accounts/split-backup.server.ts';
-test('split backup reunites metadata and Windows blobs and verifies restored history, shares and secret', async () => {
+test('split backup reunites metadata and Windows blobs and verifies restored history, shares and secret', async (t) => {
  mkdirSync('state',{recursive:true}); const root=mkdtempSync(join(process.cwd(),'state','wg-split-backup-'));
+ fixtureDiskSpace(t,root);
  const config={origin:'https://localhost',secret:'s'.repeat(64),database:join(root,'live.sqlite'),blobRoot:join(root,'blobs'),deletionLedger:join(root,'deleted.jsonl'),shareLedger:join(root,'revoked.jsonl'),catalogProvider:async()=>[{id:'v4',title:'Story',url:'/4/',versions:[{id:'version-a',title:'Version',number:1,engine:'ONS',url:'/4/1/'}]}]};
  const service=await createAccountService(config);
  try {

@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {mkdtempSync,readFileSync,writeFileSync,rmSync,existsSync} from 'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
+import {mkdtempSync,readFileSync,writeFileSync,rmSync,existsSync} from 'node:fs';import{tmpdir,hostname}from'node:os';import{join}from'node:path';
 import {createJob,withBuildLock,updateJob} from '../src/engines/jobs.ts';
 import {validateRecipe,verifyArtifacts,compareArtifacts} from '../src/engines/build.ts';
 import {loadEngineRegistry} from '../src/engines/registry.ts';
@@ -67,9 +67,10 @@ test('SDK installation failures remain visible as immutable jobs with a private 
  const state=mkdtempSync(join(tmpdir(),'wvn-install-receipt-')),sdk=loadEngineRegistry().toolchains[0];
  try{
   mkdirSync(join(state,'toolchains',sdk.id+'.installing'),{recursive:true});
-  await assert.rejects(installSdkJob(sdk,state),/inspection/i);
+  const expected=hostname()==='localhost'?/inspection/i:/registered Linux1 build host/i;
+  await assert.rejects(installSdkJob(sdk,state),expected);
   const ids=readdirSync(join(state,'jobs'));assert.equal(ids.length,1);const job=JSON.parse(readFileSync(join(state,'jobs',ids[0],'job.json'),'utf8'));
-  assert.equal(job.recipe,'emsdk-install');assert.equal(job.state,'failed');assert.equal(job.details.failedStage,'fetching');assert(existsSync(join(job.root,'build.log')));assert.match(readFileSync(join(job.root,'build.log'),'utf8'),/inspection/i);
+  assert.equal(job.recipe,'emsdk-install');assert.equal(job.state,'failed');assert.equal(job.details.failedStage,'fetching');assert(existsSync(join(job.root,'build.log')));assert.match(readFileSync(join(job.root,'build.log'),'utf8'),expected);
   const summary=buildStatus(state).jobs[0];assert.equal(summary.recipe,'emsdk-install');assert.equal(summary.errorCode,'SDK_INSTALL_FAILED');assert.doesNotMatch(JSON.stringify(summary),new RegExp(state));
  }finally{rmSync(state,{recursive:true,force:true})}
 });
