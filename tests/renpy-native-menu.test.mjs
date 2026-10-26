@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import { chooseNativeStart,chooseNativeChoice,shouldAdvanceOpening,chooseManualSavePage,chooseNativeFileLoad,filesForNativeSlot,isAuditedOpeningNotice,nativeClickablePoint,nativeFocus,nativeDialogueChanged,activateNativeWithKeyboard } from '../scripts/lib/renpy-native-menu.mjs';
+import { chooseNativeStart,chooseNativeChoice,shouldAdvanceOpening,chooseManualSavePage,chooseNativeFileLoad,filesForNativeSlot,isAuditedOpeningNotice,nativeClickablePoint,nativeFocus,nativeDialogueChanged,activateNativeWithKeyboard,saveNativeSlot,isNativeIntro } from '../scripts/lib/renpy-native-menu.mjs';
 
 test('nonrectangular native save buttons are discovered without inventing a clickable target',async()=>{
  const setup=`import types,json
@@ -120,4 +120,12 @@ test('keyboard confirmation occurs only after the exact native slot owns focus',
  const keys=[],frame={locator:()=>({focus:async()=>{},press:async key=>keys.push(key)})};let calls=0;
  await activateNativeWithKeyboard(frame,async()=>({available:true,matched:++calls===2,rect:[0,0,20,20]}),{action:'FileLoad',slot:'1-1',rect:[100,0,20,20]});assert.deepEqual(keys,['ArrowRight','Enter']);
  keys.length=0;await assert.rejects(activateNativeWithKeyboard(frame,async()=>({available:false,matched:false}),{action:'FileLoad',slot:'1-1',rect:[0,0,20,20]}),/no keyboard focus/);assert.deepEqual(keys,[]);
+});
+
+test('native save API captures its required thumbnail before saving',async()=>{
+ const calls=[];assert.equal(await saveNativeSlot(async script=>{calls.push(script);return calls.length===1?'1-1':true},1,{id:'renpy-v1286-1'}),'1-1');
+ assert.match(calls[1],/renpy\.take_screenshot\([\s\S]*renpy\.save\(/);
+ assert.equal(isNativeIntro({text:'本作品免费首发于青桔网，如果是购买所得，请给予卖家差评。'}),true);
+ assert.equal(isNativeIntro({text:'感谢您的游玩，这是青桔移植组的第八个作品。'}),true);
+ assert.equal(isNativeIntro({text:'我推开了房间的门。'}),false);
 });

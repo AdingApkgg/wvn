@@ -20,7 +20,7 @@ export function shouldAdvanceOpening(last,actions){
 export function chooseManualSavePage(buttons){return buttons.find(b=>b.action==='FilePage'&&b.page==='1')?.rect??null}
 export function chooseNativeFileLoad(buttons,slot){return buttons.find(b=>b.action==='FileLoad'&&b.slot===slot)?.rect??null}
 export function filesForNativeSlot(files,slot){return files.filter(file=>{const name=file.path.split('/').pop();return name===slot+'.save'||name.startsWith(slot+'-LT')&&/^\d+\.save$/.test(name.slice((slot+'-LT').length))})}
-export function isNativeIntro(point){const t=point.text??'';return t.includes('本作品由青桔移植组移植')||t.includes('STAFF')&&t.includes('程序')&&t.includes('美工')||t.includes('BUG反馈群')&&t.includes('移植组')||t.includes('当前游戏版本：')||t.includes('请确保您已通关《星之终途》本篇')||t.includes('本游戏是根据《星之终途》官方后日谈剧本制作的同人游戏')}
+export function isNativeIntro(point){const t=point.text??'';return t.includes('青桔移植组')||t.includes('本作品免费首发于')||t.includes('本作品由青桔移植组移植')||t.includes('STAFF')&&t.includes('程序')&&t.includes('美工')||t.includes('BUG反馈群')&&t.includes('移植组')||t.includes('当前游戏版本：')||t.includes('请确保您已通关《星之终途》本篇')||t.includes('本游戏是根据《星之终途》官方后日谈剧本制作的同人游戏')}
 export function nativeDialogueChanged(a,b){return Boolean(b?.text&&b.text!=='None'&&!b.choice&&(a.visibleText??a.text)!==(b.visibleText??b.text))}
 export function isAuditedOpeningNotice(id,data){return /^renpy-v44184-[1-4]$/.test(id)&&!data.mainMenu&&!data.confirm&&data.buttons.length===0&&(data.text.includes('本作品免费首发于')&&data.text.includes('请务必支持正版')||data.text.includes('本移植仅供日语学习使用')&&data.text.includes('本组不负任何责任')||data.text.includes('本次移植增加了多语言框架')&&data.text.includes('切换为原语言')||/当前版本是v0\.9[0-3]?测试版/.test(data.text)&&data.text.includes('未完成的功能')||data.text.includes('STAFF')&&data.text.includes('移植')&&data.text.includes('翻译')||data.text.toLowerCase().includes('github')&&data.text.includes('翻译')&&data.text.includes('提交'))}
 export const NATIVE_ACTIONS_PYTHON = "def _wvn_actions(value):\n    pending=[(value,0)]\n    while pending:\n        item,depth=pending.pop()\n        if depth>16: continue\n        if isinstance(item,(list,tuple)):\n            pending.extend((child,depth+1) for child in reversed(item))\n        elif item is not None: yield item";
@@ -119,7 +119,7 @@ export async function activateNativeWithKeyboard(frame,command,button){
  throw Error('Native keyboard navigation did not reach exact target '+JSON.stringify(expected));
 }
 async function clickNativeButton(page,frame,command,button,size,wait=1800){
- assert(button,'Native button unavailable');const point=await nativeClickablePoint(command,button);if(!point&&button.action==='FileLoad'&&!button.unboundedFocus){const keys=await activateNativeWithKeyboard(frame,command,button);console.log(JSON.stringify({nativeClick:'keyboard-exact-slot',slot:button.slot,keys}));await page.waitForTimeout(wait);return}assert(point,'Native button has no clickable pixels: '+JSON.stringify(button));
+ assert(button,'Native button unavailable');const point=await nativeClickablePoint(command,button);if(!point&&['FileLoad','ShowMenu','Show'].includes(button.action)&&!button.unboundedFocus){const keys=await activateNativeWithKeyboard(frame,command,button);console.log(JSON.stringify({nativeClick:'keyboard-exact-slot',slot:button.slot,keys}));await page.waitForTimeout(wait);return}assert(point,'Native button has no clickable pixels: '+JSON.stringify(button));
  const b=await frame.locator('#canvas').boundingBox();assert(b);const scale=Math.min(b.width/size[0],b.height/size[1]);
  if(Math.abs(point[0]-button.rect[0]-button.rect[2]/2)>2||Math.abs(point[1]-button.rect[1]-button.rect[3]/2)>2)console.log(JSON.stringify({nativeClick:'verified-point',action:button.action,point}));
  await page.mouse.click(b.x+(b.width-size[0]*scale)/2+point[0]*scale,b.y+(b.height-size[1]*scale)/2+point[1]*scale,{delay:150});await page.waitForTimeout(wait);
@@ -129,7 +129,7 @@ export async function nativeSlotName(command,number){
 }
 export async function saveNativeSlot(command,number,gui){
  let slot=await nativeSlotName(command,number);
- if(!['renpy-v562-1','renpy-v7738-1'].includes(gui?.id)){await command("renpy.save("+JSON.stringify(slot)+"); result=True");return slot}
+ if(!['renpy-v562-1','renpy-v7738-1'].includes(gui?.id)){await command("renpy.take_screenshot((config.thumbnail_width,config.thumbnail_height)); renpy.save("+JSON.stringify(slot)+"); result=True");return slot}
  // BGI 移植的保存菜单可能有自己的状态整理，验收走实际原生按钮。
  const {page,frame}=gui;
  const click=(button,size)=>clickNativeButton(page,frame,command,button,size,1500);
