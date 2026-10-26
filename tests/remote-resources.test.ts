@@ -4,9 +4,10 @@ import { Hono } from 'hono';
 import { registerRemotePlayerResources,previewResourceProjections } from '../src/player/remote.server.ts';
 
 test('preview archive projection is exact, integrity checked and leaves other resources on their original host',async()=>{
- const row={id:'renpy-v50789-1',path:'game.zip',upstream:'http://192.0.2.20:18575',sha256:'a'.repeat(64),bytes:17},doc={schema:1,entries:[row]};
+ // 合成 CGNAT 地址仅交给下方 mock fetcher；保持预览投影的专网限制。
+ const row={id:'renpy-v50789-1',path:'game.zip',upstream:'http://100.64.0.2:18575',sha256:'a'.repeat(64),bytes:17},doc={schema:1,entries:[row]};
  assert.throws(()=>previewResourceProjections(doc,'production'));
- for(const changed of [{path:'renpy.js'},{upstream:'http://169.254.169.254'},{upstream:'http://192.0.2.20:18575/private'},{bytes:NaN},{sha256:'invalid'}])assert.throws(()=>previewResourceProjections({schema:1,entries:[{...row,...changed}]},'preview'));
+ for(const changed of [{path:'renpy.js'},{upstream:'http://169.254.169.254'},{upstream:'http://192.0.2.20:18575'},{upstream:'http://100.64.0.2:18575/private'},{bytes:NaN},{sha256:'invalid'}])assert.throws(()=>previewResourceProjections({schema:1,entries:[{...row,...changed}]},'preview'));
  const seen:Request[]=[],app=new Hono();let bad=false;
  registerRemotePlayerResources(app,{upstream:'http://192.0.2.20:18571',projections:previewResourceProjections(doc,'preview'),fetcher:async(input,init)=>{const req=new Request(input,init);seen.push(req);return new Response(req.method==='HEAD'?null:'converted-archive',{headers:{etag:'"'+(bad?'b'.repeat(64):row.sha256)+'"','content-length':'17','content-type':'application/zip'}})}});
  const path='/__player/resource/'+row.id+'/game.zip';

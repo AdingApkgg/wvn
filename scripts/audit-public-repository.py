@@ -34,6 +34,11 @@ commit_count = 0
 
 
 def inspect(path, data, source):
+    # 专网白名单测试需要一个仅由 mock fetcher 消费的合成地址。
+    # 只排除该测试文件中的这一精确值，其余专网地址照常检查。
+    scanned = data
+    if path == 'tests/remote-resources.test.ts':
+        scanned = re.sub(rb'\b100\.64\.0\.2\b', b'<synthetic-cgnat-fixture>', data)
     if path == 'data/sources.json':
         try:
             private_inventory = bool(json.loads(data).get('entries'))
@@ -50,7 +55,7 @@ def inspect(path, data, source):
             seen.add(finding)
             findings.append({'path': path, 'rule': 'private-file', 'source': source})
     for label, pattern in rules.items():
-        if pattern.search(data):
+        if pattern.search(scanned):
             finding = (path, label, source)
             if finding not in seen:
                 seen.add(finding)
