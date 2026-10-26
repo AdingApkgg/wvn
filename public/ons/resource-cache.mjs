@@ -20,6 +20,8 @@ export async function createOnsResourcePlan(pilot,manifest,origin,release){
  const candidates=files.filter(f=>f.lazyload&&/\.(png|jpe?g|webp|ogg|mp3|wav)$/i.test(f.path)).map(f=>'game:'+f.path);
  return {pilot:pilot.id,versionId:pilot.versionId,revision,namespace,resources,candidates,manifest};
 }
+// 浏览器给出的是解压后的数据；压缩长度或缺失的 Content-Length 不能作为解码大小。
+function decodedLength(response){const encoding=response.headers.get('content-encoding')?.trim().toLowerCase(),raw=response.headers.get('content-length');if(encoding&&encoding!=='identity'||raw===null||!/^\d+$/.test(raw))return null;const value=Number(raw);return Number.isSafeInteger(value)&&value>=0?value:null}
 const result=request=>new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
 export async function openResourceCacheStore(idb=globalThis.indexedDB){
  if(!idb)throw Error('资源缓存不可用');
@@ -62,15 +64,17 @@ export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fet
   }
   const options={credentials:'omit',redirect:'error',cache:'no-store',signal};
   const head=await fetcher(resource.url,{...options,method:'HEAD'});check();if(!head.ok)throw Error('资源读取失败 '+head.status);
-  const length=Number(head.headers.get('content-length')),limit=mode==='prefetch'?Math.min(maxFileBytes,MiB,preloadBudget):maxFileBytes;
-  if(!Number.isSafeInteger(length)||length<0||length>limit||mode==='prefetch'&&length===0)return {direct:true};
-  if(mode==='prefetch'&&length>preloadBudget)return {direct:true};
-  notify({loaded:0,total:length,source:'network'});
+  const length=decodedLength(head),limit=mode==='prefetch'?Math.min(maxFileBytes,MiB,preloadBudget):maxFileBytes;
+  if(length!==null&&length>limit||mode==='prefetch'&&(length===null||length===0))return {direct:true};
+  if(mode==='prefetch'&&length!==null&&length>preloadBudget)return {direct:true};
+  notify({loaded:0,total:length??0,source:'network'});
   const response=await fetcher(resource.url,{...options,method:'GET'});check();if(response.status!==200||response.headers.has('content-range'))throw Error('资源响应无效');
+  const responseLength=decodedLength(response),expected=responseLength??length;
+  if(length!==null&&responseLength!==null&&length!==responseLength)throw Error('资源读取期间大小发生变化');
   const reader=response.body?.getReader(),chunks=[];let received=0;
-  if(reader){try{for(;;){const part=await reader.read();check();if(part.done)break;received+=part.value.byteLength;if(received>limit){await reader.cancel();return {direct:true}}chunks.push(part.value);notify({loaded:received,total:length,source:'network'})}}finally{reader.releaseLock()}}
+  if(reader){try{for(;;){const part=await reader.read();check();if(part.done)break;received+=part.value.byteLength;if(received>limit){await reader.cancel();return {direct:true}}chunks.push(part.value);notify({loaded:received,total:expected??0,source:'network'})}}finally{reader.releaseLock()}}
   else {const data=new Uint8Array(await response.arrayBuffer());received=data.byteLength;if(received>limit)return {direct:true};chunks.push(data)}
-  check();if(received!==length)throw Error('资源大小与响应头不符');
+  check();if(expected!==null&&received!==expected)throw Error('资源大小与响应头不符');
   const data=new Uint8Array(received);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength}
   const sha256=await digest(data);if(resource.sha256&&sha256!==resource.sha256)throw Error('共享引擎校验失败');
   await write({key:resource.key,namespace:resource.namespace,size:received,sha256,data,accessedAt:now(),expiresAt:now()+ttl});

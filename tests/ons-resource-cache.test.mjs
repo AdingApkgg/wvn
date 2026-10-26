@@ -56,3 +56,18 @@ test('foreground reads cancel an unrelated active background download',async()=>
 test('cache lookup is a distinct startup phase rather than a fabricated network download',async()=>{
  const loading=await import('../public/ons/loading.mjs'),messages=[],report=loading.createLoadingReporter(x=>messages.push(x));report.phase('checking','engine');assert.equal(messages.at(-1).stage,'checking');assert.equal(loading.loadingPercent(messages.at(-1)),null);
 });
+test('HEAD without content length is unknown, not a zero-byte resource',async()=>{
+ const f=await fixture({fetcher:async(url,init)=>new Response(init.method==='HEAD'?null:new Uint8Array([1,2,3,4]),{headers:{'content-encoding':'br'}})});const result=await f.cache.load('game:nscript.dat');assert.deepEqual(result.data,new Uint8Array([1,2,3,4]));assert.equal((await f.store.list())[0].size,4);f.cache.close();
+});
+test('compressed header length is never compared to the decoded browser bytes',async()=>{
+ const progress=[];const f=await fixture({fetcher:async(url,init)=>new Response(init.method==='HEAD'?null:new Uint8Array([1,2,3,4]),{headers:{'content-length':'2','content-encoding':'gzip'}})});const result=await f.cache.load('game:nscript.dat',x=>progress.push(x));assert.deepEqual(result.data,new Uint8Array([1,2,3,4]));assert(progress.every(x=>!x.total));f.cache.close();
+});
+test('speculative preload skips unknown lengths but a declared empty resource remains valid',async()=>{
+ let gets=0;const f=await fixture({idleMs:0,fetcher:async(url,init)=>{if(init.method==='GET')gets++;return new Response(init.method==='HEAD'?null:new Uint8Array(),{headers:url.endsWith('nscript.dat')?{'content-length':'0'}:{}})}});f.cache.startPrefetch();await f.cache.whenIdle();assert.equal(gets,0);assert.equal((await f.cache.load('game:nscript.dat')).data.byteLength,0);f.cache.close();
+});
+test('known uncompressed length mismatches still fail and are never cached',async()=>{
+ const f=await fixture({fetcher:async(url,init)=>new Response(init.method==='HEAD'?null:new Uint8Array([1,2,3]),{headers:{'content-length':'4'}})});await assert.rejects(f.cache.load('game:nscript.dat'),/大小/);assert.equal(f.store.rows.size,0);f.cache.close();
+});
+test('unknown-length demand reads remain capped and fall back without persisting oversized data',async()=>{
+ const f=await fixture({maxFileBytes:2,fetcher:async(url,init)=>new Response(init.method==='HEAD'?null:new Uint8Array([1,2,3,4]))});assert.equal((await f.cache.load('game:nscript.dat')).direct,true);assert.equal(f.store.rows.size,0);f.cache.close();
+});
