@@ -1303,3 +1303,7 @@ summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
 .reader-resource-loading { pointer-events: none; position: absolute; z-index: 3; top: 12px; right: 12px; width: min(280px, calc(100% - 24px)); padding: 10px 12px; border: 1px solid #52596580; border-radius: 8px; background: #101216ed; color: #f3f0eb; box-shadow: 0 2px 12px #0003; }
 .reader-resource-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; line-height: 1.5; }
 .reader-resource-loading .reader-loading-track { height: 3px; margin-top: 8px; }
+
+.reader-transfer-details { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; margin-top: 10px; color: #b5b9c1; font-size: 12px; font-variant-numeric: tabular-nums; }
+.reader-resource-loading { width: min(340px, calc(100% - 24px)); }
+.reader-resource-loading .reader-transfer-details { margin-top: 5px; font-size: 11px; }

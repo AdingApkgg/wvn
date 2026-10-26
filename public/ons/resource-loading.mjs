@@ -1,9 +1,43 @@
 // 观察真实资源生命周期；不额外读取、复制响应，也不改变凭据、重试或引擎回调。
 const safe=fn=>{try{return fn()}catch{/* 反馈失败不能改变游戏行为。 */}};
+export function validateTransferMetrics(value){
+ if(!value||typeof value!=='object')return null;
+ const fields=['bytesLoaded','bytesTotal','bytesPerSecond'];
+ if(!fields.some(name=>value[name]!==undefined))return {};
+ if(!Number.isFinite(value.bytesLoaded)||value.bytesLoaded<0)return null;
+ const result={bytesLoaded:value.bytesLoaded};
+ if(value.bytesTotal!==undefined){if(!Number.isFinite(value.bytesTotal)||value.bytesTotal<=0||value.bytesLoaded>value.bytesTotal)return null;result.bytesTotal=value.bytesTotal}
+ if(value.bytesPerSecond!==undefined){if(!Number.isFinite(value.bytesPerSecond)||value.bytesPerSecond<0)return null;result.bytesPerSecond=value.bytesPerSecond}
+ return result;
+}
+export function createTransferMeter({now=()=>Date.now()}={}){
+ let at=now(),bytes=0,rate;
+ return {sample(loaded,total){
+  if(!Number.isFinite(loaded)||loaded<0)return {};
+  const time=now(),elapsed=time-at;
+  if(loaded<bytes||elapsed<0){at=time;bytes=loaded;rate=undefined}
+  else if(elapsed>=200&&(loaded>0||bytes>0)){rate=(loaded-bytes)*1000/elapsed;at=time;bytes=loaded}
+  return {bytesLoaded:loaded,...(Number.isFinite(total)&&total>0&&loaded<=total?{bytesTotal:total}:{}),...(Number.isFinite(rate)?{bytesPerSecond:rate}:{})};
+ }};
+}
+export function formatTransferBytes(bytes){
+ if(!Number.isFinite(bytes)||bytes<0)return null;
+ const units=['B','KiB','MiB','GiB','TiB'],index=Math.min(units.length-1,Math.floor(Math.log2(Math.max(1,bytes))/10)),value=bytes/1024**index;
+ return (index===0?Math.round(value):Number(value.toFixed(1)))+' '+units[index];
+}
+// 仅由显式使用该读取器的 ONS 载入路径消费流，不克隆响应、不预读其他引擎资源。
+export async function readResourceBytes(response){
+ if(!response.body?.getReader)return new Uint8Array(await response.arrayBuffer());
+ const reader=response.body.getReader(),chunks=[];let length=0;
+ try{for(;;){const {done,value}=await reader.read();if(done)break;chunks.push(value);length+=value.byteLength}}finally{reader.releaseLock()}
+ if(chunks.length===1)return chunks[0];
+ const result=new Uint8Array(length);let offset=0;for(const chunk of chunks){result.set(chunk,offset);offset+=chunk.byteLength}return result;
+}
 export function validateResourceProgress(value){
  if(!value||value.type!=='resource-progress'||!Number.isSafeInteger(value.active)||value.active<0||value.active>100000)return null;
  if(value.failed!==undefined&&typeof value.failed!=='boolean')return null;
- const result={active:value.active,...(value.failed?{failed:true}:{})};
+ const metrics=validateTransferMetrics(value);if(!metrics)return null;
+ const result={...metrics,active:value.active,...(value.failed?{failed:true}:{})};
  if(value.loaded!==undefined||value.total!==undefined){
   if(!Number.isFinite(value.loaded)||!Number.isFinite(value.total)||value.loaded<0||value.total<=0||value.loaded>value.total)return null;
   result.loaded=value.loaded;result.total=value.total;
@@ -11,22 +45,24 @@ export function validateResourceProgress(value){
  return result;
 }
 export function createResourceReporter(send,{now=()=>Date.now()}={}){
- let enabled=false,closed=false,lastAt=-Infinity,last=null;const batch=new Set();
+ let enabled=false,closed=false,lastAt=-Infinity,last=null,meter=createTransferMeter({now});const batch=new Set();
  function emit(){
   if(!enabled||closed)return;
   const entries=[...batch],active=entries.filter(x=>!x.done).length;
   const known=entries.length>0&&entries.every(x=>x.total>0);
-  const value={type:'resource-progress',active,...(entries.some(x=>x.failed)?{failed:true}:{}),...(known?{loaded:entries.reduce((sum,x)=>sum+x.loaded,0),total:entries.reduce((sum,x)=>sum+x.total,0)}:{})};
+  const observed=entries.some(x=>x.measured),metrics=observed?meter.sample(entries.reduce((sum,x)=>sum+x.loaded,0),known?entries.reduce((sum,x)=>sum+x.total,0):undefined):{};
+  const value={type:'resource-progress',active,...metrics,...(entries.some(x=>x.failed)?{failed:true}:{}),...(known?{loaded:entries.reduce((sum,x)=>sum+x.loaded,0),total:entries.reduce((sum,x)=>sum+x.total,0)}:{})};
   if(JSON.stringify(value)===JSON.stringify(last))return;
-  if(active===last?.active&&!!value.failed===!!last?.failed&&known===Number.isFinite(last?.total)&&now()-lastAt<200)return;
+  const firstMeasurement=Number.isFinite(value.bytesLoaded)!==Number.isFinite(last?.bytesLoaded)||(value.bytesLoaded>0&&!(last?.bytesLoaded>0));
+  if(!firstMeasurement&&!(known&&value.loaded===value.total)&&active===last?.active&&!!value.failed===!!last?.failed&&known===Number.isFinite(last?.total)&&now()-lastAt<200)return;
   last=value;lastAt=now();safe(()=>send(value));
  }
  return {
   activate(){enabled=true;emit()},close(){closed=true;batch.clear()},
   begin(){
-   if([...batch].every(x=>x.done))batch.clear();
-   const item={loaded:0,total:0,done:false,failed:false};if(!closed)batch.add(item);emit();
-   return {progress(loaded,total){if(item.done||closed)return;if(Number.isFinite(loaded)&&Number.isFinite(total)&&total>0&&loaded>=0&&loaded<=total){item.loaded=loaded;item.total=total;emit()}},end(failed=false){if(item.done||closed)return;item.done=true;item.failed=failed;if(item.total)item.loaded=item.total;emit()}};
+   if([...batch].every(x=>x.done)){batch.clear();meter=createTransferMeter({now})}
+   const item={loaded:0,total:0,measured:false,done:false,failed:false};if(!closed)batch.add(item);emit();
+   return {progress(loaded,total){if(item.done||closed)return;if(Number.isFinite(loaded)&&loaded>=0){item.loaded=loaded;item.measured=true;item.total=Number.isFinite(total)&&total>0&&loaded<=total?total:0;emit()}},end(failed=false){if(item.done||closed)return;item.done=true;item.failed=failed;if(item.total&&!failed)item.loaded=item.total;emit()}};
   },
  };
 }
@@ -35,9 +71,9 @@ export function observeResourceRequests(win,startup,classify,resources){
  const kindOf=resource=>safe(()=>classify(resource));
  function begin(resource){
   const kind=resource==null?null:kindOf(resource);if(!kind||closed)return null;
-  safe(()=>startup.phase('downloading',kind));const report=resources?.begin();
+  safe(()=>startup.phase('downloading',kind));const report=resources?.begin(),meter=createTransferMeter();
   const item={url:safe(()=>new URL(typeof resource==='string'?resource:resource?.url??resource?.href,win.document?.baseURI).href),at:win.performance?.now?.()??0,done:false,cleanups:new Set(),
-   progress(loaded,total){safe(()=>{startup.download?.(kind,loaded,total);report?.progress(loaded,total)})},
+   progress(loaded,total){safe(()=>{startup.download?.(kind,loaded,total,meter.sample(loaded,total));report?.progress(loaded,total)})},
    end(failed=false){if(item.done)return;item.done=true;pending.delete(item);for(const cleanup of [...item.cleanups]){safe(cleanup);cleanups.delete(cleanup)}item.cleanups.clear();safe(()=>report?.end(failed))}};
   pending.add(item);return item;
  }
@@ -57,10 +93,10 @@ export function observeResourceRequests(win,startup,classify,resources){
    try{return observePromise(original.apply(this,args),()=>item.end(),()=>item.end(true))}catch(error){item.end(true);throw error}
   },item.cleanups);
   let loaded=0;const length=Number(response.headers?.get('content-length')),encoded=response.headers?.get('content-encoding');
-  const total=!encoded&&Number.isFinite(length)&&length>0?length:0;
+  const total=!encoded&&Number.isFinite(length)&&length>0?length:0;if(total)item.progress(0,total);
   wrapMethod(response.body,'getReader',original=>function(...args){
    const reader=original.apply(this,args);
-   wrapMethod(reader,'read',read=>function(...values){try{return observePromise(read.apply(this,values),chunk=>{if(chunk.done)item.end();else {loaded+=chunk.value?.byteLength??0;if(total)item.progress(loaded,total)}},()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
+   wrapMethod(reader,'read',read=>function(...values){try{return observePromise(read.apply(this,values),chunk=>{if(chunk.done)item.end();else {loaded+=chunk.value?.byteLength??0;item.progress(loaded,total||undefined)}},()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
    wrapMethod(reader,'cancel',cancel=>function(...values){try{return observePromise(cancel.apply(this,values),()=>item.end(),()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
    return reader;
   },item.cleanups);
@@ -76,7 +112,7 @@ export function observeResourceRequests(win,startup,classify,resources){
  wrapMethod(prototype,'send',original=>function(...args){
   const item=begin(requests.get(this));let failed=false,remove;
   if(item){
-   const progress=event=>item.progress(event.lengthComputable?event.loaded:undefined,event.lengthComputable?event.total:undefined),failure=()=>{failed=true},end=()=>{item.end(failed||this.status>=400);remove()};
+   const progress=event=>item.progress(event.loaded,event.lengthComputable?event.total:undefined),failure=()=>{failed=true},end=()=>{item.end(failed||this.status>=400);remove()};
    remove=()=>{for(const [name,fn] of [['progress',progress],['error',failure],['abort',failure],['timeout',failure],['loadend',end]])this.removeEventListener(name,fn);cleanups.delete(remove)};
    for(const [name,fn] of [['progress',progress],['error',failure],['abort',failure],['timeout',failure],['loadend',end]])this.addEventListener(name,fn);cleanups.add(remove);
   }

@@ -15,9 +15,10 @@ async function fetch_file(FS, path, filemap) {
   try {
     const r = await fetch(node.url, { credentials: "omit" });
     if (!r.ok) throw Error("资源读取失败 " + r.status);
-    FS.writeFile(path, new Uint8Array(await r.arrayBuffer())); node.loaded = true; return 1;
+    FS.writeFile(path, await readResourceBytes(r)); node.loaded = true; return 1;
   } catch (e) { console.error("WG ONS resource", path, e); return -1; }
 }
+let readResourceBytes;
 let captureSave = () => {};
 function flush_save() { queueMicrotask(() => captureSave()); }
 addEventListener("resize", () => scale_full(document.getElementById("canvas"), g_screen_width / g_screen_height));
@@ -34,7 +35,7 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
     let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter;
-    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter}=await import(origin+"/ons/resource-loading.mjs")); }
+    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter,readResourceBytes}=await import(origin+"/ons/resource-loading.mjs")); }
     catch (e) { send({type:"loading-progress",stage:"failed",message:"播放器组件暂时不可用，请取消后重试"});status("启动失败：存档桥接模块不可用"); return; }
     const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
     stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(url.origin!==origin)return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
@@ -85,7 +86,7 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       function mkdir(FS, path) { if (path) FS.mkdirTree(path); }
       g_onsyuri_module = {
         canvas: document.getElementById("canvas"), noInitialRun: true,
-        wasmBinary: new Uint8Array(await wasm.arrayBuffer()), locateFile: path => engine + path,
+        wasmBinary: await readResourceBytes(wasm), locateFile: path => engine + path,
         print: line => console.log("ONS", line), printErr: line => console.warn("ONS", line),
         onAbort: () => status("引擎停止；本机历史备份仍保留"),
         preRun() {
