@@ -29,6 +29,6 @@ Web 端仅通过 `WG_PREVIEW_RESOURCE_PROJECTIONS` 读取预览投影清单。�
 
 ## 实际验收
 
-Arch 的独立旧引擎验证入口为 `https://localhost:18569`，候选入口为 `https://localhost:18573`，各自使用独立空账号库。构建机回执 `reports/renpy-media-case-20261026/result.json` 已通过：旧原生保存、准确正文读回、页面重启、候选引擎读旧档并继续保存、旧引擎回读、历史保留，以及真正关闭浏览器进程后的读档和继续保存。此次覆盖的是该检查点的存档与片头兼容，不代表完整流程或全部结局均已通关。
+Arch 的独立旧引擎验证入口为 `https://localhost:18569`，候选入口为 `https://localhost:18573`，各自使用独立空账号库。旧回执 `reports/renpy-media-case-20261026/` 与 `renpy-final-media-body-20261026-v3/` 仅覆盖制作说明检查点，不能作为正文兼容通过的依据。新的正文链路已通过：基线与候选回执在 `reports/renpy-final-media-body-20261026-v4/`，实际关闭并重启 Chromium 的回执在 `reports/renpy-final-media-restart-20261026-v5/`。检查点为 a1.rpy 正文“我是雷夫。”，推进后为下一句年龄对白，原生读档准确恢复较早检查点，字节、mtime 与历史保留。最终主预览通过预览专用投影接入副本，实际激活与保护回执见 `renpy-expansion-and-stats-acceptance.md`。
 
 独立验证结果不自动改变主预览范围、生产资源或候选云存档隔离策略。
