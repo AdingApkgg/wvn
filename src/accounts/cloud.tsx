@@ -44,6 +44,7 @@ export function CloudBackups({
     [sharing, setSharing] = useState(false),
     [shareRevision, setShareRevision] = useState<SaveRevision | null>(null),
     [version, setVersion] = useState(""),
+    [release,setRelease]=useState(""),[runtimeProfiles,setRuntimeProfiles]=useState<SaveProfile[]>([]),
     [profile, setProfile] = useState<SaveProfile | null>(null),
     [history, setHistory] = useState<SaveRevision[]>([]),
     [nextCursor, setNextCursor] = useState<string | null>(null),
@@ -65,8 +66,9 @@ export function CloudBackups({
       : page.items;
   }
   async function load(versionId = version) {
+    const all=await owned<SaveProfile[]>("/api/me/save-profiles");setRuntimeProfiles(all.filter(p=>p.engineReleaseId));
     const profiles = await owned<SaveProfile[]>(
-      "/api/me/save-profiles?versionId=" + encodeURIComponent(versionId),
+      "/api/me/save-profiles?versionId=" + encodeURIComponent(versionId)+(release?"&engineReleaseId="+encodeURIComponent(release):""),
     );
     const next = profiles[0] ?? null;
     setProfile(next);
@@ -98,7 +100,7 @@ export function CloudBackups({
     setProfile(null);
     setHistory([]);
     void owned<SaveProfile[]>(
-      "/api/me/save-profiles?versionId=" + encodeURIComponent(version),
+      "/api/me/save-profiles?versionId=" + encodeURIComponent(version)+(release?"&engineReleaseId="+encodeURIComponent(release):""),
     )
       .then(async (profiles) => {
         const next = profiles[0] ?? null;
@@ -121,7 +123,8 @@ export function CloudBackups({
     return () => {
       live = false;
     };
-  }, [version, enabled, owner]);
+  }, [version, release, enabled, owner]);
+  useEffect(()=>{if(!enabled)return;let live=true;void owned<SaveProfile[]>("/api/me/save-profiles").then(rows=>{if(live)setRuntimeProfiles(rows.filter(p=>p.engineReleaseId))}).catch(()=>{});return()=>{live=false}},[enabled,owner]);
   async function upload(draft: SaveDraft) {
     if (!account.isOwner(owner))
       throw new AccountClientError("IDENTITY_CHANGED");
@@ -177,10 +180,10 @@ export function CloudBackups({
     )
       throw new AccountClientError("SNAPSHOT_LIMIT");
     const target =
-      profile?.versionId === version
+      profile?.versionId === version && (profile.engineReleaseId??"")===release
         ? profile
         : await owned<SaveProfile>("/api/me/save-profiles", {
-            versionId: version,
+            versionId: version,...(release?{engineReleaseId:release}:{}),
           });
     const sealed = [];
     for (const file of files) {
@@ -201,6 +204,7 @@ export function CloudBackups({
     const draft: SaveDraft = {
       key: captureId,
       owner,
+      ...(release?{engineReleaseId:release}:{}),
       profile: target.id,
       version,
       generation: target.generation,
@@ -232,7 +236,7 @@ export function CloudBackups({
     }
   }
   if (!enabled) return null;
-  const pending = drafts.filter((d) => d.version === version);
+  const pending = drafts.filter((d) => d.version === version && (d.engineReleaseId??"")===release);
   return (
     <Card className="account-cloud">
       <CardHeader>
@@ -249,7 +253,7 @@ export function CloudBackups({
           disabled={busy}
           value={version}
           onChange={(e) => {
-            setVersion(e.target.value);
+            setVersion(e.target.value);setRelease("");
             setMessage("");
             setFiles([]);
           }}
@@ -265,6 +269,7 @@ export function CloudBackups({
             )),
           )}
         </NativeSelect>
+        {version && <div className="space-y-2"><Label htmlFor="account-engine-profile">引擎存档档案</Label><NativeSelect id="account-engine-profile" value={release} disabled={busy} onChange={e=>{setRelease(e.target.value);setFiles([]);setMessage('')}}><NativeSelectOption value="">原引擎档案</NativeSelectOption>{runtimeProfiles.filter(p=>p.versionId===version).map(p=><NativeSelectOption key={p.id} value={p.engineReleaseId}>新版独立档案 · {p.engineReleaseId?.slice(0,20)}</NativeSelectOption>)}</NativeSelect>{release&&<p className="text-sm text-muted-foreground">此档案属于新引擎 {release}。原引擎档案与历史保留。</p>}</div>}
         {version && (
           <>
             <div className="space-y-3">

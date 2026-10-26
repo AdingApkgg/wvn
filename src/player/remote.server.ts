@@ -1,3 +1,4 @@
+import {cloudRuntimeForPlayer} from '../engines/cloud-runtime.ts';
 import {candidateForPlayer,type Candidate} from '../engines/candidate.ts';
 import type { Hono } from 'hono';
 import { pilots } from '../../public/ons/registry.mjs';
@@ -39,6 +40,7 @@ export function registerRemotePlayerResources(app: Hono, options: { upstream: st
     if (!['GET', 'HEAD'].includes(c.req.method)) return c.body(null, 405);
     const other=/^\/__player\/(?:runtime|resource)\/([^/]+)(?:\/(.*))?$/.exec(c.req.path),ons=/^\/__ons\/(?:runtime|manifest)\/([^/]+)$/.exec(c.req.path);
     const candidate=(other||ons)?(options.candidate??candidateForPlayer)((other??ons)![1]):null;
+    const compatible=(other||ons)?cloudRuntimeForPlayer((other??ons)![1]):null;
     // 旧资源地址始终属于旧引擎；候选通过父页握手固定不可变地址，避免在服务重启时混组。
     const projection=options.projections?.get(c.req.path);
     const target = new URL(projection?.upstream??upstream);
@@ -63,7 +65,7 @@ export function registerRemotePlayerResources(app: Hono, options: { upstream: st
         let scoped=policy.replaceAll('https://wg.saop.cc/', new URL(c.req.url).origin + '/');
         // 旧资源服务保持只读；仅为公共驱动补上精确脚本地址，不扩大游戏权限。
         if(c.req.path.startsWith('/__ons/runtime/')&&!scoped.includes('/player/emscripten.mjs'))scoped=scoped.replace('script-src ',`script-src ${new URL(c.req.url).origin}/player/emscripten.mjs `);
-        if(candidate&&(runtime||other)){const prefix=new URL(c.req.url).origin+'/__engines/resource/'+candidate.release.id+'/';scoped=scoped.replace(/(script-src|connect-src) ([^;]*)/g,(_,directive,values)=>directive+' '+values+' '+prefix);safe.set('cache-control','no-store');}
+        if((candidate||compatible)&&(runtime||other)){const prefix=new URL(c.req.url).origin+'/__engines/resource/'+(candidate??compatible)!.release.id+'/';scoped=scoped.replace(/(script-src|connect-src) ([^;]*)/g,(_,directive,values)=>directive+' '+values+' '+prefix);safe.set('cache-control','no-store');}
         safe.set('content-security-policy',scoped);
       }
       const location = response.headers.get('location');

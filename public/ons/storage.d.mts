@@ -1,5 +1,5 @@
 import type { Snapshot } from "./protocol.mjs";
-export type SavedRevision = { id: string; pilot: string; revision: number; digest: string; snapshot: Snapshot; reason: string; bytes: number; bytesHeld: number; createdAt: string };
+export type SavedRevision = { id: string; pilot: string; revision: number; digest: string; snapshot: Snapshot; reason: string; runtimeReleaseId?:string; bytes: number; bytesHeld: number; createdAt: string };
 export type SaveStore = {
   close(): void;
   get(pilot: string): Promise<SavedRevision | null>;

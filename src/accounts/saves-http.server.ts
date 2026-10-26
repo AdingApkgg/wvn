@@ -2,6 +2,7 @@ import type { AccountService } from "./service.server.ts";
 import { AccountError } from "./errors.server.ts";
 export function mountSaves({
   app,
+  config,
   db,
   player,
   saves,
@@ -22,16 +23,17 @@ export function mountSaves({
   if (!saves) return;
   app.get("/api/me/save-profiles", async (c) => {
     const { session } = await player(c);
-    return c.json(saves.profiles(session.user.id, c.req.query("versionId")));
+    return c.json(saves.profiles(session.user.id, c.req.query("versionId"), c.req.query("engineReleaseId")));
   });
   app.post("/api/me/save-profiles", async (c) => {
     const { session } = await player(c);
-    const { versionId } = await c.req.json();
+    const { versionId, engineReleaseId } = await c.req.json();
+    if(engineReleaseId !== undefined && !config.engineCloud?.some(b=>b.versionId===versionId && b.releaseId===engineReleaseId)) throw new AccountError(400,"ENGINE_NOT_COMPATIBLE");
     if (
       !library.catalog.some((w) => w.versions.some((v) => v.id === versionId))
     )
       throw new AccountError(404, "VERSION_NOT_FOUND");
-    return c.json(saves.createProfile(session.user.id, versionId), 201);
+    return c.json(saves.createProfile(session.user.id, versionId,engineReleaseId), 201);
   });
   app.get("/api/me/save-profiles/:id/revisions", async (c) => {
     const { session } = await player(c);

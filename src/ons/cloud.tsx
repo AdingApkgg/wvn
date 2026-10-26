@@ -22,16 +22,22 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
   const owner=account.me!.user.id, alive=useRef(true), locked=useRef(false), loadSequence=useRef(0);
   const [busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
   const [profile,setProfile]=useState<SaveProfile|null>(null),[history,setHistory]=useState<SaveRevision[]>([]),[next,setNext]=useState<string|null>(null),[selected,setSelected]=useState(''),[drafts,setDrafts]=useState<CloudDraft[]>([]);
+  const [legacyProfile,setLegacyProfile]=useState<SaveProfile|null>(null),[legacyHistory,setLegacyHistory]=useState<SaveRevision[]>([]),[legacyNext,setLegacyNext]=useState<string|null>(null),[legacySelected,setLegacySelected]=useState('');
   function guard(){const accountCheck=account.guard();return()=>{accountCheck();if(!alive.current||!account.isOwner(owner))throw new AccountClientError('IDENTITY_CHANGED')}}
   const owned=<T,>(path:string,body?:unknown)=>account.request<T>(path,body,undefined,owner);
   async function load(check=guard()){
     const sequence=++loadSequence.current;
-    const rows=await owned<SaveProfile[]>('/api/me/save-profiles?versionId='+encodeURIComponent(pilot.versionId));check();
+    const rows=await owned<SaveProfile[]>('/api/me/save-profiles?versionId='+encodeURIComponent(pilot.versionId)+(pilot.engineReleaseId?'&engineReleaseId='+encodeURIComponent(pilot.engineReleaseId):''));check();
     const p=rows[0]??null,page=p?await owned<SaveHistory>(`/api/me/save-profiles/${p.id}/revisions`):null;
     const pending=await(await loadModule()).cloudState.drafts(owner);check();if(sequence!==loadSequence.current)return;
-    setProfile(p);setHistory(page?[...new Map([...(page.current?[page.current]:[]),...page.items].map(r=>[r.id,r])).values()]:[]);setNext(page?.next??null);setDrafts(pending.filter(d=>d.pilot===pilot.id&&d.version===pilot.versionId));setLoaded(true);
+    if(pilot.engineReleaseId){
+      const old=(await owned<SaveProfile[]>('/api/me/save-profiles?versionId='+encodeURIComponent(pilot.versionId)))[0]??null;check();
+      const oldPage=old?await owned<SaveHistory>(`/api/me/save-profiles/${old.id}/revisions`):null;check();
+      setLegacyProfile(old);setLegacyHistory(oldPage?[...new Map([...(oldPage.current?[oldPage.current]:[]),...oldPage.items].map(r=>[r.id,r])).values()]:[]);setLegacyNext(oldPage?.next??null);
+    }
+    setProfile(p);setHistory(page?[...new Map([...(page.current?[page.current]:[]),...page.items].map(r=>[r.id,r])).values()]:[]);setNext(page?.next??null);setDrafts(pending.filter(d=>d.pilot===pilot.id&&d.version===pilot.versionId&&d.engineReleaseId===pilot.engineReleaseId));setLoaded(true);
   }
-  useEffect(()=>{alive.current=true;void load().catch(e=>{if(alive.current){const text=e instanceof AccountClientError?errorCopy(e.code):'云端记录暂时无法读取，本机存档保留';setError(text);onStatus?.('云端读取失败：'+text)}});return()=>{alive.current=false;if(locked.current)onBusy(false)}},[owner,pilot.id]);
+  useEffect(()=>{alive.current=true;void load().catch(e=>{if(alive.current){const text=e instanceof AccountClientError?errorCopy(e.code):'云端记录暂时无法读取，本机存档保留';setError(text);onStatus?.('云端读取失败：'+text)}});return()=>{alive.current=false;if(locked.current)onBusy(false)}},[owner,pilot.id,pilot.engineReleaseId]);
   async function action(fn:(check:()=>void)=>Promise<void>){
     if(locked.current)return;locked.current=true;setBusy(true);onBusy(true);setError('');
     const check=guard();
@@ -39,7 +45,7 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
     finally{locked.current=false;if(alive.current){setBusy(false);onBusy(false)}}
   }
   async function upload(draft:CloudDraft,check:()=>void){
-    check();if(draft.owner!==owner||draft.pilot!==pilot.id||draft.version!==pilot.versionId)throw new AccountClientError('IDENTITY_CHANGED');
+    check();if(draft.owner!==owner||draft.pilot!==pilot.id||draft.version!==pilot.versionId||draft.engineReleaseId!==pilot.engineReleaseId)throw new AccountClientError('IDENTITY_CHANGED');
     const mod=await loadModule();check();
     try{
       const u=await owned<{id:string;complete:boolean;files:{id:string;name:string}[]}>(`/api/me/save-profiles/${draft.profile}/uploads`,{captureId:draft.captureId,expectedHead:draft.expectedHead,generation:draft.generation,files:draft.files.map(({blob,...f})=>f)});check();
@@ -57,26 +63,27 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
   async function send(check:()=>void){
     if(!window.confirm(`将本设备的此游戏存档上传到账号「${account.me!.user.name}」？本机副本可能来自匿名游玩或其他账号；现有云端历史会保留。`))return;
     const snapshot=await capture();check();const mod=await loadModule(),packed=await mod.packSnapshot(snapshot,pilot);check();
-    const p=profile??await owned<SaveProfile>('/api/me/save-profiles',{versionId:pilot.versionId});check();
-    const link=await mod.cloudState.link(owner,pilot.versionId);check();
-    const draft:CloudDraft={owner,pilot:pilot.id,version:pilot.versionId,profile:p.id,generation:p.generation,expectedHead:link?.profile===p.id&&link.generation===p.generation?link.head:null,captureId:crypto.randomUUID(),digest:packed.digest,files:packed.files};
+    const p=profile??await owned<SaveProfile>('/api/me/save-profiles',{versionId:pilot.versionId,...(pilot.engineReleaseId?{engineReleaseId:pilot.engineReleaseId}:{})});check();
+    const link=await mod.cloudState.link(owner,pilot.versionId,pilot.engineReleaseId);check();
+    const draft:CloudDraft={...(pilot.engineReleaseId?{engineReleaseId:pilot.engineReleaseId}:{}),owner,pilot:pilot.id,version:pilot.versionId,profile:p.id,generation:p.generation,expectedHead:link?.profile===p.id&&link.generation===p.generation?link.head:null,captureId:crypto.randomUUID(),digest:packed.digest,files:packed.files};
     await mod.cloudState.enqueue(draft);check();setDrafts([draft]);setMessage('已保留待上传副本，正在同步云端…');await upload(draft,check);
   }
-  async function apply(check:()=>void){
+  async function apply(check:()=>void,legacyCopy=false){
     if(running)throw Error('请先结束阅读并保留存档，再恢复云端版本');
-    const revision=history.find(r=>r.id===selected),p=profile;if(!revision||!p)throw Error('请选择云端历史版本');
-    if(!window.confirm('将这份云端备份用于下次启动？当前本机进度会留在历史中，旧存档库和云端当前版本均不改变。'))return;
+    const revision=(legacyCopy?legacyHistory:history).find(r=>r.id===(legacyCopy?legacySelected:selected)),p=legacyCopy?legacyProfile:profile;if(!revision||!p)throw Error('请选择云端历史版本');
+    if(!window.confirm(legacyCopy?'将所选原引擎云档复制到新版独立工作区？原云档、本机原档与全部历史不变，复制后需手动上传新版云档。':'将这份云端备份用于下次启动？当前本机进度会留在历史中，旧存档库和云端当前版本均不改变。'))return;
     const mod=await loadModule(),files=[];
     if(revision.files.length<2||revision.files.length>3||revision.files.reduce((n,f)=>n+f.bytes,0)>64*1024**2)throw Error('此备份不是统一播放器格式，请在账号页下载原文件');
     for(const f of revision.files){
       const blob=await account.readFile(`/api/me/save-profiles/${p.id}/revisions/${revision.id}/files?name=${encodeURIComponent(f.name)}`,owner,f.bytes);check();
       if(await mod.sha256(await blob.arrayBuffer())!==f.sha256)throw Error('云端下载校验失败，本机存档未修改');files.push({name:f.name,blob});
     }
-    const snapshot=await mod.unpackSnapshot(files,pilot);check();await restore(snapshot,check);check();
-    await mod.cloudState.applied(owner,pilot.versionId,p);check();setMessage('云端备份已恢复到本机，下次启动使用；原本机进度保留在历史中。');
+    const snapshot=await(legacyCopy?mod.copyLegacySnapshot(files,pilot):mod.unpackSnapshot(files,pilot));check();await restore(snapshot,check);check();
+    if(!legacyCopy)await mod.cloudState.applied(owner,pilot.versionId,p,pilot.engineReleaseId);check();setMessage(legacyCopy?'原引擎云档已复制到新版工作区；原档案未改，新版云档需手动上传。':'云端备份已恢复到本机，下次启动使用；原本机进度保留在历史中。');
   }
   return <div className="space-y-4">
     <p className="text-sm">当前账号：<strong>{account.me!.user.name}</strong> <a className="underline ml-3" href="/account" target="_blank" rel="noreferrer">管理账号与全部备份</a></p>
+    {pilot.engineReleaseId&&<div className="rounded border p-3 space-y-3"><p>新版引擎独立云档 · {pilot.engineReleaseId.slice(0,20)}</p><Label htmlFor="ons-legacy-cloud-history">原引擎云档（只读复制）</Label><NativeSelect id="ons-legacy-cloud-history" value={legacySelected} disabled={busy} onChange={e=>setLegacySelected(e.target.value)}><NativeSelectOption value="">选择原引擎云端历史…</NativeSelectOption>{legacyHistory.map(r=><NativeSelectOption key={r.id} value={r.id}>{new Date(r.createdAt).toLocaleString()} · {r.id===legacyProfile?.head?'原引擎当前版本':'原引擎历史版本'}</NativeSelectOption>)}</NativeSelect><Button variant="outline" disabled={busy||running||!legacySelected} onClick={()=>{void action(check=>apply(check,true))}}>复制原引擎云档到新版工作区</Button>{!legacyProfile&&<p>没有原引擎云档，可先切回原引擎手动上传。</p>}{legacyNext&&legacyProfile&&<Button disabled={busy} variant="ghost" onClick={()=>{void action(async check=>{const page=await owned<SaveHistory>(`/api/me/save-profiles/${legacyProfile.id}/revisions?cursor=${encodeURIComponent(legacyNext)}`);check();setLegacyHistory(h=>[...new Map([...h,...page.items].map(r=>[r.id,r])).values()]);setLegacyNext(page.next)})}}>加载更早的原引擎云档</Button>}</div>}
     {busy&&<Button variant="outline" onClick={()=>{void account.refresh(true)}}>暂停云端操作，保留本机副本</Button>}
     <div className="flex flex-wrap gap-3"><Button disabled={busy||!loaded||drafts.length>0} onClick={()=>{void action(send)}}>上传本机存档为新云端版本</Button><Button variant="outline" disabled={busy} onClick={()=>{void action(check=>load(check))}}>刷新云端历史</Button></div>
     {drafts.map(d=><div key={d.captureId} className="rounded border p-3 space-y-2"><p>此账号的待上传副本 · {d.files.reduce((n,f)=>n+f.bytes,0).toLocaleString()} 字节</p><Button disabled={busy} onClick={()=>{void action(check=>upload(d,check))}}>重试此账号的上传</Button><Button variant="ghost" disabled={busy} onClick={()=>{void action(async check=>{if(!window.confirm('移除此设备的待上传副本？请确认已有本机历史或导出备份。云端历史不变。'))return;await(await loadModule()).cloudState.discard(d.captureId);check();await load(check)})}}>移除此待上传副本</Button></div>)}

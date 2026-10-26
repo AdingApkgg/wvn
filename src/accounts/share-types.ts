@@ -19,6 +19,7 @@ export type ShareView = ShareText & {
   mode: "public" | "link";
   work: { id: string; title: string; url: string };
   version: {
+    engineReleaseId?: string;
     id: string;
     title: string;
     number: number;

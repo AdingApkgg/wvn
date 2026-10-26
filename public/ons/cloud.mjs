@@ -1,18 +1,31 @@
 import { validateSnapshot, snapshotDigest, limits } from './protocol.mjs';
 const META='wg-ons-manifest.json', PART=32*1024**2, MAX_META=262144;
 export const sha256=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join('');
-function identity(value,target){
-  if(value.format!=='wg-ons-cloud'||value.schema!==1||value.pilot!==target.id||value.versionId!==target.versionId||value.engine!==target.engine)throw Error('云端备份不属于此游戏版本或引擎；本机存档未修改');
+function writer(target){
+  if(target.engineReleaseId===undefined)return {format:'wg-ons-cloud',schema:1,engine:target.engine};
+  if(!/^renpy-[a-f0-9]{64}$/.test(target.engineReleaseId)||target.saveCompatibilityId!==`legacy:${target.versionId}:${target.engine}`)throw Error('未登记的云端存档兼容身份');
+  return {format:'wvn-engine-cloud',schema:2,releaseId:target.engineReleaseId,saveCompatibilityId:target.saveCompatibilityId};
 }
+function identity(value,target){
+  const expected=writer(target);
+  if(value.pilot!==target.id||value.versionId!==target.versionId||Object.entries(expected).some(([k,v])=>value[k]!==v)||(expected.schema===2&&value.engine!==undefined))throw Error('云端备份不属于此游戏版本或引擎；本机存档未修改');
+}
+export async function copyLegacySnapshot(input,target){
+  if(writer(target).schema!==2)throw Error('请选择新版引擎独立工作区');
+  // 先按旧包原身份校验，再显式复制内容；绝不重标记源清单。
+  return unpackSnapshot(input,{id:target.id,versionId:target.versionId,engine:target.engine});
+}
+export const cloudScope=(owner,version,releaseId)=>JSON.stringify(releaseId?[owner,version,releaseId]:[owner,version]);
+export const matchesCloudDraft=(draft,owner,target)=>draft.owner===owner&&draft.pilot===target.id&&draft.version===target.versionId&&draft.engineReleaseId===target.engineReleaseId;
 export async function packSnapshot(input,target){
-  const snapshot=validateSnapshot(input,target.id);
+  writer(target);const snapshot=validateSnapshot(input,target.id);
   if(!snapshot.files.length)throw Error('没有可上传的游戏存档');
   const chunks=[],files=[];let offset=0;
   for(const f of snapshot.files){files.push({path:f.path,offset,bytes:f.data.length,...(f.mtime===undefined?{}:{mtime:f.mtime})});chunks.push(f.data);offset+=f.data.length;}
   const all=new Blob(chunks),parts=[];
   for(let at=0;at<Math.max(1,all.size);at+=PART){const blob=all.slice(at,at+PART);parts.push({name:`wg-ons-data-${parts.length}.bin`,bytes:blob.size,sha256:await sha256(await blob.arrayBuffer()),blob});}
   const digest=await snapshotDigest(snapshot);
-  const metadata=new Blob([JSON.stringify({format:'wg-ons-cloud',schema:1,pilot:target.id,versionId:target.versionId,engine:target.engine,digest,files,parts:parts.map(({blob,...part})=>part)})],{type:'application/json'});
+  const metadata=new Blob([JSON.stringify({...writer(target),pilot:target.id,versionId:target.versionId,digest,files,parts:parts.map(({blob,...part})=>part)})],{type:'application/json'});
   if(metadata.size>MAX_META||metadata.size+all.size>limits.totalBytes)throw Error('云端备份含校验信息后超过 64 MiB；本机存档仍保留，请先导出');
   return {digest,files:[{name:META,bytes:metadata.size,sha256:await sha256(await metadata.arrayBuffer()),blob:metadata},...parts]};
 }
@@ -47,15 +60,15 @@ async function transaction(stores,mode,operation){
   db.onversionchange=()=>db.close();
   return new Promise((resolve,reject)=>{const t=db.transaction(stores,mode,{durability:'strict'});let result;const set=v=>result=v;try{operation(t,set)}catch(e){t.abort();db.close();reject(e);return}t.oncomplete=()=>{db.close();resolve(result)};t.onabort=()=>{db.close();reject(t.error??Error('云存档本机队列未能保存，原存档保留'))};t.onerror=()=>{}});
 }
-const key=(owner,version)=>JSON.stringify([owner,version]);
+const key=cloudScope;
 export const cloudState={
-  link:(owner,version)=>transaction(['links'],'readonly',(t,set)=>{const r=t.objectStore('links').get(key(owner,version));r.onsuccess=()=>set(r.result??null)}),
+  link:(owner,version,releaseId)=>transaction(['links'],'readonly',(t,set)=>{const r=t.objectStore('links').get(key(owner,version,releaseId));r.onsuccess=()=>set(r.result??null)}),
   drafts:owner=>transaction(['drafts'],'readonly',(t,set)=>{const r=t.objectStore('drafts').index('owner').getAll(owner);r.onsuccess=()=>set(r.result)}),
   enqueue:draft=>transaction(['drafts'],'readwrite',t=>{t.objectStore('drafts').add(draft)}),
   discard:captureId=>transaction(['drafts'],'readwrite',t=>{t.objectStore('drafts').delete(captureId)}),
   acknowledge:(draft,head,conflict)=>transaction(['drafts','links'],'readwrite',t=>{
-    if(!conflict)t.objectStore('links').put({key:key(draft.owner,draft.version),profile:draft.profile,generation:draft.generation,head});
+    if(!conflict)t.objectStore('links').put({key:key(draft.owner,draft.version,draft.engineReleaseId),profile:draft.profile,generation:draft.generation,head});
     t.objectStore('drafts').delete(draft.captureId);
   }),
-  applied:(owner,version,profile)=>transaction(['links'],'readwrite',t=>{t.objectStore('links').put({key:key(owner,version),profile:profile.id,generation:profile.generation,head:profile.head})}),
+  applied:(owner,version,profile,releaseId)=>transaction(['links'],'readwrite',t=>{t.objectStore('links').put({key:key(owner,version,releaseId),profile:profile.id,generation:profile.generation,head:profile.head})}),
 };

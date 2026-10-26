@@ -1,3 +1,4 @@
+import {configuredCloudRuntime} from './src/engines/cloud-runtime.ts';
 import {configuredCandidate} from './src/engines/candidate.ts';
 import {registerEngineArtifacts} from './src/engines/artifacts.ts';
 import { serve } from "@hono/node-server";
@@ -27,9 +28,11 @@ function required(name: string) {
   return value;
 }
 const origin = required("WG_ACCOUNT_ORIGIN");
-const engineCandidate=configuredCandidate();
+const engineCandidate=configuredCandidate(),engineRuntime=configuredCloudRuntime();
+if(engineCandidate&&engineRuntime)throw Error("Select one engine preview policy");
 const service = await createAccountService({
   origin,
+  engineCloud:engineRuntime?.bindings.map(b=>({versionId:b.versionId,releaseId:engineRuntime.release.id})),
   isolated:process.env.WG_ALL_ENGINES==='1',
   deployment:process.env.WG_DEPLOYMENT_MODE === "production"?"production":"preview",
   publicResourcePreflight:process.env.WG_ALL_ENGINES==='1'?isPlayerResourcePath:undefined,
@@ -56,6 +59,7 @@ if (moderation)
   writeFileSync(required("WG_SHARE_ADMIN_TOKEN_FILE"), moderation.token, {
     mode: 0o600,
   });
+if(engineRuntime)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineRuntime.release]});
 if(engineCandidate)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineCandidate.release]});
 if (process.env.WG_ACCOUNT_UI === "1") {
   const buildPath = "./build/server/index.js";

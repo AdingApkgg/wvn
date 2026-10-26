@@ -86,7 +86,7 @@ export class ShareClaims {
               id: String(previous.profile),
               generation: Number(previous.generation),
             }
-          : saves.createProfile(owner, String(source.version));
+          : saves.createProfile(owner, String(source.version), source.published_meta ? JSON.parse(String(source.published_meta)).version?.engineReleaseId : undefined);
         let row =
           previous ??
           db

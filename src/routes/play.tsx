@@ -6,9 +6,9 @@ import { getStore } from "../server/runtime.ts";
 import { pilotForVersion } from "../ons/pilots.server.ts";
 import { OnsPlayer } from "../ons/player.tsx";
 export function loader({
-  params,
+  params,request,
 }: {
-  params: { workId?: string; slot?: string };
+  params: { workId?: string; slot?: string };request?:Request;
 }) {
   const store = getStore();
   const v = store.resolveRoute(params.workId ?? "", params.slot ?? "");
@@ -18,7 +18,7 @@ export function loader({
     String(v.number) !== params.slot
   )
     return redirect(`/${workSlug(v.workId)}/${v.number}/`);
-  const player=pilotForVersion(v.id);
+  const player=pilotForVersion(v.id,request?new URL(request.url).searchParams.get("engine")??undefined:undefined);
   if(process.env.WG_ALL_ENGINES==='1'&&!player)throw new Response("此版本尚未完成播放器适配",{status:503});
   const w = store.get(v.workId)!;
   return {
@@ -54,7 +54,7 @@ import {
 } from "../components/ui/alert-dialog";
 export default function Play() {
   const { pilot, work, cloud } = useLoaderData<typeof loader>();
-  if (pilot) return <OnsPlayer key={pilot.id+':'+(pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} workUrl={work.url} cloud={cloud} />;
+  if (pilot) return <OnsPlayer key={pilot.id+':'+(pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} workUrl={work.url} cloud={cloud} />;
   return <LegacyPlay />;
 }
 function LegacyPlay() {

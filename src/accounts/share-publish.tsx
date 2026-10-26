@@ -141,7 +141,7 @@ export function SharePublish({
             }}
           >
             <div className="text-sm space-y-1">
-              <p>版本：{versionTitle}</p>
+              <p>版本：{versionTitle}</p>{profile.engineReleaseId&&<p>新版独立档案 · <code title={profile.engineReleaseId}>{profile.engineReleaseId.slice(0,20)}</code></p>}
               <p>
                 {revision.files.length} 个文件 ·{" "}
                 {revision.files.reduce((n, f) => n + f.bytes, 0)} 字节

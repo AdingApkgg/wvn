@@ -16,7 +16,8 @@ import {consumeStartupNotice} from '../analytics/startup';
 import {recordReading,trackPublicEvent} from '../analytics/client';
 import {parseWorkSlug} from '../identity';
 
-type Pilot = { id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string; engineCandidate?: {releaseId:string;database:string;cloudEnabled:false;compatibility:"unknown";engineRelease?:{id:string;kind:string;files:{path:string;sha256:string}[]}} };
+type Runtime = {engineReleaseId:string;saveCompatibilityId:string;database:string;stage:string;engineRelease:{id:string;kind:string;files:{path:string;sha256:string}[]}};
+type Pilot = {engineRuntime?:Runtime;engineOption?:Runtime;engineReleaseId?:string;saveCompatibilityId?:string; id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string; engineCandidate?: {releaseId:string;database:string;cloudEnabled:false;compatibility:"unknown";engineRelease?:{id:string;kind:string;files:{path:string;sha256:string}[]}} };
 type History = Omit<SavedRevision, "snapshot" | "bytesHeld">;
 type StorageModule = typeof import("../../public/ons/storage.mjs");
 type ProtocolModule = typeof import("../../public/ons/protocol.mjs");
@@ -28,6 +29,7 @@ async function modules() {
   };
 }
 export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; workUrl: string; cloud?: boolean }) {
+  const runtime=pilot.engineRuntime??pilot.engineCandidate,releaseId=pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId;
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false);
   const [gameStarted,setGameStarted]=useState(false);
   const [status, setStatus] = useState("正在读取本机存档…"), [error, setError] = useState("");
@@ -43,7 +45,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const active = useRef(true);
   const runningNow = useRef(false);
   function changeRunning(value: boolean) { runningNow.current = value; setRunning(value);setGameStarted(false); }
-  const blocker = useBlocker(({ currentLocation, nextLocation }) => runningNow.current && currentLocation.pathname !== nextLocation.pathname);
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => runningNow.current && (currentLocation.pathname !== nextLocation.pathname || new URLSearchParams(currentLocation.search).get("engine") !== new URLSearchParams(nextLocation.search).get("engine")));
   async function refresh() {
     const value = await store.current!.get(pilot.id);
     current.current = value; setHead(value); setHistory(await store.current!.history(pilot.id));
@@ -52,7 +54,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     active.current = true;
     let instance: SaveStore | null = null;
     void (async () => {
-      const { storage } = await modules(); instance = await storage.openSaveStore(pilot.engineCandidate?.database);
+      const { storage } = await modules(); instance = await storage.openSaveStore(runtime?.database);
       if (!active.current) { instance.close(); return; }
       store.current = instance; await refresh();
       setReady(true); setStatus("本机存档已就绪");
@@ -62,7 +64,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
       for (const request of pending.current.values()) { clearTimeout(request.timer); request.reject(Error("播放器已关闭")); }
       pending.current.clear(); instance?.close();
     };
-  }, [pilot.id,pilot.engineCandidate?.releaseId]);
+  }, [pilot.id,releaseId]);
   useEffect(() => {
     if (!running) return;
     const before = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
@@ -109,7 +111,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     };
     // Opaque frames have no serializable target origin. Bind one dedicated port to
     // this exact frame; never broadcast credentials or expose a general fetch API.
-    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(pilot.runtimeKind==='RenPy'&&pilot.engineCandidate?.engineRelease?{engineRelease:pilot.engineCandidate.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
+    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(pilot.runtimeKind==='RenPy'&&runtime?.engineRelease?{engineRelease:runtime.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
   }
   function capture(): Promise<{ snapshot: Snapshot; saved: boolean }> {
     const connection = channel.current;
@@ -151,13 +153,15 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         </div>
         <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => setSavePanel(open => !open)}>存档管理</Button>
       </div>
+      {pilot.engineOption&&<div className="flex flex-wrap items-center gap-3 text-sm"><span>{pilot.engineRuntime?'新版引擎独立存档':'原引擎存档'}</span><Link className="underline" to={pilot.engineRuntime?'?':'?engine='+encodeURIComponent(pilot.engineOption.engineReleaseId)}>{pilot.engineRuntime?'切回原引擎':'使用新版引擎（独立存档）'}</Link></div>}
+      {pilot.engineRuntime&&<p role="note" className="muted">新引擎 {pilot.engineRuntime.engineReleaseId.slice(0,20)} · 使用独立本机工作区与云端档案。旧档需主动复制，原档和历史保留。{pilot.engineRuntime.stage==='cloud-testing'?'正在预览验收。':''}</p>}
       {pilot.engineCandidate&&<p role="note" className="muted">候选引擎 · 存档保留在独立工作区，云端同步关闭。导入旧档仅创建副本，兼容性尚未确认。</p>}
       <div className="reader-save-status" role="status" aria-live="polite"><span>本机：{status}</span><span>{cloudStatus}</span></div>
       {error && blocker.state !== "blocked" && <div role="alert" className="reader-error"><p>{error}</p><Button variant="outline" size="sm" onClick={() => setSavePanel(true)}>打开存档管理并导出</Button></div>}
       <p className="reader-tip">请先在游戏菜单内保存，再保存并退出。本机备份不会自动上传云端。</p>
       <ReadingSession running={running&&gameStarted} />
       <section id="reader-save-panel" className="reader-save-panel space-y-5" hidden={!savePanel} aria-label="存档管理面板">
-        <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档管理</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,pilot.engineCandidate?.releaseId), "backup"); })}>导出当前存档</Button></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档管理</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,releaseId), "backup"); })}>导出当前存档</Button></div>
         {pilot.runtimeKind === "Tyrano" && <p className="text-sm text-muted-foreground">新存档使用文字缩略图；旧存档中的图片预览继续保留。</p>}
       {cloud&&ready&&<OnsCloud pilot={pilot} running={running} onStatus={setCloudStatus} onBusy={setCloudBusy} capture={async()=>{
         const result=runningNow.current?await capture():null;
@@ -177,7 +181,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" disabled={!ready || running || busy} onClick={() => run(async () => { const { storage } = await modules(); if(pilot.legacyHint&&!window.confirm(pilot.legacyHint+"\n仍要备份并导入当前版本吗？原存档不会修改。"))return; const snapshot = await storage.readLegacy(pilot.id); if (!snapshot || !snapshot.files.length) throw Error("当前网站来源没有这款游戏的旧存档；原有存档不会修改"); download(await storage.exportBackup(snapshot), "legacy-original"); await adopt(snapshot, "legacy-import"); })}>备份并读取本来源旧档</Button>
           <Label className="inline-flex cursor-pointer items-center rounded-md border px-4 py-2 text-sm" htmlFor="ons-backup-file">导入存档备份</Label>
-          <input id="ons-backup-file" aria-label="导入存档备份" type="file" accept="application/json,.json" disabled={!ready || running || busy} className="max-w-full text-sm" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void run(async () => { if (file.size > 90 * 1024 * 1024) throw Error("备份文件过大"); const { storage } = await modules(); await adopt(await storage.importBackup(await file.text(), pilot.id,pilot.engineCandidate?{releaseId:pilot.engineCandidate.releaseId,allowLegacyCopy:true}:undefined), "file-import"); }); }} />
+          <input id="ons-backup-file" aria-label="导入存档备份" type="file" accept="application/json,.json" disabled={!ready || running || busy} className="max-w-full text-sm" onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void run(async () => { if (file.size > 90 * 1024 * 1024) throw Error("备份文件过大"); const { storage } = await modules(); await adopt(await storage.importBackup(await file.text(), pilot.id,releaseId?{releaseId,allowLegacyCopy:true}:undefined), "file-import"); }); }} />
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Label htmlFor="ons-history">历史备份</Label>
@@ -186,7 +190,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
             {history.map(row => <NativeSelectOption key={row.id} value={row.id}>#{row.revision} · {new Date(row.createdAt).toLocaleString()} · {row.reason === "legacy-import" ? "旧档原始备份" : row.reason === "engine" ? "游戏存档" : "导入或恢复"}</NativeSelectOption>)}
           </NativeSelect>
           <Button variant="outline" disabled={!selected || running || busy} onClick={() => run(async () => { await adopt((await store.current!.getRevision(selected, pilot.id)).snapshot, "restore"); })}>下次启动使用此备份</Button>
-          <Button variant="ghost" disabled={!selected || busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await store.current!.getRevision(selected, pilot.id)).snapshot,pilot.engineCandidate?.releaseId), "history"); })}>导出所选备份</Button>
+          <Button variant="ghost" disabled={!selected || busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await store.current!.getRevision(selected, pilot.id)).snapshot,releaseId), "history"); })}>导出所选备份</Button>
         </div>
         <p className="text-xs text-muted-foreground">共享引擎 <code>{pilot.engine.slice(0, 12)}</code> · 每个游戏版本使用独立存档空间。旧存档不会被清理。</p>
         <a href="https://github.com/YuriSizuku/OnscripterYuri" target="_blank" rel="noreferrer" className="text-xs underline">ONScripterYuri 源码与 GPL-2.0 许可</a>
@@ -201,7 +205,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
           {error && <p role="alert" className="text-destructive">{error}</p>}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={busy}>继续阅读</AlertDialogCancel>
-            <Button variant="outline" disabled={busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await capture()).snapshot,pilot.engineCandidate?.releaseId), "before-leaving"); })}>导出当前存档</Button>
+            <Button variant="outline" disabled={busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await capture()).snapshot,releaseId), "before-leaving"); })}>导出当前存档</Button>
             <Button disabled={busy} onClick={() => run(async () => {
               if (blocker.state !== "blocked") return;
               const proceed = blocker.proceed;

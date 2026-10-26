@@ -134,6 +134,7 @@ export default function Share() {
                 {view.work.title} · 版本 {view.version.number} ·{" "}
                 {view.version.title}
               </p>
+              {view.version.engineReleaseId&&<p className="text-sm">新版独立档案 · <code title={view.version.engineReleaseId}>{view.version.engineReleaseId.slice(0,20)}</code></p>}
               <p className="text-xs text-muted-foreground">
                 {view.metadataBasis === "published"
                   ? "版本信息已按发布时保存。"

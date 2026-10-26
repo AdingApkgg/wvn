@@ -8,7 +8,7 @@ function releaseForGame(releaseId,pilot){
   if(!/^(?:ons|renpy)-[a-f0-9]{64}$/.test(releaseId)||!releaseId.startsWith((findPlayer(pilot)?.runtimeKind??'ONS').toLowerCase()+'-'))throw Error("备份引擎版本不属于当前游戏");
 }
 export async function openSaveStore(database = "wg-ons-pilot-v1") {
-  if(database!=="wg-ons-pilot-v1"&&!/^wvn-engine-candidates-v1-(?:ons|renpy)-[a-f0-9]{64}$/.test(database))throw Error("未知引擎工作区");
+  if(database!=="wg-ons-pilot-v1"&&!/^wvn-engine-(?:candidates|releases)-v1-(?:ons|renpy)-[a-f0-9]{64}$/.test(database))throw Error("未知引擎工作区");
   const db = await new Promise((resolve, reject) => {
     const r = indexedDB.open(database, 1);
     r.onupgradeneeded = () => {
@@ -42,8 +42,8 @@ export async function openSaveStore(database = "wg-ons-pilot-v1") {
         r.onsuccess = () => {
           const cursor = r.result;
           if (!cursor) return;
-          const { id, pilot, revision, digest, reason, createdAt, bytes } = cursor.value;
-          rows.push({ id, pilot, revision, digest, reason, createdAt, bytes }); cursor.continue();
+          const { id, pilot, revision, digest, reason, runtimeReleaseId, createdAt, bytes } = cursor.value;
+          rows.push({ id, pilot, revision, digest, reason, ...(runtimeReleaseId?{runtimeReleaseId}:{}), createdAt, bytes }); cursor.continue();
         };
         t.oncomplete = () => resolve(rows.sort((a, b) => b.revision - a.revision));
         t.onabort = () => reject(t.error);
@@ -67,7 +67,7 @@ export async function openSaveStore(database = "wg-ons-pilot-v1") {
           if (current?.digest === digest) { result = current; return; }
           if (reason === "engine" && current?.snapshot.files.length && !snapshot.files.length) return fail("拒绝用空存档覆盖已有进度");
           if ((current?.bytesHeld ?? 0) + bytes > budget) return fail("本机历史备份已达 512 MiB；请先导出备份，当前进度未覆盖");
-          result = { id: crypto.randomUUID(), pilot, revision: base + 1, digest, snapshot, reason, bytes, bytesHeld: (current?.bytesHeld ?? 0) + bytes, createdAt: new Date().toISOString() };
+          result = { id: crypto.randomUUID(), pilot, revision: base + 1, digest, snapshot, reason, ...(database.startsWith("wvn-engine-releases-v1-")?{runtimeReleaseId:database.slice("wvn-engine-releases-v1-".length)}:{}), bytes, bytesHeld: (current?.bytesHeld ?? 0) + bytes, createdAt: new Date().toISOString() };
           t.objectStore("snapshots").add(result);
           heads.put(result);
         };

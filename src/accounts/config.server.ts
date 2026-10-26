@@ -1,4 +1,5 @@
 export type AccountConfig = {
+  engineCloud?: {versionId:string;releaseId:string}[];
   analytics?: import('../analytics/proxy.server.ts').AnalyticsConfig;
   revision?: string;
   deployment?: "preview"|"production";

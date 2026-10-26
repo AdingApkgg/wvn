@@ -319,7 +319,7 @@ export class ShareStore {
           Date.now(),
           input.requestId,
           payload,
-          JSON.stringify(meta),
+          JSON.stringify({...meta,version:{...meta.version,...(source.profile.engineReleaseId?{engineReleaseId:source.profile.engineReleaseId}:{})}}),
           origin?.share_id ?? null,
         );
       this.db

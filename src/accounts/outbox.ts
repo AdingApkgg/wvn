@@ -1,5 +1,6 @@
 import type { SaveFile } from "./saves.server";
 export type SaveDraft = {
+  engineReleaseId?:string;
   key: string;
   owner: string;
   profile: string;

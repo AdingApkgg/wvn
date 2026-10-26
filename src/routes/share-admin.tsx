@@ -189,7 +189,7 @@ export default function ShareAdmin() {
                       <p>
                         版本 {item.publication.version.number} ·{" "}
                         {item.publication.version.title} ·{" "}
-                        {item.publication.version.engine}
+                        {item.publication.version.engine}{item.publication.version.engineReleaseId&&<span> · 新版独立档案 <code title={item.publication.version.engineReleaseId}>{item.publication.version.engineReleaseId.slice(0,20)}</code></span>}
                       </p>
                       <p className="break-all">{item.publication.version.id}</p>
                     </>

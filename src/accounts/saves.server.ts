@@ -6,6 +6,7 @@ export type SaveFile = { name: string; bytes: number; sha256: string };
 export type SaveProfile = {
   id: string;
   versionId: string;
+  engineReleaseId?: string;
   head: string | null;
   generation: number;
 };
@@ -28,6 +29,19 @@ type Row = Record<string, SQLOutputValue>;
 const SHA = (value: string | Uint8Array) =>
   createHash("sha256").update(value).digest("hex");
 const GiB = 1024 ** 3;
+// 独立 scope 沿用原唯一索引；旧客户端按原 versionId 查询仍只读旧档。
+function profileScope(versionId: string, releaseId?: string) {
+  if (!versionId || typeof versionId !== "string" || versionId.length > 200 || (releaseId !== undefined && !/^renpy-[a-f0-9]{64}$/.test(releaseId))) throw new AccountError();
+  return releaseId ? JSON.stringify(["wvn-engine-cloud-v2",versionId,releaseId]) : versionId;
+}
+function profileIdentity(scope: string): {versionId:string;engineReleaseId?:string} {
+  if (scope.startsWith('["wvn-engine-cloud-v2",')) {
+    const [,versionId,engineReleaseId]=JSON.parse(scope);
+    if(profileScope(versionId,engineReleaseId)!==scope)throw new AccountError();
+    return {versionId,engineReleaseId};
+  }
+  return {versionId:scope};
+}
 export class SaveStore {
   onRemove?: (owner: string, profileId?: string) => void;
   private blobs: BlobStore;
@@ -75,24 +89,25 @@ export class SaveStore {
     if (row.deleted) throw new AccountError(410, "PROFILE_DELETED");
     return {
       id: String(row.id),
-      versionId: String(row.version_id),
+      ...profileIdentity(String(row.version_id)),
       head: row.head ? String(row.head) : null,
       generation: Number(row.generation),
     };
   }
-  profiles(owner: string, versionId?: string): SaveProfile[] {
+  profiles(owner: string, versionId?: string, engineReleaseId?: string): SaveProfile[] {
     return this.db
       .prepare(
         "SELECT * FROM wg_save_profiles WHERE owner=? AND deleted=0 AND (? IS NULL OR version_id=?) ORDER BY created DESC",
       )
-      .all(owner, versionId ?? null, versionId ?? null)
+      .all(owner, versionId ? profileScope(versionId,engineReleaseId) : null, versionId ? profileScope(versionId,engineReleaseId) : null)
       .map((r) => this.profile(owner, String(r.id)));
   }
-  createProfile(owner: string, versionId: string): SaveProfile {
+  createProfile(owner: string, versionId: string, engineReleaseId?: string): SaveProfile {
+    const scope=profileScope(versionId,engineReleaseId);
     if (typeof versionId !== "string" || versionId.length > 200 || !versionId)
       throw new AccountError();
     return this.tx(() => {
-      const existing = this.profiles(owner, versionId)[0];
+      const existing = this.profiles(owner, versionId,engineReleaseId)[0];
       if (existing) return existing;
       if (
         Number(
@@ -109,7 +124,7 @@ export class SaveStore {
         .prepare(
           "INSERT INTO wg_save_profiles(id,owner,version_id,generation,created) VALUES (?,?,?,1,?)",
         )
-        .run(id, owner, versionId, Date.now());
+        .run(id, owner, scope, Date.now());
       return this.profile(owner, id);
     });
   }
