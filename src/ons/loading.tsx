@@ -19,7 +19,7 @@ export function LoadingView({progress,startedAt,onCancel}:{progress:LoadingProgr
  const [seconds,setSeconds]=useState(0);
  useEffect(()=>{const tick=()=>setSeconds(Math.max(0,Math.floor((Date.now()-startedAt)/1000)));tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer)},[startedAt]);
  const failed=progress.stage==='failed',percent=loadingPercent(progress);
- const title=progress.stage==='connecting'?'正在打开播放器':progress.stage==='downloading'?progress.kind==='engine'?'正在下载运行资源':progress.kind==='game'?'正在下载游戏资源':'正在下载资源':progress.stage==='restoring'?'正在恢复本机存档':failed?'加载未完成':'正在准备游戏';
+ const title=progress.stage==='checking'?'正在读取本机资源':progress.stage==='connecting'?'正在打开播放器':progress.stage==='downloading'?progress.kind==='engine'?'正在下载运行资源':progress.kind==='game'?'正在下载游戏资源':'正在下载资源':progress.stage==='restoring'?'正在恢复本机存档':failed?'加载未完成':'正在准备游戏';
  return <div className="reader-loading" data-testid="reader-loading" data-stage={progress.stage}>
   <div className="reader-loading-card">
    {failed?<AlertCircle className="reader-loading-icon" aria-hidden="true"/>:<LoaderCircle className="reader-loading-icon reader-loading-spinner" aria-hidden="true"/>}
@@ -30,7 +30,7 @@ export function LoadingView({progress,startedAt,onCancel}:{progress:LoadingProgr
     </div>
     <div className="reader-loading-metrics"><span>{percent===null?'准备完成后自动进入游戏':`当前资源 ${percent}%`}</span><span aria-hidden="true">已等待 {seconds<60?seconds+' 秒':Math.floor(seconds/60)+' 分 '+seconds%60+' 秒'}</span></div>
     {progress.stage==='downloading'&&<TransferDetails progress={progress}/>}
-    <p className="reader-loading-detail">较大的作品可能需要几分钟，请保持页面打开。下载完成后还需准备游戏。</p>
+    <p className="reader-loading-detail">{progress.stage==='checking'?'已缓存的资源会直接复用，缺少时自动下载。':'较大的作品可能需要几分钟，请保持页面打开。下载完成后还需准备游戏。'}</p>
    </>}
    <Button variant="outline" size="sm" onClick={onCancel}>{failed?'返回阅读准备':'取消加载'}</Button>
    <p className="reader-loading-preserved">本机存档和历史备份会继续保留</p>

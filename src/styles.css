@@ -1307,3 +1307,6 @@ summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
 .reader-transfer-details { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; margin-top: 10px; color: #b5b9c1; font-size: 12px; font-variant-numeric: tabular-nums; }
 .reader-resource-loading { width: min(340px, calc(100% - 24px)); }
 .reader-resource-loading .reader-transfer-details { margin-top: 5px; font-size: 11px; }
+
+.reader-cache-info { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-top: 10px; color: var(--muted-foreground); font-size: 12px; }
+.reader-cache-info p { flex: 1 1 240px; line-height: 1.6; }

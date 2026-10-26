@@ -1,6 +1,6 @@
 import {validateTransferMetrics} from './resource-loading.mjs';
 // 加载反馈独立于存档回执；只报告实际阶段与引擎/浏览器提供的数量。
-const stages=['connecting','downloading','restoring','initializing','failed'];
+const stages=['checking','connecting','downloading','restoring','initializing','failed'];
 const kinds=['engine','game'];
 export function validateLoadingProgress(value){
  if(!value||value.type!=='loading-progress'||!stages.includes(value.stage))return null;

@@ -1,6 +1,8 @@
 import {LoadingView,ResourceLoadingBar} from "./loading";
 import {validateLoadingProgress,type LoadingProgress} from "../../public/ons/loading.mjs";
 import {validateResourceProgress,type ResourceProgress} from "../../public/ons/resource-loading.mjs";
+import {createOnsResourcePlan,openResourceCacheStore,createOnsResourceSession,clearOnsResourceCache,type ResourceSession,type ResourceStore,type CacheStats} from "../../public/ons/resource-cache.mjs";
+import {formatTransferBytes} from "../../public/ons/resource-loading.mjs";
 import { brand } from "../brand";
 import { useEffect, useRef, useState } from "react";
 import { Link, useBlocker } from "react-router";
@@ -35,6 +37,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const runtime=pilot.engineRuntime??pilot.engineCandidate,releaseId=pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId;
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false);
   const [gameStarted,setGameStarted]=useState(false);
+  const [cacheStats,setCacheStats]=useState<CacheStats|null>(null);
   const [resources,setResources]=useState<ResourceProgress|null>(null);
   const [loading,setLoading]=useState<LoadingProgress|null>(null),[loadStartedAt,setLoadStartedAt]=useState(0);
   const [status, setStatus] = useState("正在读取本机存档…"), [error, setError] = useState("");
@@ -45,14 +48,14 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
   const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
-  const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean;started:boolean } | null>(null);
+  const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean;started:boolean;dispose:()=>void;cache?:ResourceSession } | null>(null);
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const active = useRef(true);
   const runningNow = useRef(false);
   function changeRunning(value: boolean) { runningNow.current = value; setRunning(value);setGameStarted(false);setResources(null);setLoading(value?{stage:"connecting"}:null);if(value)setLoadStartedAt(Date.now()); }
   function cancelLoading(){
     if(channel.current?.started)return;
-    channel.current?.port.close();channel.current=null;changeRunning(false);setError("");setStatus("已取消加载，本机存档和历史备份保留");
+    channel.current?.dispose();channel.current=null;changeRunning(false);setError("");setStatus("已取消加载，本机存档和历史备份保留");
   }
   const blocker = useBlocker(({ currentLocation, nextLocation }) => runningNow.current && (currentLocation.pathname !== nextLocation.pathname || new URLSearchParams(currentLocation.search).get("engine") !== new URLSearchParams(nextLocation.search).get("engine")));
   async function refresh() {
@@ -69,7 +72,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
       setReady(true); setStatus("本机存档已就绪");
     })().catch(e => { if (active.current) setError(e.message || "本机存档不可用"); });
     return () => {
-      active.current = false; channel.current?.port.close(); channel.current = null;
+      active.current = false; channel.current?.dispose(); channel.current = null;
       for (const request of pending.current.values()) { clearTimeout(request.timer); request.reject(Error("播放器已关闭")); }
       pending.current.clear(); instance?.close();
     };
@@ -87,14 +90,22 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   }
   async function connect() {
     if (!store.current || !frame.current?.contentWindow) return;
-    channel.current?.port.close();
+    channel.current?.dispose();
     const ports = new MessageChannel(), nonce = crypto.randomUUID();
-    const connection = { port: ports.port1, nonce, seq: 0, writing: false,started:false }; channel.current = connection;
+    const controller=new AbortController();let cache:ResourceSession|undefined,resourceStore:ResourceStore|null=null;
+    const connection:{port:MessagePort;nonce:string;seq:number;writing:boolean;started:boolean;dispose:()=>void;cache?:ResourceSession}={port:ports.port1,nonce,seq:0,writing:false,started:false,dispose(){controller.abort();cache?.close();resourceStore?.close();ports.port1.close()}};channel.current=connection;
+    const requests=new Set<string>(),resourceQueue:{requestId:string;key:string}[]=[];let fetching=0;
+    const sendResource=(value:object,bytes?:Uint8Array)=>{if(channel.current!==connection||controller.signal.aborted)return;try{ports.port1.postMessage({...value,pilot:pilot.id,nonce},bytes?[bytes.buffer as ArrayBuffer]:[])}catch{/* 退出后的资源回执无需送达。 */}};
+    const pumpResources=()=>{while(cache&&fetching<2&&resourceQueue.length&&!controller.signal.aborted){const job=resourceQueue.shift()!;fetching++;void cache.load(job.key,progress=>sendResource({type:'ons-resource-progress',requestId:job.requestId,...progress})).then(value=>sendResource({type:'ons-resource-result',requestId:job.requestId,ok:true,...(value.direct?{direct:true}:{data:value.data})},value.data)).catch(error=>sendResource({type:'ons-resource-result',requestId:job.requestId,ok:false,error:String(error.message??'资源读取失败').slice(0,200)})).finally(()=>{fetching--;requests.delete(job.requestId);pumpResources()})}};
     const { protocol } = await modules();
     ports.port1.onmessage = async ({ data }) => {
       if (channel.current !== connection || !active.current || !data || data.nonce !== nonce || data.pilot !== pilot.id) return;
       if(consumeStartupNotice(data,connection,pilot.id)){
-        setGameStarted(true);setLoading(null);const id=parseWorkSlug(workUrl.split('/')[1]??'');if(id)void recordReading(id,pilot.versionId);trackPublicEvent('reading_start',undefined,window.location.pathname);return;
+        connection.cache?.startPrefetch();setGameStarted(true);setLoading(null);const id=parseWorkSlug(workUrl.split('/')[1]??'');if(id)void recordReading(id,pilot.versionId);trackPublicEvent('reading_start',undefined,window.location.pathname);return;
+      }
+      if(data.type==='ons-resource'){
+        if(!cache||typeof data.key!=='string'||data.key.length>300||!/^[-a-f0-9]{36}$/.test(data.requestId??'')||requests.has(data.requestId)||requests.size>=64){sendResource({type:'ons-resource-result',requestId:data.requestId,ok:false,error:'资源请求无效'});return;}
+        requests.add(data.requestId);resourceQueue.push({requestId:data.requestId,key:data.key});pumpResources();return;
       }
       if(data.type==="resource-progress"){if(connection.started){const value=validateResourceProgress(data);if(value)setResources(value)}return;}
       if(data.type==="loading-progress"){if(!connection.started){const value=validateLoadingProgress(data);if(value)setLoading(value)}return;}
@@ -120,9 +131,21 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         }
       }
     };
+    let resourceManifest:unknown;
+    if(!pilot.runtimeKind){
+      const response=await fetch('/__ons/manifest/'+encodeURIComponent(pilot.id),{credentials:'omit',cache:'no-cache',redirect:'error',signal:controller.signal});if(!response.ok)throw Error('资源清单不可用');
+      const text=await response.text();if(text.length>32*1024*1024)throw Error('资源清单过大');resourceManifest=JSON.parse(text);
+      const plan=await createOnsResourcePlan(pilot,resourceManifest,location.origin,runtime?.engineRelease);
+      if(controller.signal.aborted)return;
+      try{resourceStore=await openResourceCacheStore()}catch{/* 浏览器不支持持久缓存时继续读取网络资源。 */}
+      let maxBytes=256*1024*1024;
+      try{const {quota,usage}=await navigator.storage.estimate();if(quota!==undefined&&usage!==undefined)maxBytes=Math.max(0,Math.min(maxBytes,Math.floor((quota-usage)/4)))}catch{/* 使用有限的默认缓存预算。 */}
+      if(controller.signal.aborted){resourceStore?.close();return}
+      cache=createOnsResourceSession({plan,store:resourceStore,maxBytes,maxFileBytes:Math.min(32*1024*1024,maxBytes),onStats:stats=>{if(channel.current===connection&&active.current&&!controller.signal.aborted)setCacheStats(stats)}});connection.cache=cache;
+    }
     // Opaque frames have no serializable target origin. Bind one dedicated port to
     // this exact frame; never broadcast credentials or expose a general fetch API.
-    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(pilot.runtimeKind==='RenPy'&&runtime?.engineRelease?{engineRelease:runtime.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
+    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(pilot.runtimeKind==='RenPy'&&runtime?.engineRelease?{engineRelease:runtime.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), ...(resourceManifest?{resourceManifest}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
   }
   function capture(): Promise<{ snapshot: Snapshot; saved: boolean }> {
     const connection = channel.current;
@@ -152,7 +175,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         <Link to="/" className="text-sm text-muted-foreground">发现更多故事</Link>
       </header>
       <div ref={surface} className="reader-surface" style={{ minHeight: running ? "min(72vh, 850px)" : "min(50vh, 520px)" }}>
-        {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen; gamepad" allowFullScreen aria-busy={!gameStarted} onLoad={() => { void connect().catch(e => setLoading({stage:"failed",message:e.message})); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
+        {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen; gamepad" allowFullScreen aria-busy={!gameStarted} onLoad={event => { const element=event.currentTarget;void connect().catch(e=>{if(active.current&&runningNow.current&&frame.current===element&&e.name!=="AbortError"){channel.current?.dispose();channel.current=null;setLoading({stage:"failed",message:e.message})}}); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
         {running&&gameStarted&&<ResourceLoadingBar progress={resources}/>}
         {running&&!gameStarted&&loading&&<LoadingView progress={loading} startedAt={loadStartedAt} onCancel={cancelLoading} />}
       </div>
@@ -161,12 +184,16 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         <div className="reader-controls">
           {!running ? <Button disabled={!ready || busy} onClick={() => run(async () => { if(inputSpec)validatePlayerName(playerName); await refresh(); setStatus("正在连接沙箱…"); changeRunning(true); })}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
-            <Button variant="outline" disabled={busy||!gameStarted} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.port.close(); channel.current = null; changeRunning(false); setStatus("阅读已结束，存档已保留"); })}>保存并退出</Button>
+            <Button variant="outline" disabled={busy||!gameStarted} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.dispose(); channel.current = null; changeRunning(false); setStatus("阅读已结束，存档已保留"); })}>保存并退出</Button>
             <Button variant="ghost" onClick={() => run(async () => { await surface.current?.requestFullscreen(); })}>全屏</Button>
           </>}
         </div>
         <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => setSavePanel(open => !open)}>存档管理</Button>
       </div>
+      {!pilot.runtimeKind&&<div className="reader-cache-info" data-testid="ons-cache-status" data-hits={cacheStats?.hits??0} data-downloads={cacheStats?.downloads??0} data-preloaded={cacheStats?.preloaded??0} data-bytes={cacheStats?.bytes??0}>
+        <p>{cacheStats?(cacheStats.available?`资源缓存：本次复用 ${cacheStats.hits} 项 · 已用 ${formatTransferBytes(cacheStats.bytes)}`:'浏览器缓存暂不可用，本次仍可正常阅读'):'读过的资源会保留在浏览器中；空闲时少量预加载。'}{cacheStats?.prefetching?' · 正在预加载':cacheStats?.preloaded?` · 已预加载 ${cacheStats.preloaded} 项`:''}</p>
+        <Button variant="ghost" size="sm" disabled={running||busy||!ready} title={running?'保存并退出后可清理':undefined} onClick={()=>run(async()=>{await clearOnsResourceCache(pilot.id);setCacheStats(null);setStatus('本作资源缓存已清理，存档和历史备份保留')})}>清理本作资源缓存</Button>
+      </div>}
       {pilot.engineOption&&<div className="flex flex-wrap items-center gap-3 text-sm"><span>{pilot.engineRuntime?'新版引擎独立存档':'原引擎存档'}</span><Link className="underline" to={pilot.engineRuntime?'?':'?engine='+encodeURIComponent(pilot.engineOption.engineReleaseId)}>{pilot.engineRuntime?'切回原引擎':'使用新版引擎（独立存档）'}</Link></div>}
       {pilot.engineRuntime&&<p role="note" className="muted">新引擎 {pilot.engineRuntime.engineReleaseId.slice(0,20)} · 使用独立本机工作区与云端档案。旧档需主动复制，原档和历史保留。{pilot.engineRuntime.stage==='cloud-testing'?'正在预览验收。':''}</p>}
       {pilot.engineCandidate&&<p role="note" className="muted">候选引擎 · 存档保留在独立工作区，云端同步关闭。导入旧档仅创建副本，兼容性尚未确认。</p>}
@@ -224,7 +251,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
               if (blocker.state !== "blocked") return;
               const proceed = blocker.proceed;
               if (!(await capture()).saved) throw Error("本机备份尚未成功，请先导出当前存档");
-              channel.current?.port.close(); channel.current = null; changeRunning(false); proceed();
+              channel.current?.dispose(); channel.current = null; changeRunning(false); proceed();
             })}>保存并离开</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
