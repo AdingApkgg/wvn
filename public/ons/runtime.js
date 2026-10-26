@@ -33,11 +33,11 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     let seq = 0, pending = null, queued = null, failed = false, started = false;
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
-    let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests;
-    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); }
+    let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter;
+    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter}=await import(origin+"/ons/resource-loading.mjs")); }
     catch (e) { send({type:"loading-progress",stage:"failed",message:"播放器组件暂时不可用，请取消后重试"});status("启动失败：存档桥接模块不可用"); return; }
-    const loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
-    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(url.origin!==origin)return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;});
+    const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
+    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(url.origin!==origin)return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
     function snapshot() {
       const files = captureFilesystem(g_onsyuri_module.FS, [{path:"/save",prefix:""}], limits);
       return validateSnapshot({ schema: 1, pilot, files }, pilot);
@@ -121,9 +121,9 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       g_onsyuri_module.callMain(["--root", "/game", "--font", "/game/default.ttf", "--save-dir", "/save"]);
       driver.running();
       scale_full(g_onsyuri_module.canvas, g_screen_width / g_screen_height);
-      g_onsyuri_module.canvas.focus();loading.complete();stopObserving();send({type:'started'}); status("引擎已启动");
+      g_onsyuri_module.canvas.focus();loading.complete();send({type:'started'});resources.activate(); status("引擎已启动");
       setInterval(() => captureSave(), 5000);
-    } catch (e) { loading.fail(e.message);stopObserving();status("启动失败：" + e.message); }
+    } catch (e) { loading.fail(e.message);resources.close();stopObserving();status("启动失败：" + e.message); }
   }
   addEventListener("message", initialize);
 })();

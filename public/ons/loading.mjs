@@ -38,30 +38,4 @@ export function createLoadingReporter(send,{now=()=>Date.now()}={}){
  };
  return reporter;
 }
-export function observeStartupRequests(win,reporter,classify){
- const safe=fn=>{try{fn()}catch{/* 只观察；资源请求和原生回调继续照常执行。 */}},listeners=new Set();
- const originalFetch=win.fetch;
- const fetchWrapper=function(resource,...args){safe(()=>{const kind=classify(resource);if(kind)reporter.phase('downloading',kind)});return originalFetch.call(this,resource,...args)};
- if(typeof originalFetch==='function')win.fetch=fetchWrapper;
- const prototype=win.XMLHttpRequest?.prototype,originalOpen=prototype?.open,originalSend=prototype?.send,requests=new WeakMap();
- let openWrapper,sendWrapper;
- if(prototype&&typeof originalOpen==='function'&&typeof originalSend==='function'){
-  openWrapper=function(method,url,...args){const result=originalOpen.call(this,method,url,...args);safe(()=>requests.set(this,method==='GET'?classify(url):null));return result};
-  sendWrapper=function(...args){
-   const kind=requests.get(this);let remove;
-   if(kind){
-    const progress=event=>safe(()=>reporter.download(kind,event.lengthComputable?event.loaded:undefined,event.lengthComputable?event.total:undefined));
-    remove=()=>{this.removeEventListener('progress',progress);this.removeEventListener('loadend',remove);listeners.delete(remove)};
-    this.addEventListener('progress',progress);this.addEventListener('loadend',remove);listeners.add(remove);safe(()=>reporter.phase('downloading',kind));
-   }
-   try{return originalSend.apply(this,args)}catch(error){remove?.();throw error}
-  };
-  prototype.open=openWrapper;prototype.send=sendWrapper;
- }
- return()=>{
-  if(win.fetch===fetchWrapper)win.fetch=originalFetch;
-  if(prototype&&prototype.open===openWrapper)prototype.open=originalOpen;
-  if(prototype&&prototype.send===sendWrapper)prototype.send=originalSend;
-  for(const remove of [...listeners])remove();
- };
-}
+export {observeResourceRequests as observeStartupRequests} from './resource-loading.mjs';

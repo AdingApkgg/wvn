@@ -1298,3 +1298,8 @@ summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
 @keyframes reader-spin { to { transform: rotate(360deg); } }
 @keyframes reader-loading { from { transform: translateX(-100%); } to { transform: translateX(385%); } }
 @media (prefers-reduced-motion: reduce) { .reader-loading-spinner, .reader-loading-indeterminate { animation: none !important; } .reader-loading-track > span { transition: none; } }
+
+/* 在全屏与小屏中也保留游戏操作区域，加载提示不拦截指针。 */
+.reader-resource-loading { pointer-events: none; position: absolute; z-index: 3; top: 12px; right: 12px; width: min(280px, calc(100% - 24px)); padding: 10px 12px; border: 1px solid #52596580; border-radius: 8px; background: #101216ed; color: #f3f0eb; box-shadow: 0 2px 12px #0003; }
+.reader-resource-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; line-height: 1.5; }
+.reader-resource-loading .reader-loading-track { height: 3px; margin-top: 8px; }

@@ -1,3 +1,4 @@
+import {createResourceReporter} from '../ons/resource-loading.mjs';
 import {createLoadingReporter,observeStartupRequests} from '../ons/loading.mjs';
 import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} from './emscripten.mjs';
 import {findPlayer} from './registry.mjs';
@@ -13,7 +14,7 @@ addEventListener('message',async function initialize(event){
   const port=event.ports[0],nonce=init.nonce;let seq=0,queue=Promise.resolve(),capture,failed=false;
   const acknowledgements=new Map(),send=message=>port.postMessage({...message,pilot:id,nonce});
   const status=message=>send({type:'status',message:String(message).slice(0,500)});
-  const loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase('connecting');
+  const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase('connecting');
   function persist(files,requestId){
     // Serialize snapshots, retaining the bytes as they were at the native fsync.
     const snapshot=validateSnapshot({schema:1,pilot:id,files},id);
@@ -53,7 +54,7 @@ addEventListener('message',async function initialize(event){
       if(url.pathname.startsWith('/__engines/resource/'))return 'engine';
       if(!url.pathname.startsWith('/__player/resource/'+id+'/'))return null;
       return /\/(?:renpy|artemis)(?:-pre)?\.(?:js|wasm|data)$/.test(url.pathname)?'engine':'game';
-    });
+    },resources);
     let driver;const engineResources=engineResourcesForSession(init.engineRelease,entry.runtimeKind,origin);
     function instrument(){
       const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;
@@ -94,7 +95,7 @@ addEventListener('message',async function initialize(event){
     if(driver){
       await driver.waitReady(()=>driver.module.calledRun&&(document.getElementById('canvas')?.width??0)>400,{timeout:['renpy-v562-2','renpy-v3144-1'].includes(entry.id)?1800000:180000});
     }else await waitForTyranoReady(()=>window.TYRANO?.kag);
-    loading.complete();stopObserving();send({type:'started'});
+    loading.complete();send({type:'started'});resources.activate();
     status('游戏已启动；请在游戏内保存进度');
-  }catch(error){loading.fail(error.message);stopObserving();status('启动失败：'+error.message);console.error('WG runtime',error)}
+  }catch(error){loading.fail(error.message);resources.close();stopObserving();status('启动失败：'+error.message);console.error('WG runtime',error)}
 });

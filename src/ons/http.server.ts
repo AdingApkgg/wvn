@@ -91,7 +91,7 @@ export function registerOnsModules(app: Hono) {
   registerPlayerModules(app);
   const staticRoot = resolve(existsSync("build/client/ons") ? "build/client/ons" : "public/ons");
   app.on(["GET", "HEAD"], "/ons/:file", async c => {
-    if (!["runtime.js", "storage.mjs", "protocol.mjs", "cloud.mjs", "registry.mjs", "loading.mjs"].includes(c.req.param("file"))) return c.notFound();
+    if (!["runtime.js", "storage.mjs", "protocol.mjs", "cloud.mjs", "registry.mjs", "loading.mjs", "resource-loading.mjs"].includes(c.req.param("file"))) return c.notFound();
     const response = await fileResponse(c.req.raw, staticRoot, "/" + c.req.param("file"));
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("Access-Control-Allow-Origin", "*");

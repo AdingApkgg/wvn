@@ -24,3 +24,17 @@ export function LoadingView({progress,startedAt,onCancel}:{progress:LoadingProgr
   </div>
  </div>;
 }
+
+// 游玩中仅在画面边缘反馈，不接管输入或弹回启动遮罩。
+export function ResourceLoadingBar({progress}:{progress:import('../../public/ons/resource-loading.mjs').ResourceProgress|null}){
+ const [visible,setVisible]=useState(false),[failed,setFailed]=useState(false);
+ const active=progress?.active??0;
+ useEffect(()=>{if(!active){setVisible(false);return}const timer=setTimeout(()=>setVisible(true),180);return()=>clearTimeout(timer)},[active>0]);
+ useEffect(()=>{if(!progress?.failed){setFailed(false);return}setFailed(true);const timer=setTimeout(()=>setFailed(false),8000);return()=>clearTimeout(timer)},[progress]);
+ if(!visible&&!failed)return null;
+ const percent=progress?.total&&progress.loaded!==undefined?Math.floor(progress.loaded/progress.total*100):null;
+ return <div className="reader-resource-loading" data-testid="reader-resource-loading" data-active={active}>
+  <div className="reader-resource-label" role={failed?'alert':'status'}>{failed?'部分资源加载失败，请检查网络':active>1?`正在加载资源 · ${active} 项`:'正在加载资源'}{!failed&&percent!==null&&<span>{percent}%</span>}</div>
+  {visible&&<div className="reader-loading-track" role="progressbar" aria-label="游玩资源加载进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent??undefined} aria-valuetext={percent===null?'正在加载资源':`当前资源 ${percent}%`}><span className={percent===null?'reader-loading-indeterminate':''} style={percent===null?undefined:{width:percent+'%'}}/></div>}
+ </div>;
+}
