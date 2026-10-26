@@ -20,7 +20,9 @@ export function shouldAdvanceOpening(last,actions){
 export function chooseManualSavePage(buttons){return buttons.find(b=>b.action==='FilePage'&&b.page==='1')?.rect??null}
 export function chooseNativeFileLoad(buttons,slot){return buttons.find(b=>b.action==='FileLoad'&&b.slot===slot)?.rect??null}
 export function filesForNativeSlot(files,slot){return files.filter(file=>{const name=file.path.split('/').pop();return name===slot+'.save'||name.startsWith(slot+'-LT')&&/^\d+\.save$/.test(name.slice((slot+'-LT').length))})}
-export function isNativeIntro(point){const t=point.text??'';return t.includes('青桔移植组')||t.includes('本作品免费首发于')||t.includes('本作品由青桔移植组移植')||t.includes('STAFF')&&t.includes('程序')&&t.includes('美工')||t.includes('BUG反馈群')&&t.includes('移植组')||t.includes('当前游戏版本：')||t.includes('请确保您已通关《星之终途》本篇')||t.includes('本游戏是根据《星之终途》官方后日谈剧本制作的同人游戏')}
+export function isNativeIntro(point){const t=point.text??'';return t.includes('温馨提示')&&t.includes('正文开始')||t.includes('青桔移植组')||t.includes('本作品免费首发于')||t.includes('下载作品前，应当遵循当地法律')||t.includes('作品完全免费')||t.includes('购买所得')||t.includes('请立即给卖家差评')||t.includes('本作品由青桔移植组移植')||t.includes('STAFF')&&t.includes('程序')&&t.includes('美工')||t.includes('BUG反馈群')&&t.includes('移植组')||t.includes('当前游戏版本：')||t.includes('请确保您已通关《星之终途》本篇')||t.includes('本游戏是根据《星之终途》官方后日谈剧本制作的同人游戏')||t.includes('后日谈剧本非二创')||t.includes('我们将使用流传更广的汉化译名')||t.includes('后日谈的故事发生在')||t.includes('现在，翻开这篇渺茫希望的日记吧')}
+export function isNativeBodyCheckpoint(point,id){return Boolean(point?.text&&point.text!=='None'&&!point.choice&&!isNativeIntro(point)&&/[\p{L}\p{N}]/u.test(point.visibleText??point.text)&&(!/^renpy-v44184-[1-4]$/.test(id)||point.context?.includes('/script/Y/')))}
+export function chooseNativePicker(buttons,slot){return buttons.find(b=>b.action==='Show'&&b.screen==='saveload'&&b.slot===slot)??null}
 export function nativeDialogueChanged(a,b){return Boolean(b?.text&&b.text!=='None'&&!b.choice&&(a.visibleText??a.text)!==(b.visibleText??b.text))}
 export function isAuditedOpeningNotice(id,data){return /^renpy-v44184-[1-4]$/.test(id)&&!data.mainMenu&&!data.confirm&&data.buttons.length===0&&(data.text.includes('本作品免费首发于')&&data.text.includes('请务必支持正版')||data.text.includes('本移植仅供日语学习使用')&&data.text.includes('本组不负任何责任')||data.text.includes('本次移植增加了多语言框架')&&data.text.includes('切换为原语言')||/当前版本是v0\.9[0-3]?测试版/.test(data.text)&&data.text.includes('未完成的功能')||data.text.includes('STAFF')&&data.text.includes('移植')&&data.text.includes('翻译')||data.text.toLowerCase().includes('github')&&data.text.includes('翻译')&&data.text.includes('提交'))}
 export const NATIVE_ACTIONS_PYTHON = "def _wvn_actions(value):\n    pending=[(value,0)]\n    while pending:\n        item,depth=pending.pop()\n        if depth>16: continue\n        if isinstance(item,(list,tuple)):\n            pending.extend((child,depth+1) for child in reversed(item))\n        elif item is not None: yield item";
@@ -34,7 +36,7 @@ export async function nativeFocus(command,includeSlots=false){
   "        for a in _actions(getattr(widget,'clicked',None)):",
   "            kind=type(a).__name__",
   "            if unbounded and (kind not in ('FileLoad','FileSave') or not a.get_sensitive()): continue",
-  "            rows.append({'rect':rect,'unboundedFocus':unbounded,'action':kind,'screen':str(getattr(a,'screen',None)),'value':str(getattr(a,'value',None)),'loadConfirm':bool(getattr(a,'confirm',True)),'page':str(getattr(a,'page',None)),'slot':_slot(a.name,a.page,a.slot) if _slot is not None and kind in ('FileLoad','FileSave') else None})",
+  "            rows.append({'rect':rect,'unboundedFocus':unbounded,'action':kind,'screen':str(getattr(a,'screen',None)),'value':str(getattr(a,'value',None)),'loadConfirm':bool(getattr(a,'confirm',True)),'page':str(getattr(a,'page',None)),'slot':_slot(a.name,a.page,a.slot) if _slot is not None and kind in ('FileLoad','FileSave') else _slot(getattr(a,'kwargs',{}).get('id'),None) if _slot is not None and kind=='Show' and getattr(a,'screen',None)=='saveload' and isinstance(getattr(a,'kwargs',{}).get('id'),int) and not getattr(a,'kwargs',{}).get('quick',False) else None})",
   "    for f in renpy.display.focus.focus_list:",
   "        if f.x is not None and f.w and f.h: add(f.widget,(f.x,f.y,f.w,f.h));seen.add(id(f.widget))",
  ];
@@ -58,7 +60,7 @@ export async function nativeClickablePoint(command,button){
   "    def matches(widget):",
   "        for a in _actions(getattr(widget,'clicked',None)):",
   "            kind=type(a).__name__",
-  "            slot=_slot(a.name,a.page,a.slot) if kind in ('FileLoad','FileSave') else None",
+  "            slot=_slot(a.name,a.page,a.slot) if kind in ('FileLoad','FileSave') else _slot(getattr(a,'kwargs',{}).get('id'),None) if _slot is not None and kind=='Show' and getattr(a,'screen',None)=='saveload' and isinstance(getattr(a,'kwargs',{}).get('id'),int) and not getattr(a,'kwargs',{}).get('quick',False) else None",
   "            actual=[kind,str(getattr(a,'screen',None)),str(getattr(a,'page',None)),str(slot),str(bool(getattr(a,'confirm',True)))]",
   "            if actual==expected: return True",
   "        return False",
@@ -93,22 +95,27 @@ export async function nativeClickablePoint(command,button){
  ].join('\n')+'\nresult=_wvn_click_point()\ndel _wvn_click_point\ndel _wvn_actions';
  const value=await command(code);if(value?.nativeHitDiagnostic)console.log(JSON.stringify(value));return Array.isArray(value)&&value.length===2&&value.every(Number.isFinite)?value:null;
 }
-export async function activateNativeWithKeyboard(frame,command,button){
+function nativeFocusCommand(button,keyboard=true){
  const expected=[button.action,button.screen??'None',button.page??'None',button.slot??'None',button.loadConfirm?'True':'False'];
- const code=NATIVE_ACTIONS_PYTHON+'\ndef _wvn_focused(_actions=_wvn_actions,_slot='+nativeSlotFunction+',expected='+JSON.stringify(expected)+'):\n'+[
+ const code=NATIVE_ACTIONS_PYTHON+'\ndef _wvn_focused(_actions=_wvn_actions,_slot='+nativeSlotFunction+',expected='+JSON.stringify(expected)+',keyboard='+(keyboard?'True':'False')+'):\n'+[
   "    def matches(d):",
   "        for a in _actions(getattr(d,'clicked',None)):",
-  "            kind=type(a).__name__;slot=_slot(a.name,a.page,a.slot) if kind in ('FileLoad','FileSave') else None",
+  "            kind=type(a).__name__;slot=_slot(a.name,a.page,a.slot) if kind in ('FileLoad','FileSave') else _slot(getattr(a,'kwargs',{}).get('id'),None) if _slot is not None and kind=='Show' and getattr(a,'screen',None)=='saveload' and isinstance(getattr(a,'kwargs',{}).get('id'),int) and not getattr(a,'kwargs',{}).get('quick',False) else None",
   "            if [kind,str(getattr(a,'screen',None)),str(getattr(a,'page',None)),str(slot),str(bool(getattr(a,'confirm',True)))]==expected: return True",
   "        return False",
-  "    focused=renpy.display.focus.get_focused();rect=None;available=False",
+  "    focused=renpy.display.focus.get_focused();rect=None;available=False;matched=False",
   "    for f in renpy.display.focus.focus_list:",
   "        if f.x is None or not f.w or not f.h: continue",
   "        if f.widget is focused: rect=(f.x,f.y,f.w,f.h)",
-  "        if matches(f.widget) and f.widget.style.keyboard_focus: available=True",
-  "    return {'matched':matches(focused),'available':available,'rect':rect}",
+  "        if matches(f.widget) and (not keyboard or f.widget.style.keyboard_focus): available=True;matched=matched or f.widget is focused",
+  "    interface=getattr(renpy.display,'interface',None)",
+  "    return {'matched':matched,'available':available,'rect':rect,'mouseFocused':getattr(interface,'mouse_focused',None),'keyboardFocused':getattr(interface,'keyboard_focused',None),'ignoreTouch':getattr(interface,'ignore_touch',None),'grabbed':renpy.display.focus.grab is not None if hasattr(renpy.display.focus,'grab') else None}",
  ].join('\n')+'\nresult=_wvn_focused()\ndel _wvn_focused\ndel _wvn_actions';
- const canvas=frame.locator('#canvas'),keys=[],seen=new Set();await canvas.focus();
+ return code;
+}
+export async function nativeFocusState(command,button,keyboard=false){return command(nativeFocusCommand(button,keyboard))}
+export async function activateNativeWithKeyboard(frame,command,button){
+ const code=nativeFocusCommand(button),canvas=frame.locator('#canvas'),keys=[],seen=new Set();await canvas.focus();
  for(let n=0;n<24;n++){
   const state=await command(code);assert(state.available,'Native target has no keyboard focus');
   if(state.matched){await canvas.press('Enter',{delay:100});return keys}
@@ -116,13 +123,17 @@ export async function activateNativeWithKeyboard(frame,command,button){
   const horizontal=dx>0?'ArrowRight':'ArrowLeft',vertical=dy>0?'ArrowDown':'ArrowUp';let key=Math.abs(dx)>Math.abs(dy)?horizontal:vertical;
   const signature=JSON.stringify([r,key]);if(seen.has(signature))key=[vertical,horizontal,'ArrowUp','ArrowLeft','ArrowRight','ArrowDown'][n%6];seen.add(signature);keys.push(key);await canvas.press(key,{delay:80});await new Promise(resolve=>setTimeout(resolve,120));
  }
- throw Error('Native keyboard navigation did not reach exact target '+JSON.stringify(expected));
+ throw Error('Native keyboard navigation did not reach exact target '+JSON.stringify({action:button.action,slot:button.slot,screen:button.screen}));
 }
-async function clickNativeButton(page,frame,command,button,size,wait=1800){
+export async function clickNativeButton(page,frame,command,button,size,wait=1800){
  assert(button,'Native button unavailable');const point=await nativeClickablePoint(command,button);if(!point&&['FileLoad','ShowMenu','Show'].includes(button.action)&&!button.unboundedFocus){const keys=await activateNativeWithKeyboard(frame,command,button);console.log(JSON.stringify({nativeClick:'keyboard-exact-slot',slot:button.slot,keys}));await page.waitForTimeout(wait);return}assert(point,'Native button has no clickable pixels: '+JSON.stringify(button));
- const b=await frame.locator('#canvas').boundingBox();assert(b);const scale=Math.min(b.width/size[0],b.height/size[1]);
- if(Math.abs(point[0]-button.rect[0]-button.rect[2]/2)>2||Math.abs(point[1]-button.rect[1]-button.rect[3]/2)>2)console.log(JSON.stringify({nativeClick:'verified-point',action:button.action,point}));
- await page.mouse.click(b.x+(b.width-size[0]*scale)/2+point[0]*scale,b.y+(b.height-size[1]*scale)/2+point[1]*scale,{delay:150});await page.waitForTimeout(wait);
+ // 鼠标按下本身会更新原生焦点；悬停焦点只作诊断。必须先确认渲染命中，并在上层核验菜单/读档的实际结果。
+ await page.bringToFront();await frame.evaluate(()=>window.focus());await frame.locator('#canvas').focus();
+ const box=await frame.locator('#canvas').boundingBox();assert(box);const scale=Math.min(box.width/size[0],box.height/size[1]);
+ await page.mouse.move(box.x+box.width*.03,box.y+box.height*.03);await page.waitForTimeout(200);
+ await page.mouse.move(box.x+(box.width-size[0]*scale)/2+point[0]*scale,box.y+(box.height-size[1]*scale)/2+point[1]*scale);await page.waitForTimeout(900);
+ const focused=await nativeFocusState(command,button);if(!focused.matched)console.log(JSON.stringify({nativeClick:'verified-render-target-without-hover-focus',action:button.action,slot:button.slot,point,focused}));
+ await page.mouse.down();await page.waitForTimeout(250);await page.mouse.up();await page.waitForTimeout(wait);
 }
 export async function nativeSlotName(command,number){
  const slot=await command("result = ("+nativeSlotFunction+")("+number+", '1')");assert(typeof slot==='string'&&slot.length&& !slot.includes('/'));return slot;
@@ -136,6 +147,7 @@ export async function saveNativeSlot(command,number,gui){
  let data,button,openedMenu=false;
  for(let n=0;n<25;n++){
   data=await nativeFocus(command,true);slot=await nativeSlotName(command,number);button=data.buttons.find(b=>b.action==='FileSave'&&b.slot===slot);if(button)break;
+  const picker=gui.id==='renpy-v7738-1'?chooseNativePicker(data.buttons,slot):null;if(picker){await click(picker,data.size);continue}
   const entry=data.buttons.find(b=>['ShowMenu','Show'].includes(b.action)&&b.screen==='save');
   const manual=chooseManualSavePage(data.buttons);
   if(entry)await click(entry,data.size);else if(manual)await click(data.buttons.find(b=>b.rect===manual),data.size);else if(!openedMenu){await page.getByRole('button',{name:'游戏菜单',exact:true}).click();openedMenu=true;await page.waitForTimeout(1200)}else await page.waitForTimeout(500);
@@ -159,6 +171,7 @@ export async function loadNativeSlot(page,frame,command,expectedText,id,expected
   if(openingNotices<6&&isAuditedOpeningNotice(id,data)){
    await frame.locator('#canvas').press('Space',{delay:150});openingNotices++;await page.waitForTimeout(1800);continue;
   }
+  const picker=id==='renpy-v7738-1'?chooseNativePicker(data.buttons,slot):null;if(picker){await click(picker,data.size);continue}
   const entry=data.buttons.find(b=>['ShowMenu','Show'].includes(b.action)&&b.screen===screen);
   if(entry){await click(entry,data.size);continue}
   if(id==='renpy-v7738-1'&&!openedCombined){
@@ -178,7 +191,8 @@ export async function loadNativeSlot(page,frame,command,expectedText,id,expected
  throw Error('Native FileLoad did not restore expected text: '+JSON.stringify(await nativePoint(command,id)));
 }
 export async function nativePoint(command,id){
- const script=["_wvn_raw = getattr(renpy.get_widget('say','what'),'text','')","_wvn_visible = ''.join(str(v) for v in _wvn_raw) if hasattr(_wvn_raw,'__iter__') and not isinstance(_wvn_raw,str) else str(_wvn_raw or '')","_wvn_text = _wvn_raw","if len(_wvn_visible)<32768 and _wvn_visible.startswith('[') and _wvn_visible.endswith(']'):","    try:","        import ast as _wvn_ast","        _wvn_parts = _wvn_ast.literal_eval(_wvn_visible)","        if isinstance(_wvn_parts,(list,tuple)) and all(isinstance(v,str) for v in _wvn_parts): _wvn_visible = ''.join(_wvn_parts)","    except (ValueError,SyntaxError): pass","_wvn_text = str(_wvn_text) if _wvn_text else ''","_wvn_native = getattr(renpy.store,'_last_say_what','')","_wvn_scene = []"];
+ const special=id==='renpy-v1286-1'?"_wvn_special = renpy.get_screen('start_text')\nif _wvn_special is not None: _wvn_raw = _wvn_special.scope.get('start_text',getattr(_wvn_special,'kwargs',{}).get('start_text',_wvn_raw))":'';
+ const script=["_wvn_raw = getattr(renpy.get_widget('say','what'),'text','')",...(special?special.split('\n'):[]),"_wvn_visible = ''.join(str(v) for v in _wvn_raw) if hasattr(_wvn_raw,'__iter__') and not isinstance(_wvn_raw,str) else str(_wvn_raw or '')","_wvn_text = _wvn_raw","if len(_wvn_visible)<32768 and _wvn_visible.startswith('[') and _wvn_visible.endswith(']'):","    try:","        import ast as _wvn_ast","        _wvn_parts = _wvn_ast.literal_eval(_wvn_visible)","        if isinstance(_wvn_parts,(list,tuple)) and all(isinstance(v,str) for v in _wvn_parts): _wvn_visible = ''.join(_wvn_parts)","    except (ValueError,SyntaxError): pass","_wvn_text = str(_wvn_text) if _wvn_text else ''","_wvn_native = getattr(renpy.store,'_last_say_what','')","_wvn_scene = []"];
  if(id==='renpy-v3144-1')script.push("_wvn_todo = [e.displayable for e in renpy.game.context().scene_lists.layers.get('master',[])]","_wvn_seen = set()","while _wvn_todo and len(_wvn_seen)<3000:","    _wvn_d = _wvn_todo.pop()","    if id(_wvn_d) in _wvn_seen: continue","    _wvn_seen.add(id(_wvn_d))","    if isinstance(_wvn_d,renpy.text.text.Text) and getattr(_wvn_d,'text',None): _wvn_scene.append(str(_wvn_d.text))","    _wvn_todo.extend(c for c in _wvn_d.visit() if c is not None)");
  script.push("_wvn_value = _wvn_text if _wvn_text and _wvn_text!='None' else str(_wvn_native or '')","result = {'text':_wvn_value or '\\n'.join(_wvn_scene),'textType':type(_wvn_raw).__name__,'visibleText':_wvn_visible or str(_wvn_native or '') or '\\n'.join(_wvn_scene),'source':'widget' if _wvn_text and _wvn_text!='None' else 'native-say' if _wvn_native else 'scene-text','choice':renpy.get_screen('choice') is not None,'context':str(renpy.game.context().current)}");const body=script.join('\n').replace(/\nresult = /,'\nreturn ');return command('def _wvn_capture_point():\n'+body.split('\n').map(l=>'    '+l).join('\n')+'\nresult = _wvn_capture_point()\ndel _wvn_capture_point');
 }
