@@ -33,9 +33,11 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     let seq = 0, pending = null, queued = null, failed = false, started = false;
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
-    let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem;
-    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); }
-    catch (e) { status("启动失败：存档桥接模块不可用"); return; }
+    let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests;
+    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); }
+    catch (e) { send({type:"loading-progress",stage:"failed",message:"播放器组件暂时不可用，请取消后重试"});status("启动失败：存档桥接模块不可用"); return; }
+    const loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
+    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(url.origin!==origin)return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;});
     function snapshot() {
       const files = captureFilesystem(g_onsyuri_module.FS, [{path:"/save",prefix:""}], limits);
       return validateSnapshot({ schema: 1, pilot, files }, pilot);
@@ -63,7 +65,7 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     };
     try {
       const restored = validateSnapshot(init.snapshot, pilot);
-      status("正在载入共享引擎…");
+      loading.phase("downloading","engine");status("正在载入共享引擎…");
       const r = await fetch(`/__ons/manifest/${pilot}`, { credentials: "omit" });
       if (!r.ok) throw Error("资源清单不可用");
       g_onsyuri_index = await r.json();
@@ -106,21 +108,22 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
             if (f.lazyload) g_onsyuri_filemap[absolute.toLowerCase()] = { url, loaded: false };
             else FS.createPreloadedFile(dir, name, url, true, false);
           }
+          loading.phase("restoring");
           for (const f of restored.files) {
             const absolute = "/save/" + f.path; mkdir(FS, absolute.slice(0, absolute.lastIndexOf("/"))); FS.writeFile(absolute, f.data);
             if (f.mtime !== undefined) FS.utime(absolute, f.mtime, f.mtime);
           }
         },
       };
-      const driver = createEmscriptenDriver({kind:"ONS"});
+      const driver = createEmscriptenDriver({kind:"ONS",progress:event=>loading.engine(event),status:state=>{if(state==="failed")loading.fail("引擎加载失败，请取消后重试");else if(["initializing","initialized"].includes(state))loading.phase("initializing");}});
       g_onsyuri_module = await driver.startFactory(onsyuri, g_onsyuri_module);
       started = true;
       g_onsyuri_module.callMain(["--root", "/game", "--font", "/game/default.ttf", "--save-dir", "/save"]);
       driver.running();
       scale_full(g_onsyuri_module.canvas, g_screen_width / g_screen_height);
-      g_onsyuri_module.canvas.focus();send({type:'started'}); status("引擎已启动");
+      g_onsyuri_module.canvas.focus();loading.complete();stopObserving();send({type:'started'}); status("引擎已启动");
       setInterval(() => captureSave(), 5000);
-    } catch (e) { status("启动失败：" + e.message); }
+    } catch (e) { loading.fail(e.message);stopObserving();status("启动失败：" + e.message); }
   }
   addEventListener("message", initialize);
 })();

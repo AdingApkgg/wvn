@@ -25,7 +25,7 @@ export function captureFilesystem(FS,mounts,limits={files:512,fileBytes:32*1024*
  }
  for(const mount of mounts)walk(mount.path,mount.prefix);return files;
 }
-export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,resources}={}){
+export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,resources,progress=()=>{}}={}){
  if(!['ONS','Artemis','RenPy'].includes(kind))throw Error('Unsupported Emscripten driver');
  let state='waiting',module={},filesystemPrepared=false;const configured=new WeakSet();
  const change=next=>{if(state==='failed'&&next!=='failed')throw Error('Emscripten driver failed');state=next;status(next);};
@@ -48,6 +48,9 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,res
   if(configured.has(value))return value;configured.add(value);
   hook(value,'onAbort',fail);hook(value,'onExit',()=>change('stopped'));
   hook(value,'onRuntimeInitialized',undefined,()=>change('initialized'));
+  const observe=event=>{try{progress(event)}catch{ /* 加载反馈不能影响引擎回调。 */ }};
+  hook(value,'setStatus',text=>observe({type:'status',text}));
+  hook(value,'monitorRunDependencies',remaining=>observe({type:'dependencies',remaining}));
   if(factory){
    const wrap=fn=>function(...args){change('initializing');try{return fn.apply(this,args);}catch(error){fail();throw error;}};
    if(typeof value.preRun==='function')value.preRun=wrap(value.preRun);

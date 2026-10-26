@@ -1,3 +1,4 @@
+import {createLoadingReporter,observeStartupRequests} from '../ons/loading.mjs';
 import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} from './emscripten.mjs';
 import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
@@ -12,6 +13,7 @@ addEventListener('message',async function initialize(event){
   const port=event.ports[0],nonce=init.nonce;let seq=0,queue=Promise.resolve(),capture,failed=false;
   const acknowledgements=new Map(),send=message=>port.postMessage({...message,pilot:id,nonce});
   const status=message=>send({type:'status',message:String(message).slice(0,500)});
+  const loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase('connecting');
   function persist(files,requestId){
     // Serialize snapshots, retaining the bytes as they were at the native fsync.
     const snapshot=validateSnapshot({schema:1,pilot:id,files},id);
@@ -35,6 +37,7 @@ addEventListener('message',async function initialize(event){
   };
   try{
     const snapshot=validateSnapshot(init.snapshot,id);
+    loading.phase('restoring');
     installNativeInput(window,id,init.nativeInput);
     installAnonymousMedia(window);
     const memory=createMemoryStorage(()=>{if(entry.runtimeKind==='Tyrano')queueMicrotask(()=>{if(!failed)void persist(storageSnapshot(memory)).catch(()=>{})})});
@@ -44,16 +47,23 @@ addEventListener('message',async function initialize(event){
     // credentialed site. Resources are served by the scoped read-only projection.
     Object.defineProperty(navigator,'serviceWorker',{value:undefined});
     const nativeFetch=fetch.bind(window);window.fetch=(resource,options)=>nativeFetch(resource,{...options,credentials:'omit'});
+    stopObserving=observeStartupRequests(window,loading,resource=>{
+      const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href??'',document.baseURI);
+      if(url.origin!==origin)return null;
+      if(url.pathname.startsWith('/__engines/resource/'))return 'engine';
+      if(!url.pathname.startsWith('/__player/resource/'+id+'/'))return null;
+      return /\/(?:renpy|artemis)(?:-pre)?\.(?:js|wasm|data)$/.test(url.pathname)?'engine':'game';
+    });
     let driver;const engineResources=engineResourcesForSession(init.engineRelease,entry.runtimeKind,origin);
     function instrument(){
       const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;
       if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
       if(capture)return;
       capture=installMemoryPersistence({FS,IDBFS,MEMFS,mount:entry.mount,extraMount:entry.extraMount,files:snapshot.files,persist:files=>persist(files)});
-      status('存档适配已连接');
+      loading.phase('restoring');status('存档适配已连接');
     }
     if(entry.runtimeKind!=='Tyrano'){
-      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument,resources:engineResources});
+      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument,resources:engineResources,progress:event=>loading.engine(event),status:state=>{if(state==='failed')loading.fail('引擎加载失败，请取消后重试');else if(['initializing','initialized'].includes(state))loading.phase('initializing')}});
       driver.installGlobal(window);
     }
     if(entry.runtimeKind==='Tyrano')Object.defineProperty(document,'readyState',{configurable:true,get:()=>"loading"});
@@ -69,6 +79,7 @@ addEventListener('message',async function initialize(event){
           driver.beforeScript();
         }
         const engineFile=url.pathname.slice(`/__player/resource/${id}/`.length);
+        loading.phase('downloading','engine');
         script.src=engineResources?.files.includes(engineFile)?resolveEngineResource(engineFile,engineResources):url.href;script.crossOrigin='anonymous';
         await new Promise((resolve,reject)=>{script.onload=()=>{
           if(entry.runtimeKind==='Tyrano'&&/\/html2canvas(?:\.min)?\.js$/i.test(url.pathname))window.html2canvas=sandboxThumbnail(()=>document.createElement('canvas'),()=>({title:entry.title,text:window.TYRANO?.kag?.stat?.current_save_str||window.TYRANO?.kag?.stat?.current_message_str||''}));
@@ -79,11 +90,11 @@ addEventListener('message',async function initialize(event){
     if(entry.runtimeKind==='Tyrano'){installTyranoLoadCompatibility(window,id);delete document.readyState;document.dispatchEvent(new Event('DOMContentLoaded'));}
     // Tyrano entry handlers were declared after the inert document finished.
     if(typeof window.onload==='function')window.onload(new Event('load'));
-    status('正在准备游戏；较大的作品可能需要数分钟');
+    loading.phase('initializing');status('正在准备游戏；较大的作品可能需要数分钟');
     if(driver){
       await driver.waitReady(()=>driver.module.calledRun&&(document.getElementById('canvas')?.width??0)>400,{timeout:['renpy-v562-2','renpy-v3144-1'].includes(entry.id)?1800000:180000});
     }else await waitForTyranoReady(()=>window.TYRANO?.kag);
-    send({type:'started'});
+    loading.complete();stopObserving();send({type:'started'});
     status('游戏已启动；请在游戏内保存进度');
-  }catch(error){status('启动失败：'+error.message);console.error('WG runtime',error)}
+  }catch(error){loading.fail(error.message);stopObserving();status('启动失败：'+error.message);console.error('WG runtime',error)}
 });

@@ -1,3 +1,5 @@
+import {LoadingView} from "./loading";
+import {validateLoadingProgress,type LoadingProgress} from "../../public/ons/loading.mjs";
 import { brand } from "../brand";
 import { useEffect, useRef, useState } from "react";
 import { Link, useBlocker } from "react-router";
@@ -32,6 +34,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const runtime=pilot.engineRuntime??pilot.engineCandidate,releaseId=pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId;
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false);
   const [gameStarted,setGameStarted]=useState(false);
+  const [loading,setLoading]=useState<LoadingProgress|null>(null),[loadStartedAt,setLoadStartedAt]=useState(0);
   const [status, setStatus] = useState("正在读取本机存档…"), [error, setError] = useState("");
   const [localBusy, setBusy] = useState(false), [cloudBusy,setCloudBusy]=useState(false), [history, setHistory] = useState<History[]>([]), [selected, setSelected] = useState("");
   const busy=localBusy||cloudBusy;
@@ -44,7 +47,11 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const active = useRef(true);
   const runningNow = useRef(false);
-  function changeRunning(value: boolean) { runningNow.current = value; setRunning(value);setGameStarted(false); }
+  function changeRunning(value: boolean) { runningNow.current = value; setRunning(value);setGameStarted(false);setLoading(value?{stage:"connecting"}:null);if(value)setLoadStartedAt(Date.now()); }
+  function cancelLoading(){
+    if(channel.current?.started)return;
+    channel.current?.port.close();channel.current=null;changeRunning(false);setError("");setStatus("已取消加载，本机存档和历史备份保留");
+  }
   const blocker = useBlocker(({ currentLocation, nextLocation }) => runningNow.current && (currentLocation.pathname !== nextLocation.pathname || new URLSearchParams(currentLocation.search).get("engine") !== new URLSearchParams(nextLocation.search).get("engine")));
   async function refresh() {
     const value = await store.current!.get(pilot.id);
@@ -85,8 +92,9 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     ports.port1.onmessage = async ({ data }) => {
       if (channel.current !== connection || !active.current || !data || data.nonce !== nonce || data.pilot !== pilot.id) return;
       if(consumeStartupNotice(data,connection,pilot.id)){
-        setGameStarted(true);const id=parseWorkSlug(workUrl.split('/')[1]??'');if(id)void recordReading(id,pilot.versionId);trackPublicEvent('reading_start',undefined,window.location.pathname);return;
+        setGameStarted(true);setLoading(null);const id=parseWorkSlug(workUrl.split('/')[1]??'');if(id)void recordReading(id,pilot.versionId);trackPublicEvent('reading_start',undefined,window.location.pathname);return;
       }
+      if(data.type==="loading-progress"){if(!connection.started){const value=validateLoadingProgress(data);if(value)setLoading(value)}return;}
       if (data.type === "status" && typeof data.message === "string" && data.message.length <= 500) { setStatus(data.message); return; }
       if (data.type !== "snapshot" || !Number.isSafeInteger(data.seq) || data.seq !== connection.seq + 1 || connection.writing) return;
       connection.seq = data.seq; connection.writing = true;
@@ -116,6 +124,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   function capture(): Promise<{ snapshot: Snapshot; saved: boolean }> {
     const connection = channel.current;
     if (!connection) return Promise.reject(Error("引擎尚未连接"));
+    if(!connection.started)return Promise.reject(Error("游戏仍在加载，请稍后操作；本机存档仍保留"));
     const requestId = crypto.randomUUID();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => { pending.current.delete(requestId); reject(Error("存档读取超时，请保留页面后重试")); }, 30000);
@@ -140,14 +149,15 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         <Link to="/" className="text-sm text-muted-foreground">发现更多故事</Link>
       </header>
       <div ref={surface} className="reader-surface" style={{ minHeight: running ? "min(72vh, 850px)" : "min(50vh, 520px)" }}>
-        {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen; gamepad" allowFullScreen onLoad={() => { void connect().catch(e => setError(e.message)); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
+        {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen; gamepad" allowFullScreen aria-busy={!gameStarted} onLoad={() => { void connect().catch(e => setLoading({stage:"failed",message:e.message})); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
+        {running&&!gameStarted&&loading&&<LoadingView progress={loading} startedAt={loadStartedAt} onCancel={cancelLoading} />}
       </div>
       {!running&&inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
       <div className="reader-toolbar" aria-label="阅读操作">
         <div className="reader-controls">
           {!running ? <Button disabled={!ready || busy} onClick={() => run(async () => { if(inputSpec)validatePlayerName(playerName); await refresh(); setStatus("正在连接沙箱…"); changeRunning(true); })}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
-            <Button variant="outline" disabled={busy} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
-            <Button variant="outline" disabled={busy} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.port.close(); channel.current = null; changeRunning(false); setStatus("阅读已结束，存档已保留"); })}>保存并退出</Button>
+            <Button variant="outline" disabled={busy||!gameStarted} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
+            <Button variant="outline" disabled={busy||!gameStarted} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.port.close(); channel.current = null; changeRunning(false); setStatus("阅读已结束，存档已保留"); })}>保存并退出</Button>
             <Button variant="ghost" onClick={() => run(async () => { await surface.current?.requestFullscreen(); })}>全屏</Button>
           </>}
         </div>

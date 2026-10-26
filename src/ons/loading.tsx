@@ -1,0 +1,26 @@
+import {useEffect,useState} from 'react';
+import {LoaderCircle,AlertCircle} from 'lucide-react';
+import {Button} from '../components/ui/button';
+import {loadingPercent,type LoadingProgress} from '../../public/ons/loading.mjs';
+
+export function LoadingView({progress,startedAt,onCancel}:{progress:LoadingProgress;startedAt:number;onCancel:()=>void}){
+ const [seconds,setSeconds]=useState(0);
+ useEffect(()=>{const tick=()=>setSeconds(Math.max(0,Math.floor((Date.now()-startedAt)/1000)));tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer)},[startedAt]);
+ const failed=progress.stage==='failed',percent=loadingPercent(progress);
+ const title=progress.stage==='connecting'?'正在打开播放器':progress.stage==='downloading'?progress.kind==='engine'?'正在下载运行资源':progress.kind==='game'?'正在下载游戏资源':'正在下载资源':progress.stage==='restoring'?'正在恢复本机存档':failed?'加载未完成':'正在准备游戏';
+ return <div className="reader-loading" data-testid="reader-loading" data-stage={progress.stage}>
+  <div className="reader-loading-card">
+   {failed?<AlertCircle className="reader-loading-icon" aria-hidden="true"/>:<LoaderCircle className="reader-loading-icon reader-loading-spinner" aria-hidden="true"/>}
+   <p className="reader-loading-title" role={failed?'alert':'status'}>{title}</p>
+   {failed?<p className="reader-loading-detail">{progress.message||'资源暂时无法载入，可以返回准备页后重试。'}</p>:<>
+    <div className="reader-loading-track" role="progressbar" aria-label="当前资源加载进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent??undefined} aria-valuetext={percent===null?'加载中，暂时无法取得总量':`当前资源 ${percent}%`}>
+     <span className={percent===null?'reader-loading-indeterminate':''} style={percent===null?undefined:{width:percent+'%'}} />
+    </div>
+    <div className="reader-loading-metrics"><span>{percent===null?'准备完成后自动进入游戏':`当前资源 ${percent}%`}</span><span aria-hidden="true">已等待 {seconds<60?seconds+' 秒':Math.floor(seconds/60)+' 分 '+seconds%60+' 秒'}</span></div>
+    <p className="reader-loading-detail">较大的作品可能需要几分钟，请保持页面打开。下载完成后还需准备游戏。</p>
+   </>}
+   <Button variant="outline" size="sm" onClick={onCancel}>{failed?'返回阅读准备':'取消加载'}</Button>
+   <p className="reader-loading-preserved">本机存档和历史备份会继续保留</p>
+  </div>
+ </div>;
+}

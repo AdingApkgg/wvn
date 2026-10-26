@@ -1212,7 +1212,7 @@ summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
 .reader-shell { width: min(1400px, calc(100% - 48px)); margin: 0 auto; padding: 20px 0 40px; }
 .reader-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
 .reader-heading .brand { font-family: inherit; font-size: 15px; letter-spacing: 0; max-width: 75%; overflow-wrap: anywhere; }
-.reader-surface { display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: #000; }
+.reader-surface { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: #000; }
 .reader-surface:fullscreen { width: 100vw; height: 100dvh; border: 0; border-radius: 0; }
 .reader-surface:fullscreen iframe { height: 100dvh !important; }
 .reader-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 14px 0; }
@@ -1280,3 +1280,21 @@ summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
   .account-section-tabs { height: auto; gap: 0; }
   .account-section-tabs button { font-size: 12px; padding-inline: 6px; min-height: 38px; }
 }
+
+/* 仅在启动期间覆盖游戏区域；百分比只代表当前有真实总量的资源。 */
+.reader-loading { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 24px; background: #101216; color: #f3f0eb; }
+.reader-loading-card { width: min(100%, 420px); text-align: center; }
+.reader-loading-icon { width: 30px; height: 30px; margin: 0 auto 18px; color: #d6b995; }
+.reader-loading-spinner { animation: reader-spin 1.4s linear infinite; }
+.reader-loading-title { font-size: clamp(18px, 3vw, 22px); font-weight: 500; margin-bottom: 20px; }
+.reader-loading-track { height: 6px; border-radius: 99px; overflow: hidden; background: #30343b; }
+.reader-loading-track > span { display: block; height: 100%; border-radius: inherit; background: #d6b995; transition: width .15s; }
+.reader-loading-track > .reader-loading-indeterminate { width: 35%; animation: reader-loading 1.8s ease-in-out infinite; }
+.reader-loading-metrics { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12px; color: #b5b9c1; }
+.reader-loading-detail { margin: 20px 0; color: #b5b9c1; font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+.reader-loading-card button { background: transparent; color: #f3f0eb; border-color: #525965; }
+.reader-loading-card button:hover { background: #282d34; }
+.reader-loading-preserved { margin-top: 12px; color: #949aa5; font-size: 11px; }
+@keyframes reader-spin { to { transform: rotate(360deg); } }
+@keyframes reader-loading { from { transform: translateX(-100%); } to { transform: translateX(385%); } }
+@media (prefers-reduced-motion: reduce) { .reader-loading-spinner, .reader-loading-indeterminate { animation: none !important; } .reader-loading-track > span { transition: none; } }

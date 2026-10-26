@@ -73,3 +73,17 @@ test('RenPy session pins its whole engine group and rejects partial or foreign r
 test('candidate backup release family must match the game even when envelope fields agree',async()=>{
  const {exportBackup,importBackup}=await import('../public/ons/storage.mjs');const snapshot={schema:1,pilot:'saya',files:[{path:'save1.dat',data:new Uint8Array([4]),mtime:1}]},id='renpy-'+'a'.repeat(64);await assert.rejects(exportBackup(snapshot,id),/引擎|版本/);const legacy=JSON.parse(await exportBackup(snapshot));const text=JSON.stringify({...legacy,format:'wvn-engine-save',schema:2,releaseId:id});await assert.rejects(importBackup(text,snapshot.pilot,{releaseId:id}),/引擎|版本/);
 });
+
+test('download observers preserve upstream status/dependency hooks and cannot abort the engine',()=>{
+ const events=[],calls=[],owner={},win={};
+ const driver=createEmscriptenDriver({kind:'RenPy',progress:event=>events.push(event)});driver.installGlobal(win);
+ win.Module.setStatus=function(text){assert.equal(this,owner);calls.push(text);return 42};
+ win.Module.monitorRunDependencies=function(left){assert.equal(this,owner);return left+1};
+ assert.equal(win.Module.setStatus.call(owner,'Downloading data... (25/100)'),42);
+ assert.equal(win.Module.monitorRunDependencies.call(owner,3),4);
+ assert.deepEqual(events,[{type:'status',text:'Downloading data... (25/100)'},{type:'dependencies',remaining:3}]);
+ const previous=win.Module.setStatus;win.Module.setStatus=function(text){return previous.call(this,text)+1};
+ assert.equal(win.Module.setStatus.call(owner,'Running...'),43);assert.deepEqual(calls,['Downloading data... (25/100)','Running...']);
+ const noisy=createEmscriptenDriver({kind:'ONS',progress:()=>{throw Error('Observer offline')}});
+ return noisy.startFactory(async config=>{config.setStatus('Downloading...');return config},{}).then(()=>assert.equal(noisy.state,'initialized'));
+});
