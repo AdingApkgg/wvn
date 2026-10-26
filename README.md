@@ -24,14 +24,14 @@ React 19、React Router 8、Hono、Vite 8、TypeScript、SQLite / Drizzle、shad
 ```sh
 npm ci --include=dev --legacy-peer-deps
 npm test
-node --test tests/*.test.mjs
+node --test --test-concurrency=1 tests/*.test.mjs
 NODE_ENV=development npm run typecheck
 NODE_ENV=production npm run build
 ```
 
 首次创建独立目录数据库时，可运行 `npm run seed` 导入仓库中的示例目录和来源元数据。不要用初始化导入替代现有数据库的增量更新、备份和迁移。
 
-目录服务通过 `npm start` 启动，默认公开 listener 与私有管理 listener 都只绑定回环地址。游戏资源位置由 `WG_RESOURCE_ROOT` 提供；需要自行准备兼容且有权使用的资源。
+目录服务通过 `npm start` 启动，默认公开 listener 与私有管理 listener 都只绑定回环地址。游戏资源位置由 `WG_RESOURCE_ROOT` 提供；需要自行准备兼容且有权使用的资源。管理侧转换来源清单通过 `WG_INVENTORY_FILE` 指向私有文件，仓库默认只提供空模板。
 
 账号服务入口为 `npm run start:accounts`，需要单独配置 HTTPS origin、TLS 文件、数据库、存档对象目录、服务端密钥文件及审核后台。参考 [配置示例](.env.example) 和 [账号说明](docs/accounts-preview.md)。示例没有可直接使用的服务端密钥，正式环境也不应沿用预览凭据。
 

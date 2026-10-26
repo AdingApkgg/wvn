@@ -34,6 +34,16 @@ commit_count = 0
 
 
 def inspect(path, data, source):
+    if path == 'data/sources.json':
+        try:
+            private_inventory = bool(json.loads(data).get('entries'))
+        except (ValueError, TypeError, AttributeError):
+            private_inventory = True
+        if private_inventory:
+            finding = (path, 'private-inventory', source)
+            if finding not in seen:
+                seen.add(finding)
+                findings.append({'path': path, 'rule': 'private-inventory', 'source': source})
     if path != '.env.example' and private_path.search(path):
         finding = (path, 'private-file', source)
         if finding not in seen:

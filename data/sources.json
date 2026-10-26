@@ -1,0 +1,6 @@
+{
+  "entries": [],
+  "limitations": [
+    "公开仓库不包含私人安装或转换盘点。通过 WG_INVENTORY_FILE 指定部署侧私有清单。"
+  ]
+}

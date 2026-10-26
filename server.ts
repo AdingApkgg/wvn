@@ -20,7 +20,7 @@ const pub = createPublicApp(
 const admin = createAdminApp(
   store,
   auth,
-  JSON.parse(readFileSync("data/sources.json", "utf8")),
+  JSON.parse(readFileSync(process.env.WG_INVENTORY_FILE ?? "data/sources.json", "utf8")),
 );
 // The framework build exports a standard Web Request handler; no extra app server/scheduler.
 const buildPath = "./build/server/index.js";
