@@ -1,53 +1,60 @@
-# WG Manager
+# WVN
 
-React Router 8 framework SSR、Hono、Vite 8、TypeScript 与 SQLite 的作品/版本目录。界面使用 shadcn/ui（new-york / Radix）和 Tailwind v4；前台保留故事放映室主题，后台使用标准管理组件。原游戏文件保留在 Windows `H:\wg`，应用只保存元数据和资源映射。2026-10-19 已发布至 [wg.saop.cc](https://wg.saop.cc)，发布编号 `20261019-133308`。
+**Web Visual Novel · 在线视觉小说**
 
-## 路由与数据
+WVN 用浏览器运行视觉小说，并统一管理作品目录、引擎版本、账号、云存档和存档分享。
 
-VNDB 作品 `/27448/`，版本 `/27448/1/`；未确认 VNDB、已核实 BGM 编号的作品使用 `/b315601/` 与 `/b315601/1/`，同号也不会混淆。首次导入按旧首页顺序分配；编号只增不减，删除登记不复用。修复版、视频替换版是独立版本；续作、FD 使用独立 VNDB 作品编号。展示排序与 URL 编号分开。
+- **作品与版本**：通过 VNDB / Bangumi 整理标题、封面、截图、简介和标签；作品使用 `/27448/`，版本使用 `/27448/1/`。没有确认 VNDB 编号时使用 `b` 前缀的 Bangumi 编号。
+- **统一播放器**：接入 ONScripterYuri、Artemis、Ren’Py 和 Tyrano；游戏运行在隔离沙箱中，与账号接口分开。
+- **存档**：Passkey 账号、私人云存档、历史版本、旧档导入、公开分享及链接分享。
+- **加载体验**：启动阶段和游玩过程的资源加载反馈，按实际可测数据展示百分比、大小与速度；ONS 支持有容量限制的 IndexedDB 缓存和空闲预加载。
+- **引擎管理**：登记 Emscripten SDK、源码构建配方、不可变产物和逐版本兼容验收；保留旧引擎及存档身份。
+- **统计**：阅读、点赞、收藏汇总，以及独立的 Umami 访问分析。
 
-`data/catalog.json` 是 reviewed seed；`data/vndb-evidence.json` 和 `data/bangumi-evidence.json` 分别保存来源证据。79 个原始条目全部映射到 64 部作品（63 个 VNDB、1 个 BGM）。《死宅天使》以 Bangumi 315601 兜底，中文名《尼特与天使与色色家族》，VNDB 仍未确认。详见 `data/metadata-exceptions.json`。
+线上站点：[wg.saop.cc](https://wg.saop.cc/)。本仓库提供应用源码、目录元数据和构建配方，不包含游戏资源包、账号数据库、私人存档、部署密钥或引擎构建产物。目录与启动检查不等于所有作品、全部剧情均已验收。
 
-目录查询、版本页和启动器由公开 listener 提供；原始执行入口保持同路径并在数字版本页 iframe 内运行，避免改变存档命名。**预览与正式域名是不同 origin，存档不自动互通。** 不宣称所有作品完整可玩。
+## 技术栈
 
-## 开发与验证
+React 19、React Router 8、Hono、Vite 8、TypeScript、SQLite / Drizzle、shadcn/ui、Tailwind CSS、Better Auth / Passkey、Emscripten / WebAssembly。
 
-Mac 只编辑；安装、构建、类型检查、完整测试与浏览器回归在远程。Linux 构建机为 `build.example.invalid`，工作目录 `/home/wvn/wg-manager-preview`；确认 `hostname` 后，通过已有 11090 代理安装。
+## 开发与构建
+
+需要 Node.js 24 或以上。以下命令在自己的构建或部署机器执行，依赖下载使用该机器配置的代理：
 
 ```sh
-HTTPS_PROXY=http://127.0.0.1:11090 HTTP_PROXY=http://127.0.0.1:11090 npm ci --include=dev --legacy-peer-deps
+npm ci --include=dev --legacy-peer-deps
 npm test
+node --test tests/*.test.mjs
 NODE_ENV=development npm run typecheck
 NODE_ENV=production npm run build
-sh tests/e2e/run-remote.sh
 ```
 
-测试 worker 上限为 1；跨进程编号测试明确只启动两个小进程。Windows Node 24 运行构建产物，内置 `node:sqlite`，不依赖原生 SQLite 扩展。Drizzle 提供 schema 与类型化 SQL 编译；当前锁定版没有文档中所述 node-sqlite adapter，因此由 DatabaseSync 执行已编译查询。
+首次创建独立目录数据库时，可运行 `npm run seed` 导入仓库中的示例目录和来源元数据。不要用初始化导入替代现有数据库的增量更新、备份和迁移。
 
-## 生产
+目录服务通过 `npm start` 启动，默认公开 listener 与私有管理 listener 都只绑定回环地址。游戏资源位置由 `WG_RESOURCE_ROOT` 提供；需要自行准备兼容且有权使用的资源。
 
-生产运行目录 `H:\wg-manager-release-20261019-133308`，公开/私有管理分别为Windows回环8381/8382，原Caddy8212反代公开端口；私有管理不经公网反代。启动任务 `WG-Manager-20261019-133308` 配置为开机启动和失败重试。数据库从预览一致性备份派生，独立维护；游戏资源与旧执行入口保留。
+账号服务入口为 `npm run start:accounts`，需要单独配置 HTTPS origin、TLS 文件、数据库、存档对象目录、服务端密钥文件及审核后台。参考 [配置示例](.env.example) 和 [账号说明](docs/accounts-preview.md)。示例没有可直接使用的服务端密钥，正式环境也不应沿用预览凭据。
 
-本次补齐19部作品的图片或简介，现64部作品都有图片位和简介，含明确标注的宣传图、标题图与3张备用画面。235路由、330图及候选/公网浏览器验收通过，详见 [生产发布与回滚](docs/production-release.md)。完整游戏内存档/游玩验收仍单独记录。
+## 目录结构
 
-自适应封面墙的比例、手机适配与验收见 [封面布局](docs/cover-gallery.md)，本次生产升级与回滚记录见 [生产发布](docs/production-release.md#自适应封面墙升级20261019-141301)。
+| 目录 | 用途 |
+| --- | --- |
+| `src/` | 页面、账号、目录、分享、统计及资源接口 |
+| `public/ons/`、`public/player/` | 统一播放器、存档协议与引擎适配 |
+| `engines/` | SDK 锁、构建配方、产物登记与版本绑定 |
+| `scripts/` | 初始化、验证、受控引擎构建与部署工具 |
+| `tests/` | 行为、协议、HTTP 与浏览器回归 |
+| `ops/analytics/` | 独立 Umami / PostgreSQL 容器配置 |
+| `docs/` | 功能说明、历史验收边界和部署参考 |
 
-## 远程预览
+代码中的 `WG_*` 环境变量及部分 `wg-*` 内部标识沿用历史兼容名称，产品名称统一为 WVN。
 
-Windows 独立目录 `H:\wg-manager-preview-20261019`；公开预览 `127.0.0.1:8281`，私有管理 `127.0.0.1:8282/manage`。所有 listener 强制绑定回环，不开放局域网端口，不改原 CaddyWG。
+## 功能与部署说明
 
-```sh
-ssh -N -L 18281:127.0.0.1:8281 -L 18282:127.0.0.1:8282 storage.example.invalid
-```
+- [公开仓库与私有配置边界](docs/public-repository.md)
+- [账号与云存档](docs/accounts-preview.md)、[存档分享](docs/save-sharing-preview.md)
+- [Emscripten 统一管理](docs/emscripten-management.md)、[Ren’Py 云存档兼容](docs/renpy-cloud-saves.md)
+- [启动加载反馈](docs/player-loading.md)、[ONS 资源缓存](docs/ons-resource-cache.md)
+- [统计](docs/public-stats.md)、[封面布局](docs/cover-gallery.md)
 
-然后访问 `http://127.0.0.1:18281/`、`http://127.0.0.1:18282/manage`。管理令牌在远程 `state/admin-token`，只使用一次，交换 8 小时 HttpOnly/SameSite Strict 会话；不写进日志、URL 或仓库。使用 SSH 读取并在页面输入。重启预览会生成新令牌并清空会话。
-
-管理支持显示名、别名、默认版本、版本语言/说明/排序/隐藏、不可复用的删除登记、纠正作品归属、待匹配确认、人工核实新作品登记与验证报告导入。不提供 shell、批量转换、源文件删除或服务操作。报告的自由文本只在私有接口中返回。
-
-来源元数据独立保存，封面及截图使用同源缓存，支持来源标题搜索、标签筛选和资料溯源。更新已有目录先运行 `node --import tsx scripts/import-metadata.ts` 审查 dry-run，再加 `--apply` 导入，不重跑 seed。详见 [元数据预览](docs/metadata-preview.md)。
-
-## 检查与回滚
-
-`node scripts/verify-preview.mjs` 逐条检查作品页、固定版本页、旧资源入口、SSR 数据路由与公开/私有隔离。`scripts/browser-preview.ps1` 在 Windows 启动自有独立 Chrome profile 检查 ATRI、CLANNAD；使用现有代理，调试端口仅回环，检查结束关闭自己的浏览器。
-
-浏览器通用 IndexedDB 探针与游戏内保存/读档是两项不同证据。公开切换还必须验证正式 origin 下已有存档、完整映射和每个引擎兼容性。详见 [验收记录](docs/preview-acceptance.md) 和 [回滚](docs/rollback.md)。
+历史部署脚本保留环境校验；其中的主机、地址和个人目录已替换为示例值，使用前需要按自己的环境适配。旧档路径属于游戏运行时兼容协议，不能因为目录整理而随意改名。预览与生产是不同 origin，浏览器存档及 Passkey 凭据不会自动迁移。
