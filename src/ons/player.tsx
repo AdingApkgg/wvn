@@ -192,7 +192,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
           <Button variant="outline" disabled={!selected || running || busy} onClick={() => run(async () => { await adopt((await store.current!.getRevision(selected, pilot.id)).snapshot, "restore"); })}>下次启动使用此备份</Button>
           <Button variant="ghost" disabled={!selected || busy} onClick={() => run(async () => { const { storage } = await modules(); download(await storage.exportBackup((await store.current!.getRevision(selected, pilot.id)).snapshot,releaseId), "history"); })}>导出所选备份</Button>
         </div>
-        <p className="text-xs text-muted-foreground">共享引擎 <code>{pilot.engine.slice(0, 12)}</code> · 每个游戏版本使用独立存档空间。旧存档不会被清理。</p>
+        <p className="text-xs text-muted-foreground">共享引擎 <code>{(releaseId??pilot.engine).slice(0, 16)}</code> · 每个游戏版本使用独立存档空间。旧存档不会被清理。</p>
         <a href="https://github.com/YuriSizuku/OnscripterYuri" target="_blank" rel="noreferrer" className="text-xs underline">ONScripterYuri 源码与 GPL-2.0 许可</a>
       </CardContent></Card>
       </section>
