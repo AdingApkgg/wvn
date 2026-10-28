@@ -12,7 +12,7 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
   await page.goto(origin + "/account");
   await authenticator(page);
   expect((await register(page, "Sharing Author")).status).toBe(200);
-  await page.reload();
+  await page.goto(origin + "/account?tab=saves");
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
   const versionId = await select.locator("option").nth(1).getAttribute("value");
@@ -112,6 +112,7 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
         manager.getByText("暂无待处理条目", { exact: true }),
       ).toBeVisible();
       await page.getByRole("button", { name: "关闭", exact: true }).click();
+      await page.getByRole("tab", { name: "我的分享", exact: true }).click();
       await page
         .getByRole("button", { name: "刷新分享列表", exact: true })
         .click();
@@ -320,9 +321,17 @@ test("anonymous invalid links and public moderation endpoints stay isolated on n
 test("public version and progress filters persist through the next page and reset its cursor on submit", async ({
   page,
 }) => {
-  const { DatabaseSync } = await import("node:sqlite");
-  const database = process.env.WG_ACCOUNT_DATABASE!;
-  expect(database).toContain("/state/sharing-test/");
+  const { PgDatabase } = await import('../../src/database/postgres.ts');
+  const { readFileSync } = await import('node:fs');
+  const database = process.env.WG_ACCOUNT_DATABASE_URL!;
+  const schema = process.env.WG_ACCOUNT_DATABASE_SCHEMA!;
+  const target = new URL(database);
+  expect(['postgres:', 'postgresql:']).toContain(target.protocol);
+  expect(decodeURIComponent(target.username)).toBe('wvn_qa');
+  expect(target.pathname).toBe('/wvn_qa');
+  expect(schema).toMatch(/^e2e_[a-z0-9_]+$/);
+  const receipt = JSON.parse(readFileSync(process.env.WG_PLATFORM_FIXTURE_FILE!, 'utf8'));
+  expect(receipt.schemas.accounts).toBe(schema);
   const catalog = await (
     await page.request.get(publicOrigin + "/api/catalog")
   ).json();
@@ -334,7 +343,7 @@ test("public version and progress filters persist through the next page and rese
   await page.goto(origin + "/account");
   await authenticator(page);
   expect((await register(page, "Filter Fixture Author")).status).toBe(200);
-  await page.reload();
+  await page.goto(origin + "/account?tab=saves");
   await page
     .getByRole("combobox", { name: "存档所属版本" })
     .selectOption(one.id);
@@ -363,13 +372,12 @@ test("public version and progress filters persist through the next page and rese
     requestId: crypto.randomUUID(),
   });
   expect(templateShare.status).toBe(201);
-  const db = new DatabaseSync(database);
+  const db = new PgDatabase(database, { schema });
   const ids: string[] = [];
   try {
-    db.exec("PRAGMA busy_timeout=5000");
-    const template = db
-      .prepare("SELECT * FROM wg_save_shares WHERE id=?")
-      .get(templateShare.data.id)!;
+    const identity = await db.prepare('SELECT current_user AS role,current_database() AS database,current_schema() AS schema').get();
+    expect(identity).toEqual({ role: 'wvn_qa', database: 'wvn_qa', schema });
+    const template = (await db.prepare('SELECT * FROM wg_save_shares WHERE id=$1').get(templateShare.data.id))!;
     expect(template).toBeTruthy();
     // Isolated list fixtures reuse immutable bytes; public visibility still checks source generation.
     for (let n = 0; n < 70; n++) {
@@ -377,8 +385,8 @@ test("public version and progress filters persist through the next page and rese
       ids.push(id);
       const v = n % 3 === 0 ? two : one;
       const progress = n % 3 === 1 ? "route" : "complete";
-      db.prepare(
-        "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload) SELECT ?,owner,profile,generation,revision,?,?,'public',NULL,'active',NULL,files,?,NULL,1,?,?,payload FROM wg_save_shares WHERE id=?",
+      await db.prepare(
+        "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload) SELECT $1,owner,profile,generation,revision,$2,$3,'public',NULL,'active',NULL,files,$4,NULL,1,$5,$6,payload FROM wg_save_shares WHERE id=$7",
       ).run(
         id,
         v.id,
@@ -450,7 +458,7 @@ test("public version and progress filters persist through the next page and rese
     ).toBe(true);
   } finally {
     for (const id of ids)
-      db.prepare("DELETE FROM wg_save_shares WHERE id=?").run(id);
-    db.close();
+      await db.prepare("DELETE FROM wg_save_shares WHERE id=$1").run(id);
+    await db.close();
   }
 });

@@ -1,17 +1,10 @@
-#!/bin/sh
-set -eu
-cd "${WG_TEST_ROOT:-/home/wvn/wg-manager-preview}"
+#!/usr/bin/env bash
+set -euo pipefail
+# 本脚本不安装、不构建，也不删除SQLite或其他预览；由独立持久化任务调用。
+cd "${WG_TEST_ROOT:-/home/i/wvn-platform-20261029/source}"
 test "$(hostname)" = localhost
-mkdir -p state/e2e reports
-export WG_DATABASE="$PWD/state/e2e/catalog.db" WG_STATE_DIR="$PWD/state/e2e"
-export WG_PORT=${WG_TEST_PUBLIC_PORT:-8291} WG_ADMIN_PORT=${WG_TEST_ADMIN_PORT:-8292}
-export WG_TEST_URL=http://127.0.0.1:$WG_PORT WG_ADMIN_URL=http://127.0.0.1:$WG_ADMIN_PORT WG_TEST_TOKEN_FILE="$PWD/state/e2e/admin-token"
-rm -f "$WG_DATABASE" "$WG_DATABASE-wal" "$WG_DATABASE-shm"
-./node_modules/.bin/tsx scripts/seed.ts
-if test -n "$(ss -H -ltn "sport = :$WG_PORT")" || test -n "$(ss -H -ltn "sport = :$WG_ADMIN_PORT")"; then echo "Catalog test ports already in use"; exit 1; fi
-node --import tsx server.ts > state/e2e/server.log 2>&1 &
-preview_pid=$!
-cleanup(){ kill "$preview_pid" 2>/dev/null || true; wait "$preview_pid" 2>/dev/null || true; }
-trap cleanup EXIT
-for attempt in 1 2 3 4 5; do if curl -fsS "$WG_TEST_URL/health" >/dev/null 2>&1; then break; fi; sleep 1; done
-./node_modules/.bin/playwright test
+if [ -z "${TMUX:-}" ]; then
+  echo '请通过本任务remote.py job/tmux运行，断线后先查询原任务状态。' >&2
+  exit 1
+fi
+exec node --import tsx scripts/platform-qa.ts "$@"
