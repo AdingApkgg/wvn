@@ -4,6 +4,7 @@ import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} 
 import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
 import {installNativeInput} from './native-input.mjs';
+import {prepareRenpyAudio} from './renpy-audio.mjs';
 import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility,waitForTyranoReady} from './adapters.mjs';
 const origin=new URL(location.href).origin,id=/^\/__player\/resource\/([^/]+)\/index\.html$/.exec(location.pathname)?.[1],entry=findPlayer(id);
 let initialized=false;
@@ -64,7 +65,7 @@ addEventListener('message',async function initialize(event){
       loading.phase('restoring');status('存档适配已连接');
     }
     if(entry.runtimeKind!=='Tyrano'){
-      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument,resources:engineResources,progress:event=>loading.engine(event),status:state=>{if(state==='failed')loading.fail('引擎加载失败，请取消后重试');else if(['initializing','initialized'].includes(state))loading.phase('initializing')}});
+      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument,prepareRuntime:module=>prepareRenpyAudio(module,init.engineRelease?.id),resources:engineResources,progress:event=>loading.engine(event),status:state=>{if(state==='failed')loading.fail('引擎加载失败，请取消后重试');else if(['initializing','initialized'].includes(state))loading.phase('initializing')}});
       driver.installGlobal(window);
     }
     if(entry.runtimeKind==='Tyrano')Object.defineProperty(document,'readyState',{configurable:true,get:()=>"loading"});

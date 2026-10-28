@@ -1,6 +1,12 @@
 import{test}from'node:test';import assert from'node:assert/strict';
 import{createEmscriptenDriver,captureFilesystem,resolveEngineResource}from'../public/player/emscripten.mjs';
 
+test('runtime preparation runs once after data preload and before the native initialized hook',()=>{
+ const calls=[],win={},driver=createEmscriptenDriver({kind:'RenPy',prepareRuntime:value=>{assert.equal(value.FS.ready,true);calls.push('runtime');}});
+ driver.installGlobal(win);win.Module={FS:{ready:true},onRuntimeInitialized(){calls.push('native');}};
+ win.Module.onRuntimeInitialized();win.Module.onRuntimeInitialized();assert.deepEqual(calls,['runtime','native','native']);
+});
+
 test('factory driver preserves hooks, context and return values while exposing lifecycle',async()=>{
  const calls=[],states=[],owner={};const options={preRun:function(arg){calls.push(['pre',this,arg]);return 7},onRuntimeInitialized:function(arg){calls.push(['ready',this,arg]);return 9},onAbort:function(reason){calls.push(['abort',this,reason]);return 11}};
  const driver=createEmscriptenDriver({kind:'ONS',status:s=>states.push(s)});

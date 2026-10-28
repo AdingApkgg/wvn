@@ -25,9 +25,9 @@ export function captureFilesystem(FS,mounts,limits={files:512,fileBytes:32*1024*
  }
  for(const mount of mounts)walk(mount.path,mount.prefix);return files;
 }
-export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,resources,progress=()=>{}}={}){
+export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,prepareRuntime,resources,progress=()=>{}}={}){
  if(!['ONS','Artemis','RenPy'].includes(kind))throw Error('Unsupported Emscripten driver');
- let state='waiting',module={},filesystemPrepared=false;const configured=new WeakSet();
+ let state='waiting',module={},filesystemPrepared=false,runtimePrepared=false;const configured=new WeakSet();
  const change=next=>{if(state==='failed'&&next!=='failed')throw Error('Emscripten driver failed');state=next;status(next);};
  const fail=()=>{if(state!=='failed')change('failed');};
  function hook(value,name,before,after){
@@ -47,7 +47,7 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,res
   if(!value||typeof value!=='object')throw Error('Invalid Emscripten Module');module=value;
   if(configured.has(value))return value;configured.add(value);
   hook(value,'onAbort',fail);hook(value,'onExit',()=>change('stopped'));
-  hook(value,'onRuntimeInitialized',undefined,()=>change('initialized'));
+  hook(value,'onRuntimeInitialized',()=>{if(!runtimePrepared){prepareRuntime?.(value);runtimePrepared=true;}},()=>change('initialized'));
   const observe=event=>{try{progress(event)}catch{ /* 加载反馈不能影响引擎回调。 */ }};
   hook(value,'setStatus',text=>observe({type:'status',text}));
   hook(value,'monitorRunDependencies',remaining=>observe({type:'dependencies',remaining}));
