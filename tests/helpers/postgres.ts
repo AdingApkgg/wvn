@@ -6,6 +6,9 @@ import { PgDatabase } from '../../src/database/postgres.ts';
 export async function postgresFixture() {
   const connectionString = process.env.WVN_TEST_DATABASE_URL;
   if (!connectionString) throw new Error('WVN_TEST_DATABASE_URL is required for PostgreSQL tests');
+  const target = new URL(connectionString);
+  if (target.pathname !== '/wvn_qa' || target.username !== 'wvn_qa')
+    throw new Error('Refusing to create fixtures outside the dedicated wvn_qa database');
   const schema = 'qa_' + randomUUID().replaceAll('-', '');
   const admin = new Pool({ connectionString, max: 1 });
   await admin.query(`CREATE SCHEMA "${schema}"`);

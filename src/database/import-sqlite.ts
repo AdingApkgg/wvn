@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import type { PgDatabase, PgRow } from './postgres.ts';
 
 type Column = { name: string; data_type: string };
-type SourceTable = { name: string; columns: Column[]; primary: string[] };
+type SourceTable = { name: string; columns: Column[]; primary: string[]; scanRowid?: boolean };
 type TableReport = { name: string; sourceRows: number; targetRows: number; sourceSha256: string; targetSha256: string; matches: boolean };
 const quote = (name: string) => '"' + name.replaceAll('"', '""') + '"';
 
@@ -111,7 +111,7 @@ export async function importSqlite(options: { source: string; db: PgDatabase; ap
     sqlite.exec('BEGIN');
     return await db.transaction(async () => {
     const names = sqlite.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all();
-    const allColumns = await db.prepare('SELECT table_name,column_name,data_type FROM information_schema.columns WHERE table_schema=current_schema()').all();
+    const allColumns = await db.prepare('SELECT table_name,column_name,data_type,is_identity FROM information_schema.columns WHERE table_schema=current_schema()').all();
     const tables: SourceTable[] = names.map(({ name }) => {
       const columns = sqlite.prepare(`PRAGMA table_info(${quote(String(name))})`).all();
       const available = allColumns.filter(c => c.table_name === name);
@@ -120,6 +120,8 @@ export async function importSqlite(options: { source: string; db: PgDatabase; ap
       if (!primary.length) throw new Error('Source table has no primary key: ' + name);
       return {
         name: String(name), primary,
+        scanRowid: available.some(c => c.is_identity === 'YES' && ['catalog_order', 'revision_order'].includes(c.column_name)) &&
+          !/WITHOUT\s+ROWID/i.test(String(sqlite.prepare("SELECT sql FROM sqlite_schema WHERE name=?").get(name)?.sql)),
         columns: columns.map(c => {
           const column = available.find(a => a.column_name === c.name);
           if (!column) throw new Error('Missing target column: ' + name + '.' + c.name);
@@ -138,7 +140,7 @@ export async function importSqlite(options: { source: string; db: PgDatabase; ap
         if (options.apply) {
           await db.exec('SET CONSTRAINTS ALL DEFERRED');
           const selected = table.columns.map(c => quote(c.name)).join(',');
-          const rows = sqlite.prepare(`SELECT ${selected} FROM ${quote(table.name)}`).iterate();
+          const rows = sqlite.prepare(`SELECT ${selected} FROM ${quote(table.name)}${table.scanRowid ? " ORDER BY rowid" : ""}`).iterate();
           let batch: unknown[][] = [];
           const flush = async () => {
             if (!batch.length) return;
