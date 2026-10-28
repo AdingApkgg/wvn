@@ -43,7 +43,7 @@ export function createShareAdminApp(
     return (await service.withLock(next));
   });
   app.post("/api/share-admin/login", async (c) => {
-    service.sharing?.limit("admin-login", 20, 600_000);
+    await service.sharing?.limit("admin-login", 20, 600_000);
     const { token } = await c.req.json();
     if (
       !invite ||
@@ -66,7 +66,7 @@ export function createShareAdminApp(
   });
   app.get("/api/share-admin/queue", async (c) => {
     await service.sharing?.catalog.refresh().catch(() => {});
-    return c.json(service.sharing?.queue() ?? []);
+    return c.json(await service.sharing?.queue() ?? []);
   });
   app.get("/api/share-admin/audit", async (c) =>
     c.json(
