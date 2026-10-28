@@ -55,3 +55,197 @@ test('browser SDK uses a fresh ticket when WebTransport fails and reconnects wit
     await redis.quit(); await pg.close();
   }
 });
+
+function deferred<T>() {
+  let resolve!: (value: T) => void, reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
+}
+
+// 精确停在外部异步边界：即便底层在取消后仍完成，也不能重开传输。
+test('close during a pending ticket aborts the attempt and never opens a transport', async () => {
+  const originalFetch = globalThis.fetch, originalWS = globalThis.WebSocket;
+  const ticket = deferred<void>(), entered = deferred<void>();
+  let sockets = 0, requests = 0, signal: AbortSignal | null | undefined, connected = 0;
+  globalThis.fetch = (async (_input: unknown, init?: RequestInit) => {
+    requests++; signal = init?.signal; entered.resolve();
+    await ticket.promise;
+    return Response.json({ ticket: 'unused', websocketPath: '/api/rooms/ws' });
+  }) as typeof fetch;
+  globalThis.WebSocket = class extends EventTarget {
+    static OPEN = 1; readyState = 0; bufferedAmount = 0;
+    constructor() { super(); sockets++; }
+    close() { this.readyState = 3; }
+  } as any;
+  const client = new RoomClient({ roomId: 'cancel-ticket', baseUrl: 'http://sdk.test', preferWebTransport: false, transportTimeoutMs: 25 });
+  client.addEventListener('connected', () => { connected++; });
+  try {
+    const outcome = client.connect().then(() => null, error => error);
+    await entered.promise;
+    client.close();
+    ticket.resolve();
+    const error = await outcome;
+    assert.equal(sockets, 0, 'closed ticket attempt must not construct WebSocket');
+    assert.equal(requests, 1, 'closed attempt must not fetch another ticket');
+    assert.equal(connected, 0);
+    assert.equal(signal?.aborted, true, 'ticket fetch must receive the aborted attempt signal');
+    assert.equal(error?.name, 'AbortError');
+    assert.equal(client.transport, null);
+  } finally { client.close(); globalThis.fetch = originalFetch; globalThis.WebSocket = originalWS; }
+});
+
+test('close during a pending WebTransport handshake cancels without fallback or reconnect', async () => {
+  const originalFetch = globalThis.fetch, originalWS = globalThis.WebSocket, originalWT = (globalThis as any).WebTransport;
+  const ready = deferred<void>(), closed = deferred<void>(), entered = deferred<void>();
+  let sockets = 0, requests = 0, fallbacks = 0, connected = 0, wtClosed = 0;
+  globalThis.fetch = (async () => {
+    requests++;
+    return Response.json({ ticket: 'unused', websocketPath: '/api/rooms/ws', webTransportUrl: 'https://sdk.test/rooms' });
+  }) as typeof fetch;
+  globalThis.WebSocket = class extends EventTarget {
+    static OPEN = 1; readyState = 0; bufferedAmount = 0;
+    constructor() { super(); sockets++; }
+    close() { this.readyState = 3; }
+  } as any;
+  (globalThis as any).WebTransport = class {
+    ready = ready.promise; closed = closed.promise;
+    constructor() { entered.resolve(); }
+    close() { wtClosed++; closed.resolve(); }
+  };
+  const client = new RoomClient({ roomId: 'cancel-wt', baseUrl: 'http://sdk.test', transportTimeoutMs: 25 });
+  client.addEventListener('fallback', () => { fallbacks++; });
+  client.addEventListener('connected', () => { connected++; });
+  try {
+    const outcome = client.connect().then(() => null, error => error);
+    await entered.promise;
+    client.close();
+    ready.reject(new Error('late QUIC failure after close'));
+    const error = await outcome;
+    assert.equal(sockets, 0, 'cancelled WT attempt must not open fallback WS');
+    assert.equal(requests, 1, 'cancelled WT attempt must not request fallback/reconnect tickets');
+    assert.equal(fallbacks, 0);
+    assert.equal(connected, 0);
+    assert.equal(wtClosed, 1);
+    assert.equal(error?.name, 'AbortError');
+    assert.equal(client.transport, null);
+    assert.equal((client as any).retryTimer, undefined, 'close must not schedule a reconnect');
+  } finally {
+    client.close(); globalThis.fetch = originalFetch; globalThis.WebSocket = originalWS; (globalThis as any).WebTransport = originalWT;
+  }
+});
+
+function controlledWebTransport() {
+  const instances: ControlledWT[] = [];
+  class ControlledWT {
+    ready = Promise.resolve();
+    private finished = deferred<void>();
+    closed = this.finished.promise;
+    private stopped = false;
+    private streamController!: ReadableStreamDefaultController<Uint8Array>;
+    private datagramController!: ReadableStreamDefaultController<Uint8Array>;
+    private readable = new ReadableStream<Uint8Array>({ start: controller => { this.streamController = controller; } });
+    datagrams = {
+      readable: new ReadableStream<Uint8Array>({ start: controller => { this.datagramController = controller; } }),
+      writable: new WritableStream<Uint8Array>(),
+    };
+    constructor() { instances.push(this); }
+    async createBidirectionalStream() {
+      return { readable: this.readable, writable: new WritableStream<Uint8Array>({ write: () => this.frame({
+        type: 'ready', userId: 'owner', snapshot: { id: 'terminal', ownerUserId: 'owner', versionId: 'published', status: 'open', seq: 0, state: {}, stateSeq: 0, members: [] }, events: [], cursor: 0, head: 0,
+      }) }) };
+    }
+    frame(value: unknown) { this.streamController.enqueue(new TextEncoder().encode(JSON.stringify(value) + '\n')); }
+    fail() { this.finished.reject(new Error('temporary QUIC network failure')); }
+    close() {
+      if (this.stopped) return;
+      this.stopped = true; this.streamController.close(); this.datagramController.close(); this.finished.resolve();
+    }
+  }
+  return { WT: ControlledWT, instances };
+}
+
+// 手动推进SDK定时器，无真实等待；每步检查异步fetch/握手处理完后是否又排入重试。
+function manualSdkTimers() {
+  const originalSet = globalThis.setTimeout, originalClear = globalThis.clearTimeout;
+  const scheduled = new Map<number, () => void>();
+  let next = 0;
+  globalThis.setTimeout = ((callback: () => void) => { scheduled.set(++next, callback); return next; }) as any;
+  globalThis.clearTimeout = ((id: number) => scheduled.delete(id)) as any;
+  return { scheduled, async advance() {
+    const callbacks = [...scheduled.values()]; scheduled.clear();
+    for (const callback of callbacks) callback();
+    await new Promise<void>(resolve => setImmediate(resolve));
+  }, restore() { globalThis.setTimeout = originalSet; globalThis.clearTimeout = originalClear; } };
+}
+
+test('WebTransport authorization/member termination closes peers without requesting more tickets', async () => {
+  for (const code of ['unauthorized', 'not_a_member', 'room_closed']) {
+    const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport;
+    const transport = controlledWebTransport(), timers = manualSdkTimers();
+    let requests = 0, peerClosed = 0;
+    globalThis.fetch = (async () => { requests++; return Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' }); }) as typeof fetch;
+    (globalThis as any).WebTransport = transport.WT;
+    const client = new RoomClient({ roomId: 'terminal', baseUrl: 'https://sdk.test' });
+    try {
+      await client.connect();
+      client.peers.set('member', { pc: { close: () => { peerClosed++; } } as any, channel: null });
+      transport.instances[0].frame({ type: 'error', code });
+      await new Promise<void>(resolve => setImmediate(resolve));
+      for (let step = 0; step < 3; step++) await timers.advance();
+      assert.equal(requests, 1, code + ': terminal room error must not fetch reconnect tickets');
+      assert.equal(timers.scheduled.size, 0);
+      assert.equal(peerClosed, 1);
+      assert.equal(client.peers.size, 0);
+      assert.equal(client.transport, null);
+    } finally { client.close(); timers.restore(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; }
+  }
+});
+
+test('HTTP 401/403/410 during automatic reconnect stops further attempts and closes peers', async () => {
+  for (const status of [401, 403, 410]) {
+    const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport;
+    const transport = controlledWebTransport(), timers = manualSdkTimers();
+    let requests = 0, peerClosed = 0;
+    globalThis.fetch = (async () => {
+      requests++;
+      return requests === 1 ? Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' }) : Response.json({ error: 'revoked_or_removed' }, { status });
+    }) as typeof fetch;
+    (globalThis as any).WebTransport = transport.WT;
+    const client = new RoomClient({ roomId: 'terminal', baseUrl: 'https://sdk.test' });
+    try {
+      await client.connect();
+      client.peers.set('member', { pc: { close: () => { peerClosed++; } } as any, channel: null });
+      transport.instances[0].fail();
+      await new Promise<void>(resolve => setImmediate(resolve));
+      for (let step = 0; step < 4; step++) await timers.advance();
+      assert.equal(requests, 2, status + ': only the first legitimate network reconnect may request a ticket');
+      assert.equal(timers.scheduled.size, 0);
+      assert.equal(peerClosed, 1);
+      assert.equal(client.peers.size, 0);
+      assert.equal(client.transport, null);
+    } finally { client.close(); timers.restore(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; }
+  }
+});
+
+test('temporary WebTransport network failure still reconnects successfully', async () => {
+  const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport;
+  const transport = controlledWebTransport(), timers = manualSdkTimers();
+  let requests = 0, connected = 0;
+  globalThis.fetch = (async () => { requests++; return Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' }); }) as typeof fetch;
+  (globalThis as any).WebTransport = transport.WT;
+  const client = new RoomClient({ roomId: 'temporary-network', baseUrl: 'https://sdk.test' });
+  client.addEventListener('connected', () => { connected++; });
+  try {
+    await client.connect();
+    transport.instances[0].fail();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(timers.scheduled.size, 1, 'temporary network loss schedules one retry');
+    await timers.advance();
+    assert.equal(requests, 2);
+    assert.equal(connected, 2);
+    assert.equal(client.transport, 'webtransport');
+    assert.equal(timers.scheduled.size, 0);
+    await timers.advance();
+    assert.equal(requests, 2, 'successful reconnect does not leave another retry queued');
+  } finally { client.close(); timers.restore(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; }
+});

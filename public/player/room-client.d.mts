@@ -10,13 +10,15 @@ export class RoomClient extends EventTarget {
   readonly userId: string | null;
   readonly snapshot: RoomSnapshot | null;
   readonly peers: Map<string, { pc: RTCPeerConnection; channel: RTCDataChannel | null }>;
+  /** close() 以 AbortError 取消尝试；鉴权/成员终止会停止重试并关闭peer。 */
   connect(): Promise<RoomReady>;
-  request(path: string, data?: unknown): Promise<any>;
+  request(path: string, data?: unknown, options?: { signal?: AbortSignal }): Promise<any>;
   publishState(data: unknown, id?: string): Promise<RoomEvent>;
   send(kind: 'state' | 'offer' | 'answer' | 'ice', data: unknown, target?: string, id?: string): Promise<RoomEvent>;
   pingDatagram(): Promise<void>;
   openPeer(userId: string, options?: { relayOnly?: boolean }): Promise<RTCPeerConnection>;
   sendPeer(userId: string, data: unknown): void;
   closePeer(userId: string): void;
+  /** 取消待完成取票/握手，关闭传输与peer，并停止自动重连。 */
   close(): void;
 }

@@ -16,127 +16,198 @@ export class RoomClient extends EventTarget {
     this.manualClose = false;
   }
   emit(type, detail) { this.dispatchEvent(new CustomEvent(type, { detail })); }
-  async request(path, data) {
-    const headers = new Headers(typeof this.options.headers === 'function' ? await this.options.headers() : this.options.headers);
+  activeAttempt(attempt) {
+    return !!attempt && this.attempt === attempt && !attempt.controller.signal.aborted && !this.manualClose;
+  }
+  assertAttempt(attempt) {
+    if (!this.activeAttempt(attempt)) throw attempt?.controller.signal.reason ?? new DOMException('Room connection cancelled', 'AbortError');
+  }
+  async request(path, data, { signal } = {}) {
+    signal?.throwIfAborted();
+    const suppliedHeaders = typeof this.options.headers === 'function' ? await this.options.headers() : this.options.headers;
+    signal?.throwIfAborted();
+    const headers = new Headers(suppliedHeaders);
     headers.set('content-type', 'application/json');
     const response = await fetch(this.baseUrl + '/api/rooms/' + encodeURIComponent(this.roomId) + path, {
-      method: data === undefined ? 'GET' : 'POST', credentials: 'include', headers,
+      method: data === undefined ? 'GET' : 'POST', credentials: 'include', headers, signal,
       ...(data === undefined ? {} : { body: JSON.stringify(data) }),
     });
+    signal?.throwIfAborted();
     const result = await response.json();
+    signal?.throwIfAborted();
     if (!response.ok) throw Object.assign(new Error(result.error ?? 'room_request_failed'), { status: response.status });
     return result;
   }
   connect() {
     if (this.connecting) return this.connecting;
     this.manualClose = false;
-    clearTimeout(this.retryTimer);
-    this.connecting = this.connectAttempt().finally(() => { this.connecting = null; });
-    return this.connecting;
+    clearTimeout(this.retryTimer); this.retryTimer = undefined;
+    if (this.attempt) { this.cancelAttempt(); this.resetTransport(); }
+    const attempt = { controller: new AbortController() };
+    this.attempt = attempt;
+    const connecting = this.connectAttempt(attempt).catch(error => {
+      // 旧尝试完成时，不得清理后来显式发起的新连接。
+      if (this.activeAttempt(attempt)) {
+        if (attempt.terminalError || this.terminalError(error)) this.stopAttempt(attempt, attempt.terminalError ?? error);
+        else this.resetTransport();
+      }
+      throw error;
+    }).finally(() => { if (this.connecting === connecting) this.connecting = null; });
+    this.connecting = connecting;
+    return connecting;
   }
-  async connectAttempt() {
-    const info = await this.request('/ticket', {});
+  async connectAttempt(attempt) {
+    const requestOptions = { signal: attempt.controller.signal };
+    let info = await this.request('/ticket', {}, requestOptions);
+    this.assertAttempt(attempt);
     if (info.webTransportUrl && typeof globalThis.WebTransport === 'function' && this.options.preferWebTransport !== false) {
-      try { return await this.openTransport('webtransport', info); }
-      catch (error) { this.resetTransport(); this.emit('fallback', { from: 'webtransport', to: 'websocket', reason: error.message }); }
+      try {
+        const ready = await this.openTransport('webtransport', info, attempt);
+        this.assertAttempt(attempt);
+        return ready;
+      } catch (error) {
+        this.assertAttempt(attempt);
+        this.resetTransport();
+        this.assertAttempt(attempt);
+        this.emit('fallback', { from: 'webtransport', to: 'websocket', reason: error.message });
+      }
+      this.assertAttempt(attempt);
+      // WT 可能已消耗票据，只有仍有效的尝试才能申请回退票据。
+      info = await this.request('/ticket', {}, requestOptions);
+      this.assertAttempt(attempt);
     }
-    // WT 可能已消耗票据，回退必须重新取得一次性票据。
-    return this.openTransport('websocket', await this.request('/ticket', {}));
+    this.assertAttempt(attempt);
+    const ready = await this.openTransport('websocket', info, attempt);
+    this.assertAttempt(attempt);
+    return ready;
   }
-  async openTransport(kind, info) {
+  async openTransport(kind, info, attempt) {
+    this.assertAttempt(attempt);
     const generation = ++this.generation;
+    const current = () => generation === this.generation && this.activeAttempt(attempt);
     this.transport = kind;
     let settle, reject;
     const ready = new Promise((resolve, fail) => { settle = resolve; reject = fail; });
-    // 打开QUIC流可能先耗时；立即接住拒绝，避免握手超时成为未处理异常。
     ready.catch(() => {});
-    this.onReady = value => { clearTimeout(timer); this.retry = 0; settle(value); };
+    const signal = attempt.controller.signal;
+    const abort = () => reject(signal.reason ?? new DOMException('Room connection cancelled', 'AbortError'));
+    signal.addEventListener('abort', abort, { once: true });
     const timer = setTimeout(() => reject(new Error('room_connect_timeout')), this.options.transportTimeoutMs);
+    this.onReady = value => { if (current()) { clearTimeout(timer); this.retry = 0; settle(value); } };
     const fail = error => {
-      if (generation !== this.generation) return;
+      if (!current()) return;
       reject(error instanceof Error ? error : new Error('room_transport_closed'));
-      this.disconnected(error);
+      this.disconnected(error, attempt);
     };
     try {
       if (kind === 'webtransport') {
         const wtOptions = this.options.serverCertificateHashes ? { serverCertificateHashes: this.options.serverCertificateHashes } : undefined;
+        this.assertAttempt(attempt);
         const wt = new globalThis.WebTransport(info.webTransportUrl, wtOptions);
         this.connection = wt;
         wt.closed.then(() => fail(new Error('room_transport_closed')), fail);
         await Promise.race([wt.ready, ready]);
+        this.assertAttempt(attempt);
         const stream = await Promise.race([wt.createBidirectionalStream(), ready]);
+        this.assertAttempt(attempt);
         this.writer = stream.writable.getWriter();
         this.datagramWriter = wt.datagrams.writable.getWriter();
         this.writeChain = Promise.resolve();
         this.write = value => {
           const bytes = new TextEncoder().encode(JSON.stringify(value) + '\n');
-          this.writeChain = this.writeChain.then(() => this.writer.write(bytes));
+          this.writeChain = this.writeChain.then(() => {
+            this.assertAttempt(attempt);
+            if (!current()) throw new Error('room_disconnected');
+            return this.writer.write(bytes);
+          });
           return this.writeChain;
         };
-        void this.readStream(stream.readable, generation).catch(fail);
-        void this.readDatagrams(wt.datagrams.readable, generation).catch(fail);
+        void this.readStream(stream.readable, generation, attempt).catch(fail);
+        void this.readDatagrams(wt.datagrams.readable, generation, attempt).catch(fail);
       } else {
         const url = new URL(info.websocketPath, this.baseUrl);
         url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+        this.assertAttempt(attempt);
         const ws = new WebSocket(url.href);
         this.connection = ws;
-        ws.addEventListener('message', event => { if (generation === this.generation) this.receive(JSON.parse(event.data)); });
+        ws.addEventListener('message', event => { if (current()) this.receive(JSON.parse(event.data), attempt); });
         ws.addEventListener('close', event => fail(Object.assign(new Error('room_transport_closed'), { code: event.code })));
         ws.addEventListener('error', () => fail(new Error('room_transport_failed')));
         await Promise.race([new Promise((resolve, failOpen) => {
           ws.addEventListener('open', resolve, { once: true });
           ws.addEventListener('error', failOpen, { once: true });
         }), ready]);
+        this.assertAttempt(attempt);
         this.write = value => {
-          if (ws.readyState !== WebSocket.OPEN || ws.bufferedAmount > 262144) return Promise.reject(new Error('room_backpressure'));
+          this.assertAttempt(attempt);
+          if (!current() || ws.readyState !== WebSocket.OPEN || ws.bufferedAmount > 262144) return Promise.reject(new Error('room_backpressure'));
           ws.send(JSON.stringify(value)); return Promise.resolve();
         };
       }
+      this.assertAttempt(attempt);
       await this.write({ type: 'auth', ticket: info.ticket, after: this.sequence });
-      return await ready;
-    } catch (error) { clearTimeout(timer); throw error; }
+      this.assertAttempt(attempt);
+      const result = await ready;
+      this.assertAttempt(attempt);
+      return result;
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+    }
   }
-  async readStream(readable, generation) {
+  async readStream(readable, generation, attempt) {
     const reader = readable.getReader(), decoder = new TextDecoder();
     let buffer = '';
     try {
       for (;;) {
         const { value, done } = await reader.read();
-        if (done || generation !== this.generation) break;
+        if (done || generation !== this.generation || !this.activeAttempt(attempt)) break;
         buffer += decoder.decode(value, { stream: true });
         if (buffer.length > 262144) throw new Error('room_frame_too_large');
         let index;
         while ((index = buffer.indexOf('\n')) >= 0) {
+          if (generation !== this.generation || !this.activeAttempt(attempt)) return;
           const line = buffer.slice(0, index); buffer = buffer.slice(index + 1);
-          if (line) this.receive(JSON.parse(line));
+          if (line) this.receive(JSON.parse(line), attempt);
         }
       }
     } finally { reader.releaseLock(); }
   }
-  async readDatagrams(readable, generation) {
+  async readDatagrams(readable, generation, attempt) {
     const reader = readable.getReader();
     try {
       for (;;) {
         const { value, done } = await reader.read();
-        if (done || generation !== this.generation) break;
+        if (done || generation !== this.generation || !this.activeAttempt(attempt)) break;
         if (value.length <= 1200) this.emit('datagram', JSON.parse(new TextDecoder().decode(value)));
       }
     } finally { reader.releaseLock(); }
   }
-  receive(frame) {
+  receive(frame, attempt) {
+    if (!this.activeAttempt(attempt)) return;
     if (frame.type === 'ready' || frame.type === 'sync') {
       this.userId = frame.userId ?? this.userId;
       this.snapshot = frame.snapshot ?? this.snapshot;
-      for (const event of frame.events ?? []) this.event(event);
+      for (const event of frame.events ?? []) {
+        if (!this.activeAttempt(attempt)) return;
+        this.event(event);
+      }
+      if (!this.activeAttempt(attempt)) return;
       this.sequence = Math.max(this.sequence, frame.cursor ?? 0);
-      if (frame.type === 'ready') { this.onReady?.(frame); this.onReady = null; this.emit('connected', { transport: this.transport, ...frame }); }
+      if (frame.type === 'ready') { this.onReady?.(frame); this.onReady = null; if (this.activeAttempt(attempt)) this.emit('connected', { transport: this.transport, ...frame }); }
       else this.emit('sync', frame);
     } else if (frame.type === 'event') this.event(frame.event);
     else if (frame.type === 'ack') {
       const pending = this.pending.get(frame.id);
       if (pending) { clearTimeout(pending.timer); this.pending.delete(frame.id); pending.resolve(frame.event); }
     } else if (frame.type === 'error') {
-      this.emit('error', frame); this.connection?.close();
+      // WT 没有 WS 的4003关闭码，先记住应用层终止原因，避免关闭后误判为网络故障。
+      if (frame.code !== 'rate_limited') attempt.terminalError = Object.assign(new Error(frame.code), { code: frame.code });
+      this.emit('error', frame);
+      if (this.activeAttempt(attempt)) {
+        if (attempt.terminalError) this.disconnected(attempt.terminalError, attempt);
+        else this.connection?.close();
+      }
     } else this.emit('message', frame);
   }
   event(event) {
@@ -222,16 +293,36 @@ export class RoomClient extends EventTarget {
     channel.send(value);
   }
   closePeer(id) { const peer = this.peers.get(id); peer?.channel?.close(); peer?.pc.close(); this.peers.delete(id); }
-  disconnected(error) {
+  terminalError(error) { return [401, 403, 410].includes(error?.status) || error?.code === 4003; }
+  stopAttempt(attempt, error) {
+    if (!this.activeAttempt(attempt)) return;
+    clearTimeout(this.retryTimer); this.retryTimer = undefined;
+    this.cancelAttempt(error); this.resetTransport();
+    for (const id of this.peers.keys()) this.closePeer(id);
+  }
+  disconnected(error, attempt = this.attempt) {
+    if (!this.activeAttempt(attempt)) return;
     this.emit('disconnected', { message: error?.message });
-    if (this.manualClose || this.connecting || error?.code === 4003 || !this.options.reconnect) return;
-    this.resetTransport();
+    if (!this.activeAttempt(attempt)) return;
+    if (attempt.terminalError || this.terminalError(error)) { this.stopAttempt(attempt, attempt.terminalError ?? error); return; }
+    if (this.connecting || !this.options.reconnect) return;
+    this.cancelAttempt(); this.resetTransport();
+    const generation = this.generation;
     clearTimeout(this.retryTimer);
-    this.retryTimer = setTimeout(() => this.connect().catch(next => this.disconnected(next)), Math.min(30000, 500 * 2 ** this.retry++));
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = undefined;
+      if (!this.manualClose && generation === this.generation && !this.attempt) this.connect().catch(next => this.disconnected(next));
+    }, Math.min(30000, 500 * 2 ** this.retry++));
+  }
+  cancelAttempt(reason = new DOMException('Room connection cancelled', 'AbortError')) {
+    const attempt = this.attempt;
+    this.attempt = null;
+    this.connecting = null;
+    attempt?.controller.abort(reason);
   }
   resetTransport() {
     ++this.generation;
-    this.write = null;
+    this.write = null; this.onReady = null; this.transport = null;
     this.connection?.close(); this.connection = null;
     this.writer?.releaseLock(); this.writer = null;
     this.datagramWriter?.releaseLock(); this.datagramWriter = null;
@@ -239,7 +330,8 @@ export class RoomClient extends EventTarget {
     this.pending.clear();
   }
   close() {
-    this.manualClose = true; clearTimeout(this.retryTimer); this.resetTransport();
+    this.manualClose = true; clearTimeout(this.retryTimer); this.retryTimer = undefined;
+    this.cancelAttempt(); this.resetTransport();
     for (const id of this.peers.keys()) this.closePeer(id);
   }
 }
