@@ -1,3 +1,5 @@
+﻿throw '历史 SQLite 启动或复制发布流程已停用；尚未完成当前 Windows PostgreSQL 实机验证。请按 docs/platform-postgres.md 使用显式 PG 配置与持久化任务；此入口不会执行后续历史正文。'
+# 以下保留历史正文，仅供审查，禁止执行。
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $root='H:\wg-manager-preview-20261019'
