@@ -1,6 +1,7 @@
 """B2 公共资源：完整 SHA-256、服务端复制到 .bin、SQLite 可恢复映射；不删除或上传文件。"""
 import argparse
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from contextlib import closing
 import configparser
 import hashlib
 import json
@@ -302,7 +303,8 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
                 raise MigrationError('同一命名空间必须使用同一份冻结清单')
             db.execute('INSERT OR IGNORE INTO b2_cas_snapshots VALUES(?,?)', (namespace, inventory_sha256))
             db.commit()
-        locks = [threading.Lock() for _ in range(256)]
+        # 网络复制期间持锁，用更多分组减少不同摘要之间的无关等待。
+        locks = [threading.Lock() for _ in range(4096)]
         ready = {}
         report = {'status': 'running', 'processed': 0, 'verified': 0, 'errors': 0, 'copiedObjects': 0,
             'reusedMappings': 0, 'bytesVerified': 0, 'localHashFiles': 0, 'remoteHashFiles': 0,
@@ -316,7 +318,7 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
                 else:
                     value, local = source_identity(client, item, local_roots)
                 key = value['sha256'] + '.bin'
-                with locks[int(value['sha256'][:2], 16)]:
+                with locks[int(value['sha256'][:3], 16)]:
                     created = False
                     target = ready.get(key)
                     if target is None:
@@ -371,6 +373,8 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
             target = client.targets.get(old['sha256'] + '.bin') if old else None
             if not target or target['fileId'] != old['file_id'] or target['contentLength'] != old['bytes'] or expected_sha1(target) != old['content_sha1']:
                 return False
+            # 目标版本未变时继承已提交的核验结果，供本轮其他原路径去重复用。
+            ready.setdefault(old['sha256'] + '.bin', target)
             report['processed'] += 1
             report['verified'] += 1
             report['reusedMappings'] += 1
@@ -420,7 +424,7 @@ def write_json(file, value):
 
 
 def verify_cloud(client, file):
-    with sqlite3.connect(file) as db:
+    with closing(sqlite3.connect(file)) as db:
         expected = {row[0] + '.bin': row[1:] for row in db.execute('''SELECT o.sha256,o.bytes,l.file_id,l.content_sha1
             FROM resource_objects o JOIN b2_cas_locations l ON l.sha256=o.sha256''')}
         foreign_keys = db.execute('PRAGMA foreign_key_check').fetchall()

@@ -1,5 +1,6 @@
 """B2 CAS 的内容身份、服务端复制及 SQLite 回执回归。"""
 import hashlib
+from contextlib import closing, contextmanager
 import importlib.util
 import json
 import os
@@ -19,6 +20,13 @@ spec.loader.exec_module(cas)
 
 def sha256(data):
     return hashlib.sha256(data).hexdigest()
+
+
+@contextmanager
+def connection(file):
+    with closing(sqlite3.connect(file)) as db:
+        with db:
+            yield db
 
 
 class MemoryB2:
@@ -71,7 +79,7 @@ class MigrationTests(unittest.TestCase):
         path = self.root / 'hash-cache.sqlite'
         value = {'file_id': row['fileId'], 'file_name': row['fileName'], 'bytes': row['contentLength'],
                  'sha1': cas.expected_sha1(row), 'sha256': sha256(self.client.data[row['fileId']]), **changes}
-        with sqlite3.connect(path) as db:
+        with connection(path) as db:
             db.executescript('''CREATE TABLE cache_snapshot(inventory_sha256 TEXT);
                 INSERT INTO cache_snapshot VALUES('snapshot');
                 CREATE TABLE source_hashes(file_id TEXT PRIMARY KEY,file_name TEXT,bytes INTEGER,sha1 TEXT,sha256 TEXT);''')
@@ -97,7 +105,7 @@ class MigrationTests(unittest.TestCase):
                              ('contentLength', row['contentLength'] + 1), ('contentSha1', '0' * 40)]:
             with self.subTest(field=field):
                 self.assertIsNone(cache.lookup(dict(row, **{field: value})))
-        with sqlite3.connect(self.root / 'hash-cache.sqlite') as db:
+        with connection(self.root / 'hash-cache.sqlite') as db:
             db.execute("UPDATE source_hashes SET sha1=?", ('0' * 40,))
         result = self.run_rows([row], hash_cache=cache)
         self.assertEqual(result['cachedHashFiles'], 0)
@@ -114,7 +122,7 @@ class MigrationTests(unittest.TestCase):
         second = self.client.source('second.png', b'second')
         cache = self.cache(first)
         self.assertIsNone(cache.lookup(second))
-        with sqlite3.connect(self.root / 'hash-cache.sqlite') as writer:
+        with connection(self.root / 'hash-cache.sqlite') as writer:
             writer.execute('INSERT INTO source_hashes VALUES(?,?,?,?,?)',
                 (second['fileId'], second['fileName'], second['contentLength'], cas.expected_sha1(second), sha256(b'second')))
         result = self.run_rows([first, second], hash_cache=cache)
@@ -159,7 +167,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(result['verified'], 3)
         self.assertEqual(len(self.client.copies), 2)
         self.assertEqual(set(self.client.targets), {sha256(b'same') + '.bin', sha256(b'') + '.bin'})
-        with sqlite3.connect(self.db) as db:
+        with connection(self.db) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM resource_paths').fetchone()[0], 3)
             self.assertEqual(db.execute('SELECT count(*) FROM resource_objects').fetchone()[0], 2)
             self.assertEqual(db.execute("SELECT content_type FROM resource_paths WHERE original_path=?", ('imports/背景 #1.png',)).fetchone()[0], 'image/png')
@@ -177,6 +185,18 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(len(self.client.copies), 1)
         self.assertEqual(len(self.client.downloads), downloads)
 
+    def test_resumed_target_is_reused_for_another_cached_path_without_reading_it_again(self):
+        first = self.client.source('first.png', b'shared-content')
+        second = self.client.source('second.png', b'shared-content')
+        self.run_rows([first])
+        self.client.downloads.clear()
+        result = self.run_rows([first, second], hash_cache=self.cache(second))
+        self.assertEqual(result['verified'], 2)
+        self.assertEqual(result['resumedFiles'], 1)
+        self.assertEqual(result['cachedHashFiles'], 1)
+        self.assertEqual(self.client.downloads, [])
+        self.assertEqual(len(self.client.copies), 1)
+
     def test_existing_corrupt_bin_is_not_overwritten_or_added_as_mapping(self):
         row = self.client.source('a.png', b'good')
         key = sha256(b'good') + '.bin'
@@ -185,7 +205,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(result['status'], 'attention')
         self.assertEqual(result['errors'], 1)
         self.assertEqual(self.client.copies, [])
-        with sqlite3.connect(self.db) as db:
+        with connection(self.db) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM resource_paths').fetchone()[0], 0)
 
     def test_a_failed_copy_has_no_ready_mapping_and_can_be_resumed(self):
@@ -194,7 +214,7 @@ class MigrationTests(unittest.TestCase):
         result = self.run_rows(rows)
         self.assertEqual(result['verified'], 1)
         self.assertEqual(result['errors'], 1)
-        with sqlite3.connect(self.db) as db:
+        with connection(self.db) as db:
             self.assertEqual(db.execute('SELECT count(*) FROM resource_paths').fetchone()[0], 1)
         self.client.fail.clear()
         result = self.run_rows(rows)
@@ -222,11 +242,11 @@ class MigrationTests(unittest.TestCase):
         self.assertIn(row['fileId'], self.client.downloads)
 
     def test_unrelated_database_is_rejected_without_schema_changes(self):
-        with sqlite3.connect(self.db) as db:
+        with connection(self.db) as db:
             db.execute('CREATE TABLE private_data(value TEXT)')
         with self.assertRaises(cas.MigrationError):
             self.run_rows([])
-        with sqlite3.connect(self.db) as db:
+        with connection(self.db) as db:
             self.assertEqual(db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall(), [('private_data',)])
 
     def test_streaming_identity_includes_every_byte_and_part_boundaries(self):
