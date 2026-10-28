@@ -20,6 +20,10 @@ app.route('/', createSearchApp({ db, meili, indexUid: 'wvn_public_works' }));
 
 模块均使用 `.server.ts`，只在后端导入。查询服务可使用只允许 `search` 的服务端密钥；索引进程需要索引创建、文档增删、设置、任务读取、交换与删除权限。master key 仅作为隔离测试/初始运维回退，不传到客户端。现有目录和账号服务边界保持不变。
 
+服务入口使用 `await createSearchRuntime(store, env)`，返回 `{ app, query, close? }`；`app` 挂载在 catch-all 之前。工厂会等待 `store.ready` 并安装搜索迁移，复用 Store 数据库，不拥有该连接的关闭权限。未配置或配置无效时，`/api/search` 返回 503，`query(URLSearchParams)` 抛出 `SearchRuntimeError`（`status=503`、`code=search_unavailable`）。参数错误的 `query` 抛出 `status=400`。查询密钥按 `MEILI_SEARCH_KEY`、`MEILI_WRITE_KEY`、`MEILI_MASTER_KEY` 顺序选用。
+
+目录 loader 使用缓存的 `getConfiguredSearchRuntime(store)`。无筛选时直接浏览 PG 目录，不依赖 Meili；`q/engine/tag/state` 任一非空时通过搜索 ID 再读取 PG 公开作品，并保留相关性顺序。搜索响应失败时页面返回 503 并明确显示“搜索暂不可用”，不会展示“0 部作品”或“没有匹配故事”。搜索页显示本页可见数量，并使用 `nextOffset` 生成“下一页”，不展示索引估算为可见总数。目录数据组装放在 `.server.ts` 中，避免服务端配置进入浏览器包。
+
 每个 PG schema 配置一个固定的 live index；多个 worker 必须使用同一 `indexUid`。一个 outbox 不支持同时维护多个不同投影；测试使用独立 schema 和随机 `wvn_qa_search_*` 索引。
 
 ## 公开 API
@@ -73,15 +77,16 @@ PG 事务只长期持有 advisory 锁，不在等待 Meili 时锁住 outbox 行�
 
 ## CLI 与运行方式
 
-服务器环境需要 `DATABASE_URL`、`MEILISEARCH_URL`、`MEILI_WRITE_KEY`；隔离测试可回退到 `MEILI_MASTER_KEY`。`MEILI_INDEX_UID` 默认 `wvn_public_works`。
+服务器环境需要 `WG_DATABASE_URL` 或 `DATABASE_URL`、`MEILISEARCH_URL`、`MEILI_WRITE_KEY`；隔离测试可回退到 `MEILI_MASTER_KEY`。`WG_DATABASE_SCHEMA` 优先于 `DATABASE_SCHEMA`，默认 `public`，必须与目录服务一致。`MEILI_INDEX_UID` 默认 `wvn_public_works`。
 
 ```sh
 node --import tsx scripts/search-index.ts init
 node --import tsx scripts/search-index.ts rebuild
 node --import tsx scripts/search-index.ts consume 100
+node --import tsx scripts/search-index.ts worker 100
 ```
 
-`init` 创建索引并安装设置；`rebuild` 全量重建；`consume` 单次领取 1–1000 个事件（默认 100），完成后退出。输出 JSON 汇总；有失败则退出码为 1。生产常驻执行/定时器由服务运维显式接入，需要反复执行 `consume`；仅执行一次并不构成持续同步。
+`init` 创建索引并安装设置；`rebuild` 全量重建；`consume` 单次领取 1–1000 个事件（默认 100），完成后退出，有失败则退出码为 1。`worker` 持续消费，空闲等待由 `SEARCH_WORKER_IDLE_MS` 设置（默认 1000ms，范围 100–30000ms）；故障以指数退避重试，上限 30 秒，不丢弃 outbox。收到 SIGTERM/SIGINT 后立即唤醒空闲等待，停止领取下一批，完成当前批次后关闭 PG 并以 0 退出。输出开始、非空批次与停止的 JSON，不输出空闲心跳。生产常驻执行由运维显式启动 `worker`；仅执行一次 `consume` 并不构成持续同步。
 
 所有索引操作只针对显式配置的 live UID 和该 UID 下的随机 staging UID，不清空 Meili 实例，不修改其他索引设置。
 
@@ -103,6 +108,8 @@ node --import tsx scripts/search-index.ts consume 100
 node --import tsx --test --test-concurrency=1 tests/search-postgres.test.ts
 ```
 
-本机不安装依赖、不构建、不运行服务。全项目验收由主任务统一执行，本文的专项结果不代表生产已部署或浏览器验收已完成。
+本机不安装依赖、不构建、不运行服务。新增 `tests/search-runtime.test.ts` 验证工厂自动迁移、查询密钥优先级、未配置 503、目录基础浏览/排序/分页/隐藏回查，以及真实 CLI worker 在随机 schema 中消费并 SIGTERM 正常退出。
+
+全项目验收由主任务统一执行，本文的专项结果不代表生产已部署或浏览器验收已完成。
 
 官方接口依据：[异步任务监控](https://www.meilisearch.com/docs/learn/async/asynchronous_operations)、[搜索 API](https://www.meilisearch.com/docs/reference/api/search)、[原子交换索引](https://www.meilisearch.com/docs/reference/api/indexes#swap-indexes)。实现使用 REST，已通过 Context7 核对当前官方文档与任务状态语义。

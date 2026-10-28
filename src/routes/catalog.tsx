@@ -11,10 +11,10 @@ import {
 import { Badge } from "../components/ui/badge";
 import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
-import { Form, Link, useLoaderData } from "react-router";
+import { data, Form, Link, useLoaderData } from "react-router";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
-import {projectWorkCounts} from '../analytics/projection.server';
+import { loadCatalog } from "../search/runtime.server.ts";
 import {WorkCountSummary} from '../components/work-stats';
 import type {WorkCounts} from '../accounts/work-stats.server';
 export function meta() {
@@ -24,52 +24,12 @@ export function meta() {
   ];
 }
 export async function loader({ request }: { request: Request }) {
-  const all = (await getStore()
-    .list())
-    .filter((w) => w.versions.length);
-  const url = new URL(request.url);
-  const q = url.searchParams.get("q") ?? "";
-  const engine = url.searchParams.get("engine") ?? "";
-  const state = url.searchParams.get("state") ?? "";
-  const tag = url.searchParams.get("tag") ?? "";
-  const items = all.filter(
-    (w) =>
-      (!q ||
-        [
-          w.title,
-          w.originalTitle,
-          w.id,
-          ...w.aliases,
-          ...(w.metadata?.titles.map((t) => t.title) ?? []),
-          ...(w.metadata?.tags.map((t) => t.name) ?? []),
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(q.toLowerCase())) &&
-      (!tag || w.metadata?.tags.some((t) => t.name === tag)) &&
-      (!engine || w.versions.some((v) => v.engine === engine)) &&
-      (!state ||
-        w.versions.some((v) =>
-          state === "unchecked"
-            ? !v.checks.length
-            : v.checks.some((c) => c.status === state),
-        )),
-  );
-  return {
-    items,
-    counts:await projectWorkCounts(items.map(w=>w.id)),
-    recentWorks: all.map(w => ({ title: w.title, versions: w.versions.map(v => ({id:v.id,url:v.url,number:v.number})) })),
-    q,
-    engine,
-    state,
-    tag,
-    release: process.env.WG_DEPLOYMENT_MODE === "production",
-    total: all.length,
-    versions: all.reduce((n, w) => n + w.versions.length, 0),
-  };
+  const result = await loadCatalog(request, getStore());
+  return data(result, { status: result.searchStatus });
 }
+
 export default function Catalog() {
-  const { items,counts, recentWorks, q, engine, state, tag, total, versions } =
+  const { items,counts, recentWorks, q, engine, state, tag, total, versions, isSearch, searchError, nextSearchUrl } =
     useLoaderData<typeof loader>();
   return (
     <>
@@ -99,7 +59,7 @@ export default function Catalog() {
           <h2>故事目录</h2>
           <span>
             {tag ? "标签：" + tag + " · " : ""}
-            {items.length} 部作品
+            {searchError ? "搜索未完成" : (isSearch ? `本页 ${items.length} 部作品` : `${items.length} 部作品`)}
           </span>
         </div>
         <div className="story-grid">
@@ -107,7 +67,14 @@ export default function Catalog() {
             <StoryCard key={w.id} work={w} index={i} counts={counts?.[w.id]}/>
           ))}
         </div>
-        {!items.length && (
+        {searchError && (
+          <div className="empty" role="alert">
+            <h2>{searchError}</h2>
+            <p>可以稍后重试，或先浏览全部故事。</p>
+            <Button asChild variant="outline"><Link to="/">浏览全部故事</Link></Button>
+          </div>
+        )}
+        {!searchError && !items.length && (
           <div className="empty">
             <h2>暂时没有匹配的故事</h2>
             <p>试试其他标题、别名或编号。</p>
@@ -115,6 +82,12 @@ export default function Catalog() {
               <Link to="/">清除筛选</Link>
             </Button>
           </div>
+        )}
+        {!searchError && nextSearchUrl && (
+          <nav aria-label="搜索分页" className="section-title">
+            <span>当前为本页可见作品</span>
+            <Button asChild variant="outline"><Link to={nextSearchUrl}>下一页</Link></Button>
+          </nav>
         )}
         <footer>
           <span>{brand.shortName} · {brand.fullName} · {brand.translation}</span>
