@@ -10,6 +10,7 @@ export type AccountConfig = {
   origin: string;
   cookiePrefix?: string;
   database: string;
+  databaseSchema?: string;
   secret: string;
   catalogOrigin?: string;
   blobRoot?: string;

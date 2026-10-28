@@ -8,7 +8,7 @@ import {
   writeSync,
 } from "node:fs";
 import { dirname } from "node:path";
-import type { DatabaseSync } from "node:sqlite";
+import type { PgDatabase } from "../database/postgres.ts";
 import type { SaveStore } from "./saves.server.ts";
 export class DeletionLedger {
   readonly entries = new Map<string, number>();
@@ -71,29 +71,34 @@ export class DeletionLedger {
     this.entries.set(userId, deletedAt);
     return deletedAt;
   }
-  replay(db: DatabaseSync, saves: SaveStore | null) {
+  async replay(db: PgDatabase, saves: SaveStore | null) {
     for (const [id, time] of this.entries) {
-      db.exec("BEGIN IMMEDIATE");
-      try {
-        deleteAccountRows(db, saves, id, time);
-        db.exec("COMMIT");
-      } catch (e) {
-        db.exec("ROLLBACK");
-        throw e;
-      }
+      await db.transaction(async () => {
+        (await deleteAccountRows(db, saves, id, time));
+
+      }, { lock: 'wvn:account-write' });
     }
   }
 }
-export function deleteAccountRows(
-  db: DatabaseSync,
+export async function deleteAccountRows(
+  db: PgDatabase,
   saves: SaveStore | null,
   userId: string,
   deletedAt: number,
 ) {
-  saves?.deleteOwner(userId, deletedAt);
+  await saves?.deleteOwner(userId, deletedAt);
+  if (await db.prepare("SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='rooms'").get()) {
+    await db.prepare(`SELECT id FROM rooms r WHERE owner_user_id=$1 OR EXISTS
+      (SELECT 1 FROM room_members m WHERE m.room_id=r.id AND m.user_id=$1) ORDER BY id FOR UPDATE`).all(userId);
+    await db.prepare("UPDATE rooms SET status='closed',state='{}'::jsonb,owner_user_id='deleted' WHERE owner_user_id=$1").run(userId);
+    await db.prepare('DELETE FROM room_members WHERE user_id=$1').run(userId);
+    // 保留事件序号供其他成员补页，同时移除被删除账号的名称、信令和标识。
+    await db.prepare(`UPDATE room_events SET actor_user_id='deleted',message_id=NULL,target_user_id=NULL,kind='account.deleted',data='{}'::jsonb
+      WHERE actor_user_id=$1 OR target_user_id=$1 OR data->>'userId'=$1`).run(userId);
+  }
   // 离线旧备份恢复可能没有开启 foreign_keys；账本重放也必须移除个人关系。
-  if(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='wg_work_reactions'").get())
-    db.prepare('DELETE FROM wg_work_reactions WHERE user_id=?').run(userId);
+  if((await db.prepare("SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='wg_work_reactions'").get()))
+    (await db.prepare("DELETE FROM wg_work_reactions WHERE user_id=$1").run(userId));
   for (const table of [
     "wg_library",
     "wg_plays",
@@ -102,13 +107,13 @@ export function deleteAccountRows(
     "wg_recovery_sessions",
     "wg_account",
   ])
-    db.prepare(`DELETE FROM ${table} WHERE user_id=?`).run(userId);
-  db.prepare("DELETE FROM passkey WHERE userId=?").run(userId);
-  db.prepare("DELETE FROM session WHERE userId=?").run(userId);
-  db.prepare("DELETE FROM account WHERE userId=?").run(userId);
-  db.prepare('DELETE FROM "user" WHERE id=?').run(userId);
-  db.prepare("INSERT OR REPLACE INTO wg_deleted_accounts VALUES (?,?)").run(
+    (await db.prepare(`DELETE FROM ${table} WHERE user_id=$1`).run(userId));
+  (await db.prepare("DELETE FROM passkey WHERE \"userId\"=$1").run(userId));
+  (await db.prepare("DELETE FROM session WHERE \"userId\"=$1").run(userId));
+  (await db.prepare("DELETE FROM account WHERE \"userId\"=$1").run(userId));
+  (await db.prepare("DELETE FROM \"user\" WHERE id=$1").run(userId));
+  (await db.prepare("INSERT INTO wg_deleted_accounts VALUES ($1,$2) ON CONFLICT(user_id) DO UPDATE SET deleted_at=excluded.deleted_at").run(
     userId,
     deletedAt,
-  );
+  ));
 }

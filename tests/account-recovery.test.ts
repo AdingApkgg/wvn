@@ -1,39 +1,42 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DatabaseSync } from "node:sqlite";
+import { testDatabase, testUser } from "./helpers/accounts.ts";
 import { RecoveryStore } from "../src/accounts/recovery.server.ts";
-function fixture() {
-  const db = new DatabaseSync(":memory:");
-  db.exec(`CREATE TABLE wg_account(user_id TEXT PRIMARY KEY,auth_version INTEGER,code_group TEXT);INSERT INTO wg_account VALUES('alice',0,'');
- CREATE TABLE passkey(id TEXT PRIMARY KEY,userId TEXT,name TEXT,publicKey TEXT,credentialID TEXT,counter INTEGER,deviceType TEXT,backedUp INTEGER,transports TEXT,createdAt INTEGER,aaguid TEXT);
- CREATE TABLE session(id TEXT PRIMARY KEY,userId TEXT);INSERT INTO session VALUES('old-session','alice');
- INSERT INTO passkey VALUES('old-key','alice','old','old','old',0,'singleDevice',0,'',0,'');`);
+async function fixture() {
+  const db = await testDatabase();
+  await testUser(db, 'alice');
+  await db.exec(`INSERT INTO wg_account VALUES('alice',0,'');
+    INSERT INTO session(id,"userId",token,"expiresAt","createdAt","updatedAt")
+      VALUES('old-session','alice','synthetic-old-token',now()+interval '1 day',now(),now());
+    INSERT INTO passkey(id,"userId",name,"publicKey","credentialID",counter,"deviceType","backedUp",transports,"createdAt",aaguid)
+      VALUES('old-key','alice','old','old','old',0,'singleDevice',false,'',to_timestamp(0),'');`);
   return { db, store: new RecoveryStore(db) };
 }
-test("recovery codes are random, hashed at rest and single use", () => {
-  const { db, store } = fixture();
+
+test("recovery codes are random, hashed at rest and single use", async () => {
+  const { db, store } = (await fixture());
   try {
-    const codes = store.rotate("alice");
+    const codes = (await store.rotate("alice"));
     assert.equal(codes.length, 10);
     assert.equal(new Set(codes).size, 10);
     assert.ok(codes.every((code) => code.length >= 26));
     const dump = JSON.stringify(
-      db.prepare("SELECT * FROM wg_recovery_codes").all(),
+      (await db.prepare("SELECT * FROM wg_recovery_codes").all()),
     );
     assert.ok(codes.every((code) => !dump.includes(code)));
-    assert.ok(store.start("alice", codes[0]));
-    assert.equal(store.start("alice", codes[0]), null);
-    assert.equal(store.start("alice", "invalid-code"), null);
+    assert.ok((await store.start("alice", codes[0])));
+    assert.equal((await store.start("alice", codes[0])), null);
+    assert.equal((await store.start("alice", "invalid-code")), null);
   } finally {
-    db.close();
+    (await db.close());
   }
 });
-test("recovery completion revokes old keys, sessions and competing tickets atomically", () => {
-  const { db, store } = fixture();
+test("recovery completion revokes old keys, sessions and competing tickets atomically", async () => {
+  const { db, store } = (await fixture());
   try {
-    const codes = store.rotate("alice");
-    const first = store.start("alice", codes[0])!;
-    const other = store.start("alice", codes[1])!;
+    const codes = (await store.rotate("alice"));
+    const first = (await store.start("alice", codes[0]))!;
+    const other = (await store.start("alice", codes[1]))!;
     const credential = {
       id: "new-credential",
       publicKey: "public-key",
@@ -42,43 +45,43 @@ test("recovery completion revokes old keys, sessions and competing tickets atomi
       backedUp: false,
       transports: [] as string[],
     };
-    const next = store.complete(first, credential);
+    const next = (await store.complete(first, credential));
     assert.equal(next.length, 10);
     assert.deepEqual(
-      db
-        .prepare("SELECT credentialID FROM passkey")
-        .all()
+      (await db
+        .prepare("SELECT \"credentialID\" FROM passkey")
+        .all())
         .map((row) => row.credentialID),
       ["new-credential"],
     );
-    assert.equal(db.prepare("SELECT count(*) AS n FROM session").get()?.n, 0);
-    assert.equal(store.inspect(other), null);
-    assert.throws(() =>
-      store.complete(other, { ...credential, id: "competing" }),
-    );
-    assert.equal(store.start("alice", codes[2]), null);
-    assert.ok(store.start("alice", next[0]));
+    assert.equal((await db.prepare("SELECT count(*) AS n FROM session").get())?.n, 0);
+    assert.equal((await store.inspect(other)), null);
+    (await assert.rejects(async () =>
+      (await store.complete(other, { ...credential, id: "competing" })),
+    ));
+    assert.equal((await store.start("alice", codes[2])), null);
+    assert.ok((await store.start("alice", next[0])));
   } finally {
-    db.close();
+    (await db.close());
   }
 });
-test("expired or invalidated recovery tickets cannot enroll a credential", () => {
-  const { db, store } = fixture();
+test("expired or invalidated recovery tickets cannot enroll a credential", async () => {
+  const { db, store } = (await fixture());
   try {
     let now = 1000;
     const timed = new RecoveryStore(db, () => now);
-    const codes = timed.rotate("alice");
-    const token = timed.start("alice", codes[0])!;
+    const codes = (await timed.rotate("alice"));
+    const token = (await timed.start("alice", codes[0]))!;
     assert.ok(token);
     now += 600_001;
-    assert.equal(timed.inspect(token), null);
+    assert.equal((await timed.inspect(token)), null);
     now = 1000;
-    const active = timed.start("alice", codes[1])!;
+    const active = (await timed.start("alice", codes[1]))!;
     assert.ok(active);
-    timed.rotate("alice");
-    assert.equal(timed.inspect(active), null);
-    assert.equal(db.prepare("SELECT count(*) AS n FROM passkey").get()?.n, 1);
+    (await timed.rotate("alice"));
+    assert.equal((await timed.inspect(active)), null);
+    assert.equal((await db.prepare("SELECT count(*) AS n FROM passkey").get())?.n, 1);
   } finally {
-    db.close();
+    (await db.close());
   }
 });

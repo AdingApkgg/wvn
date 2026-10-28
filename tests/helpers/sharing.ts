@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { DatabaseSync } from "node:sqlite";
+import { testDatabase, testUser } from "./accounts.ts";
 import { mkdtempSync, rmSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -21,12 +21,11 @@ export async function sharingFixture(persistent = false) {
   const root = mkdtempSync(
       join(persistent ? join(process.cwd(), "state") : tmpdir(), "wg-shares-"),
     ),
-    db = new DatabaseSync(
+    db = await testDatabase(
       persistent ? join(root, "accounts.sqlite") : ":memory:",
     );
-  db.exec(
-    "CREATE TABLE user(id TEXT PRIMARY KEY,name TEXT); INSERT INTO user VALUES ('alice','Alice'),('bob','Bob');",
-  );
+  await testUser(db, 'alice', 'Alice');
+  await testUser(db, 'bob', 'Bob');
   const saves = new SaveStore(db, root, () => 1024 ** 4);
   let catalog = [
     {
@@ -52,7 +51,8 @@ export async function sharingFixture(persistent = false) {
   await policy.refresh(true);
   const ledger = new modules[2].ShareLedger(join(root, "revoked.jsonl"));
   const shares = new modules[0].ShareStore(db, saves, policy, ledger);
-  const p = saves.createProfile("alice", "version-a");
+  await shares.replay();
+  const p = (await saves.createProfile("alice", "version-a"));
   const content = "first chapter",
     files = [
       {
@@ -105,8 +105,8 @@ export async function sharingFixture(persistent = false) {
       catalog = [];
       await policy.refresh(true);
     },
-    close() {
-      db.close();
+    async close() {
+      (await db.close());
       rmSync(root, { recursive: true, force: true });
     },
   };

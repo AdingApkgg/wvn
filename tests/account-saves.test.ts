@@ -1,37 +1,37 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DatabaseSync } from "node:sqlite";
+import { testDatabase } from "./helpers/accounts.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { SaveStore } from "../src/accounts/saves.server.ts";
 const hash = (s: string) => createHash("sha256").update(s).digest("hex");
-function fixture() {
+async function fixture() {
   const root = mkdtempSync(join(tmpdir(), "wg-cloud-")),
-    db = new DatabaseSync(":memory:");
+    db = await testDatabase();
   return {
     root,
     db,
     store: new SaveStore(db, root, () => 1024 ** 4),
-    close() {
-      db.close();
+    async close() {
+      (await db.close());
       rmSync(root, { recursive: true, force: true });
     },
   };
 }
 const files = [{ name: "save1.dat", bytes: 5, sha256: hash("hello") }];
 test("private snapshot commits are complete, immutable, idempotent and owner scoped", async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    const profile = f.store.createProfile("alice", "version-a");
+    const profile = (await f.store.createProfile("alice", "version-a"));
     const upload = (await f.store.reserve("alice", profile.id, {
       expectedHead: null,
       generation: 1,
       captureId: "capture-a",
       files,
     }));
-    await assert.rejects(() => f.store.commit("alice", upload.id));
+    await assert.rejects(async () => (await f.store.commit("alice", upload.id)));
     await f.store.write(
       "alice",
       upload.id,
@@ -50,18 +50,18 @@ test("private snapshot commits are complete, immutable, idempotent and owner sco
       ).toString(),
       "hello",
     );
-    assert.throws(() => f.store.history("bob", profile.id));
-    await assert.rejects(() =>
-      f.store.read("bob", profile.id, result.revision.id, "save1.dat"),
+    (await assert.rejects(async () => (await f.store.history("bob", profile.id))));
+    await assert.rejects(async () =>
+      (await f.store.read("bob", profile.id, result.revision.id, "save1.dat")),
     );
   } finally {
-    f.close();
+    (await f.close());
   }
 });
 test("parallel saves preserve a conflict and deleted generation cannot resurrect it", async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    const p = f.store.createProfile("alice", "version-a");
+    const p = (await f.store.createProfile("alice", "version-a"));
     const one = (await f.store.reserve("alice", p.id, {
       expectedHead: null,
       generation: 1,
@@ -88,49 +88,49 @@ test("parallel saves preserve a conflict and deleted generation cannot resurrect
     );
     const head = (await f.store.commit("alice", one.id));
     assert.equal((await f.store.commit("alice", two.id)).conflict, true);
-    f.store.remove("alice", p.id, head.revision.id, 1);
-    await assert.rejects(() =>
-      f.store.reserve("alice", p.id, {
+    (await f.store.remove("alice", p.id, head.revision.id, 1));
+    await assert.rejects(async () =>
+      (await f.store.reserve("alice", p.id, {
         expectedHead: head.revision.id,
         generation: 1,
         captureId: "old",
         files,
-      }),
+      })),
     );
   } finally {
-    f.close();
+    (await f.close());
   }
 });
 test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse writes", async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    const p = f.store.createProfile("alice", "version-a");
-    await assert.rejects(() =>
-      f.store.reserve("alice", p.id, {
+    const p = (await f.store.createProfile("alice", "version-a"));
+    await assert.rejects(async () =>
+      (await f.store.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
         captureId: "unsafe",
         files: [{ ...files[0], name: "../secret" }],
-      }),
+      })),
     );
     for (const name of ["\ud800", "save:stream", "save?bad"])
       await assert.rejects(
-        () =>
-          f.store.reserve("alice", p.id, {
+        async () =>
+          (await f.store.reserve("alice", p.id, {
             expectedHead: null,
             generation: 1,
             captureId: "invalid-name",
             files: [{ ...files[0], name }],
-          }),
+          })),
         /MANIFEST_INVALID/,
       );
-    await assert.rejects(() =>
-      f.store.reserve("alice", p.id, {
+    await assert.rejects(async () =>
+      (await f.store.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
         captureId: "large",
         files: [{ ...files[0], bytes: 32 * 1024 ** 2 + 1 }],
-      }),
+      })),
     );
     const upload = (await f.store.reserve("alice", p.id, {
       expectedHead: null,
@@ -138,26 +138,26 @@ test("hash mismatch, unsafe paths, oversized snapshots and low disk refuse write
       captureId: "bad",
       files,
     }));
-    await assert.rejects(() =>
-      f.store.write(
+    await assert.rejects(async () =>
+      (await f.store.write(
         "alice",
         upload.id,
         upload.files[0].id,
         new Blob(["wrong"]).stream(),
-      ),
+      )),
     );
-    await assert.rejects(() => f.store.commit("alice", upload.id));
+    await assert.rejects(async () => (await f.store.commit("alice", upload.id)));
     const low = new SaveStore(f.db, f.root, () => 60 * 1024 ** 3);
-    await assert.rejects(() =>
-      low.reserve("alice", p.id, {
+    await assert.rejects(async () =>
+      (await low.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
         captureId: "low",
         files,
-      }),
+      })),
     );
   } finally {
-    f.close();
+    (await f.close());
   }
 });
 
@@ -169,21 +169,21 @@ function deferred() {
   return { promise, resolve };
 }
 test("interleaved retries cannot replace bytes of an existing historical blob", async () => {
-  const f = fixture();
+  const f = (await fixture());
   const gate = deferred(),
     release = deferred(),
     secondRead = deferred();
   let secondController!: ReadableStreamDefaultController<Uint8Array>;
   let second: Promise<void> | undefined;
   try {
-    const p = f.store.createProfile("alice", "version-a");
-    const reserve = (captureId: string) =>
-      f.store.reserve("alice", p.id, {
+    const p = (await f.store.createProfile("alice", "version-a"));
+    const reserve = async (captureId: string) =>
+      (await f.store.reserve("alice", p.id, {
         expectedHead: null,
         generation: 1,
         captureId,
         files,
-      });
+      }));
     const original = (await reserve("history"));
     await f.store.write(
       "alice",
@@ -249,13 +249,13 @@ test("interleaved retries cannot replace bytes of an existing historical blob", 
       } catch {}
       await second.catch(() => {});
     }
-    f.close();
+    (await f.close());
   }
 });
 test("expired captures renew after GC with quota checks and preserve the original base", async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    const p = f.store.createProfile("alice", "version-a");
+    const p = (await f.store.createProfile("alice", "version-a"));
     const input = {
       expectedHead: null,
       generation: 1,
@@ -263,9 +263,9 @@ test("expired captures renew after GC with quota checks and preserve the origina
       files,
     };
     const offline = (await f.store.reserve("alice", p.id, input));
-    f.db
-      .prepare("UPDATE wg_save_uploads SET expires=0 WHERE id=?")
-      .run(offline.id);
+    (await f.db
+      .prepare("UPDATE wg_save_uploads SET expires=0 WHERE id=$1")
+      .run(offline.id));
     (await f.store.gc());
     const newer = (await f.store.reserve("alice", p.id, {
       ...input,
@@ -277,10 +277,10 @@ test("expired captures renew after GC with quota checks and preserve the origina
       newer.files[0].id,
       new Blob(["hello"]).stream(),
     );
-    f.db
-      .prepare("UPDATE wg_save_uploads SET total=? WHERE id=?")
-      .run(512 * 1024 ** 2, newer.id);
-    await assert.rejects(() => f.store.reserve("alice", p.id, input), /ACCOUNT_QUOTA/);
+    (await f.db
+      .prepare("UPDATE wg_save_uploads SET total=$1 WHERE id=$2")
+      .run(512 * 1024 ** 2, newer.id));
+    await assert.rejects(async () => (await f.store.reserve("alice", p.id, input)), /ACCOUNT_QUOTA/);
     const head = (await f.store.commit("alice", newer.id));
     const resumed = (await f.store.reserve("alice", p.id, input));
     assert.equal(resumed.files.length, 1);
@@ -293,23 +293,23 @@ test("expired captures renew after GC with quota checks and preserve the origina
     const branch = (await f.store.commit("alice", resumed.id));
     assert.equal(branch.conflict, true);
     assert.equal(branch.revision.parent, null);
-    assert.equal(f.store.profiles("alice")[0].head, head.revision.id);
-    f.store.remove("alice", p.id, head.revision.id, 1);
+    assert.equal((await f.store.profiles("alice"))[0].head, head.revision.id);
+    (await f.store.remove("alice", p.id, head.revision.id, 1));
     await assert.rejects(
-      () => f.store.reserve("alice", p.id, input),
+      async () => (await f.store.reserve("alice", p.id, input)),
       /PROFILE_DELETED/,
     );
   } finally {
-    f.close();
+    (await f.close());
   }
 });
 test("two devices finding no profile share a canonical version and preserve both first captures", async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    assert.equal(f.store.profiles("alice", "version-a").length, 0);
-    assert.equal(f.store.profiles("alice", "version-a").length, 0);
-    const one = f.store.createProfile("alice", "version-a");
-    const two = f.store.createProfile("alice", "version-a");
+    assert.equal((await f.store.profiles("alice", "version-a")).length, 0);
+    assert.equal((await f.store.profiles("alice", "version-a")).length, 0);
+    const one = (await f.store.createProfile("alice", "version-a"));
+    const two = (await f.store.createProfile("alice", "version-a"));
     assert.equal(one.id, two.id);
     const a = (await f.store.reserve("alice", one.id, {
       expectedHead: null,
@@ -337,17 +337,17 @@ test("two devices finding no profile share a canonical version and preserve both
     );
     assert.equal((await f.store.commit("alice", a.id)).conflict, false);
     assert.equal((await f.store.commit("alice", b.id)).conflict, true);
-    assert.equal(f.store.history("alice", one.id).length, 2);
-    assert.notEqual(f.store.createProfile("bob", "version-a").id, one.id);
+    assert.equal((await f.store.history("alice", one.id)).length, 2);
+    assert.notEqual((await f.store.createProfile("bob", "version-a")).id, one.id);
   } finally {
-    f.close();
+    (await f.close());
   }
 });
 
 test("stable history pages and account exports retain records beyond 200 including an old head", async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    const p = f.store.createProfile("alice", "version-a");
+    const p = (await f.store.createProfile("alice", "version-a"));
     let head = "";
     for (let n = 0; n < 201; n++) {
       const u = (await f.store.reserve("alice", p.id, {
@@ -366,34 +366,34 @@ test("stable history pages and account exports retain records beyond 200 includi
       const r = (await f.store.commit("alice", u.id));
       if (!n) head = r.revision.id;
     }
-    const first = f.store.historyPage("alice", p.id);
+    const first = (await f.store.historyPage("alice", p.id));
     assert.equal(first.items.length, 200);
     assert.equal(first.current?.id, head);
     assert.ok(first.next);
-    const last = f.store.historyPage("alice", p.id, first.next!);
+    const last = (await f.store.historyPage("alice", p.id, first.next!));
     assert.equal(last.items.length, 1);
     assert.equal(last.next, null);
     assert.equal(
       new Set([...first.items, ...last.items].map((r) => r.id)).size,
       201,
     );
-    assert.equal(f.store.allHistory("alice", p.id).length, 201);
-    assert.throws(() => f.store.historyPage("bob", p.id, first.next!));
+    assert.equal((await f.store.allHistory("alice", p.id)).length, 201);
+    (await assert.rejects(async () => (await f.store.historyPage("bob", p.id, first.next!))));
   } finally {
-    f.close();
+    (await f.close());
   }
 });
 
 test('asynchronous storage checks preserve one reservation and one revision for simultaneous retries', async () => {
-  const f = fixture();
+  const f = (await fixture());
   try {
-    const p = f.store.createProfile('alice', 'version-a');
+    const p = (await f.store.createProfile('alice', 'version-a'));
     const input = { expectedHead: null, generation: 1, captureId: 'same-network-retry', files };
     const [one, two] = await Promise.all([f.store.reserve('alice', p.id, input), f.store.reserve('alice', p.id, input)]);
     assert.equal(one.id, two.id);
     await f.store.write('alice', one.id, one.files[0].id, new Blob(['hello']).stream());
     const [first, second] = await Promise.all([f.store.commit('alice', one.id), f.store.commit('alice', one.id)]);
     assert.equal(first.revision.id, second.revision.id);
-    assert.equal(f.store.history('alice', p.id).length, 1);
-  } finally { f.close(); }
+    assert.equal((await f.store.history('alice', p.id)).length, 1);
+  } finally { (await f.close()); }
 });

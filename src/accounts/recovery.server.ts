@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import type { DatabaseSync } from "node:sqlite";
+import type { PgDatabase } from "../database/postgres.ts";
 export type RecoveredCredential = {
   id: string;
   publicKey: string;
@@ -12,80 +12,68 @@ const digest = (value: string) =>
   createHash("sha256").update(value).digest("hex");
 export class RecoveryStore {
   constructor(
-    private db: DatabaseSync,
+    private db: PgDatabase,
     private now = Date.now,
   ) {
-    db.exec(`CREATE TABLE IF NOT EXISTS wg_recovery_codes(hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,code_group TEXT NOT NULL,used_at INTEGER);
-  CREATE TABLE IF NOT EXISTS wg_recovery_sessions(hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,auth_version INTEGER NOT NULL,code_group TEXT NOT NULL,expires_at INTEGER NOT NULL,challenge TEXT,challenge_expires INTEGER);
-  CREATE INDEX IF NOT EXISTS wg_codes_user ON wg_recovery_codes(user_id);
-  CREATE INDEX IF NOT EXISTS wg_recovery_expiry ON wg_recovery_sessions(expires_at);`);
   }
-  private transaction<T>(fn: () => T): T {
-    this.db.exec("BEGIN IMMEDIATE");
-    try {
-      const result = fn();
-      this.db.exec("COMMIT");
-      return result;
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
+  private async transaction<T>(fn: () => T | Promise<T>): Promise<T> {
+    return (await this.db.transaction(fn, { lock: 'wvn:account-write' }));
   }
-  private generate(userId: string): string[] {
+  private async generate(userId: string): Promise<string[]> {
     const group = randomUUID(),
       codes = Array.from({ length: 10 }, () =>
         randomBytes(20).toString("base64url"),
       );
-    this.db
-      .prepare("DELETE FROM wg_recovery_codes WHERE user_id=?")
-      .run(userId);
-    const change = this.db
+    (await this.db
+      .prepare("DELETE FROM wg_recovery_codes WHERE user_id=$1")
+      .run(userId));
+    const change = (await this.db
       .prepare(
-        "UPDATE wg_account SET auth_version=auth_version+1,code_group=? WHERE user_id=?",
+        "UPDATE wg_account SET auth_version=auth_version+1,code_group=$1 WHERE user_id=$2",
       )
-      .run(group, userId);
+      .run(group, userId));
     if (!change.changes) throw new Error("Account not found");
     for (const code of codes)
-      this.db
-        .prepare("INSERT INTO wg_recovery_codes VALUES (?,?,?,NULL)")
-        .run(digest(userId + ":" + code), userId, group);
+      (await this.db
+        .prepare("INSERT INTO wg_recovery_codes VALUES ($1,$2,$3,NULL)")
+        .run(digest(userId + ":" + code), userId, group));
     return codes;
   }
-  rotate(userId: string): string[] {
-    return this.transaction(() => {
-      const codes = this.generate(userId);
-      this.db
-        .prepare("DELETE FROM wg_recovery_sessions WHERE user_id=?")
-        .run(userId);
+  async rotate(userId: string): Promise<string[]> {
+    return (await this.transaction(async () => {
+      const codes = (await this.generate(userId));
+      (await this.db
+        .prepare("DELETE FROM wg_recovery_sessions WHERE user_id=$1")
+        .run(userId));
       return codes;
-    });
+    }));
   }
-  start(userId: string, code: string): string | null {
-    return this.transaction(() => {
-      this.db
-        .prepare("DELETE FROM wg_recovery_sessions WHERE expires_at<?")
-        .run(this.now());
-      const state = this.db
+  async start(userId: string, code: string): Promise<string | null> {
+    return (await this.transaction(async () => {
+      (await this.db
+        .prepare("DELETE FROM wg_recovery_sessions WHERE expires_at<$1")
+        .run(this.now()));
+      const state = (await this.db
         .prepare(
-          "SELECT auth_version,code_group FROM wg_account WHERE user_id=?",
+          "SELECT auth_version,code_group FROM wg_account WHERE user_id=$1",
         )
-        .get(userId);
+        .get(userId));
       if (!state) return null;
-      const used = this.db
+      const used = (await this.db
         .prepare(
-          "UPDATE wg_recovery_codes SET used_at=? WHERE hash=? AND user_id=? AND code_group=? AND used_at IS NULL",
+          "UPDATE wg_recovery_codes SET used_at=$1 WHERE hash=$2 AND user_id=$3 AND code_group=$4 AND used_at IS NULL",
         )
         .run(
           this.now(),
           digest(userId + ":" + code),
           userId,
           String(state.code_group),
-        );
+        ));
       if (!used.changes) return null;
       const token = randomBytes(32).toString("base64url");
-      this.db
+      (await this.db
         .prepare(
-          "INSERT INTO wg_recovery_sessions(hash,user_id,auth_version,code_group,expires_at) VALUES (?,?,?,?,?)",
+          "INSERT INTO wg_recovery_sessions(hash,user_id,auth_version,code_group,expires_at) VALUES ($1,$2,$3,$4,$5)",
         )
         .run(
           digest(token),
@@ -93,18 +81,18 @@ export class RecoveryStore {
           Number(state.auth_version),
           String(state.code_group),
           this.now() + 600_000,
-        );
+        ));
       return token;
-    });
+    }));
   }
-  inspect(
+  async inspect(
     token: string,
-  ): { userId: string; version: number; challenge: string | null } | null {
-    const row = this.db
+  ): Promise<{ userId: string; version: number; challenge: string | null } | null> {
+    const row = (await this.db
       .prepare(
-        "SELECT s.* FROM wg_recovery_sessions s JOIN wg_account a ON a.user_id=s.user_id AND a.auth_version=s.auth_version AND a.code_group=s.code_group WHERE s.hash=? AND s.expires_at>?",
+        "SELECT s.* FROM wg_recovery_sessions s JOIN wg_account a ON a.user_id=s.user_id AND a.auth_version=s.auth_version AND a.code_group=s.code_group WHERE s.hash=$1 AND s.expires_at>$2",
       )
-      .get(digest(token), this.now());
+      .get(digest(token), this.now()));
     return row
       ? {
           userId: String(row.user_id),
@@ -116,30 +104,36 @@ export class RecoveryStore {
         }
       : null;
   }
-  setChallenge(token: string, challenge: string) {
-    if (!this.inspect(token)) throw new Error("Recovery expired");
-    this.db
-      .prepare(
-        "UPDATE wg_recovery_sessions SET challenge=?,challenge_expires=? WHERE hash=?",
-      )
-      .run(challenge, this.now() + 300_000, digest(token));
+  async setChallenge(token: string, challenge: string) {
+    return (await this.db.transaction(async () => (await this.setChallengeLocked(token, challenge)), { lock: 'wvn:account-write' }));
   }
-  takeChallenge(token: string) {
-    const state = this.inspect(token);
+  async takeChallenge(token: string) {
+    return (await this.db.transaction(async () => (await this.takeChallengeLocked(token)), { lock: 'wvn:account-write' }));
+  }
+  private async setChallengeLocked(token: string, challenge: string) {
+    if (!(await this.inspect(token))) throw new Error("Recovery expired");
+    (await this.db
+      .prepare(
+        "UPDATE wg_recovery_sessions SET challenge=$1,challenge_expires=$2 WHERE hash=$3",
+      )
+      .run(challenge, this.now() + 300_000, digest(token)));
+  }
+  private async takeChallengeLocked(token: string) {
+    const state = (await this.inspect(token));
     if (!state?.challenge) throw new Error("Recovery challenge expired");
-    this.db
-      .prepare("UPDATE wg_recovery_sessions SET challenge=NULL WHERE hash=?")
-      .run(digest(token));
+    (await this.db
+      .prepare("UPDATE wg_recovery_sessions SET challenge=NULL WHERE hash=$1")
+      .run(digest(token)));
     return state;
   }
-  complete(token: string, credential: RecoveredCredential): string[] {
-    return this.transaction(() => {
-      const state = this.inspect(token);
+  async complete(token: string, credential: RecoveredCredential): Promise<string[]> {
+    return (await this.transaction(async () => {
+      const state = (await this.inspect(token));
       if (!state) throw new Error("Recovery expired");
-      this.db.prepare("DELETE FROM passkey WHERE userId=?").run(state.userId);
-      this.db
+      (await this.db.prepare("DELETE FROM passkey WHERE \"userId\"=$1").run(state.userId));
+      (await this.db
         .prepare(
-          "INSERT INTO passkey (id,userId,name,publicKey,credentialID,counter,deviceType,backedUp,transports,createdAt,aaguid) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+          "INSERT INTO passkey (id,\"userId\",name,\"publicKey\",\"credentialID\",counter,\"deviceType\",\"backedUp\",transports,\"createdAt\",aaguid) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
         )
         .run(
           randomUUID(),
@@ -149,17 +143,17 @@ export class RecoveryStore {
           credential.id,
           credential.counter,
           credential.deviceType,
-          credential.backedUp ? 1 : 0,
+          credential.backedUp,
           credential.transports.join(","),
-          this.now(),
+          new Date(this.now()),
           "",
-        );
-      this.db.prepare("DELETE FROM session WHERE userId=?").run(state.userId);
-      const codes = this.generate(state.userId);
-      this.db
-        .prepare("DELETE FROM wg_recovery_sessions WHERE user_id=?")
-        .run(state.userId);
+        ));
+      (await this.db.prepare("DELETE FROM session WHERE \"userId\"=$1").run(state.userId));
+      const codes = (await this.generate(state.userId));
+      (await this.db
+        .prepare("DELETE FROM wg_recovery_sessions WHERE user_id=$1")
+        .run(state.userId));
       return codes;
-    });
+    }));
   }
 }

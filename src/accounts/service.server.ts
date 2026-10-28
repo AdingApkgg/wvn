@@ -1,9 +1,10 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono, type Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import type { PoolClient } from "pg";
+import { PgDatabase } from "../database/postgres.ts";
+import { migrate } from "../database/migrations.ts";
+import { accountMigrations } from "../database/accounts.ts";
 import { getMigrations } from "better-auth/db/migration";
 import { validateAccountConfig, type AccountConfig } from "./config.server.ts";
 import {
@@ -33,7 +34,7 @@ import {createAnalyticsApp} from '../analytics/proxy.server.ts';
 export type Player = { session: PlayerSession; binding: string };
 export type AccountService = {
   app: Hono;
-  db: DatabaseSync;
+  db: PgDatabase;
   auth: ReturnType<typeof makeAuth>;
   config: AccountConfig;
   player: (c: Context, recent?: boolean) => Promise<Player>;
@@ -45,24 +46,23 @@ export type AccountService = {
   claims: ShareClaims | null;
   deletions: DeletionLedger;
   withLock: <T>(fn: () => T | Promise<T>) => Promise<T>;
-  close: () => void;
+  close: () => Promise<void>;
 };
 export async function createAccountService(
   input: AccountConfig,
 ): Promise<AccountService> {
   const config = validateAccountConfig(input);
   const analytics=config.analytics?createAnalyticsApp({...config.analytics,origin:config.origin}):null;
-  if (config.database !== ":memory:")
-    mkdirSync(dirname(config.database), { recursive: true });
-  const db = new DatabaseSync(config.database);
-  db.exec(
-    "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;",
-  );
-  db.exec(
-    "CREATE TABLE IF NOT EXISTS wg_account(user_id TEXT PRIMARY KEY,auth_version INTEGER NOT NULL,code_group TEXT NOT NULL)",
-  );
+  const db = new PgDatabase(config.database, { schema: config.databaseSchema });
+  let gc: ReturnType<typeof setInterval> | null = null;
+  try {
+  const deletions = new DeletionLedger(config.deletionLedger);
+  const auth = makeAuth(db, config, (id) => deletions.entries.has(id));
+  await (await getMigrations(auth.options)).runMigrations();
+  await migrate(db, accountMigrations);
   const recovery = new RecoveryStore(db);
-  const library = new LibraryStore(db, config.catalog ?? []);
+  const dynamicCatalog = config.catalogProvider ?? (config.catalogOrigin ? catalogProvider(config.catalogOrigin) : undefined);
+  const library = new LibraryStore(db, config.catalog ?? [], undefined, dynamicCatalog);
   const saves = config.blobRoot ? new SaveStore(db, config.blobRoot, undefined, config.blobBackend) : null;
   const sharing =
     config.shareLedger && saves
@@ -70,23 +70,17 @@ export async function createAccountService(
           db,
           saves,
           new CatalogPolicy(
-            config.catalogProvider ??
-              catalogProvider(config.catalogOrigin ?? ""),
+            dynamicCatalog ?? (async () => config.catalog ?? []),
           ),
           new ShareLedger(config.shareLedger),
         )
       : null;
   const claims = sharing ? new ShareClaims(sharing) : null;
-  const deletions = new DeletionLedger(config.deletionLedger);
-  const auth = makeAuth(db, config, (id) => deletions.entries.has(id));
-  await (await getMigrations(auth.options)).runMigrations();
   const workStats = new WorkStatsStore(db,config.catalog??[]);
-  db.exec(
-    "CREATE TABLE IF NOT EXISTS wg_deleted_accounts(user_id TEXT PRIMARY KEY,deleted_at INTEGER NOT NULL)",
-  );
-  deletions.replay(db, saves);
+  if (sharing) await sharing.replay();
+  await deletions.replay(db, saves);
   const app = new Hono();
-  // One DatabaseSync connection: serialize API transactions across awaited library hooks.
+  // 写操作在各进程先排队，再取得数据库会话锁；读取可并行，跨进程也保护通行密钥等组合操作。
   let tail = Promise.resolve();
   async function withLock<T>(fn: () => T | Promise<T>): Promise<T> {
     const previous = tail;
@@ -95,19 +89,27 @@ export async function createAccountService(
       release = resolve;
     });
     await previous;
+    let client: PoolClient | undefined;
+    let locked = false;
     try {
+      client = await db.pool.connect();
+      await client.query('SELECT pg_advisory_lock(hashtextextended($1,0))', ['wvn:account-api:' + (config.databaseSchema ?? 'public')]);
+      locked = true;
       return await fn();
     } finally {
-      release();
+      try {
+        if (locked && client) await client.query('SELECT pg_advisory_unlock(hashtextextended($1,0))', ['wvn:account-api:' + (config.databaseSchema ?? 'public')]);
+      } finally { client?.release(); release(); }
     }
   }
-  app.use("/api/*", (c, next) =>
+  app.use("/api/*", async (c, next) =>
+    ["GET", "HEAD", "OPTIONS"].includes(c.req.method) ||
     (c.req.method === "PUT" &&
       /^\/api\/me\/uploads\/[^/]+\/files\/[^/]+$/.test(c.req.path)) ||
     (c.req.method === "POST" &&
       ["/api/me/share-claims", "/api/me/share-downloads"].includes(c.req.path))
       ? next()
-      : withLock(next),
+      : (await withLock(next)),
   );
   app.use("*", async (c, next) => {
     if (
@@ -211,10 +213,10 @@ export async function createAccountService(
         Date.now() - new Date(session.session.createdAt).getTime() >
           ABSOLUTE_MS)
     ) {
-      db.prepare("DELETE FROM session WHERE id=? AND userId=?").run(
+      (await db.prepare("DELETE FROM session WHERE id=$1 AND \"userId\"=$2").run(
         session.session.id,
         session.user.id,
-      );
+      ));
       return { ...result, response: null };
     }
     return result;
@@ -225,9 +227,9 @@ export async function createAccountService(
     if (!session) throw new AccountError(401, "SIGN_IN_REQUIRED");
     for (const cookie of result.headers.getSetCookie())
       c.header("Set-Cookie", cookie, { append: true });
-    const state = db
-      .prepare("SELECT auth_version FROM wg_account WHERE user_id=?")
-      .get(session.user.id);
+    const state = (await db
+      .prepare("SELECT auth_version FROM wg_account WHERE user_id=$1")
+      .get(session.user.id));
     if (!state) throw new AccountError(401, "SIGN_IN_REQUIRED");
     const binding = `${session.session.id}:${state.auth_version}`;
     if (c.req.method !== "GET" && c.req.header("x-wg-binding") !== binding)
@@ -252,29 +254,31 @@ export async function createAccountService(
   );
   app.get("/api/me", async (c) => {
     const { session, binding } = await player(c);
-    const keys = db
+    const keys = (await db
       .prepare(
-        "SELECT id,name,createdAt,deviceType,backedUp FROM passkey WHERE userId=? ORDER BY createdAt",
+        "SELECT id,name,\"createdAt\",\"deviceType\",\"backedUp\" FROM passkey WHERE \"userId\"=$1 ORDER BY \"createdAt\"",
       )
-      .all(session.user.id);
-    const devices = db
+      .all(session.user.id));
+    const devices = (await db
       .prepare(
-        "SELECT id,userAgent,createdAt,expiresAt FROM session WHERE userId=? AND expiresAt>? AND createdAt>? ORDER BY createdAt DESC LIMIT 50",
+        "SELECT id,\"userAgent\",\"createdAt\",\"expiresAt\" FROM session WHERE \"userId\"=$1 AND \"expiresAt\">$2 AND \"createdAt\">$3 ORDER BY \"createdAt\" DESC LIMIT 50",
       )
-      .all(session.user.id, Date.now(), Date.now() - ABSOLUTE_MS);
+      .all(session.user.id, new Date(), new Date(Date.now() - ABSOLUTE_MS)));
     return c.json({
       user: { id: session.user.id, name: session.user.name },
       binding,
-      passkeys: keys,
+      passkeys: keys.map(key => ({ ...key, createdAt: new Date(key.createdAt).getTime(), backedUp: Number(key.backedUp) })),
       devices: devices.map((d) => ({
         ...d,
+        createdAt: new Date(d.createdAt).getTime(),
+        expiresAt: new Date(d.expiresAt).getTime(),
         current: d.id === session.session.id,
       })),
-      recoveryReady: !!db
+      recoveryReady: !!(await db
         .prepare(
-          "SELECT 1 FROM wg_recovery_codes WHERE user_id=? AND used_at IS NULL LIMIT 1",
+          "SELECT 1 FROM wg_recovery_codes WHERE user_id=$1 AND used_at IS NULL LIMIT 1",
         )
-        .get(session.user.id),
+        .get(session.user.id)),
     });
   });
   const allowed = new Set([
@@ -300,15 +304,15 @@ export async function createAccountService(
           throw new AccountError(403, "REAUTH_REQUIRED");
         if (
           c.req.header("x-wg-binding") !==
-          `${current.session.id}:${db.prepare("SELECT auth_version FROM wg_account WHERE user_id=?").get(current.user.id)?.auth_version}`
+          `${current.session.id}:${(await db.prepare("SELECT auth_version FROM wg_account WHERE user_id=$1").get(current.user.id))?.auth_version}`
         )
           throw new AccountError(409, "IDENTITY_CHANGED");
         context = {
           intent: "add",
           sessionId: current.session.id,
-          version: db
-            .prepare("SELECT auth_version FROM wg_account WHERE user_id=?")
-            .get(current.user.id)?.auth_version,
+          version: (await db
+            .prepare("SELECT auth_version FROM wg_account WHERE user_id=$1")
+            .get(current.user.id))?.auth_version,
         };
       } else {
         const raw = JSON.parse(url.searchParams.get("context") ?? "{}");
@@ -345,47 +349,43 @@ export async function createAccountService(
   app.post("/api/me/passkeys/:id/delete", async (c) => {
     const { session } = await player(c, true);
     const id = c.req.param("id");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      const owned = db
-        .prepare("SELECT id FROM passkey WHERE userId=? AND id=?")
-        .get(session.user.id, id);
+    await db.transaction(async () => {
+      const owned = (await db
+        .prepare("SELECT id FROM passkey WHERE \"userId\"=$1 AND id=$2")
+        .get(session.user.id, id));
       if (!owned) throw new AccountError(404, "NOT_FOUND");
       if (
         Number(
-          db
-            .prepare("SELECT count(*) AS n FROM passkey WHERE userId=?")
-            .get(session.user.id)?.n,
+          (await db
+            .prepare("SELECT count(*) AS n FROM passkey WHERE \"userId\"=$1")
+            .get(session.user.id))?.n,
         ) <= 1
       )
         throw new AccountError(409, "LAST_PASSKEY");
-      db.prepare("DELETE FROM passkey WHERE userId=? AND id=?").run(
+      (await db.prepare("DELETE FROM passkey WHERE \"userId\"=$1 AND id=$2").run(
         session.user.id,
         id,
-      );
-      db.prepare(
-        "UPDATE wg_account SET auth_version=auth_version+1 WHERE user_id=?",
-      ).run(session.user.id);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+      ));
+      (await db.prepare(
+        "UPDATE wg_account SET auth_version=auth_version+1 WHERE user_id=$1",
+      ).run(session.user.id));
+
+    }, { lock: 'wvn:account-write' });
     return c.json({ ok: true });
   });
   app.post("/api/me/devices/:id/revoke", async (c) => {
     const { session } = await player(c, true);
-    db.prepare("DELETE FROM session WHERE userId=? AND id=?").run(
+    (await db.prepare("DELETE FROM session WHERE \"userId\"=$1 AND id=$2").run(
       session.user.id,
       c.req.param("id"),
-    );
+    ));
     return c.json({ ok: true });
   });
-  const gc = saves
+  gc = saves
     ? setInterval(() => {
         void withLock(async () => {
-          sharing?.gc();
-          claims?.gc();
+          await sharing?.gc();
+          await claims?.gc();
           await saves.gc();
         }).catch(() => {});
       }, 6 * 3600_000)
@@ -405,17 +405,22 @@ export async function createAccountService(
     claims,
     deletions,
     withLock,
-    close() {
+    async close() {
       if (gc) clearInterval(gc);
-      db.close();
+      (await db.close());
     },
   };
-  mountRecovery(service);
+  (await mountRecovery(service));
   mountLibrary(service);
   mountWorkStats(service);
-  mountSettings(service);
+  (await mountSettings(service));
   mountSaves(service);
   mountShares(service);
   if(analytics)app.route('/_s',analytics);
   return service;
+  } catch (error) {
+    if (gc) clearInterval(gc);
+    await db.close();
+    throw error;
+  }
 }

@@ -23,26 +23,26 @@ export function mountSaves({
   if (!saves) return;
   app.get("/api/me/save-profiles", async (c) => {
     const { session } = await player(c);
-    return c.json(saves.profiles(session.user.id, c.req.query("versionId"), c.req.query("engineReleaseId")));
+    return c.json((await saves.profiles(session.user.id, c.req.query("versionId"), c.req.query("engineReleaseId"))));
   });
   app.post("/api/me/save-profiles", async (c) => {
     const { session } = await player(c);
     const { versionId, engineReleaseId } = await c.req.json();
     if(engineReleaseId !== undefined && !config.engineCloud?.some(b=>b.versionId===versionId && b.releaseId===engineReleaseId)) throw new AccountError(400,"ENGINE_NOT_COMPATIBLE");
     if (
-      !library.catalog.some((w) => w.versions.some((v) => v.id === versionId))
+      !(await library.currentCatalog()).some((w) => w.versions.some((v) => v.id === versionId))
     )
       throw new AccountError(404, "VERSION_NOT_FOUND");
-    return c.json(saves.createProfile(session.user.id, versionId,engineReleaseId), 201);
+    return c.json((await saves.createProfile(session.user.id, versionId,engineReleaseId)), 201);
   });
   app.get("/api/me/save-profiles/:id/revisions", async (c) => {
     const { session } = await player(c);
     return c.json(
-      saves.historyPage(
+      (await saves.historyPage(
         session.user.id,
         c.req.param("id"),
         c.req.query("cursor"),
-      ),
+      )),
     );
   });
   app.post("/api/me/save-profiles/:id/uploads", async (c) => {
@@ -52,20 +52,20 @@ export function mountSaves({
     );
   });
   app.put("/api/me/uploads/:id/files/:file", async (c) => {
-    const { session } = await withLock(() => player(c));
+    const { session } = await withLock(async () => (await player(c)));
     if (!c.req.raw.body) throw new AccountError();
     await saves.write(
       session.user.id,
       c.req.param("id"),
       c.req.param("file"),
       c.req.raw.body,
-      (fn) =>
-        withLock(async () => {
+      async (fn) =>
+        (await withLock(async () => {
           const current = await player(c);
           if (current.session.user.id !== session.user.id)
             throw new AccountError(409, "IDENTITY_CHANGED");
           return fn();
-        }),
+        })),
     );
     return c.json({ ok: true });
   });
@@ -109,12 +109,12 @@ export function mountSaves({
   app.delete("/api/me/save-profiles/:id", async (c) => {
     const { session } = await player(c);
     const body = await c.req.json();
-    saves.remove(
+    (await saves.remove(
       session.user.id,
       c.req.param("id"),
       body.expectedHead,
       body.generation,
-    );
+    ));
     return c.json({ ok: true });
   });
 }

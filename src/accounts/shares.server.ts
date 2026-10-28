@@ -4,7 +4,7 @@ import {
   randomUUID,
   timingSafeEqual,
 } from "node:crypto";
-import type { DatabaseSync, SQLOutputValue } from "node:sqlite";
+import type { PgDatabase, PgRow } from "../database/postgres.ts";
 import { AccountError } from "./errors.server.ts";
 import type { SaveFile, SaveStore } from "./saves.server.ts";
 import type { CatalogPolicy } from "./catalog-policy.server.ts";
@@ -18,55 +18,25 @@ import type {
   ModerationShare,
 } from "./share-types.ts";
 import { isShareProgress } from "./share-metadata.ts";
-type Row = Record<string, SQLOutputValue>;
+type Row = PgRow;
 const sha = (v: string) => createHash("sha256").update(v).digest("hex");
 export class ShareStore {
   constructor(
-    readonly db: DatabaseSync,
+    readonly db: PgDatabase,
     readonly saves: SaveStore,
     readonly catalog: CatalogPolicy,
     readonly ledger: ShareLedger,
   ) {
-    db.exec(`CREATE TABLE IF NOT EXISTS wg_save_shares(id TEXT PRIMARY KEY,owner TEXT NOT NULL,profile TEXT NOT NULL,generation INTEGER NOT NULL,revision TEXT NOT NULL,version TEXT NOT NULL,work TEXT NOT NULL,mode TEXT NOT NULL,secret_hash TEXT,state TEXT NOT NULL,expires INTEGER,files TEXT NOT NULL,approved TEXT,pending TEXT,metadata_revision INTEGER NOT NULL,created INTEGER NOT NULL,request_id TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(owner,request_id));
-  CREATE INDEX IF NOT EXISTS wg_shares_work ON wg_save_shares(work,created,id);
-  CREATE TABLE IF NOT EXISTS wg_share_rates(key TEXT PRIMARY KEY,expires INTEGER NOT NULL,n INTEGER NOT NULL);
-  CREATE TABLE IF NOT EXISTS wg_share_download_leases(id TEXT PRIMARY KEY,owner TEXT NOT NULL,expires INTEGER NOT NULL);
-  CREATE TABLE IF NOT EXISTS wg_share_audit(id INTEGER PRIMARY KEY,share TEXT NOT NULL,action TEXT NOT NULL,reason TEXT NOT NULL,created INTEGER NOT NULL);
-  CREATE TABLE IF NOT EXISTS wg_save_share_reports(id TEXT PRIMARY KEY,reporter TEXT NOT NULL,share TEXT NOT NULL,reason TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'open',created INTEGER NOT NULL);
-  CREATE UNIQUE INDEX IF NOT EXISTS wg_report_open ON wg_save_share_reports(reporter,share) WHERE status='open';`);
-    const columns = new Set(
-      db
-        .prepare("PRAGMA table_info(wg_save_shares)")
-        .all()
-        .map((c) => String(c.name)),
-    );
-    if (!columns.has("published_meta"))
-      db.exec("ALTER TABLE wg_save_shares ADD COLUMN published_meta TEXT");
-    if (!columns.has("source_share"))
-      db.exec("ALTER TABLE wg_save_shares ADD COLUMN source_share TEXT");
-    db.exec(
-      "CREATE TABLE IF NOT EXISTS wg_share_publish_keys(owner TEXT NOT NULL,request TEXT NOT NULL,payload TEXT NOT NULL,share TEXT NOT NULL,PRIMARY KEY(owner,request)); CREATE INDEX IF NOT EXISTS wg_share_snapshot_mode ON wg_save_shares(owner,revision,mode,created,id)",
-    );
-    saves.onRemove = (owner, profile) => {
-      this.revokeSource(owner, profile);
+    saves.onRemove = async (owner, profile) => {
+      (await this.revokeSource(owner, profile));
       if (!profile)
-        this.db
-          .prepare("DELETE FROM wg_share_publish_keys WHERE owner=?")
-          .run(owner);
+        (await this.db
+          .prepare("DELETE FROM wg_share_publish_keys WHERE owner=$1")
+          .run(owner));
     };
-    this.replay();
   }
-  atomic<T>(fn: () => T): T {
-    if (this.db.isTransaction) return fn();
-    this.db.exec("BEGIN IMMEDIATE");
-    try {
-      const result = fn();
-      this.db.exec("COMMIT");
-      return result;
-    } catch (e) {
-      this.db.exec("ROLLBACK");
-      throw e;
-    }
+  async atomic<T>(fn: () => T | Promise<T>): Promise<T> {
+    return (await this.db.transaction(fn, { lock: 'wvn:account-write' }));
   }
   text(input: ShareText): ShareText {
     if (
@@ -90,35 +60,35 @@ export class ShareStore {
       spoiler: input.spoiler,
     };
   }
-  limit(key: string, max: number, ms = 3600_000) {
+  async limit(key: string, max: number, ms = 3600_000) {
     const k = sha(key),
       now = Date.now();
-    this.db.prepare("DELETE FROM wg_share_rates WHERE expires<?").run(now);
-    this.db
+    (await this.db.prepare("DELETE FROM wg_share_rates WHERE expires<$1").run(now));
+    (await this.db
       .prepare(
-        "INSERT INTO wg_share_rates VALUES (?,?,1) ON CONFLICT(key) DO UPDATE SET n=CASE WHEN expires<=? THEN 1 ELSE n+1 END,expires=CASE WHEN expires<=? THEN excluded.expires ELSE expires END",
+        "INSERT INTO wg_share_rates VALUES ($1,$2,1) ON CONFLICT(key) DO UPDATE SET n=CASE WHEN wg_share_rates.expires<=$3 THEN 1 ELSE wg_share_rates.n+1 END,expires=CASE WHEN wg_share_rates.expires<=$4 THEN excluded.expires ELSE wg_share_rates.expires END",
       )
-      .run(k, now + ms, now, now);
+      .run(k, now + ms, now, now));
     if (
       Number(
-        this.db.prepare("SELECT n FROM wg_share_rates WHERE key=?").get(k)?.n,
+        (await this.db.prepare("SELECT n FROM wg_share_rates WHERE key=$1").get(k))?.n,
       ) > max
     )
       throw new AccountError(429, "TRY_LATER");
   }
-  row(id: string) {
-    const row = this.db
-      .prepare("SELECT * FROM wg_save_shares WHERE id=?")
-      .get(id);
+  async row(id: string) {
+    const row = (await this.db
+      .prepare("SELECT * FROM wg_save_shares WHERE id=$1")
+      .get(id));
     if (!row) throw new AccountError(404, "SHARE_UNAVAILABLE");
     return row;
   }
-  live(row: Row) {
-    const source = this.db
+  async live(row: Row) {
+    const source = (await this.db
       .prepare(
-        "SELECT generation,deleted FROM wg_save_profiles WHERE owner=? AND id=?",
+        "SELECT generation,deleted FROM wg_save_profiles WHERE owner=$1 AND id=$2",
       )
-      .get(row.owner, row.profile);
+      .get(row.owner, row.profile));
     if (!source || source.deleted || source.generation !== row.generation)
       throw new AccountError(404, "SHARE_UNAVAILABLE");
     if (
@@ -129,9 +99,9 @@ export class ShareStore {
       throw new AccountError(404, "SHARE_UNAVAILABLE");
     this.catalog.require(String(row.version));
   }
-  authorize(id: string, secret?: string) {
-    const row = this.row(id);
-    this.live(row);
+  async authorize(id: string, secret?: string) {
+    const row = (await this.row(id));
+    (await this.live(row));
     if (row.state !== "active")
       throw new AccountError(404, "SHARE_UNAVAILABLE");
     if (row.mode === "link") {
@@ -146,7 +116,7 @@ export class ShareStore {
     }
     return row;
   }
-  private view(row: Row, own = false): ShareView {
+  private async view(row: Row, own = false): Promise<ShareView> {
     const text = JSON.parse(
       String((own && row.pending) || row.approved || row.pending),
     ) as ShareText;
@@ -154,17 +124,17 @@ export class ShareStore {
       ? JSON.parse(String(row.published_meta))
       : this.catalog.require(String(row.version));
     const files = JSON.parse(String(row.files)) as SaveFile[];
-    const claims = this.db
+    const claims = (await this.db
       .prepare(
-        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='wg_save_share_claims'",
+        "SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='wg_save_share_claims'",
       )
-      .get()
+      .get())
       ? Number(
-          this.db
+          (await this.db
             .prepare(
-              "SELECT count(*) AS n FROM wg_save_share_claims WHERE share=? AND status='complete'",
+              "SELECT count(*) AS n FROM wg_save_share_claims WHERE share=$1 AND status='complete'",
             )
-            .get(row.id)?.n,
+            .get(row.id))?.n,
         )
       : 0;
     return {
@@ -173,9 +143,9 @@ export class ShareStore {
       mode: row.mode as "public" | "link",
       ...meta,
       metadataBasis: row.published_meta ? "published" : "legacy-current",
-      publicSource: this.publicSource(row),
+      publicSource: (await this.publicSource(row)),
       author: String(
-        this.db.prepare('SELECT name FROM "user" WHERE id=?').get(row.owner)
+        (await this.db.prepare("SELECT name FROM \"user\" WHERE id=$1").get(row.owner))
           ?.name ?? "已注销玩家",
       ),
       createdAt: Number(row.created),
@@ -187,17 +157,17 @@ export class ShareStore {
       compatibility: "author-declared",
     };
   }
-  inspect(id: string, secret?: string) {
-    return this.view(this.authorize(id, secret));
+  async inspect(id: string, secret?: string) {
+    return (await this.view((await this.authorize(id, secret))));
   }
-  private publicSource(row: Row): ShareView["publicSource"] {
+  private async publicSource(row: Row): Promise<ShareView["publicSource"]> {
     if (!row.source_share) return null;
-    const parent = this.db
-      .prepare("SELECT * FROM wg_save_shares WHERE id=? AND mode='public'")
-      .get(row.source_share);
+    const parent = (await this.db
+      .prepare("SELECT * FROM wg_save_shares WHERE id=$1 AND mode='public'")
+      .get(row.source_share));
     if (!parent) return null;
     try {
-      this.authorize(String(parent.id));
+      (await this.authorize(String(parent.id)));
       const approved = JSON.parse(String(parent.approved)) as ShareText;
       return { id: String(parent.id), title: approved.title };
     } catch {
@@ -219,40 +189,40 @@ export class ShareStore {
       throw new AccountError();
     const payload = sha(JSON.stringify({ ...input, ...text }));
     await this.saves.snapshot(owner, input.profileId, input.revisionId);
-    return this.atomic(() => {
-      const key = this.db
+    return (await this.atomic(async () => {
+      const key = (await this.db
         .prepare(
-          "SELECT * FROM wg_share_publish_keys WHERE owner=? AND request=?",
+          "SELECT * FROM wg_share_publish_keys WHERE owner=$1 AND request=$2",
         )
-        .get(owner, input.requestId);
+        .get(owner, input.requestId));
       const previous = key
-        ? this.row(String(key.share))
-        : this.db
+        ? (await this.row(String(key.share)))
+        : (await this.db
             .prepare(
-              "SELECT * FROM wg_save_shares WHERE owner=? AND request_id=?",
+              "SELECT * FROM wg_save_shares WHERE owner=$1 AND request_id=$2",
             )
-            .get(owner, input.requestId);
+            .get(owner, input.requestId));
       if (previous) {
         if ((key?.payload ?? previous.payload) !== payload)
           throw new AccountError(409, "CAPTURE_CHANGED");
-        this.live(previous);
+        (await this.live(previous));
         return {
           id: String(previous.id),
           state: String(previous.state),
           duplicate: true,
         };
       }
-      const source = this.saves.snapshotMetadata(
+      const source = (await this.saves.snapshotMetadata(
         owner,
         input.profileId,
         input.revisionId,
-      );
+      ));
       if (source.profile.generation !== input.generation)
         throw new AccountError(410, "GENERATION_CHANGED");
       const meta = this.catalog.require(source.profile.versionId);
-      const duplicate = this.db
+      const duplicate = (await this.db
         .prepare(
-          "SELECT * FROM wg_save_shares WHERE owner=? AND profile=? AND generation=? AND revision=? AND mode=? AND state IN ('active','pending') AND (expires IS NULL OR expires>?) ORDER BY created,id",
+          "SELECT * FROM wg_save_shares WHERE owner=$1 AND profile=$2 AND generation=$3 AND revision=$4 AND mode=$5 AND state IN ('active','pending') AND (expires IS NULL OR expires>$6) ORDER BY created,id",
         )
         .all(
           owner,
@@ -261,13 +231,13 @@ export class ShareStore {
           input.revisionId,
           input.mode,
           Date.now(),
-        )
+        ))
         .find((row) => !this.ledger.entries.has(String(row.id)));
       if (duplicate) {
-        this.live(duplicate);
-        this.db
-          .prepare("INSERT INTO wg_share_publish_keys VALUES (?,?,?,?)")
-          .run(owner, input.requestId, payload, duplicate.id);
+        (await this.live(duplicate));
+        (await this.db
+          .prepare("INSERT INTO wg_share_publish_keys VALUES ($1,$2,$3,$4)")
+          .run(owner, input.requestId, payload, duplicate.id));
         return {
           id: String(duplicate.id),
           state: String(duplicate.state),
@@ -276,29 +246,29 @@ export class ShareStore {
       }
       if (
         Number(
-          this.db
+          (await this.db
             .prepare(
-              "SELECT count(*) AS n FROM wg_save_shares WHERE owner=? AND state IN ('active','pending') AND (expires IS NULL OR expires>?)",
+              "SELECT count(*) AS n FROM wg_save_shares WHERE owner=$1 AND state IN ('active','pending') AND (expires IS NULL OR expires>$2)",
             )
-            .get(owner, Date.now())?.n,
+            .get(owner, Date.now()))?.n,
         ) >= 20
       )
         throw new AccountError(413, "SHARE_LIMIT");
-      this.limit("publish:" + owner, 5);
+      (await this.limit("publish:" + owner, 5));
       const id = randomUUID(),
         secret =
           input.mode === "link"
             ? randomBytes(32).toString("base64url")
             : undefined,
         state = secret ? "active" : "pending";
-      const origin = this.db
+      const origin = (await this.db
         .prepare(
-          "SELECT share_id FROM wg_save_origins WHERE revision=? AND kind='share'",
+          "SELECT share_id FROM wg_save_origins WHERE revision=$1 AND kind='share'",
         )
-        .get(input.revisionId);
-      this.db
+        .get(input.revisionId));
+      (await this.db
         .prepare(
-          "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload,published_meta,source_share) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload,published_meta,source_share) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)",
         )
         .run(
           id,
@@ -321,34 +291,34 @@ export class ShareStore {
           payload,
           JSON.stringify({...meta,version:{...meta.version,...(source.profile.engineReleaseId?{engineReleaseId:source.profile.engineReleaseId}:{})}}),
           origin?.share_id ?? null,
-        );
-      this.db
-        .prepare("INSERT INTO wg_share_publish_keys VALUES (?,?,?,?)")
-        .run(owner, input.requestId, payload, id);
-      this.saves.pin(owner, "share:" + id, source.revision.files);
+        ));
+      (await this.db
+        .prepare("INSERT INTO wg_share_publish_keys VALUES ($1,$2,$3,$4)")
+        .run(owner, input.requestId, payload, id));
+      (await this.saves.pin(owner, "share:" + id, source.revision.files));
       return { id, ...(secret ? { secret } : {}), state };
-    });
+    }));
   }
-  private pageRows(
+  private async pageRows(
     owner: string | null,
     work: string | null,
     version?: string,
     cursor?: string,
     limit = 21,
     progress?: string,
-  ): Row[] {
+  ): Promise<Row[]> {
     let before = Number.MAX_SAFE_INTEGER,
       beforeId = "~";
     if (cursor) {
-      const r = this.row(cursor);
+      const r = (await this.row(cursor));
       if (owner ? r.owner !== owner : r.work !== work || r.mode !== "public")
         throw new AccountError(400, "CURSOR_INVALID");
       before = Number(r.created);
       beforeId = String(r.id);
     }
-    return this.db
+    return (await this.db
       .prepare(
-        "SELECT * FROM wg_save_shares WHERE (? IS NULL OR owner=?) AND (? IS NULL OR work=?) AND (? IS NULL OR version=?) AND (? IS NULL OR json_extract(approved,'$.progress')=?) AND (created<? OR (created=? AND id<?)) AND (?=0 OR (mode='public' AND state='active' AND (expires IS NULL OR expires>?))) ORDER BY created DESC,id DESC LIMIT ?",
+        "SELECT * FROM wg_save_shares WHERE ($1::text IS NULL OR owner=$2) AND ($3::text IS NULL OR work=$4) AND ($5::text IS NULL OR version=$6) AND ($7::text IS NULL OR approved::jsonb->>'progress'=$8) AND (created<$9 OR (created=$10 AND id<$11)) AND ($12=0 OR (mode='public' AND state='active' AND (expires IS NULL OR expires>$13))) ORDER BY created DESC,id DESC LIMIT $14",
       )
       .all(
         owner,
@@ -365,14 +335,14 @@ export class ShareStore {
         owner === null ? 1 : 0,
         Date.now(),
         limit,
-      );
+      ));
   }
-  listPublic(
+  async listPublic(
     work: string,
     version?: string,
     cursor?: string,
     progress?: string,
-  ): SharePage {
+  ): Promise<SharePage> {
     if (progress !== undefined && !isShareProgress(progress))
       throw new AccountError(400, "FILTER_INVALID");
     const visible: Row[] = [];
@@ -383,11 +353,11 @@ export class ShareStore {
       scanned < 1000 && visible.length < 21;
       scanned += 40
     ) {
-      const rows = this.pageRows(null, work, version, at, 40, progress);
+      const rows = (await this.pageRows(null, work, version, at, 40, progress));
       for (const row of rows) {
         at = String(row.id);
         try {
-          this.live(row);
+          (await this.live(row));
           visible.push(row);
         } catch (e) {
           if (!(e instanceof AccountError && e.status === 404)) throw e;
@@ -401,7 +371,7 @@ export class ShareStore {
     }
     const selected = visible.slice(0, 20);
     return {
-      items: selected.map((r) => this.view(r)),
+      items: (await Promise.all(selected.map(async (r) => (await this.view(r))))),
       next:
         visible.length > 20
           ? String(selected.at(-1)!.id)
@@ -410,14 +380,14 @@ export class ShareStore {
             : (at ?? null),
     };
   }
-  listOwn(owner: string, cursor?: string): SharePage<OwnShare> {
-    const rows = this.pageRows(owner, null, undefined, cursor),
+  async listOwn(owner: string, cursor?: string): Promise<SharePage<OwnShare>> {
+    const rows = (await this.pageRows(owner, null, undefined, cursor)),
       selected = rows.slice(0, 20);
     return {
-      items: selected.map((r) => {
+      items: (await Promise.all(selected.map(async (r) => {
         let view: ShareView;
         try {
-          view = this.view(r, true);
+          view = (await this.view(r, true));
         } catch {
           const files = JSON.parse(String(r.files));
           view = {
@@ -456,35 +426,35 @@ export class ShareStore {
           metadataRevision: Number(r.metadata_revision),
           pending: r.pending ? JSON.parse(String(r.pending)) : null,
         };
-      }),
+      }))),
       next: rows.length > 20 ? String(selected.at(-1)!.id) : null,
     };
   }
-  edit(owner: string, id: string, revision: number, input: ShareText) {
-    const row = this.row(id);
+  async edit(owner: string, id: string, revision: number, input: ShareText) {
+    const row = (await this.row(id));
     if (row.owner !== owner) throw new AccountError(404, "NOT_FOUND");
-    this.live(row);
+    (await this.live(row));
     if (row.metadata_revision !== revision)
       throw new AccountError(409, "CONTENT_CONFLICT");
     const text = JSON.stringify(this.text(input));
-    this.db
+    (await this.db
       .prepare(
-        "UPDATE wg_save_shares SET approved=?,pending=?,metadata_revision=metadata_revision+1 WHERE id=?",
+        "UPDATE wg_save_shares SET approved=$1,pending=$2,metadata_revision=metadata_revision+1 WHERE id=$3",
       )
       .run(
         row.mode === "link" ? text : row.approved,
         row.mode === "public" ? text : null,
         id,
-      );
+      ));
   }
-  moderate(
+  async moderate(
     id: string,
     revision: number,
     action: "approve" | "block" | "reject" | "resolve",
     reason: string,
   ) {
-    const row = this.row(id);
-    if (action === "approve") this.live(row);
+    const row = (await this.row(id));
+    if (action === "approve") (await this.live(row));
     if (row.metadata_revision !== revision)
       throw new AccountError(409, "CONTENT_CONFLICT");
     if (
@@ -495,87 +465,87 @@ export class ShareStore {
     )
       throw new AccountError();
     if (action === "block" || action === "reject")
-      this.revokeRows([row], "blocked");
+      (await this.revokeRows([row], "blocked"));
     else if (action === "approve") {
       if (row.mode !== "public" || !row.pending)
         throw new AccountError(409, "CONTENT_CONFLICT");
-      this.db
+      (await this.db
         .prepare(
-          "UPDATE wg_save_shares SET approved=pending,pending=NULL,state='active' WHERE id=?",
+          "UPDATE wg_save_shares SET approved=pending,pending=NULL,state='active' WHERE id=$1",
         )
-        .run(id);
+        .run(id));
     }
-    this.db
+    (await this.db
       .prepare(
-        "INSERT INTO wg_share_audit(share,action,reason,created) VALUES (?,?,?,?)",
+        "INSERT INTO wg_share_audit(share,action,reason,created) VALUES ($1,$2,$3,$4)",
       )
-      .run(id, action, reason, Date.now());
-    this.db
+      .run(id, action, reason, Date.now()));
+    (await this.db
       .prepare(
-        "UPDATE wg_save_share_reports SET status='resolved' WHERE share=? AND status='open'",
+        "UPDATE wg_save_share_reports SET status='resolved' WHERE share=$1 AND status='open'",
       )
-      .run(id);
+      .run(id));
   }
-  private revokeRows(rows: Row[], state: string) {
+  private async revokeRows(rows: Row[], state: string) {
     for (const row of rows) {
       this.ledger.record(String(row.id));
-      this.db
-        .prepare("UPDATE wg_save_shares SET state=? WHERE id=?")
-        .run(state, row.id);
-      this.saves.unpin(String(row.owner), "share:" + row.id);
+      (await this.db
+        .prepare("UPDATE wg_save_shares SET state=$1 WHERE id=$2")
+        .run(state, row.id));
+      (await this.saves.unpin(String(row.owner), "share:" + row.id));
     }
   }
-  revoke(owner: string, id: string) {
-    const row = this.row(id);
+  async revoke(owner: string, id: string) {
+    const row = (await this.row(id));
     if (row.owner !== owner) throw new AccountError(404, "NOT_FOUND");
-    this.revokeRows([row], "revoked");
+    (await this.revokeRows([row], "revoked"));
   }
-  revokeSource(owner: string, profile?: string) {
-    this.revokeRows(
-      this.db
+  async revokeSource(owner: string, profile?: string) {
+    (await this.revokeRows(
+      (await this.db
         .prepare(
-          "SELECT * FROM wg_save_shares WHERE owner=? AND (? IS NULL OR profile=?) AND state IN ('active','pending')",
+          "SELECT * FROM wg_save_shares WHERE owner=$1 AND ($2::text IS NULL OR profile=$3) AND state IN ('active','pending')",
         )
-        .all(owner, profile ?? null, profile ?? null),
+        .all(owner, profile ?? null, profile ?? null)),
       "revoked",
-    );
+    ));
   }
-  replay() {
+  async replay() {
     for (const id of this.ledger.entries.keys()) {
-      const row = this.db
-        .prepare("SELECT * FROM wg_save_shares WHERE id=?")
-        .get(id);
+      const row = (await this.db
+        .prepare("SELECT * FROM wg_save_shares WHERE id=$1")
+        .get(id));
       if (row) {
-        this.db
-          .prepare("UPDATE wg_save_shares SET state='revoked' WHERE id=?")
-          .run(id);
-        this.saves.unpin(String(row.owner), "share:" + id);
+        (await this.db
+          .prepare("UPDATE wg_save_shares SET state='revoked' WHERE id=$1")
+          .run(id));
+        (await this.saves.unpin(String(row.owner), "share:" + id));
       }
     }
   }
-  report(
+  async report(
     owner: string,
     id: string,
     secret: string | undefined,
     reason: string,
   ) {
-    this.authorize(id, secret);
+    (await this.authorize(id, secret));
     if (typeof reason !== "string" || !reason.trim() || reason.length > 1000)
       throw new AccountError();
-    this.limit("report:" + owner, 10);
-    this.db
+    (await this.limit("report:" + owner, 10));
+    (await this.db
       .prepare(
-        "INSERT OR IGNORE INTO wg_save_share_reports(id,reporter,share,reason,created) VALUES (?,?,?,?,?)",
+        "INSERT INTO wg_save_share_reports(id,reporter,share,reason,created) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING",
       )
-      .run(randomUUID(), owner, id, reason.trim(), Date.now());
+      .run(randomUUID(), owner, id, reason.trim(), Date.now()));
   }
-  queue(): ModerationShare[] {
-    return this.db
+  async queue(): Promise<ModerationShare[]> {
+    return (await Promise.all((await this.db
       .prepare(
         "SELECT * FROM wg_save_shares WHERE state IN ('active','pending') AND (pending IS NOT NULL OR id IN(SELECT share FROM wg_save_share_reports WHERE status='open')) ORDER BY created LIMIT 100",
       )
-      .all()
-      .map((r) => {
+      .all())
+      .map(async (r) => {
         let metadata: ReturnType<CatalogPolicy["require"]> | null = null;
         let catalogStatus: ModerationShare["catalogStatus"] = "visible";
         try {
@@ -602,61 +572,61 @@ export class ShareStore {
           publication: r.published_meta
             ? JSON.parse(String(r.published_meta))
             : null,
-          publicSource: this.publicSource(r),
+          publicSource: (await this.publicSource(r)),
           author: String(
-            this.db.prepare('SELECT name FROM "user" WHERE id=?').get(r.owner)
+            (await this.db.prepare("SELECT name FROM \"user\" WHERE id=$1").get(r.owner))
               ?.name ?? "已注销玩家",
           ),
           files,
           bytes: files.reduce((n, f) => n + f.bytes, 0),
           pending: r.pending ? JSON.parse(String(r.pending)) : null,
           approved: r.approved ? JSON.parse(String(r.approved)) : null,
-          reports: this.db
+          reports: (await this.db
             .prepare(
-              "SELECT id,reason,created FROM wg_save_share_reports WHERE share=? AND status='open'",
+              "SELECT id,reason,created FROM wg_save_share_reports WHERE share=$1 AND status='open'",
             )
-            .all(r.id)
+            .all(r.id))
             .map((report) => ({
               id: String(report.id),
               reason: String(report.reason),
               created: Number(report.created),
             })),
         };
-      });
+      })));
   }
-  leaseDownload(owner: string, files: SaveFile[]) {
+  async leaseDownload(owner: string, files: SaveFile[]) {
     const id = "download:" + randomUUID();
-    this.atomic(() => {
-      this.db
-        .prepare("INSERT INTO wg_share_download_leases VALUES (?,?,?)")
-        .run(id, owner, Date.now() + 3600_000);
-      this.saves.pin(owner, id, files);
-    });
+    (await this.atomic(async () => {
+      (await this.db
+        .prepare("INSERT INTO wg_share_download_leases VALUES ($1,$2,$3)")
+        .run(id, owner, Date.now() + 3600_000));
+      (await this.saves.pin(owner, id, files));
+    }));
     return id;
   }
-  releaseDownload(id: string) {
-    const row = this.db
-      .prepare("SELECT * FROM wg_share_download_leases WHERE id=?")
-      .get(id);
+  async releaseDownload(id: string) {
+    const row = (await this.db
+      .prepare("SELECT * FROM wg_share_download_leases WHERE id=$1")
+      .get(id));
     if (row) {
-      this.saves.unpin(String(row.owner), id);
-      this.db
-        .prepare("DELETE FROM wg_share_download_leases WHERE id=?")
-        .run(id);
+      (await this.saves.unpin(String(row.owner), id));
+      (await this.db
+        .prepare("DELETE FROM wg_share_download_leases WHERE id=$1")
+        .run(id));
     }
   }
-  gc() {
-    for (const row of this.db
+  async gc() {
+    for (const row of (await this.db
       .prepare(
-        "SELECT id FROM wg_share_download_leases WHERE expires<? LIMIT 100",
+        "SELECT id FROM wg_share_download_leases WHERE expires<$1 LIMIT 100",
       )
-      .all(Date.now()))
-      this.releaseDownload(String(row.id));
-    const rows = this.db
+      .all(Date.now())))
+      (await this.releaseDownload(String(row.id)));
+    const rows = (await this.db
       .prepare(
-        "SELECT * FROM wg_save_shares WHERE state IN ('active','pending') AND expires IS NOT NULL AND expires<=? LIMIT 100",
+        "SELECT * FROM wg_save_shares WHERE state IN ('active','pending') AND expires IS NOT NULL AND expires<=$1 LIMIT 100",
       )
-      .all(Date.now());
-    this.revokeRows(rows, "expired");
+      .all(Date.now()));
+    (await this.revokeRows(rows, "expired"));
   }
 }

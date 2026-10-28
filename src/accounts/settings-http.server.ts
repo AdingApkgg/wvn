@@ -22,9 +22,9 @@ export function mountSettings({
       /[\p{Cc}\p{Cf}]/u.test(name)
     )
       throw new AccountError(400, "NAME_INVALID");
-    const change = db
-      .prepare("UPDATE passkey SET name=? WHERE userId=? AND id=?")
-      .run(name.trim(), session.user.id, c.req.param("id"));
+    const change = (await db
+      .prepare("UPDATE passkey SET name=$1 WHERE \"userId\"=$2 AND id=$3")
+      .run(name.trim(), session.user.id, c.req.param("id")));
     if (!change.changes) throw new AccountError(404, "NOT_FOUND");
     return c.json({ ok: true });
   });
@@ -34,23 +34,18 @@ export function mountSettings({
       format: "wg-account-export-v1",
       exportedAt: new Date().toISOString(),
       user: { id: session.user.id, name: session.user.name },
-      library: library.list(session.user.id),
-      workReactions: workStats.export(session.user.id),
-      saveProfiles:
-        saves?.profiles(session.user.id).map((p) => ({
-          ...p,
-          revisions: saves.allHistory(session.user.id, p.id),
-        })) ?? [],
-      playSessions: db
+      library: (await library.list(session.user.id)),
+      workReactions: (await workStats.export(session.user.id)),
+      saveProfiles: saves ? await Promise.all((await saves.profiles(session.user.id)).map(async p => ({
+        ...p, revisions: await saves.allHistory(session.user.id, p.id),
+      }))) : [],
+      playSessions: (await db
         .prepare(
-          "SELECT id,work_id,version_id,started_at,seconds FROM wg_plays WHERE user_id=?",
+          "SELECT id,work_id,version_id,started_at,seconds FROM wg_plays WHERE user_id=$1",
         )
-        .all(session.user.id),
+        .all(session.user.id)),
     });
   });
-  db.exec(
-    "CREATE TABLE IF NOT EXISTS wg_deleted_accounts(user_id TEXT PRIMARY KEY,deleted_at INTEGER NOT NULL)",
-  );
   app.delete("/api/me", async (c) => {
     const { session } = await player(c, true);
     const body = await c.req.json();
@@ -58,14 +53,9 @@ export function mountSettings({
       throw new AccountError(400, "CONFIRMATION_REQUIRED");
     const cookie = (await auth.$context).authCookies.sessionToken;
     const deletedAt = deletions.record(session.user.id);
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      deleteAccountRows(db, saves, session.user.id, deletedAt);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    await db.transaction(async () => {
+      (await deleteAccountRows(db, saves, session.user.id, deletedAt));
+      }, { lock: 'wvn:account-write' });
     deleteCookie(c, cookie.name, {
       path: "/",
       httpOnly: true,

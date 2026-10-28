@@ -40,7 +40,7 @@ export function createShareAdminApp(
     const session = getCookie(c, "__Host-wg-share-admin") ?? "";
     if ((sessions.get(session) ?? 0) < Date.now())
       return c.json({ code: "SIGN_IN_REQUIRED" }, 401);
-    return service.withLock(next);
+    return (await service.withLock(next));
   });
   app.post("/api/share-admin/login", async (c) => {
     service.sharing?.limit("admin-login", 20, 600_000);
@@ -68,25 +68,25 @@ export function createShareAdminApp(
     await service.sharing?.catalog.refresh().catch(() => {});
     return c.json(service.sharing?.queue() ?? []);
   });
-  app.get("/api/share-admin/audit", (c) =>
+  app.get("/api/share-admin/audit", async (c) =>
     c.json(
-      service.db
+      (await service.db
         .prepare(
           "SELECT share,action,reason,created FROM wg_share_audit ORDER BY id DESC LIMIT 100",
         )
-        .all(),
+        .all()),
     ),
   );
   app.post("/api/share-admin/:id/moderate", async (c) => {
     if (!service.sharing) throw new AccountError(404);
     const body = await c.req.json();
     if (body.action === "approve") await service.sharing.catalog.refresh(true);
-    service.sharing.moderate(
+    (await service.sharing.moderate(
       c.req.param("id"),
       body.revision,
       body.action,
       body.reason,
-    );
+    ));
     return c.json({ ok: true });
   });
   app.onError((e, c) =>

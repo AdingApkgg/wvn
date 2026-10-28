@@ -1,6 +1,6 @@
 import { brand } from "../brand";
 import { randomUUID, timingSafeEqual } from "node:crypto";
-import { DatabaseSync } from "node:sqlite";
+import { PgDatabase } from "../database/postgres.ts";
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { passkey } from "@better-auth/passkey";
@@ -16,7 +16,7 @@ function invalid(message = "Passkey verification failed"): never {
   throw new APIError("BAD_REQUEST", { code: "PASSKEY_INVALID", message });
 }
 export function makeAuth(
-  db: DatabaseSync,
+  db: PgDatabase,
   config: AccountConfig,
   isDeleted: (id: string) => boolean = () => false,
 ) {
@@ -24,7 +24,7 @@ export function makeAuth(
     appName: brand.title,
     baseURL: config.origin,
     secret: config.secret,
-    database: db,
+    database: db.pool,
     trustedOrigins: [config.origin],
     telemetry: { enabled: false },
     emailAndPassword: { enabled: false },
@@ -48,9 +48,9 @@ export function makeAuth(
       user: {
         create: {
           after: async (user) => {
-            db.prepare(
-              "INSERT OR IGNORE INTO wg_account(user_id,auth_version,code_group) VALUES (?,0,'')",
-            ).run(user.id);
+            (await db.prepare(
+              "INSERT INTO wg_account(user_id,auth_version,code_group) VALUES ($1,0,'') ON CONFLICT DO NOTHING",
+            ).run(user.id));
           },
         },
       },
@@ -104,9 +104,9 @@ export function makeAuth(
           afterVerification: async ({ ctx, verification, user, context }) => {
             if (
               Number(
-                db
-                  .prepare("SELECT count(*) AS n FROM passkey WHERE userId=?")
-                  .get(user.id)?.n,
+                (await db
+                  .prepare("SELECT count(*) AS n FROM passkey WHERE \"userId\"=$1")
+                  .get(user.id))?.n,
               ) >= 50
             )
               invalid("Passkey limit reached");
@@ -136,9 +136,9 @@ export function makeAuth(
               return { userId: created.id, name: "我的通行密钥" };
             }
             const session = ctx.context.session;
-            const state = db
-              .prepare("SELECT auth_version FROM wg_account WHERE user_id=?")
-              .get(user.id);
+            const state = (await db
+              .prepare("SELECT auth_version FROM wg_account WHERE user_id=$1")
+              .get(user.id));
             if (
               input.intent !== "add" ||
               !session ||
@@ -149,9 +149,9 @@ export function makeAuth(
                 RECENT_MS
             )
               invalid("Sign in again to add a passkey");
-            db.prepare(
-              "UPDATE wg_account SET auth_version=auth_version+1 WHERE user_id=?",
-            ).run(user.id);
+            (await db.prepare(
+              "UPDATE wg_account SET auth_version=auth_version+1 WHERE user_id=$1",
+            ).run(user.id));
             return { name: "备用通行密钥" };
           },
         },

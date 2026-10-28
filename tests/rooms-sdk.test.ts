@@ -249,3 +249,62 @@ test('temporary WebTransport network failure still reconnects successfully', asy
     assert.equal(requests, 2, 'successful reconnect does not leave another retry queued');
   } finally { client.close(); timers.restore(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; }
 });
+
+test('late TURN response after close cannot construct peers or send an offer', async () => {
+  const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport, originalPeer = globalThis.RTCPeerConnection;
+  const transport = controlledWebTransport(), turn = deferred<void>(), entered = deferred<void>();
+  let created = 0, turnSignal: AbortSignal | null | undefined;
+  globalThis.fetch = (async (input: unknown, init?: RequestInit) => {
+    if (String(input).endsWith('/turn')) {
+      turnSignal = init?.signal; entered.resolve(); await turn.promise;
+      return Response.json({ urls: ['turn:127.0.0.1:28440'], username: 'qa', credential: 'qa' });
+    }
+    return Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' });
+  }) as typeof fetch;
+  (globalThis as any).WebTransport = transport.WT;
+  globalThis.RTCPeerConnection = class {
+    localDescription: any;
+    constructor() { created++; }
+    createDataChannel() { return { close() {} }; }
+    async createOffer() { return { type: 'offer', sdp: 'qa' }; }
+    async setLocalDescription(value: any) { this.localDescription = { toJSON: () => value }; }
+    close() {}
+  } as any;
+  const client = new RoomClient({ roomId: 'peer-cancel', baseUrl: 'https://sdk.test' });
+  try {
+    await client.connect();
+    client.snapshot!.members.push({ userId: 'member', displayName: 'Member' });
+    const outcome = client.openPeer('member').then(() => null, error => error);
+    await entered.promise;
+    client.close();
+    turn.resolve();
+    const error = await outcome;
+    assert.equal(created, 0, 'late TURN must not construct RTCPeerConnection');
+    assert.equal(client.peers.size, 0);
+    assert.equal(turnSignal?.aborted, true);
+    assert.equal(error?.name, 'AbortError');
+  } finally { client.close(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; globalThis.RTCPeerConnection = originalPeer; }
+});
+
+test('close discards queued signal work before it can request TURN or create a peer', async () => {
+  const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport;
+  const transport = controlledWebTransport(), queue = deferred<void>();
+  let turnRequests = 0;
+  globalThis.fetch = (async (input: unknown) => {
+    if (String(input).endsWith('/turn')) { turnRequests++; throw new Error('queued signal must have been discarded'); }
+    return Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' });
+  }) as typeof fetch;
+  (globalThis as any).WebTransport = transport.WT;
+  const client = new RoomClient({ roomId: 'queued-signal-cancel', baseUrl: 'https://sdk.test' });
+  try {
+    await client.connect();
+    client.snapshot!.members.push({ userId: 'member', displayName: 'Member' });
+    (client as any).signalChain = queue.promise;
+    transport.instances[0].frame({ type: 'event', event: { seq: 1, id: 'offer', actor: 'member', kind: 'offer', target: 'owner', data: { type: 'offer', sdp: 'qa' } } });
+    await new Promise<void>(resolve => setImmediate(resolve));
+    const queued = (client as any).signalChain;
+    client.close(); queue.resolve(); await queued;
+    assert.equal(turnRequests, 0, 'closed queued signal must not request TURN');
+    assert.equal(client.peers.size, 0);
+  } finally { client.close(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; }
+});

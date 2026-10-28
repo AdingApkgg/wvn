@@ -12,37 +12,34 @@ export function mountRecovery(
 ) {
   const { app, db, config, player, recovery } = service;
   const COOKIE = `${config.cookiePrefix ?? '__Host-wg'}-recovery`;
-  db.exec(
-    "CREATE TABLE IF NOT EXISTS wg_rate(key TEXT PRIMARY KEY,window INTEGER NOT NULL,count INTEGER NOT NULL)",
-  );
-  function limit(key: string, max: number) {
+  async function limit(key: string, max: number) {
     const window = Math.floor(Date.now() / 600_000);
     const hash = createHash("sha256").update(key).digest("hex");
-    db.prepare("DELETE FROM wg_rate WHERE window<?").run(window - 1);
-    db.prepare(
-      "INSERT INTO wg_rate VALUES (?,?,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN window=excluded.window THEN count+1 ELSE 1 END,window=excluded.window",
-    ).run(hash, window);
+    (await db.prepare("DELETE FROM wg_rate WHERE \"window\"<$1").run(window - 1));
+    (await db.prepare(
+      "INSERT INTO wg_rate VALUES ($1,$2,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN wg_rate.\"window\"=excluded.\"window\" THEN wg_rate.count+1 ELSE 1 END,\"window\"=excluded.\"window\"",
+    ).run(hash, window));
     if (
       Number(
-        db.prepare("SELECT count FROM wg_rate WHERE key=?").get(hash)?.count,
+        (await db.prepare("SELECT count FROM wg_rate WHERE key=$1").get(hash))?.count,
       ) > max
     )
       throw new AccountError(429, "TRY_LATER");
   }
   app.post("/api/me/recovery-codes", async (c) => {
     const { session } = await player(c, true);
-    const codes = recovery.rotate(session.user.id);
+    const codes = (await recovery.rotate(session.user.id));
     return c.json({ accountId: session.user.id, codes });
   });
   app.post("/api/recovery/start", async (c) => {
     const body = await c.req.json();
     const accountId = typeof body.accountId === "string" ? body.accountId : "";
     const code = typeof body.code === "string" ? body.code : "";
-    limit("recovery:global", 100);
-    limit("recovery:" + accountId, 5);
+    (await limit("recovery:global", 100));
+    (await limit("recovery:" + accountId, 5));
     const token =
       accountId.length <= 100 && code.length <= 100
-        ? recovery.start(accountId, code)
+        ? (await recovery.start(accountId, code))
         : null;
     if (!token) throw new AccountError(400, "RECOVERY_INVALID");
     setCookie(c, COOKIE, token, {
@@ -56,11 +53,11 @@ export function mountRecovery(
   });
   app.post("/api/recovery/options", async (c) => {
     const token = getCookie(c, COOKIE) ?? "";
-    const state = recovery.inspect(token);
+    const state = (await recovery.inspect(token));
     if (!state) throw new AccountError(401, "RECOVERY_EXPIRED");
-    const user = db
-      .prepare('SELECT name FROM "user" WHERE id=?')
-      .get(state.userId);
+    const user = (await db
+      .prepare("SELECT name FROM \"user\" WHERE id=$1")
+      .get(state.userId));
     if (!user) throw new AccountError(401, "RECOVERY_EXPIRED");
     const options = await generateRegistrationOptions({
       rpName: brand.title,
@@ -72,19 +69,19 @@ export function mountRecovery(
         residentKey: "required",
         userVerification: "required",
       },
-      excludeCredentials: db
-        .prepare("SELECT credentialID FROM passkey WHERE userId=?")
-        .all(state.userId)
+      excludeCredentials: (await db
+        .prepare("SELECT \"credentialID\" FROM passkey WHERE \"userId\"=$1")
+        .all(state.userId))
         .map((p) => ({ id: String(p.credentialID) })),
     });
-    recovery.setChallenge(token, options.challenge);
+    (await recovery.setChallenge(token, options.challenge));
     return c.json(options);
   });
   app.post("/api/recovery/complete", async (c) => {
     const token = getCookie(c, COOKIE) ?? "";
     let state;
     try {
-      state = recovery.takeChallenge(token);
+      state = (await recovery.takeChallenge(token));
     } catch {
       throw new AccountError(401, "RECOVERY_EXPIRED");
     }
@@ -104,14 +101,14 @@ export function mountRecovery(
     if (!result.verified || !result.registrationInfo?.userVerified)
       throw new AccountError(400, "PASSKEY_INVALID");
     const info = result.registrationInfo;
-    const codes = recovery.complete(token, {
+    const codes = (await recovery.complete(token, {
       id: info.credential.id,
       publicKey: Buffer.from(info.credential.publicKey).toString("base64"),
       counter: info.credential.counter,
       deviceType: info.credentialDeviceType,
       backedUp: info.credentialBackedUp,
       transports: body.response.response.transports ?? [],
-    });
+    }));
     deleteCookie(c, COOKIE, {
       secure: true,
       httpOnly: true,

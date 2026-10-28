@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {createAccountService} from '../src/accounts/service.server.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {createAccountService} from './helpers/accounts.ts';
 test('waiting for Umami does not hold the account API transaction lock',async t=>{
  let release!:(response:Response)=>void;let entered!:(value?:unknown)=>void;const enteredPromise=new Promise(r=>entered=r);
  t.mock.method(globalThis,'fetch',()=>{entered();return new Promise<Response>(r=>release=r)});

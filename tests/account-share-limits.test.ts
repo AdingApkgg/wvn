@@ -4,26 +4,26 @@ import { sharingFixture } from "./helpers/sharing.ts";
 import { AccountError } from "../src/accounts/errors.server.ts";
 
 type Fixture = Awaited<ReturnType<typeof sharingFixture>>;
-function nextRevision(f: Fixture) {
-  const current = f.saves.profiles("alice")[0];
-  return f.saves.restore(
+async function nextRevision(f: Fixture) {
+  const current = (await f.saves.profiles("alice"))[0];
+  return (await f.saves.restore(
     "alice",
     f.p.id,
     f.revision.id,
     current.head,
     current.generation,
-  );
+  ));
 }
-function state(f: Fixture) {
+async function state(f: Fixture) {
   return {
-    shares: f.db.prepare("SELECT count(*) AS n FROM wg_save_shares").get()?.n,
-    refs: f.db
+    shares: (await f.db.prepare("SELECT count(*) AS n FROM wg_save_shares").get())?.n,
+    refs: (await f.db
       .prepare(
         "SELECT count(*) AS n FROM wg_save_refs WHERE revision LIKE 'share:%'",
       )
-      .get()?.n,
-    rates: f.db.prepare("SELECT * FROM wg_share_rates ORDER BY key").all(),
-    keys: f.db.prepare("SELECT count(*) AS n FROM wg_share_publish_keys").get()
+      .get())?.n,
+    rates: (await f.db.prepare("SELECT * FROM wg_share_rates ORDER BY key").all()),
+    keys: (await f.db.prepare("SELECT count(*) AS n FROM wg_share_publish_keys").get())
       ?.n,
   };
 }
@@ -58,7 +58,7 @@ for (const mode of ["link", "public"] as const) {
       t.mock.timers.tick(3_600_001);
       await f.policy.refresh(true);
       const fresh = (await nextRevision(f)),
-        before = state(f);
+        before = (await state(f));
       assert.equal(before.shares, 20);
       assert.equal(before.refs, 20);
       const repeated = (await f.shares.create("alice", {
@@ -72,7 +72,7 @@ for (const mode of ["link", "public"] as const) {
         state: mode === "link" ? "active" : "pending",
         duplicate: true,
       });
-      assert.deepEqual(state(f), { ...before, keys: 21 });
+      assert.deepEqual((await state(f)), { ...before, keys: 21 });
       assert.equal(
         (await f.shares.create("alice", {
           ...f.input,
@@ -83,32 +83,32 @@ for (const mode of ["link", "public"] as const) {
         first.id,
       );
       await assert.rejects(
-        () =>
-          f.shares.create("alice", {
+        async () =>
+          (await f.shares.create("alice", {
             ...f.input,
             mode,
             requestId: "full-duplicate",
             title: "Changed bound request",
-          }),
+          })),
         rejected("CAPTURE_CHANGED", 409),
       );
       await assert.rejects(
-        () =>
-          f.shares.create("alice", {
+        async () =>
+          (await f.shares.create("alice", {
             ...f.input,
             mode,
             revisionId: fresh.id,
             requestId: "full-new",
-          }),
+          })),
         rejected("SHARE_LIMIT", 413),
       );
-      assert.deepEqual(state(f), { ...before, keys: 21 });
+      assert.deepEqual((await state(f)), { ...before, keys: 21 });
       assert.equal(
-        f.shares.listOwn("alice").items.find((s) => s.id === first.id)?.title,
+        (await f.shares.listOwn("alice")).items.find((s) => s.id === first.id)?.title,
         f.input.title,
       );
     } finally {
-      f.close();
+      (await f.close());
     }
   });
 
@@ -126,7 +126,7 @@ for (const mode of ["link", "public"] as const) {
         }));
       }
       const fresh = (await nextRevision(f)),
-        before = state(f);
+        before = (await state(f));
       assert.equal(before.shares, 5);
       assert.equal(before.refs, 5);
       assert.equal(before.rates.length, 1);
@@ -142,18 +142,18 @@ for (const mode of ["link", "public"] as const) {
         state: mode === "link" ? "active" : "pending",
         duplicate: true,
       });
-      assert.deepEqual(state(f), { ...before, keys: 6 });
+      assert.deepEqual((await state(f)), { ...before, keys: 6 });
       await assert.rejects(
-        () =>
-          f.shares.create("alice", {
+        async () =>
+          (await f.shares.create("alice", {
             ...f.input,
             mode,
             revisionId: fresh.id,
             requestId: "rate-new",
-          }),
+          })),
         rejected("TRY_LATER", 429),
       );
-      assert.deepEqual(state(f), { ...before, keys: 6 });
+      assert.deepEqual((await state(f)), { ...before, keys: 6 });
       assert.equal(
         (await f.shares.create("alice", {
           ...f.input,
@@ -163,9 +163,9 @@ for (const mode of ["link", "public"] as const) {
         })).id,
         first.id,
       );
-      assert.deepEqual(state(f), { ...before, keys: 6 });
+      assert.deepEqual((await state(f)), { ...before, keys: 6 });
     } finally {
-      f.close();
+      (await f.close());
     }
   });
 }

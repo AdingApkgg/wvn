@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createAccountService } from "../src/accounts/service.server.ts";
+import { createAccountService } from "./helpers/accounts.ts";
 import { registrationFixture } from "./helpers/webauthn.ts";
 test("sessions survive a process restart and absolute expiration removes stale server state", async () => {
   const root = mkdtempSync(join(tmpdir(), "wg-session-"));
@@ -51,27 +51,27 @@ test("sessions survive a process restart and absolute expiration removes stale s
       .getSetCookie()
       .map((c) => c.split(";")[0])
       .join("; ");
-    service.close();
+    (await service.close());
     service = await createAccountService(config);
     const me = await service.app.request(config.origin + "/api/me", {
       headers: { cookie },
     });
     assert.equal(me.status, 200);
     assert.equal((await me.json()).user.name, "Persistent Reader");
-    service.db
-      .prepare("UPDATE session SET createdAt=?,expiresAt=?")
-      .run(Date.now() - 91 * 86400_000, Date.now() + 30 * 86400_000);
+    (await service.db
+      .prepare("UPDATE session SET \"createdAt\"=$1,\"expiresAt\"=$2")
+      .run(new Date(Date.now() - 91 * 86400_000), new Date(Date.now() + 30 * 86400_000)));
     const expired = await service.app.request(config.origin + "/api/me", {
       headers: { cookie },
     });
     assert.equal(expired.status, 401);
     assert.equal(expired.headers.getSetCookie().length, 0);
     assert.equal(
-      service.db.prepare("SELECT count(*) AS n FROM session").get()?.n,
+      (await service.db.prepare("SELECT count(*) AS n FROM session").get())?.n,
       0,
     );
   } finally {
-    service.close();
+    (await service.close());
     rmSync(root, { recursive: true, force: true });
   }
 });
@@ -120,13 +120,13 @@ test("a renewal Cookie delivered after sign-out cannot revive the revoked sessio
       .getSetCookie()
       .map((c) => c.split(";")[0])
       .join("; ");
-    service.db
-      .prepare("UPDATE session SET createdAt=?,updatedAt=?,expiresAt=?")
+    (await service.db
+      .prepare("UPDATE session SET \"createdAt\"=$1,\"updatedAt\"=$2,\"expiresAt\"=$3")
       .run(
-        Date.now() - 3 * 86400_000,
-        Date.now() - 3 * 86400_000,
-        Date.now() + 27 * 86400_000,
-      );
+        new Date(Date.now() - 3 * 86400_000),
+        new Date(Date.now() - 3 * 86400_000),
+        new Date(Date.now() + 27 * 86400_000),
+      ));
     // Capture a real renewal response, withhold its Cookie until AFTER the logout response.
     const renewal = await service.app.request(config.origin + "/api/me", {
       headers: { cookie },
@@ -156,11 +156,11 @@ test("a renewal Cookie delivered after sign-out cannot revive the revoked sessio
     });
     assert.equal(replay.status, 401);
     assert.equal(
-      service.db.prepare("SELECT count(*) AS n FROM session").get()?.n,
+      (await service.db.prepare("SELECT count(*) AS n FROM session").get())?.n,
       0,
     );
   } finally {
-    service.close();
+    (await service.close());
     rmSync(root, { recursive: true, force: true });
   }
 });

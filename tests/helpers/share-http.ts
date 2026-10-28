@@ -2,7 +2,7 @@ import {LocalBlobStore} from "../../src/accounts/blob-store.server.ts";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { createAccountService } from "../../src/accounts/service.server.ts";
+import { createAccountService } from "./accounts.ts";
 import { registrationFixture } from "./webauthn.ts";
 const origin = "https://accounts.wg.test";
 export async function shareHttpFixture() {
@@ -83,8 +83,8 @@ export async function shareHttpFixture() {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
     },
-    close() {
-      service.close();
+    async close() {
+      await service.close();
       rmSync(root, { recursive: true, force: true });
     },
   };

@@ -47,7 +47,7 @@ test("long downloads refresh live catalog and stop if their version becomes hidd
     const cookie = await f.register("Slow Reader");
     const me = await (await f.api("/api/me", cookie)).json();
     const saves = f.service.saves!;
-    const profile = saves.createProfile(me.user.id, "version-a");
+    const profile = (await saves.createProfile(me.user.id, "version-a"));
     const bytes = Buffer.alloc(1024 * 1024, 42);
     const upload = (await saves.reserve(me.user.id, profile.id, {
       expectedHead: null,

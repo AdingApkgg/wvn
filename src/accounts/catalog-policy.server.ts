@@ -1,5 +1,13 @@
 import { AccountError } from "./errors.server.ts";
 import type { CatalogItem } from "./library.server.ts";
+export function validateCatalog(data: unknown): CatalogItem[] {
+  if (!Array.isArray(data) || data.length > 10000 || data.some((w: CatalogItem) =>
+    !w || typeof w.id !== 'string' || typeof w.title !== 'string' || !/^\/b?[1-9]\d*\/$/.test(w.url)
+    || !Array.isArray(w.versions) || w.versions.some(v => !v || typeof v.id !== 'string'
+      || typeof v.title !== 'string' || typeof v.engine !== 'string' || !Number.isSafeInteger(v.number)
+      || !/^\/b?[1-9]\d*\/[1-9]\d*\/$/.test(v.url)))) throw new Error('Invalid catalog');
+  return data as CatalogItem[];
+}
 export class CatalogPolicy {
   private entries: CatalogItem[] = [];
   private checked = 0;
@@ -10,27 +18,7 @@ export class CatalogPolicy {
     if (this.flight) return this.flight;
     this.flight = (async () => {
       try {
-        const data = await this.provider();
-        if (
-          !Array.isArray(data) ||
-          data.length > 10000 ||
-          data.some(
-            (w) =>
-              typeof w.id !== "string" ||
-              typeof w.title !== "string" ||
-              !/^\/b?[1-9]\d*\/$/.test(w.url) ||
-              !Array.isArray(w.versions) ||
-              w.versions.some(
-                (v) =>
-                  typeof v.id !== "string" ||
-                  typeof v.title !== "string" ||
-                  typeof v.engine !== "string" ||
-                  !Number.isSafeInteger(v.number) ||
-                  !/^\/b?[1-9]\d*\/[1-9]\d*\/$/.test(v.url),
-              ),
-          )
-        )
-          throw new Error("Invalid catalog");
+        const data = validateCatalog(await this.provider());
         this.entries = data;
         this.checked = Date.now();
       } catch {

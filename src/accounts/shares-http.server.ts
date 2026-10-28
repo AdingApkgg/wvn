@@ -21,32 +21,32 @@ export function mountShares(service: AccountService) {
     await sharing.catalog.refresh();
     return next();
   });
-  app.get("/api/public/works/:work/save-shares", (c) =>
+  app.get("/api/public/works/:work/save-shares", async (c) =>
     c.json(
-      sharing.listPublic(
+      (await sharing.listPublic(
         c.req.param("work"),
         c.req.query("versionId"),
         c.req.query("cursor"),
         c.req.query("progress"),
-      ),
+      )),
     ),
   );
-  app.get("/api/public/save-shares/:id", (c) => {
-    const row = sharing.row(c.req.param("id"));
+  app.get("/api/public/save-shares/:id", async (c) => {
+    const row = (await sharing.row(c.req.param("id")));
     if (row.mode !== "public") throw new AccountError(404, "SHARE_UNAVAILABLE");
-    return c.json(sharing.inspect(c.req.param("id")));
+    return c.json((await sharing.inspect(c.req.param("id"))));
   });
   app.post("/api/share-links/:id/inspect", async (c) => {
-    sharing.limit("inspect:" + peer(c), 120, 600_000);
-    sharing.limit("inspect-global", 3000, 600_000);
+    (await sharing.limit("inspect:" + peer(c), 120, 600_000));
+    (await sharing.limit("inspect-global", 3000, 600_000));
     await sharing.catalog.refresh();
     const body = await c.req.json();
-    return c.json(sharing.inspect(c.req.param("id"), body.secret));
+    return c.json((await sharing.inspect(c.req.param("id"), body.secret)));
   });
   app.get("/api/me/save-shares", async (c) => {
     const { session } = await player(c);
     await sharing.catalog.refresh().catch(() => {});
-    return c.json(sharing.listOwn(session.user.id, c.req.query("cursor")));
+    return c.json((await sharing.listOwn(session.user.id, c.req.query("cursor"))));
   });
   app.post("/api/me/save-shares", async (c) => {
     const { session } = await player(c, true);
@@ -57,16 +57,16 @@ export function mountShares(service: AccountService) {
     const { session } = await player(c, true),
       b = await c.req.json();
     await sharing.catalog.refresh(true);
-    sharing.edit(session.user.id, c.req.param("id"), b.revision, b);
+    (await sharing.edit(session.user.id, c.req.param("id"), b.revision, b));
     return c.json({ ok: true });
   });
   app.post("/api/me/save-shares/:id/revoke", async (c) => {
     const { session } = await player(c, true);
-    sharing.revoke(session.user.id, c.req.param("id"));
+    (await sharing.revoke(session.user.id, c.req.param("id")));
     return c.json({ ok: true });
   });
   app.post("/api/me/share-claims", async (c) => {
-    const { session } = await withLock(() => player(c));
+    const { session } = await withLock(async () => (await player(c)));
     const release = budget.acquire(session.user.id, peer(c));
     try {
       await sharing.catalog.refresh(true);
@@ -94,23 +94,23 @@ export function mountShares(service: AccountService) {
     const { session } = await player(c);
     const b = await c.req.json();
     await sharing.catalog.refresh();
-    sharing.report(session.user.id, b.shareId, b.secret, b.reason);
+    (await sharing.report(session.user.id, b.shareId, b.secret, b.reason));
     return c.json({ ok: true });
   });
   app.post("/api/me/share-downloads", async (c) => {
-    const { session } = await withLock(() => player(c)),
+    const { session } = await withLock(async () => (await player(c))),
       input = await c.req.json();
     await sharing.catalog.refresh(true);
     const release = budget.acquire(session.user.id, peer(c));
     let owner = "",
       lease = "";
     try {
-      const view = await withLock(() => {
-        const source = sharing.authorize(input.shareId, input.secret);
+      const view = await withLock(async () => {
+        const source = (await sharing.authorize(input.shareId, input.secret));
         owner = String(source.owner);
         const files = JSON.parse(String(source.files)) as SaveFile[];
-        lease = sharing.leaseDownload(owner, files);
-        return sharing.inspect(input.shareId, input.secret);
+        lease = (await sharing.leaseDownload(owner, files));
+        return (await sharing.inspect(input.shareId, input.secret));
       });
       const selected =
         input.name === undefined
@@ -126,7 +126,7 @@ export function mountShares(service: AccountService) {
             c.req.raw.signal.aborted
           )
             throw new AccountError(409, "IDENTITY_CHANGED");
-          sharing.authorize(input.shareId, input.secret);
+          (await sharing.authorize(input.shareId, input.secret));
         });
       };
       async function* files() {
@@ -164,7 +164,7 @@ export function mountShares(service: AccountService) {
       const cleanup = async () => {
         if (finished) return;
         finished = true;
-        await withLock(() => sharing.releaseDownload(lease));
+        await withLock(async () => (await sharing.releaseDownload(lease)));
         release();
       };
       const body = new ReadableStream<Uint8Array>({
@@ -201,7 +201,7 @@ export function mountShares(service: AccountService) {
       );
       return c.body(body);
     } catch (e) {
-      if (lease) await withLock(() => sharing.releaseDownload(lease));
+      if (lease) await withLock(async () => (await sharing.releaseDownload(lease)));
       release();
       throw e;
     }

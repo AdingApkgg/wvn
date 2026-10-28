@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as codec from "../public/ons/cloud.mjs";
-import { createAccountService } from "../src/accounts/service.server.ts";
+import { createAccountService } from "./helpers/accounts.ts";
 const target = { id: "clannad", versionId: "legacy-a1a835ec6184bfd5142f454f", engine: "64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04" };
 const snapshot = { schema: 1 as const, pilot: "clannad", files: [{path:"ENVDATA",data:new Uint8Array([0,255,10]),mtime:1609459200000},{path:"nested/save1.dat",data:new Uint8Array([9,8,7,6]),mtime:946684800000}] };
 test("cloud envelope round trips native bytes, paths and dates and rejects wrong target", async () => {

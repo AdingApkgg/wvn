@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createAccountService } from "../src/accounts/service.server.ts";
+import { createAccountService } from "./helpers/accounts.ts";
 const config = {
   origin: "https://accounts.wg.test",
   database: ":memory:",
@@ -43,7 +43,7 @@ test("account listener exposes Passkey only and protects private data", async ()
       );
     }
   } finally {
-    service.close();
+    (await service.close());
   }
 });
 test("game origin and unexpected hosts cannot write account state", async () => {
@@ -67,7 +67,7 @@ test("game origin and unexpected hosts cannot write account state", async () => 
       421,
     );
   } finally {
-    service.close();
+    (await service.close());
   }
 });
 test("account startup rejects weak secrets and non-HTTPS origins", async () => {
@@ -89,7 +89,7 @@ test("registration needs only a nickname and never a configured invitation", asy
     assert.equal(body.authenticatorSelection.userVerification,"required");
     assert.equal(body.user.name,"Open Reader");
     assert.equal((await service.app.request(config.origin + "/api/auth/passkey/generate-register-options?context=" + encodeURIComponent(JSON.stringify({nickname:""})))).status,400);
-  } finally {service.close()}
+  } finally {(await service.close())}
 });
 test("open registration retains the database limiter and ignores spoofed client IPs", async () => {
   const service = await createAccountService(config);
@@ -104,5 +104,5 @@ test("open registration retains the database limiter and ignores spoofed client 
     }
     assert(limited,"registration must stay rate limited");
     assert.equal((await service.app.request(path,{headers:{"x-forwarded-for":"198.51.100.99"}})).status,429);
-  } finally {service.close()}
+  } finally {(await service.close())}
 });

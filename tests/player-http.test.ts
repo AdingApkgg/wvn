@@ -32,7 +32,7 @@ test('entry scripts are inert until authenticated parent channel and resources a
 });
 
 test('opaque preflight is granted only for read-only scoped resources, never private APIs or credentials',async()=>{
- const {createAccountService}=await import('../src/accounts/service.server.ts');
+ const {createAccountService}=await import('./helpers/accounts.ts');
  const {isPlayerResourcePath}=await import('../src/player/http.server.ts');
  const service=await createAccountService({origin:'https://localhost',database:':memory:',secret:'x'.repeat(48),publicResourcePreflight:isPlayerResourcePath});
  try{

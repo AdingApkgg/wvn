@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DatabaseSync } from "node:sqlite";
+import { testDatabase } from "./helpers/accounts.ts";
 import { LibraryStore } from "../src/accounts/library.server.ts";
 const catalog = [
   {
@@ -18,64 +18,64 @@ const catalog = [
     ],
   },
 ];
-test("private books are owner scoped and stale edits cannot overwrite notes", () => {
-  const db = new DatabaseSync(":memory:");
+test("private books are owner scoped and stale edits cannot overwrite notes", async () => {
+  const db = await testDatabase();
   try {
     const store = new LibraryStore(db, catalog);
-    const entry = store.edit("alice", "v4", 0, {
+    const entry = (await store.edit("alice", "v4", 0, {
       status: "playing",
       note: "Chapter 2",
-    });
+    }));
     assert.equal(entry.revision, 1);
-    assert.equal(store.list("bob").length, 0);
-    assert.throws(() =>
-      store.edit("alice", "v4", 0, { status: "completed", note: "stale" }),
-    );
-    assert.equal(store.list("alice")[0].note, "Chapter 2");
-    assert.throws(() =>
-      store.edit("alice", "v99", 0, { status: "playing", note: "" }),
-    );
+    assert.equal((await store.list("bob")).length, 0);
+    (await assert.rejects(async () =>
+      (await store.edit("alice", "v4", 0, { status: "completed", note: "stale" })),
+    ));
+    assert.equal((await store.list("alice"))[0].note, "Chapter 2");
+    (await assert.rejects(async () =>
+      (await store.edit("alice", "v99", 0, { status: "playing", note: "" })),
+    ));
   } finally {
-    db.close();
+    (await db.close());
   }
 });
-test("play events are idempotent, never trust client duration and cap late heartbeats", () => {
-  const db = new DatabaseSync(":memory:");
+test("play events are idempotent, never trust client duration and cap late heartbeats", async () => {
+  const db = await testDatabase();
   let now = 1000;
   try {
     const store = new LibraryStore(db, catalog, () => now);
-    const first = store.start("alice", "version-a", "event-a");
-    assert.equal(store.start("alice", "version-a", "event-a").id, first.id);
-    assert.equal(store.heartbeat("alice", first.id, 1, true).seconds, 0);
+    const first = (await store.start("alice", "version-a", "event-a"));
+    assert.equal((await store.start("alice", "version-a", "event-a")).id, first.id);
+    assert.equal((await store.heartbeat("alice", first.id, 1, true)).seconds, 0);
     now += 30_000;
-    assert.equal(store.heartbeat("alice", first.id, 2, true).seconds, 30);
-    assert.equal(store.heartbeat("alice", first.id, 2, true).seconds, 30);
+    assert.equal((await store.heartbeat("alice", first.id, 2, true)).seconds, 30);
+    assert.equal((await store.heartbeat("alice", first.id, 2, true)).seconds, 30);
     now += 3600_000;
-    assert.equal(store.heartbeat("alice", first.id, 3, false).seconds, 90);
+    assert.equal((await store.heartbeat("alice", first.id, 3, false)).seconds, 90);
     now += 10_000;
-    assert.equal(store.heartbeat("alice", first.id, 4, true).seconds, 90);
-    assert.throws(() => store.heartbeat("bob", first.id, 4, true));
-    assert.equal(store.list("alice")[0].lastVersionId, "version-a");
-    assert.equal(store.list("alice")[0].seconds, 90);
+    assert.equal((await store.heartbeat("alice", first.id, 4, true)).seconds, 90);
+    (await assert.rejects(async () => (await store.heartbeat("bob", first.id, 4, true))));
+    assert.equal((await store.list("alice"))[0].lastVersionId, "version-a");
+    assert.equal((await store.list("alice"))[0].seconds, 90);
   } finally {
-    db.close();
+    (await db.close());
   }
 });
 
-test("overlapping windows of one work do not double-count foreground time", () => {
-  const db = new DatabaseSync(":memory:");
+test("overlapping windows of one work do not double-count foreground time", async () => {
+  const db = await testDatabase();
   let now = 1000;
   try {
     const store = new LibraryStore(db, catalog, () => now);
-    const a = store.start("alice", "version-a", "window-a"),
-      b = store.start("alice", "version-a", "window-b");
-    store.heartbeat("alice", a.id, 1, true);
-    store.heartbeat("alice", b.id, 1, true);
+    const a = (await store.start("alice", "version-a", "window-a")),
+      b = (await store.start("alice", "version-a", "window-b"));
+    (await store.heartbeat("alice", a.id, 1, true));
+    (await store.heartbeat("alice", b.id, 1, true));
     now += 30_000;
-    store.heartbeat("alice", a.id, 2, true);
-    store.heartbeat("alice", b.id, 2, true);
-    assert.equal(store.list("alice")[0].seconds, 30);
+    (await store.heartbeat("alice", a.id, 2, true));
+    (await store.heartbeat("alice", b.id, 2, true));
+    assert.equal((await store.list("alice"))[0].seconds, 30);
   } finally {
-    db.close();
+    (await db.close());
   }
 });
