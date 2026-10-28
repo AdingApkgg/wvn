@@ -1,0 +1,45 @@
+# 复制到受限私有配置；替换地址、证书路径和随机共享secret后使用。
+# 生产不允许匿名中继，不得启用allow-loopback-peers。
+listening-port=3478
+tls-listening-port=5349
+listening-ip=REPLACE_LISTEN_IP
+relay-ip=REPLACE_RELAY_IP
+# NAT宿主还需 external-ip=PUBLIC_IP/PRIVATE_IP，relay端口逐一映射。
+min-port=49160
+max-port=49259
+realm=turn.example.invalid
+use-auth-secret
+static-auth-secret=REPLACE_WITH_RANDOM_SECRET
+fingerprint
+stale-nonce=600
+max-allocate-lifetime=600
+user-quota=8
+total-quota=128
+max-bps=262144
+bps-capacity=8388608
+no-cli
+no-multicast-peers
+no-tcp-relay
+no-stdout-log
+cert=/run/secrets/turn.crt
+pkey=/run/secrets/turn.key
+# 防止利用中继扫描本地、私有、链路本地及保留地址。
+denied-peer-ip=0.0.0.0-0.255.255.255
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=100.64.0.0-100.127.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=169.254.0.0-169.254.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+denied-peer-ip=192.0.0.0-192.0.0.255
+denied-peer-ip=192.0.2.0-192.0.2.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=198.18.0.0-198.19.255.255
+denied-peer-ip=198.51.100.0-198.51.100.255
+denied-peer-ip=203.0.113.0-203.0.113.255
+denied-peer-ip=224.0.0.0-255.255.255.255
+denied-peer-ip=::
+denied-peer-ip=::1
+denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+# 禁止IPv4-mapped IPv6绕过IPv4拒绝列表。
+denied-peer-ip=::ffff:0:0-::ffff:ffff:ffff

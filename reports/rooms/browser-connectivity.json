@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-28T21:08:05.207Z",
+  "boundary": "同一远程构建机回环；不代表公网/NAT/跨设备验收",
+  "checks": [
+    {
+      "name": "wt-relay",
+      "transports": [
+        "webtransport",
+        "webtransport"
+      ],
+      "authoritativeSequence": 3,
+      "quicDatagram": "认证后经Node房间协议返回pong",
+      "candidates": {
+        "local": "relay",
+        "remote": "relay",
+        "protocol": "udp",
+        "bytesSent": 2264,
+        "bytesReceived": 2332
+      },
+      "dataChannel": "真实双浏览器临时数据送达"
+    },
+    {
+      "name": "ws-direct",
+      "transports": [
+        "websocket",
+        "websocket"
+      ],
+      "authoritativeSequence": 3,
+      "candidates": {
+        "local": "host",
+        "remote": "host",
+        "protocol": "udp",
+        "bytesSent": 2268,
+        "bytesReceived": 2330
+      },
+      "dataChannel": "真实双浏览器临时数据送达"
+    },
+    {
+      "name": "wt-blocked-fallback",
+      "transports": [
+        "websocket",
+        "websocket"
+      ],
+      "authoritativeSequence": 3
+    }
+  ]
+}

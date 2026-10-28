@@ -1,0 +1,25 @@
+# 模板；实际安装、用户、域名和开放端口须另行授权。
+[Unit]
+Description=WVN WebTransport room transport gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=wvn
+Group=wvn
+EnvironmentFile=/etc/wvn/webtransport.env
+ExecStart=/opt/wvn/bin/wvn-webtransport
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+# 默认高端口/回环；若改为UDP443，需明确配置最小CAP_NET_BIND_SERVICE。
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
