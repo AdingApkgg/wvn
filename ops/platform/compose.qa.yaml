@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:18.6-alpine
+    environment:
+      POSTGRES_USER: wvn_qa
+      POSTGRES_DB: wvn_qa
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    ports:
+      - "127.0.0.1:${PG_PORT:-25439}:5432"
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wvn_qa -d wvn_qa"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    mem_limit: 1g
+    cpus: 2
+  redis:
+    image: redis:8-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?required}
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly no --maxmemory 192mb --maxmemory-policy allkeys-lru"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-26389}:6379"
+    mem_limit: 256m
+    cpus: 1
+  meilisearch:
+    image: getmeili/meilisearch:v1.53
+    environment:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?required}
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MAX_INDEXING_MEMORY: 512Mb
+      MEILI_MAX_INDEXING_THREADS: 2
+    ports:
+      - "127.0.0.1:${MEILI_PORT:-27739}:7700"
+    volumes:
+      - meilisearch:/meili_data
+    mem_limit: 1g
+    cpus: 2
+volumes:
+  postgres:
+  meilisearch:

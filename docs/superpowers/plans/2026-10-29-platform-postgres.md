@@ -47,10 +47,10 @@
 
 **Interfaces:** `PgDatabase` 提供异步 `all/get/run/exec/transaction/close`，每个事务绑定同一个连接；原生 `pg.Pool` 供 Better Auth 使用。离线导入只读 SQLite，以独立目标库、checkpoint、事务、计数和摘要回执工作。
 
-- [ ] 在真实隔离 PG 上增加事务回滚、并发、约束、超时、重复迁移和参数化查询测试，先观察失败。
-- [ ] 实现连接池、事务与版本化迁移；引入锁定依赖和仅回环发布的独立 PG / Redis / Meilisearch Compose。
-- [ ] 实现读取既有 SQLite 的预演/导入/核对工具；SQLite 只出现在离线迁移、旧快照读取场景。
-- [ ] 在构建机跑数据库测试和基线套件，保存回执并独立提交。
+- [x] 在真实隔离 PG 上增加事务回滚、并发、约束、超时、重复迁移和参数化查询测试，先观察失败。
+- [x] 实现连接池、事务与版本化迁移；引入锁定依赖和仅回环发布的独立 PG / Redis / Meilisearch Compose。
+- [x] 实现读取既有 SQLite 的预演/导入/核对工具；SQLite 只出现在离线迁移、旧快照读取场景。
+- [x] 在构建机跑数据库测试和基线套件，保存回执并独立提交。
 
 ## Task 2: 作品目录全量改用异步 PostgreSQL
 
