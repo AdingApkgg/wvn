@@ -13,7 +13,8 @@ const origin=process.env.WVN_VERIFY_ORIGIN??'https://localhost:18981',out=path.j
 const doc=JSON.parse(fs.readFileSync(process.env.WVN_B2_RELEASE_FILE??'/run/wvn-b2/release.json'));const release=doc.release??doc,shared=release.id;
 const gameFrameSelector='iframe[sandbox="allow-scripts"][src^="/__"]';
 const requested=process.argv.slice(2);
-const cases=[{id:'clannad',mobile:true},{id:'artemis-v27448-1'},{id:'tyrano-v49795-1'},{id:'renpy-v50789-1',shared:true}].filter(x=>!requested.length||requested.includes(x.id));
+const cases=[{id:'ons-v1194-1',mobile:true},{id:'clannad',mobile:true},{id:'artemis-v27448-1'},{id:'tyrano-v49795-1'},{id:'renpy-v50789-1',shared:true}].filter(x=>!requested.length||requested.includes(x.id));
+assert(cases.length>0&&requested.every(id=>cases.some(test=>test.id===id)),'Requested browser case is not registered');
 const opts=previewChromiumOptions(process.env.WVN_QA_CERT);opts.args.push('--enable-unsafe-swiftshader','--autoplay-policy=no-user-gesture-required');if(process.env.WVN_QA_PROXY)opts.proxy={server:process.env.WVN_QA_PROXY,bypass:'localhost,127.0.0.1'};
 const require=createRequire(import.meta.url),{PNG}=require(path.dirname(require.resolve('playwright-core/package.json'))+'/lib/utilsBundle.js');
 const browser=await chromium.launch(opts),results=[];
