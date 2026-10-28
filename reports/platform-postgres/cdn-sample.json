@@ -1,0 +1,27 @@
+{
+  "verifiedAt": "2026-10-28T21:56:31Z",
+  "source": "actual full PostgreSQL snapshot resource_full_20261029",
+  "api": {
+    "key": "202305b5-1cec-48c3-ad9c-2dfa87398717",
+    "url": "https://wg-b2.saop.cc/00001b15352958962673bb4cc446601b948a2c9eaebb1540a92a9f00cbabe7b8.bin",
+    "sha256": "00001b15352958962673bb4cc446601b948a2c9eaebb1540a92a9f00cbabe7b8",
+    "bytes": 11638,
+    "contentType": "image/png"
+  },
+  "get": {
+    "status": 200,
+    "bytes": 11638,
+    "sha256": "00001b15352958962673bb4cc446601b948a2c9eaebb1540a92a9f00cbabe7b8",
+    "contentType": "image/png",
+    "cache": "HIT",
+    "allowOrigin": null
+  },
+  "range": {
+    "status": 206,
+    "contentRange": "bytes 0-31/11638",
+    "bytes": 32
+  },
+  "seconds": 0.741,
+  "browserCorsPassed": false,
+  "productionChanged": false
+}

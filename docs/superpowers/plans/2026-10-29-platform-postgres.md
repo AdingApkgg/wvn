@@ -1,6 +1,6 @@
 # PostgreSQL、资源 API、搜索与联机基础 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 全站运行时改用 PostgreSQL，通过抽象资源 key 返回 wg-b2.saop.cc URL，接入 Redis、Meilisearch，以及可实际连通的 WS / WebRTC / coturn / WebTransport 房间基础能力。
 
@@ -68,10 +68,10 @@
 
 **Interfaces:** Better Auth 直接接 `pg.Pool`；账号领域仓储均异步，公开 HTTP 合约与 BlobStore 合约不变。备份使用 PG 一致性快照及受保护的私有文件/撤销日志清单，恢复到独立目标先核对再使用。
 
-- [ ] 使用 PG fixture 跑既有账号、Passkey、撤销、存档冲突、分享及统计测试并确认预期失败。
-- [ ] 改造所有仓储、事务、hooks 和调用者，保留 ID / 时间语义 / cookie / 私有存档隔离；并发约束不再依靠进程内单连接锁。
-- [ ] 实现 PG 备份恢复与 SQLite 旧快照导入验证，覆盖已删除账号和已撤销分享不能复活。
-- [ ] 运行完整服务回归及浏览器账号/存档流程，独立提交。
+- [x] 使用 PG fixture 跑既有账号、Passkey、撤销、存档冲突、分享及统计测试并确认预期失败。
+- [x] 改造所有仓储、事务、hooks 和调用者，保留 ID / 时间语义 / cookie / 私有存档隔离；并发约束不再依靠进程内单连接锁。
+- [x] 实现 PG 备份恢复与 SQLite 旧快照导入验证，覆盖已删除账号和已撤销分享不能复活。
+- [x] 运行完整服务回归及浏览器账号/存档流程，独立提交。
 
 ## Task 4: 资源 key API、Redis 缓存与实际映射导入
 
@@ -79,10 +79,11 @@
 
 **Interfaces:** `ResourceRepository.resolve(key)` / `resolveMany(keys)` 返回公开资源记录；统一 URL 构造只接受有效 SHA-256。导入相同 `(namespace,original_path)` 保留已分配 UUID；变更内容拒绝覆盖。
 
-- [ ] 在真实 PG / Redis 上测试 key、中文路径、MIME、批量上限、未知 key、cache 故障和不可变冲突，先观察失败。
-- [ ] 建立索引、接口、Redis 有界 TTL 缓存、版本级分页清单和既有资源身份桥接。
-- [ ] 分批导入冻结完成的 1,420,065 路径；核对计数、全行摘要及抽样 API → CDN 字节 SHA-256，不下载整桶。
-- [ ] 浏览器验证实际运行时请求、CORS / COEP、MIME / Range 与相对引用，独立提交。
+- [x] 在真实 PG / Redis 上测试 key、中文路径、MIME、批量上限、未知 key、cache 故障和不可变冲突，先观察失败。
+- [x] 建立索引、接口、Redis 有界 TTL 缓存、版本级分页清单和既有资源身份桥接。
+- [x] 分批导入冻结完成的 1,420,065 路径；核对计数、全行摘要及抽样 API → CDN 字节 SHA-256，不下载整桶。
+- [x] 实际浏览器验证资源 API 与 COEP/CORS 阻断边界；真实源 key → CDN 小文件 SHA-256、PNG MIME、Range 206 已核对，已独立提交。
+- [ ] 生产 CORS 应用后验收各引擎直接加载、WASM / 脚本 MIME 及相对引用；本轮未获生产变更授权，保留为上线前步骤。
 
 ## Task 5: Meilisearch 作品搜索与可靠索引
 
@@ -90,26 +91,26 @@
 
 **Interfaces:** `searchWorks({q,engine,state,tag,limit,offset})` 提供目录搜索；索引 worker 从 PG outbox 消费并等待 Meilisearch task 完成，支持全量重建。
 
-- [ ] 用真实 Meilisearch 测试中文/别名、筛选、隐藏作品、异步失败重试及故障降级，先观察失败。
-- [ ] 接入文档与索引设置、公开查询 API 和目录页，内部密钥不进入浏览器；追加索引更新事务 outbox。
-- [ ] 验证重建、重跑幂等、已隐藏结果回滤和可见错误，独立提交。
+- [x] 用真实 Meilisearch 测试中文/别名、筛选、隐藏作品、异步失败重试及故障降级，先观察失败。
+- [x] 接入文档与索引设置、公开查询 API 和目录页，内部密钥不进入浏览器；追加索引更新事务 outbox。
+- [x] 验证重建、重跑幂等、已隐藏结果回滤和可见错误，独立提交。
 
 ## Task 6: 房间、WS、WebRTC、coturn 与 WebTransport
 
 **Files:** `src/rooms/{repository,protocol,http,websocket,turn}.ts`, `public/player/room-client.mjs`, `services/webtransport/`, `ops/platform/turnserver.conf.example`, `tests/rooms*.test.ts`。
 
-**Interfaces:** 版本化 JSON 消息 envelope `{v,id,type,roomId,seq,payload}`；PG 房间授权/序号/幂等事件，Redis 通知和一次性短期 ticket；WT 网关通过私有、鉴权连接进入同一房间服务。
+**Interfaces:** 初版 WS / WT 消息以 `docs/rooms.md` 的 `{type,...}` 协议为准，业务事件携带 id / seq / kind / data；PG 房间授权、序号与幂等事件，Redis 通知和一次性短期 ticket，WT 进入同一房间服务。跨版本协议协商留待后续玩法演进。
 
-- [ ] 写创建/加入/退出/关闭、两用户定向信令、角色、重连、ticket 重放/过期、origin、大小与速率限制测试，先观察失败。
-- [ ] 实现房间 REST、WS、coturn REST HMAC 短期凭据、浏览器 WebRTC DataChannel 建链和 WS 回退。
-- [ ] 实现独立 Go HTTP/3 WT 流/数据报网关及浏览器 WT 连接适配，服务端统一鉴权，失败回退 WS。
-- [ ] 在远程浏览器验证双客户端、强制 TURN relay、真实 WT QUIC、重连和跨房间拒绝，保存连通证据，独立提交。
+- [x] 写创建/加入/退出/关闭、两用户定向信令、角色、重连、ticket 重放/过期、origin、大小与速率限制测试，先观察失败。
+- [x] 实现房间 REST、WS、coturn REST HMAC 短期凭据、浏览器 WebRTC DataChannel 建链和 WS 回退。
+- [x] 实现独立 Go HTTP/3 WT 流/数据报网关及浏览器 WT 连接适配，服务端统一鉴权，失败回退 WS。
+- [x] 在远程浏览器验证双客户端、强制 TURN relay、真实 WT QUIC、重连和跨房间拒绝，保存连通证据，独立提交。
 
 ## Task 7: 全站集成、数据演练与交付
 
 **Files:** `ops/platform/`, `.env.example`, `README.md`, `docs/platform-postgres.md`, 本任务验证回执。
 
-- [ ] 生成可运行的隔离部署配置、健康检查、资源限制、独立卷、备份和回滚步骤；TURN / WT 默认不开放公网。
-- [ ] 跑全量测试、类型检查、生产构建、迁移重跑/恢复和远程浏览器流程；记录通过范围和未获生产授权的操作。
-- [ ] 使用新上下文审阅全分支，修复实质问题并复测；分功能保留本地提交。
-- [ ] 交付 API 示例、数据核对、服务连通证据、预览入口与生产切换所需的具体清单。没有生产授权时不推送、不切换生产。
+- [x] 生成可运行的隔离部署配置、健康检查、资源限制、独立卷、备份和回滚步骤；TURN / WT 默认不开放公网。
+- [x] 跑全量测试、类型检查、生产构建、迁移重跑/恢复和远程浏览器流程；记录通过范围和未获生产授权的操作。
+- [x] 使用新上下文审阅全分支，修复实质问题并复测；分功能保留本地提交。
+- [x] 交付 API 示例、数据核对、服务连通证据、可重跑的隔离验收入口与生产切换所需的具体清单。没有生产授权时不推送、不切换生产。

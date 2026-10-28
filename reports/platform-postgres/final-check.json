@@ -1,0 +1,29 @@
+{
+  "verifiedAt": "2026-10-28T22:18:29.522542+00:00",
+  "host": "localhost",
+  "sourceFilesMatched": 395,
+  "sourceManifestSha256": "52c435ff2f7a4d888b5525b4866f728f35f208a96abe6abb356fe7e628072c12",
+  "unitJob": "wvn-platform-20261029-runtime-final-check",
+  "unitExitCode": 0,
+  "typescript": {
+    "tests": 239,
+    "pass": 239,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "javascript": {
+    "tests": 106,
+    "pass": 106,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "typecheck": "passed",
+  "productionBuild": "passed",
+  "serverBuildSha256": "67a102d0d38e0b79c5868130b5862ed44c2e21bcf702df979003cf22dfabfc3c",
+  "browserJob": "wvn-platform-20261029-platform-browser-03",
+  "browserExitCode": 0,
+  "productionChanged": false,
+  "pushed": false
+}
