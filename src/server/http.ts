@@ -36,6 +36,7 @@ export function createPublicApp(
   store: Store,
   root: string,
   mediaRoot?: string,
+  publicApi?: Hono,
 ) {
   const app = base();
   if (process.env.WG_ONS_PILOT === "1") registerOnsPilot(app, root);
@@ -77,6 +78,7 @@ export function createPublicApp(
     const w = (await store.get(id));
     return w?.versions.length ? c.json(w) : c.notFound();
   });
+  if (publicApi) app.route("/", publicApi);
   app.use("*", async (c, next) => {
     if (c.req.method !== "GET" && c.req.method !== "HEAD") return c.notFound();
     const path = new URL(c.req.url).pathname;

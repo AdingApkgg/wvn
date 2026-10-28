@@ -1,14 +1,16 @@
+import { mountPublicPlatform } from './src/platform/public.server.ts';
+import { mountAccountRooms } from './src/platform/rooms.server.ts';
 import {configuredCloudRuntime} from './src/engines/cloud-runtime.ts';
 import {configuredCandidate} from './src/engines/candidate.ts';
 import {registerEngineArtifacts} from './src/engines/artifacts.ts';
 import { serve } from "@hono/node-server";
-import { createServer } from "node:https";
+import { createServer, Server as HttpsServer } from "node:https";
 import { createShareAdminApp } from "./src/accounts/share-admin.server.ts";
 import { writeFileSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {configurePublicProjection}from"./src/accounts/public-projection.server.ts";
-import { projectCatalog } from "./src/accounts/catalog.server.ts";
+import { catalogProvider } from "./src/accounts/catalog-policy.server.ts";
 import { createAccountService } from "./src/accounts/service.server.ts";
 import { fileResponse } from "./src/server/resources.ts";
 import { createRequestHandler, RouterContextProvider } from "react-router";
@@ -41,16 +43,16 @@ const service = await createAccountService({
   revision: process.env.WG_ACCOUNT_REVISION,
   shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
   catalogOrigin: process.env.WG_ACCOUNT_CATALOG_ORIGIN,
-  catalogProvider:process.env.WG_ALL_ENGINES==='1'?async()=>(await getStore().list()).filter(w=>w.versions.length).map(w=>({id:w.id,title:w.title,url:w.url,versions:w.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))})):undefined,
-  database: required("WG_ACCOUNT_DATABASE"),
+  catalogProvider:process.env.WG_ACCOUNT_CATALOG_ORIGIN?catalogProvider(process.env.WG_ACCOUNT_CATALOG_ORIGIN):async()=>(await getStore().list()).filter(w=>w.versions.length).map(w=>({id:w.id,title:w.title,url:w.url,versions:w.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))})),
+  database: process.env.WG_ACCOUNT_DATABASE_URL ?? required("WG_ACCOUNT_DATABASE"),
+  databaseSchema: process.env.WG_ACCOUNT_DATABASE_SCHEMA,
   deletionLedger: required("WG_ACCOUNT_DELETION_LEDGER"),
   blobRoot: required("WG_ACCOUNT_BLOBS"),
   blobBackend: process.env.WG_BLOB_UPSTREAM ? new RemoteBlobStore(process.env.WG_BLOB_UPSTREAM, readFileSync(required("WG_BLOB_TOKEN_FILE"), "utf8").trim()) : undefined,
-  catalog: projectCatalog(
-    JSON.parse(readFileSync("data/catalog.json", "utf8")),
-  ),
   secret: readFileSync(required("WG_ACCOUNT_SECRET_FILE"), "utf8").trim(),
 });
+const platform = await mountPublicPlatform(service.app, getStore());
+const rooms = await mountAccountRooms(service, getStore());
 if(service.sharing&&process.env.WG_ALL_ENGINES==='1')configurePublicProjection(origin,service.app.fetch);
 const moderation = service.sharing
   ? createShareAdminApp(service, required("WG_SHARE_ADMIN_ORIGIN"))
@@ -126,6 +128,10 @@ const server = serve(
   },
   () => console.log(`WG accounts: ${origin} (${bind})`),
 );
+if (rooms) {
+  if (!(server instanceof HttpsServer)) throw new Error('Rooms require the configured HTTPS server');
+  rooms.attachWebSocket(server);
+}
 if ("requestTimeout" in server) server.requestTimeout = 300_000;
 if ("headersTimeout" in server) server.headersTimeout = 10_000;
 server.setTimeout(15_000);
@@ -142,10 +148,12 @@ const adminServer = moderation
       },
     })
   : null;
-process.on("SIGTERM", () => {
-  adminServer?.close();
-  server.close(() => {
-    service.close();
-    process.exit(0);
-  });
-});
+let stopping = false;
+async function stop() {
+  if (stopping) return; stopping = true;
+  await rooms?.close();
+  await Promise.all([server, ...(adminServer ? [adminServer] : [])].map(listener => new Promise<void>((resolve, reject) => listener.close(error => error ? reject(error) : resolve()))));
+  await platform.close(); await service.close(); await getStore().close();
+}
+process.once("SIGTERM", () => { stop().catch(() => { process.exitCode = 1; }); });
+process.once("SIGINT", () => { stop().catch(() => { process.exitCode = 1; }); });

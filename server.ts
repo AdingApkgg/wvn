@@ -1,3 +1,4 @@
+import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { createRequestHandler, RouterContextProvider } from "react-router";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -6,6 +7,7 @@ import { getStore } from "./src/server/runtime.ts";
 import { createPublicApp, createAdminApp } from "./src/server/http.ts";
 import { Auth } from "./src/server/auth.ts";
 import { fileResponse } from "./src/server/resources.ts";
+import { mountPublicPlatform } from "./src/platform/public.server.ts";
 const store = getStore();
 await store.ready;
 const auth = new Auth();
@@ -13,10 +15,13 @@ const stateDir = resolve(process.env.WG_STATE_DIR ?? "state");
 mkdirSync(stateDir, { recursive: true });
 writeFileSync(resolve(stateDir, "admin-token"), auth.token, { mode: 0o600 });
 const root = resolve(process.env.WG_RESOURCE_ROOT ?? "fixtures/resources");
+const publicApi = new Hono();
+const platform = await mountPublicPlatform(publicApi, store);
 const pub = createPublicApp(
   store,
   root,
   resolve(process.env.WG_MEDIA_ROOT ?? "media"),
+  publicApi,
 );
 const admin = createAdminApp(
   store,
@@ -39,9 +44,17 @@ for (const app of [pub, admin]) {
 const host = "127.0.0.1";
 const port = Number(process.env.WG_PORT ?? 8281),
   adminPort = Number(process.env.WG_ADMIN_PORT ?? 8282);
-serve({ fetch: pub.fetch, hostname: host, port }, () =>
+const publicServer = serve({ fetch: pub.fetch, hostname: host, port }, () =>
   console.log(
     `WG preview: http://${host}:${port}; private admin: 127.0.0.1:${adminPort}`,
   ),
 );
-serve({ fetch: admin.fetch, hostname: "127.0.0.1", port: adminPort });
+const adminServer = serve({ fetch: admin.fetch, hostname: "127.0.0.1", port: adminPort });
+let stopping = false;
+async function stop() {
+  if (stopping) return; stopping = true;
+  await Promise.all([publicServer, adminServer].map(server => new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()))));
+  await platform.close(); await store.close();
+}
+process.once("SIGTERM", () => { stop().catch(() => { process.exitCode = 1; }); });
+process.once("SIGINT", () => { stop().catch(() => { process.exitCode = 1; }); });
