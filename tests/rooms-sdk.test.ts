@@ -348,3 +348,38 @@ test('simultaneous openPeer and incoming offer share one peer after both TURN re
     client.close(); assert.equal(closed, 1, 'close must reclaim the only constructed peer');
   } finally { client.close(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; globalThis.RTCPeerConnection = originalPeer; }
 });
+
+test('temporary signaling reconnect closes old peers and permits a fresh usable peer', async () => {
+  const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport, originalPeer = globalThis.RTCPeerConnection;
+  const transport = controlledWebTransport(), timers = manualSdkTimers();
+  let created = 0, closed = 0;
+  globalThis.fetch = (async (input: unknown) => String(input).endsWith('/turn')
+    ? Response.json({ urls: ['turn:127.0.0.1:28440'], username: 'qa', credential: 'qa' })
+    : Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' })) as typeof fetch;
+  (globalThis as any).WebTransport = transport.WT;
+  globalThis.RTCPeerConnection = class {
+    localDescription: any;
+    constructor() { created++; }
+    createDataChannel() { return { close() {} }; }
+    async createOffer() { return { type: 'offer', sdp: 'qa' }; }
+    async setLocalDescription(value: any) { this.localDescription = { toJSON: () => value }; }
+    close() { closed++; }
+  } as any;
+  const client = new RoomClient({ roomId: 'peer-reconnect', baseUrl: 'https://sdk.test' });
+  try {
+    await client.connect(); client.snapshot!.members.push({ userId: 'member', displayName: 'Member' });
+    const oldPeer = await client.openPeer('member');
+    transport.instances[0].fail();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(closed, 1, 'temporary signaling disconnect must close the old generation peer');
+    assert.equal(client.peers.size, 0);
+    await timers.advance();
+    assert.equal(client.transport, 'webtransport');
+    client.snapshot!.members.push({ userId: 'member', displayName: 'Member' });
+    const fresh = await client.openPeer('member');
+    assert.notEqual(fresh, oldPeer);
+    assert.equal(created, 2);
+    assert.equal(client.peers.size, 1);
+    client.close(); assert.equal(closed, 2);
+  } finally { client.close(); timers.restore(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; globalThis.RTCPeerConnection = originalPeer; }
+});

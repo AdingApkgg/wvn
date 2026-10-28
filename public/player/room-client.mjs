@@ -355,6 +355,8 @@ export class RoomClient extends EventTarget {
   resetTransport() {
     ++this.generation;
     this.write = null; this.onReady = null; this.transport = null; this.signalChain = null;
+    // 新信令generation必须重新建peer，不能保留回调绑定旧attempt的连接。
+    for (const id of this.peers.keys()) this.closePeer(id);
     this.connection?.close(); this.connection = null;
     this.writer?.releaseLock(); this.writer = null;
     this.datagramWriter?.releaseLock(); this.datagramWriter = null;
