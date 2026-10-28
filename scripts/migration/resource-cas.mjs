@@ -1,4 +1,4 @@
-// 只生成 SHA-256 对象及独立 SQLite 路径索引；不修改源文件或调用云服务。
+// 只生成 {SHA-256}.bin 对象及独立 SQLite 路径索引；不修改源文件或调用云服务。
 import { createHash, randomUUID } from 'node:crypto';
 import { constants, createWriteStream } from 'node:fs';
 import { lstat, realpath, readdir, open, mkdir, mkdtemp, link, unlink, rm } from 'node:fs/promises';
@@ -162,7 +162,7 @@ export async function stageResources(options) {
       }
       if (!seen.has(object.sha256)) {
         if (apply) {
-          const created = await publish(temporary, join(objects, object.sha256), object);
+          const created = await publish(temporary, join(objects, object.sha256 + '.bin'), object);
           if (created) report.writtenObjects++; else report.reusedObjects++;
         }
         seen.set(object.sha256, object.bytes);
@@ -193,7 +193,7 @@ async function main() {
     namespace: { type: 'string' }, apply: { type: 'boolean', default: false }, help: { type: 'boolean' },
   } });
   if (values.help) {
-    console.log('用法：node scripts/migration/resource-cas.mjs --source <源目录> --objects <对象目录> --database <独立SQLite文件> --namespace <游戏版本或资源批次> [--apply]\n默认只预演；--apply 生成无后缀 SHA-256 对象和 SQLite 映射，保留所有源文件。');
+    console.log('用法：node scripts/migration/resource-cas.mjs --source <源目录> --objects <对象目录> --database <独立SQLite文件> --namespace <游戏版本或资源批次> [--apply]\n默认只预演；--apply 生成 {sha256}.bin 对象和 SQLite 映射，保留所有源文件。');
     return;
   }
   const result = await stageResources({ ...values, onProgress: progress => {

@@ -1,6 +1,6 @@
 # SHA-256 对象命名与 SQLite 原路径索引
 
-本阶段只处理公共资源的命名和映射记录。采用完整文件内容的 SHA-256，生成 64 个小写十六进制字符组成的对象名，无后缀、不转码。原相对路径保存在独立 SQLite 数据库中。
+本阶段只处理公共资源的命名和映射记录。采用完整文件内容的 SHA-256，生成 64 个小写十六进制字符加 `.bin` 后缀的对象名，不转码。原相对路径保存在独立 SQLite 数据库中。
 
 脚本保留源文件，在独立目录生成新命名的对象；同内容只保留一个对象。例如：
 
@@ -10,10 +10,10 @@
   voice/001.ogg
 
 对象目录：/srv/cas-objects/
-  <title.png 的完整 SHA-256>
-  <001.ogg 的完整 SHA-256>
+  <title.png 的完整 SHA-256>.bin
+  <001.ogg 的完整 SHA-256>.bin
 
-未来上传的目标：s3://web-visual-novel/<完整 SHA-256>
+未来上传的目标：s3://web-visual-novel/<完整 SHA-256>.bin
 ```
 
 本命令不上传 B2/R2，不重命名已有远程对象，不改数据库 API、CF 缓存规则、播放器或生产配置。输出目录可以在后续阶段原样上传到桶根。
@@ -50,7 +50,7 @@ node scripts/migration/resource-cas.mjs \
 ## SQLite 记录
 
 ```sql
--- 内容身份。对象 Key 就是 sha256，不另存重复字段。
+-- 内容身份。对象 Key 由 sha256 加固定后缀 .bin 得到，不另存重复字段。
 resource_objects(
   sha256 TEXT PRIMARY KEY,
   bytes INTEGER NOT NULL
@@ -66,12 +66,12 @@ resource_paths(
 )
 ```
 
-实际 DDL 使用 STRICT 表、SHA-256 格式与文件大小 CHECK、外键，以及哈希反查索引。MIME 根据原扩展名记录，未知类型记作 `application/octet-stream`，不根据无后缀对象名猜测。
+实际 DDL 使用 STRICT 表、SHA-256 格式与文件大小 CHECK、外键，以及哈希反查索引。`sha256` 列只保存摘要，不含 `.bin`。MIME 根据原扩展名记录，未知类型记作 `application/octet-stream`，不根据统一的 `.bin` 对象名猜测。
 
 查找一个原路径对应的对象：
 
 ```sql
-SELECT p.namespace, p.original_path, p.sha256 AS object_key,
+SELECT p.namespace, p.original_path, p.sha256 || '.bin' AS object_key,
        o.bytes, p.content_type
 FROM resource_paths p
 JOIN resource_objects o ON o.sha256 = p.sha256
@@ -85,7 +85,7 @@ WHERE p.namespace = 'example/v1'
 - 同批相同内容去重；已有目标重新核验完整 SHA-256 和大小，校验失败会停止，不覆盖。
 - 同一命名空间、同一原路径已对应不同内容时停止。更新资源应使用新的命名空间，旧记录保持不变；重跑不会删除源目录中已经消失的历史路径。
 - 每批映射在一个事务内提交；失败则回滚本批数据库修改。文件系统与 SQLite 不是一个跨系统事务：失败前已生成的合法哈希对象可能保留，重跑会核验并复用。
-- 进程正常结束会清理本轮暂存目录。异常断电或强制终止可能留下 `.sha256-*` 目录，后续上传对象时只应选取完整的 64 位小写十六进制文件名。
+- 进程正常结束会清理本轮暂存目录。异常断电或强制终止可能留下 `.sha256-*` 目录，后续上传对象时只应选取匹配 `^[0-9a-f]{64}\.bin$` 的文件名。
 - 输出目录和源目录不能重叠，数据库不得放在任一资源目录内；符号链接和非普通文件会被拒绝。源目录只应指向明确选择的公共资源，脚本不负责判断文件是否可公开。
 
 ## 已验证范围
@@ -96,4 +96,4 @@ WHERE p.namespace = 'example/v1'
 node --test tests/resource-cas.test.mjs
 ```
 
-9 项测试通过，覆盖预演无写入、无后缀完整摘要、空文件、中文路径、相同内容不同扩展名、同名不同内容、跨命名空间去重、幂等重跑、跨读取块的二进制完整性、源文件变化不影响对象、已有对象损坏、映射事务回滚、路径隔离、符号链接拒绝、SQLite 约束和其他数据库保护。尚未对真实游戏资源进行全量迁移。
+专用测试覆盖预演无写入、完整摘要加 `.bin` 命名、空文件、中文路径、相同内容不同扩展名、同名不同内容、跨命名空间去重、幂等重跑、跨读取块的二进制完整性、源文件变化不影响对象、已有对象损坏、映射事务回滚、路径隔离、符号链接拒绝、SQLite 约束和其他数据库保护。

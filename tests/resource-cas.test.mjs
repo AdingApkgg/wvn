@@ -12,6 +12,7 @@ import { promisify } from 'node:util';
 const exec = promisify(execFile);
 const command = fileURLToPath(new URL('../scripts/migration/resource-cas.mjs', import.meta.url));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const key = bytes => digest(bytes) + '.bin';
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'wvn-cas-test-'));
@@ -43,7 +44,7 @@ test('default dry-run hashes resources without creating objects or SQLite', asyn
   await assert.rejects(stat(f.database), { code: 'ENOENT' });
 });
 
-test('apply keeps source bytes, uses complete extensionless SHA-256 and indexes original paths', async t => {
+test('apply keeps source bytes, uses complete SHA-256 with .bin and indexes original paths', async t => {
   const f = await fixture(t);
   await mkdir(join(f.source, '背景'));
   await mkdir(join(f.source, 'other'));
@@ -55,8 +56,8 @@ test('apply keeps source bytes, uses complete extensionless SHA-256 and indexes 
   assert.equal(first.files, 4);
   assert.equal(first.uniqueObjects, 3);
   assert.equal(first.writtenObjects, 3);
-  assert.deepEqual((await readdir(f.objects)).sort(), [digest('same bytes'), digest('different bytes'), digest('')].sort());
-  assert.equal(await readFile(join(f.objects, digest('same bytes')), 'utf8'), 'same bytes');
+  assert.deepEqual((await readdir(f.objects)).sort(), [key('same bytes'), key('different bytes'), key('')].sort());
+  assert.equal(await readFile(join(f.objects, key('same bytes')), 'utf8'), 'same bytes');
   assert.equal(await readFile(join(f.source, '背景', '标题 #1.png'), 'utf8'), 'same bytes');
   const db = open(t, f.database);
   const rows = db.prepare('SELECT * FROM resource_paths ORDER BY original_path').all();
@@ -81,7 +82,7 @@ test('multi-chunk binary objects retain all bytes and do not share storage with 
   await writeFile(original, bytes);
   const result = JSON.parse((await run(f, ['--apply'])).stdout);
   assert.equal(result.sourceBytes, bytes.length);
-  const stored = join(f.objects, digest(bytes));
+  const stored = join(f.objects, key(bytes));
   assert.deepEqual(await readFile(stored), bytes);
   await writeFile(original, 'changed source');
   assert.deepEqual(await readFile(stored), bytes);
@@ -108,12 +109,12 @@ test('an existing same-size corrupted hash object is not overwritten or trusted'
   const f = await fixture(t);
   await writeFile(join(f.source, 'asset.bin'), 'good');
   await mkdir(f.objects);
-  await writeFile(join(f.objects, digest('good')), 'evil');
+  await writeFile(join(f.objects, key('good')), 'evil');
   await assert.rejects(run(f, ['--apply']), e => /已有对象校验失败/.test(e.stderr));
-  assert.equal(await readFile(join(f.objects, digest('good')), 'utf8'), 'evil');
+  assert.equal(await readFile(join(f.objects, key('good')), 'utf8'), 'evil');
   const db = open(t, f.database);
   assert.equal(db.prepare('SELECT count(*) AS n FROM resource_paths').get().n, 0);
-  assert.deepEqual(await readdir(f.objects), [digest('good')]);
+  assert.deepEqual(await readdir(f.objects), [key('good')]);
 });
 
 test('source and object symlinks are rejected', async t => {
@@ -125,7 +126,7 @@ test('source and object symlinks are rejected', async t => {
   await rm(join(f.source, 'link.txt'));
   await writeFile(join(f.source, 'a.txt'), 'private');
   await mkdir(f.objects, { recursive: true });
-  await symlink(outside, join(f.objects, digest('private')));
+  await symlink(outside, join(f.objects, key('private')));
   await assert.rejects(run(f, ['--apply']), e => /已有对象校验失败/.test(e.stderr));
   assert.equal(await readFile(outside, 'utf8'), 'private');
 });
