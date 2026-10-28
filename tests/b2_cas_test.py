@@ -67,6 +67,89 @@ class MigrationTests(unittest.TestCase):
     def run_rows(self, rows, **kwargs):
         return cas.migrate(self.client, rows, self.db, 'bucket/snapshot', workers=4, **kwargs)
 
+    def cache(self, row, **changes):
+        path = self.root / 'hash-cache.sqlite'
+        value = {'file_id': row['fileId'], 'file_name': row['fileName'], 'bytes': row['contentLength'],
+                 'sha1': cas.expected_sha1(row), 'sha256': sha256(self.client.data[row['fileId']]), **changes}
+        with sqlite3.connect(path) as db:
+            db.executescript('''CREATE TABLE cache_snapshot(inventory_sha256 TEXT);
+                INSERT INTO cache_snapshot VALUES('snapshot');
+                CREATE TABLE source_hashes(file_id TEXT PRIMARY KEY,file_name TEXT,bytes INTEGER,sha1 TEXT,sha256 TEXT);''')
+            db.execute('INSERT INTO source_hashes VALUES(:file_id,:file_name,:bytes,:sha1,:sha256)', value)
+        cache = cas.HashCache(path, 'snapshot')
+        self.addCleanup(cache.close)
+        return cache
+
+    def test_bound_sha256_cache_avoids_source_download_and_preserves_copy_verification(self):
+        row = self.client.source('releases/a.png', b'cached-content')
+        result = self.run_rows([row], hash_cache=self.cache(row))
+        self.assertEqual(self.client.downloads, [])
+        self.assertEqual(result['cachedHashFiles'], 1)
+        self.assertEqual(result['cachedHashBytes'], len(b'cached-content'))
+        self.assertEqual(result['remoteHashFiles'], 0)
+        self.assertEqual(self.client.copies, [(row['fileId'], sha256(b'cached-content') + '.bin')])
+        self.assertEqual(cas.verify_cloud(self.client, self.db)['verifiedObjects'], 1)
+
+    def test_cache_version_name_size_and_sha1_mismatches_fall_back_to_full_source_read(self):
+        row = self.client.source('releases/a.png', b'current-content')
+        cache = self.cache(row)
+        for field, value in [('fileId', 'new-version'), ('fileName', 'new-name'),
+                             ('contentLength', row['contentLength'] + 1), ('contentSha1', '0' * 40)]:
+            with self.subTest(field=field):
+                self.assertIsNone(cache.lookup(dict(row, **{field: value})))
+        with sqlite3.connect(self.root / 'hash-cache.sqlite') as db:
+            db.execute("UPDATE source_hashes SET sha1=?", ('0' * 40,))
+        result = self.run_rows([row], hash_cache=cache)
+        self.assertEqual(result['cachedHashFiles'], 0)
+        self.assertEqual(self.client.downloads, [row['fileId']])
+
+    def test_hash_cache_from_another_snapshot_is_rejected(self):
+        row = self.client.source('a.png', b'content')
+        self.cache(row)
+        with self.assertRaises(cas.MigrationError):
+            cas.HashCache(self.root / 'hash-cache.sqlite', 'other-snapshot')
+
+    def test_readonly_cache_sees_new_verified_bindings_without_restarting(self):
+        first = self.client.source('first.png', b'first')
+        second = self.client.source('second.png', b'second')
+        cache = self.cache(first)
+        self.assertIsNone(cache.lookup(second))
+        with sqlite3.connect(self.root / 'hash-cache.sqlite') as writer:
+            writer.execute('INSERT INTO source_hashes VALUES(?,?,?,?,?)',
+                (second['fileId'], second['fileName'], second['contentLength'], cas.expected_sha1(second), sha256(b'second')))
+        result = self.run_rows([first, second], hash_cache=cache)
+        self.assertEqual(result['cachedHashFiles'], 2)
+        self.assertEqual(self.client.downloads, [])
+
+    def test_cached_identity_never_skips_validation_of_an_existing_bin(self):
+        row = self.client.source('a.png', b'good')
+        key = sha256(b'good') + '.bin'
+        self.client.targets[key] = self.client.source(key, b'evil')
+        result = self.run_rows([row], hash_cache=self.cache(row))
+        self.assertEqual(result['errors'], 1)
+        self.assertEqual(self.client.copies, [])
+        self.assertNotIn(row['fileId'], self.client.downloads)
+
+    def test_cache_does_not_bypass_multipart_hashing_or_customer_encryption_requirements(self):
+        row = self.client.source('a.png', b'content')
+        cache = self.cache(row)
+        with patch.object(cas, 'COPY_LIMIT', 1):
+            self.assertIsNone(cache.lookup(row))
+        self.assertIsNone(cache.lookup(dict(row, serverSideEncryption={'mode': 'SSE-C'})))
+
+    def test_pause_drains_inflight_work_saves_receipts_and_resumes_without_recopy(self):
+        rows = [self.client.source(str(i), str(i).encode()) for i in range(100)]
+        result = self.run_rows(rows, stop_requested=lambda: bool(self.client.copies))
+        self.assertEqual(result['status'], 'paused')
+        self.assertGreater(result['verified'], 0)
+        self.assertLess(result['verified'], len(rows))
+        finished = result['verified']
+        result = self.run_rows(rows)
+        self.assertEqual(result['status'], 'complete')
+        self.assertEqual(result['verified'], len(rows))
+        self.assertEqual(result['resumedFiles'], finished)
+        self.assertEqual(len(self.client.copies), len(rows))
+
     def test_server_copy_deduplicates_and_preserves_original_path_mime_and_version(self):
         rows = [self.client.source('imports/背景 #1.png', b'same', 'image/png'),
                 self.client.source('releases/engine.wasm', b'same', 'application/wasm'),

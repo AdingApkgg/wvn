@@ -105,6 +105,34 @@ def source_identity(client, item, local_roots):
     return value, False
 
 
+class HashCache:
+    """只读缓存须有完整字节摘要的校验依据，并绑定同一冻结清单及不可变 fileId。"""
+    def __init__(self, file, inventory_sha256):
+        self.db = sqlite3.connect(Path(file).resolve().as_uri() + '?mode=ro', uri=True)
+        self.db.row_factory = sqlite3.Row
+        snapshot = self.db.execute('SELECT inventory_sha256 FROM cache_snapshot').fetchone()
+        if not snapshot or snapshot[0] != inventory_sha256:
+            self.db.close()
+            raise MigrationError('摘要缓存不属于当前冻结清单')
+
+    def lookup(self, item):
+        if (item['contentLength'] >= COPY_LIMIT or not expected_sha1(item)
+                or (item.get('serverSideEncryption') or {}).get('mode') == 'SSE-C'):
+            return None
+        row = self.db.execute('SELECT * FROM source_hashes WHERE file_id=?', (item['fileId'],)).fetchone()
+        if not row:
+            return None
+        if (row['file_name'] != item['fileName'] or row['bytes'] != item['contentLength']
+                or row['sha1'] != expected_sha1(item)):
+            return None
+        if not re.fullmatch('[0-9a-f]{64}', row['sha256']):
+            raise FatalMigrationError('摘要缓存中的 SHA-256 非法')
+        return {'sha256': row['sha256'], 'sha1': row['sha1'], 'bytes': row['bytes'], 'parts': []}
+
+    def close(self):
+        self.db.close()
+
+
 class B2Remote:
     def __init__(self, config_file, remote, bucket_id, allow_direct=False):
         if not allow_direct and not (os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy')):
@@ -262,7 +290,8 @@ def database(file):
     return db
 
 
-def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progress=None, inventory_sha256=None):
+def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progress=None, inventory_sha256=None,
+            hash_cache=None, stop_requested=None):
     if not namespace or not 1 <= workers <= 128:
         raise MigrationError('命名空间或工作线程数无效')
     db = database(db_file)
@@ -277,11 +306,15 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
         ready = {}
         report = {'status': 'running', 'processed': 0, 'verified': 0, 'errors': 0, 'copiedObjects': 0,
             'reusedMappings': 0, 'bytesVerified': 0, 'localHashFiles': 0, 'remoteHashFiles': 0,
+            'cachedHashFiles': 0, 'cachedHashBytes': 0, 'resumedFiles': 0,
             'startedAt': time.time()}
 
-        def process(item):
+        def process(item, cached):
             try:
-                value, local = source_identity(client, item, local_roots)
+                if cached is not None:
+                    value, local = cached, False
+                else:
+                    value, local = source_identity(client, item, local_roots)
                 key = value['sha256'] + '.bin'
                 with locks[int(value['sha256'][:2], 16)]:
                     created = False
@@ -298,15 +331,15 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
                         if target['fileName'] != key or not valid_content(target, value):
                             raise MigrationError('服务端复制回执校验失败')
                         ready[key] = compact_target(target)
-                    return item, value, target, created, local, None
+                    return item, value, target, created, local, cached is not None, None
             except FatalMigrationError:
                 raise
             except Exception as error:
                 message = str(error) if isinstance(error, MigrationError) else type(error).__name__
-                return item, None, None, False, False, message
+                return item, None, None, False, False, False, message
 
         def save(result):
-            item, value, target, created, local, error = result
+            item, value, target, created, local, cached, error = result
             report['processed'] += 1
             if error:
                 report['errors'] += 1
@@ -327,7 +360,8 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
             report['bytesVerified'] += value['bytes']
             report['copiedObjects'] += int(created)
             report['reusedMappings'] += int(not created)
-            report['localHashFiles' if local else 'remoteHashFiles'] += 1
+            report['cachedHashFiles' if cached else 'localHashFiles' if local else 'remoteHashFiles'] += 1
+            report['cachedHashBytes'] += value['bytes'] if cached else 0
 
         def resumed(item):
             old = db.execute('''SELECT s.sha256,o.bytes,l.file_id,l.content_sha1 FROM b2_cas_sources s
@@ -340,12 +374,15 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
             report['processed'] += 1
             report['verified'] += 1
             report['reusedMappings'] += 1
+            report['resumedFiles'] += 1
             report['bytesVerified'] += old['bytes']
             return True
 
         iterator, pending, finished, last_update = iter(rows), set(), False, time.monotonic()
         with ThreadPoolExecutor(max_workers=workers) as pool:
             while pending or not finished:
+                if stop_requested and stop_requested():
+                    finished = True
                 while not finished and len(pending) < workers * 2:
                     try:
                         item = next(iterator)
@@ -353,7 +390,8 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
                         finished = True
                         break
                     if not resumed(item):
-                        pending.add(pool.submit(process, item))
+                        cached = hash_cache.lookup(item) if hash_cache else None
+                        pending.add(pool.submit(process, item, cached))
                 if pending:
                     done, pending = wait(pending, timeout=5, return_when=FIRST_COMPLETED)
                     for future in done:
@@ -364,7 +402,8 @@ def migrate(client, rows, db_file, namespace, local_roots=(), workers=16, progre
                         progress(dict(report, updatedAt=time.time()))
                     last_update = time.monotonic()
         db.commit()
-        report.update(status='attention' if report['errors'] else 'complete', updatedAt=time.time(),
+        paused = stop_requested and stop_requested()
+        report.update(status='paused' if paused else 'attention' if report['errors'] else 'complete', updatedAt=time.time(),
             uniqueObjects=db.execute('SELECT count(*) FROM resource_objects').fetchone()[0])
         if progress:
             progress(report)
@@ -411,6 +450,7 @@ def main():
     parser.add_argument('--progress', required=True)
     parser.add_argument('--workers', type=int, default=32)
     parser.add_argument('--local-roots', help='包含 prefix/root 条目的 JSON 数组')
+    parser.add_argument('--hash-cache', help='已核验且绑定当前冻结清单和 fileId 的只读 SQLite 摘要缓存')
     parser.add_argument('--limit', type=int, help='小批试运行，仅处理冻结清单前 N 项')
     parser.add_argument('--apply', action='store_true', help='显式允许服务端创建 .bin 对象；绝不删除旧对象')
     parser.add_argument('--allow-direct', action='store_true', help='仅限用户已明确授权的服务器直连 B2，不改变系统代理')
@@ -427,6 +467,7 @@ def main():
     roots.sort(key=lambda row: len(row[0]), reverse=True)
     inventory = Path(args.inventory)
     snapshot_hash = identity(file_chunks(inventory))['sha256']
+    cache = HashCache(args.hash_cache, snapshot_hash) if args.hash_cache else None
     def rows():
         with inventory.open() as stream:
             for index, line in enumerate(stream):
@@ -440,14 +481,22 @@ def main():
     Path(args.database).parent.mkdir(parents=True, exist_ok=True)
     with Path(args.database + '.lock').open('a+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        import signal
+        stop = threading.Event()
+        signal.signal(signal.SIGTERM, lambda *_: stop.set())
+        signal.signal(signal.SIGINT, lambda *_: stop.set())
         def progress(value):
             value = dict(value, networkMode='direct' if args.allow_direct else 'proxy')
             if value['status'] == 'complete':
                 value = dict(value, status='verifying')
             write_json(args.progress, value)
-        result = migrate(client, rows(), args.database, args.namespace, roots, args.workers,
-            progress, snapshot_hash)
-        if not result['errors']:
+        try:
+            result = migrate(client, rows(), args.database, args.namespace, roots, args.workers,
+                progress, snapshot_hash, cache, stop.is_set)
+        finally:
+            if cache:
+                cache.close()
+        if result['status'] == 'complete':
             verification = verify_cloud(client, args.database)
             result['cloudVerification'] = verification
             if verification['missingObjects'] or verification['differenceCount'] or verification['foreignKeyViolations']:
