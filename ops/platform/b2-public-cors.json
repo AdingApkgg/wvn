@@ -1,0 +1,10 @@
+[
+  {
+    "corsRuleName": "wvnPublicResourceRead",
+    "allowedOrigins": ["*"],
+    "allowedHeaders": ["range", "if-range", "x-requested-with"],
+    "allowedOperations": ["b2_download_file_by_id", "b2_download_file_by_name", "s3_get", "s3_head"],
+    "exposeHeaders": ["etag", "content-length", "content-range", "accept-ranges", "x-bz-content-sha1"],
+    "maxAgeSeconds": 3600
+  }
+]

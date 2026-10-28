@@ -15,7 +15,11 @@
     "seed": "tsx scripts/seed.ts",
     "start:accounts": "tsx accounts-server.ts",
     "accounts:backup": "tsx scripts/account-backup.ts",
-    "accounts:restore": "tsx scripts/account-backup.ts restore"
+    "accounts:restore": "tsx scripts/account-backup.ts restore",
+    "db:init": "tsx scripts/initialize-platform.ts",
+    "start:resources": "tsx src/resources/server.ts",
+    "search:worker": "tsx scripts/search-index.ts worker 100",
+    "search:rebuild": "tsx scripts/search-index.ts rebuild"
   },
   "dependencies": {
     "@better-auth/passkey": "1.7.14",

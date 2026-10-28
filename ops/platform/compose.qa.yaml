@@ -20,7 +20,7 @@ services:
     image: redis:8-alpine
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?required}
-    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly no --maxmemory 192mb --maxmemory-policy allkeys-lru"]
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly no --maxmemory 192mb --maxmemory-policy noeviction"]
     ports:
       - "127.0.0.1:${REDIS_PORT:-26389}:6379"
     mem_limit: 256m

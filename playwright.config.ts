@@ -13,6 +13,7 @@ export default defineConfig({
         ? previewChromiumOptions(certificate)
         : { args: ["--no-sandbox", "--disable-dev-shm-usage"] }),
       executablePath: process.env.CHROMIUM_PATH ?? "/usr/bin/chromium",
+      ...((process.env.WG_TEST_PROXY || process.env.HTTPS_PROXY) ? { proxy: { server: (process.env.WG_TEST_PROXY || process.env.HTTPS_PROXY)!, bypass: "localhost,127.0.0.1,[::1]" } } : {}),
     },
     trace: "retain-on-failure",
   },

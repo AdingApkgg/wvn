@@ -10,7 +10,7 @@ if (mode === 'restore' || mode === 'legacy-prepare') {
   const { database: _database, ...safe } = result;
   console.log(JSON.stringify(safe, null, 2));
 } else if (mode === 'backup') {
-  if (process.env.WG_BLOB_UPSTREAM) throw Error('Split storage requires scripts/backup-split-web.py to join metadata and storage-host blobs');
-  const manifest = await createAccountBackup({ database: env('WG_ACCOUNT_DATABASE'), databaseSchema: process.env.WG_ACCOUNT_DATABASE_SCHEMA, blobRoot: env('WG_ACCOUNT_BLOBS'), ledger: env('WG_ACCOUNT_DELETION_LEDGER'), shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER, destination: env('WG_ACCOUNT_BACKUP_DIR') });
+  if (process.env.WG_BLOB_UPSTREAM) throw Error('分离存储请按 docs/pg-backups.md 使用 split-account-backup.ts 分步生成和核验归档');
+  const manifest = await createAccountBackup({ database: process.env.WG_ACCOUNT_DATABASE_URL ?? env('WG_ACCOUNT_DATABASE'), databaseSchema: process.env.WG_ACCOUNT_DATABASE_SCHEMA, blobRoot: env('WG_ACCOUNT_BLOBS'), ledger: env('WG_ACCOUNT_DELETION_LEDGER'), shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER, destination: env('WG_ACCOUNT_BACKUP_DIR') });
   console.log(JSON.stringify({ status: 'complete', createdAt: manifest.createdAt, files: manifest.files.length, counts: manifest.database.counts }, null, 2));
 } else throw Error('Expected backup, restore, apply or legacy-prepare');

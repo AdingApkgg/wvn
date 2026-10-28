@@ -1,0 +1,13 @@
+{
+  "description": "WVN public hashed resources CORS",
+  "expression": "(http.host eq \"wg-b2.saop.cc\" and http.request.method in {\"GET\" \"HEAD\"})",
+  "action": "rewrite",
+  "action_parameters": {
+    "headers": {
+      "access-control-allow-origin": { "operation": "set", "value": "*" },
+      "access-control-expose-headers": { "operation": "set", "value": "ETag, Content-Length, Content-Range, Accept-Ranges" },
+      "cross-origin-resource-policy": { "operation": "set", "value": "cross-origin" }
+    }
+  },
+  "enabled": true
+}

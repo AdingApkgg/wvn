@@ -44,7 +44,7 @@
 
 以下命令应放入该主机既有持久化任务执行器；没有执行器的 Linux 主机使用独立 tmux 会话、私有任务目录、日志和退出码。先确认 `hostname`，连接中断后查原任务状态，不重新投递。私有环境文件用 `0600`，加载后不要打印环境。
 
-普通备份环境包含 `WG_ACCOUNT_DATABASE`、可选 `WG_ACCOUNT_DATABASE_SCHEMA`、`WG_ACCOUNT_BLOBS`、`WG_ACCOUNT_DELETION_LEDGER`、可选 `WG_ACCOUNT_SHARE_LEDGER`、新的 `WG_ACCOUNT_BACKUP_DIR`：
+普通备份环境包含 `WG_ACCOUNT_DATABASE_URL`（兼容 `WG_ACCOUNT_DATABASE`）、可选 `WG_ACCOUNT_DATABASE_SCHEMA`、`WG_ACCOUNT_BLOBS`、`WG_ACCOUNT_DELETION_LEDGER`、可选 `WG_ACCOUNT_SHARE_LEDGER`、新的 `WG_ACCOUNT_BACKUP_DIR`：
 
 ```sh
 set -a
@@ -71,7 +71,7 @@ node --import tsx scripts/account-backup.ts apply
 
 元数据格式升级为 `wvn-split-metadata-v2`。旧 `backup-split-web.py` 已明确停用：它依赖 SQLite 文件和旧跨主机阻塞恢复协议，不适用于 PG；不会再悄悄停止服务或把文件哈希通过当数据库恢复通过。
 
-Web 主机私有环境：`WG_ACCOUNT_DATABASE`、可选 `WG_ACCOUNT_DATABASE_SCHEMA`、`WG_ACCOUNT_SECRET_FILE`、`WG_ACCOUNT_DELETION_LEDGER`、`WG_ACCOUNT_SHARE_LEDGER`、新的 `WG_SPLIT_STAGE`。在持久化任务中执行：
+Web 主机私有环境：`WG_ACCOUNT_DATABASE_URL`（兼容 `WG_ACCOUNT_DATABASE`）、可选 `WG_ACCOUNT_DATABASE_SCHEMA`、`WG_ACCOUNT_SECRET_FILE`、`WG_ACCOUNT_DELETION_LEDGER`、`WG_ACCOUNT_SHARE_LEDGER`、新的 `WG_SPLIT_STAGE`。在持久化任务中执行：
 
 ```sh
 node --import tsx scripts/split-account-backup.ts prepare

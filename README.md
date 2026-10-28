@@ -15,7 +15,7 @@ WVN 用浏览器运行视觉小说，并统一管理作品目录、引擎版本�
 
 ## 技术栈
 
-React 19、React Router 8、Hono、Vite 8、TypeScript、SQLite / Drizzle、shadcn/ui、Tailwind CSS、Better Auth / Passkey、Emscripten / WebAssembly。
+React 19、React Router 8、Hono、Vite 8、TypeScript、PostgreSQL、Redis、Meilisearch、shadcn/ui、Tailwind CSS、Better Auth / Passkey、Emscripten / WebAssembly、WS / WebRTC / coturn / WebTransport。
 
 ## 开发与构建
 
@@ -23,6 +23,7 @@ React 19、React Router 8、Hono、Vite 8、TypeScript、SQLite / Drizzle、shad
 
 ```sh
 npm ci --include=dev --legacy-peer-deps
+# 先配置独立 wvn_qa PG / Redis / Meili，测试不会使用业务数据库。
 npm test
 node --test --test-concurrency=1 tests/*.test.mjs
 NODE_ENV=development npm run typecheck
@@ -50,6 +51,9 @@ NODE_ENV=production npm run build
 代码中的 `WG_*` 环境变量及部分 `wg-*` 内部标识沿用历史兼容名称，产品名称统一为 WVN。
 
 ## 功能与部署说明
+
+- [PostgreSQL 平台、迁移与回滚](docs/platform-postgres.md)、[资源 key API](docs/resource-api.md)
+- [Meilisearch 搜索](docs/search.md)、[PG 备份恢复](docs/pg-backups.md)、[房间与联机基础](docs/rooms.md)
 
 - [公开仓库与私有配置边界](docs/public-repository.md)
 - [账号与云存档](docs/accounts-preview.md)、[存档分享](docs/save-sharing-preview.md)
