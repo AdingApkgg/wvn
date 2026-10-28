@@ -32,9 +32,11 @@ export async function startResourceServer(options: { db: PgDatabase; host?: stri
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  if (!process.env.DATABASE_URL || !process.env.RESOURCE_DATABASE_SCHEMA) throw new Error('DATABASE_URL and explicit RESOURCE_DATABASE_SCHEMA are required');
-  const db = new PgDatabase(process.env.DATABASE_URL, { schema: process.env.RESOURCE_DATABASE_SCHEMA });
-  startResourceServer({ db, redisUrl: process.env.REDIS_URL, cachePrefix: process.env.RESOURCE_CACHE_PREFIX ?? 'wvn:resources:' + process.env.RESOURCE_DATABASE_SCHEMA + ':v1:',
+  const databaseUrl = process.env.WG_RESOURCE_DATABASE_URL ?? process.env.DATABASE_URL ?? process.env.WG_DATABASE_URL;
+  const schema = process.env.RESOURCE_DATABASE_SCHEMA ?? process.env.WG_RESOURCE_DATABASE_SCHEMA;
+  if (!databaseUrl || !schema) throw new Error('Resource PostgreSQL URL and explicit resource schema are required');
+  const db = new PgDatabase(databaseUrl, { schema });
+  startResourceServer({ db, redisUrl: process.env.REDIS_URL, cachePrefix: process.env.RESOURCE_CACHE_PREFIX ?? process.env.WG_RESOURCE_CACHE_PREFIX ?? 'wvn:resources:' + schema + ':v1:',
     host: process.env.RESOURCE_HOST ?? '127.0.0.1', port: process.env.RESOURCE_PORT === undefined ? undefined : Number(process.env.RESOURCE_PORT) })
     .then(service => {
       console.log(JSON.stringify({ status: 'listening', subsystem: 'resources', port: (service.server.address() as { port: number }).port }));
