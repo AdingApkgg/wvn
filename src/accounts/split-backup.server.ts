@@ -1,44 +1,39 @@
-import { DatabaseSync } from 'node:sqlite';
-import { createHash } from 'node:crypto';
-import { mkdirSync, existsSync, readFileSync, writeFileSync, copyFileSync, statSync, statfsSync, openSync, fsyncSync, closeSync } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
-import { createAccountBackup, prepareAccountRestore } from './backup.server.ts';
-const names = ['accounts.sqlite', 'secret', 'deletions.jsonl', 'share-revocations.jsonl'] as const;
-const hash = (file: string) => createHash('sha256').update(readFileSync(file)).digest('hex');
-function flush(file: string) { const fd = openSync(file, 'r+'); try { fsyncSync(fd); } finally { closeSync(fd); } }
-function counts(file: string) {
- const db = new DatabaseSync(file, { readOnly: true });
- try {
-  if (db.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok') throw Error('Backup database integrity failed');
-  return Object.fromEntries(db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all().map(row => [String(row.name), Number(db.prepare('SELECT count(*) n FROM "' + String(row.name).replaceAll('"','""') + '"').get()?.n)]));
- } finally { db.close(); }
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { createBackupMetadata, prepareAccountRestore, readBackupManifest } from './backup.server.ts';
+import { blobPath, copyBlob, copyPrivate, fileProof, reserveSpace, ensureDirectory, newPrivateDirectory, verifyFile, writePrivate, type FileProof } from './backup-files.server.ts';
+const names = ['accounts.pgdump', 'secret', 'deletions.jsonl', 'share-revocations.jsonl', 'manifest.json'] as const;
+
+export async function prepareSplitBackup(options: { database: string; databaseSchema?: string; secret: string; ledger: string; shareLedger: string; destination: string }) {
+  const backup = await createBackupMetadata({ ...options, sharingEnabled: true });
+  copyPrivate(options.secret, join(options.destination, 'secret'));
+  backup.secret = await fileProof(join(options.destination, 'secret'));
+  writePrivate(join(options.destination, 'manifest.json'), JSON.stringify(backup, null, 2));
+  const files: Record<string, FileProof> = {};
+  for (const name of names) files[name] = await fileProof(join(options.destination, name));
+  const manifest = { format: 'wvn-split-metadata-v2', createdAt: backup.createdAt, files, counts: backup.database.counts, databaseSchema: backup.database.schema };
+  writePrivate(join(options.destination, 'split-manifest.json'), JSON.stringify(manifest, null, 2));
+  return manifest;
 }
-export function prepareSplitBackup(options: { database: string; secret: string; ledger: string; shareLedger: string; destination: string }) {
- const destination = resolve(options.destination);
- if (existsSync(destination)) throw Error('Backup staging already exists');
- mkdirSync(dirname(destination), { recursive: true, mode: 0o700 });
- const disk = statfsSync(dirname(destination));
- if (disk.bavail * disk.bsize < 1024 ** 3 + statSync(options.database).size) throw Error('Metadata backup needs one GiB reserved on web host');
- mkdirSync(destination, { mode: 0o700 });
- const db = new DatabaseSync(options.database);
- try { db.prepare('VACUUM INTO ?').run(join(destination, 'accounts.sqlite')); } finally { db.close(); }
- for (const [source, name] of [[options.secret, 'secret'], [options.ledger, 'deletions.jsonl'], [options.shareLedger, 'share-revocations.jsonl']]) copyFileSync(source, join(destination, name));
- for (const name of names) flush(join(destination, name));
- const manifest = { format: 'wg-split-metadata-v1', createdAt: new Date().toISOString(), files: Object.fromEntries(names.map(name => [name, hash(join(destination, name))])), counts: counts(join(destination, 'accounts.sqlite')) };
- writeFileSync(join(destination, 'split-manifest.json'), JSON.stringify(manifest, null, 2), { mode: 0o600 }); flush(join(destination, 'split-manifest.json')); return manifest;
-}
-export function finalizeSplitBackup(options: { stage: string; blobRoot: string; destination: string; restoreDirectory: string }) {
- const manifest = JSON.parse(readFileSync(join(options.stage, 'split-manifest.json'), 'utf8'));
- if (manifest.format !== 'wg-split-metadata-v1') throw Error('Invalid split metadata');
- for (const name of names) if (hash(join(options.stage, name)) !== manifest.files?.[name]) throw Error('Split metadata hash mismatch');
- const sameCounts = (file: string) => { if (JSON.stringify(counts(file)) !== JSON.stringify(manifest.counts)) throw Error('Split backup record counts differ'); };
- sameCounts(join(options.stage, 'accounts.sqlite'));
- const backup = createAccountBackup({ database: join(options.stage, 'accounts.sqlite'), blobRoot: options.blobRoot, ledger: join(options.stage, 'deletions.jsonl'), shareLedger: join(options.stage, 'share-revocations.jsonl'), destination: options.destination });
- copyFileSync(join(options.stage, 'secret'), join(options.destination, 'secret')); flush(join(options.destination, 'secret'));
- if (hash(join(options.destination, 'secret')) !== manifest.files.secret) throw Error('Backup secret hash mismatch');
- sameCounts(join(options.destination, 'accounts.sqlite'));
- const restore = prepareAccountRestore({ backup: options.destination, currentLedger: join(options.stage, 'deletions.jsonl'), currentShareLedger: join(options.stage, 'share-revocations.jsonl'), destination: options.restoreDirectory });
- sameCounts(restore.database);
- const result = { status: 'verified', createdAt: backup.createdAt, destination: options.destination, restoreDirectory: options.restoreDirectory, files: backup.files.length, counts: manifest.counts };
- writeFileSync(join(options.destination, 'split-verification.json'), JSON.stringify(result, null, 2), { mode: 0o600 }); return result;
+
+export async function finalizeSplitBackup(options: { stage: string; blobRoot: string; destination: string; restoreDirectory: string }) {
+  const split = JSON.parse(readFileSync(join(options.stage, 'split-manifest.json'), 'utf8'));
+  if (split.format !== 'wvn-split-metadata-v2') throw Error('Legacy split metadata requires explicit offline conversion');
+  for (const name of names) await verifyFile(join(options.stage, name), split.files?.[name]);
+  const backup = await readBackupManifest(options.stage, false);
+  if (JSON.stringify(backup.database.counts) !== JSON.stringify(split.counts) || backup.database.schema !== split.databaseSchema) throw Error('Split backup record counts differ');
+  const destination = resolve(options.destination);
+  if (existsSync(destination)) throw Error('Backup destination already exists');
+  ensureDirectory(dirname(destination));
+  reserveSpace(dirname(destination), backup.database.bytes + backup.files.reduce((n, f) => n + f.bytes, 0));
+  newPrivateDirectory(destination);
+  for (const name of names) copyPrivate(join(options.stage, name), join(destination, name));
+  for (const file of backup.files) {
+    reserveSpace(destination, file.bytes);
+    await copyBlob(blobPath(options.blobRoot, file), blobPath(join(destination, 'blobs'), file), file);
+  }
+  const restore = await prepareAccountRestore({ backup: destination, currentLedger: join(options.stage, 'deletions.jsonl'), currentShareLedger: join(options.stage, 'share-revocations.jsonl'), destination: options.restoreDirectory });
+  const result = { status: 'files-verified-restore-prepared' as const, databaseRestored: false, createdAt: backup.createdAt, destination, restoreDirectory: options.restoreDirectory, files: backup.files.length, counts: backup.database.counts, databaseSchema: restore.databaseSchema };
+  writePrivate(join(destination, 'split-verification.json'), JSON.stringify(result, null, 2));
+  return result;
 }

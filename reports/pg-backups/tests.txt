@@ -1,0 +1,26 @@
+✔ joint backup restores exact save bytes and replays newer account deletions (1178.346455ms)
+✔ independent deletion ledger is replayed after restoring an older database (643.837864ms)
+✔ joint backups include share-only references and replay a newer revocation after rollback (2512.276171ms)
+✔ sharing-enabled backups refuse to omit the independent share deny ledger (143.416833ms)
+✔ backup never creates a missing source revocation ledger or accepts malformed records (138.332425ms)
+✔ native PG backup isolates its schema and restores rows and sequences only to an empty database (672.055056ms)
+✔ backup refuses dangling private references instead of silently omitting required bytes (161.369939ms)
+✔ restore checks non-system tables whose schema starts with pg but is not reserved (569.660035ms)
+✔ snapshot proof and native dump stay consistent across a concurrent committed write (561.901192ms)
+✔ prepare merges maximum independent deny timestamps and rejects tampered ledgers and dumps (292.560283ms)
+✔ legacy SQLite V1 and V2 archives require explicit preparation and offline PG conversion (533.249959ms)
+✔ native restore handles the pre-existing empty public schema and quoted JSON/bytea tables (694.983189ms)
+✔ apply refuses a manifest that drops referenced private files or required share ledgers (626.680499ms)
+✔ split backup reunites metadata and Windows blobs and verifies restored history, shares and secret (731.394043ms)
+✔ visitor signing has a persistent site limit even behind a loopback proxy (999.46008ms)
+✔ public reads bootstrap a signed visitor before counting and reject opaque or foreign requests (176.485181ms)
+✔ reactions require the current account binding, remain private and are included in self export (297.888141ms)
+✔ a restored database cannot revive reactions removed by a newer independent deletion ledger (911.41606ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16775.29777

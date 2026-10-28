@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,rmSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {backupRoot,restoreDatabase} from './helpers/backup.ts';
+import {createAccountBackup,prepareAccountRestore,applyAccountRestore} from '../src/accounts/backup.server.ts';
 import {join} from 'node:path';
 import {shareHttpFixture} from './helpers/share-http.ts';
-import {createAccountService} from '../src/accounts/service.server.ts';
+import {createAccountService} from './helpers/accounts.ts';
 const origin='https://accounts.wg.test';
 
 test('visitor signing has a persistent site limit even behind a loopback proxy',async()=>{
@@ -52,15 +53,18 @@ test('reactions require the current account binding, remain private and are incl
  }finally{f.close()}
 });
 test('a restored database cannot revive reactions removed by a newer independent deletion ledger',async()=>{
- const root=mkdtempSync(join(tmpdir(),'wvn-reaction-restore-')),catalog=[{id:'v4',title:'Story',url:'/4/',versions:[{id:'a',title:'A',number:1,engine:'RenPy',url:'/4/1/'}]}],config={origin,database:join(root,'current.sqlite'),deletionLedger:join(root,'deleted.jsonl'),secret:'s'.repeat(64),catalog};
+ const root=backupRoot('wvn-reaction-restore-'),catalog=[{id:'v4',title:'Story',url:'/4/',versions:[{id:'a',title:'A',number:1,engine:'RenPy',url:'/4/1/'}]}],config={origin,database:join(root,'current.sqlite'),deletionLedger:join(root,'deleted.jsonl'),secret:'s'.repeat(64),catalog};
+ const target=await restoreDatabase();
  let s=await createAccountService(config);
  try{
   const ctx=await s.auth.$context,user=await ctx.internalAdapter.createUser({name:'Synthetic',email:'restore@placeholder.invalid',emailVerified:false},{method:'passkey'});
-  s.workStats.react(user.id,'v4','like',true);s.workStats.react(user.id,'v4','favorite',true);
-  s.db.prepare('VACUUM INTO ?').run(join(root,'old.sqlite'));s.deletions.record(user.id);
-  // 离线恢复工具未必开启外键，删除账本本身也必须清掉关系。
-  s.db.exec('PRAGMA foreign_keys=OFF');s.deletions.replay(s.db,s.saves);assert.equal(s.db.prepare('SELECT count(*) AS n FROM wg_work_reactions').get()?.n,0);
-  s.close();s=await createAccountService({...config,database:join(root,'old.sqlite')});
-  assert.deepEqual(s.workStats.counts(['v4']).v4,{reads:0,likes:0,favorites:0});s.deletions.replay(s.db,s.saves);assert.equal(s.db.prepare('SELECT count(*) AS n FROM wg_work_reactions').get()?.n,0);
- }finally{s.close();rmSync(root,{recursive:true,force:true})}
+  (await s.workStats.react(user.id,'v4','like',true));(await s.workStats.react(user.id,'v4','favorite',true));
+  await createAccountBackup({database:s.config.database,databaseSchema:s.config.databaseSchema,blobRoot:join(root,'blobs'),ledger:config.deletionLedger,destination:join(root,'backup')});s.deletions.record(user.id);
+  // 当前库先重放账本，随后恢复旧 PG 快照再验证关系不会复活。
+  (await s.deletions.replay(s.db,s.saves));assert.equal((await s.db.prepare('SELECT count(*) AS n FROM wg_work_reactions').get())?.n,0);
+  await prepareAccountRestore({backup:join(root,'backup'),currentLedger:config.deletionLedger,destination:join(root,'prepared')});
+  const restored=await applyAccountRestore({prepared:join(root,'prepared'),database:target.database});
+  (await s.close());s=await createAccountService({...config,...restored});
+  assert.deepEqual((await s.workStats.counts(['v4'])).v4,{reads:0,likes:0,favorites:0});(await s.deletions.replay(s.db,s.saves));assert.equal((await s.db.prepare('SELECT count(*) AS n FROM wg_work_reactions').get())?.n,0);
+ }finally{(await s.close());await target.close();rmSync(root,{recursive:true,force:true})}
 });

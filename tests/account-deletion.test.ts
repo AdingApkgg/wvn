@@ -1,11 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { backupRoot, restoreDatabase } from "./helpers/backup.ts";
+import { createAccountBackup, prepareAccountRestore, applyAccountRestore } from "../src/accounts/backup.server.ts";
 import { join } from "node:path";
-import { createAccountService } from "../src/accounts/service.server.ts";
+import { createAccountService } from "./helpers/accounts.ts";
 test("independent deletion ledger is replayed after restoring an older database", async () => {
-  const root = mkdtempSync(join(tmpdir(), "wg-delete-"));
+  const root = backupRoot("wg-delete-");
+  const target = await restoreDatabase();
   const config = {
     origin: "https://accounts.wg.test",
     database: join(root, "current.sqlite"),
@@ -23,26 +25,26 @@ test("independent deletion ledger is replayed after restoring an older database"
       },
       { method: "passkey" },
     );
-    service.db.prepare("VACUUM INTO ?").run(join(root, "old.sqlite"));
+    await createAccountBackup({database:service.config.database,databaseSchema:service.config.databaseSchema,blobRoot:join(root,"blobs"),ledger:config.deletionLedger,destination:join(root,"backup")});
     service.deletions.record(user.id);
-    service.close();
-    service = await createAccountService({
-      ...config,
-      database: join(root, "old.sqlite"),
-    });
+    (await service.close());
+    await prepareAccountRestore({backup:join(root,"backup"),currentLedger:config.deletionLedger,destination:join(root,"prepared")});
+    const restored=await applyAccountRestore({prepared:join(root,"prepared"),database:target.database});
+    service = await createAccountService({...config,...restored});
     assert.equal(
-      service.db.prepare('SELECT id FROM "user" WHERE id=?').get(user.id),
+      (await service.db.prepare('SELECT id FROM "user" WHERE id=$1').get(user.id)),
       undefined,
     );
     assert.equal(
-      service.db
-        .prepare("SELECT user_id FROM wg_account WHERE user_id=?")
-        .get(user.id),
+      (await service.db
+        .prepare("SELECT user_id FROM wg_account WHERE user_id=$1")
+        .get(user.id)),
       undefined,
     );
     assert.ok(service.deletions.entries.has(user.id));
   } finally {
-    service.close();
+    (await service.close());
+    await target.close();
     rmSync(root, { recursive: true, force: true });
   }
 });

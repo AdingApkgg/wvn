@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "../../src/accounts/backup*.server.ts",
+    "../../src/accounts/split-backup.server.ts",
+    "../../src/database/pg-backup.ts",
+    "../../scripts/account-backup.ts",
+    "../../scripts/split-account-backup.ts",
+    "../../tests/helpers/backup.ts"
+  ]
+}
