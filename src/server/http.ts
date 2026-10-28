@@ -49,15 +49,15 @@ export function createPublicApp(
       },
     ),
   );
-  app.on(["GET", "HEAD"], "/media/:file", (c) => {
+  app.on(["GET", "HEAD"], "/media/:file", async (c) => {
     const file = c.req.param("file");
     if (
       !mediaRoot ||
       !/^([a-f0-9]{64})\.(jpg|png|webp)$/.test(file) ||
-      !store.hasMedia("/media/" + file)
+      !(await store.hasMedia("/media/" + file))
     )
       return c.notFound();
-    return fileResponse(c.req.raw, mediaRoot, "/" + file);
+    return (await fileResponse(c.req.raw, mediaRoot, "/" + file));
   });
   app.get("/health", (c) => c.json({ status: "ok", mode: "preview" }));
   app.all("/share-admin", (c) => c.notFound());
@@ -68,28 +68,28 @@ export function createPublicApp(
   app.all("/api/manage/*", (c) => c.notFound());
   app.all("/manage", (c) => c.notFound());
   app.all("/manage/*", (c) => c.notFound());
-  app.get("/api/catalog", (c) =>
-    c.json(store.list().filter((w) => w.versions.length)),
+  app.get("/api/catalog", async (c) =>
+    c.json((await store.list()).filter((w) => w.versions.length)),
   );
-  app.get("/api/works/:id", (c) => {
+  app.get("/api/works/:id", async (c) => {
     const id = parseWorkSlug(c.req.param("id"));
     if (!id) return c.notFound();
-    const w = store.get(id);
+    const w = (await store.get(id));
     return w?.versions.length ? c.json(w) : c.notFound();
   });
   app.use("*", async (c, next) => {
     if (c.req.method !== "GET" && c.req.method !== "HEAD") return c.notFound();
     const path = new URL(c.req.url).pathname;
-    if (path.startsWith("/assets/")) return next();
+    if (path.startsWith("/assets/")) return (await next());
     let decoded;
     try {
       decoded = decodeURIComponent(path);
     } catch {
       return c.notFound();
     }
-    const vs = store.list().flatMap((w) => w.versions);
-    const match = vs
-      .map((v) => store.raw(v.id)!)
+    const vs = (await store.list()).flatMap((w) => w.versions);
+    const match = (await Promise.all(vs
+      .map(async (v) => (await store.raw(v.id))!)))
       .sort((a, b) => b.legacyPath.length - a.legacyPath.length)
       .find(
         (v) =>
@@ -110,12 +110,12 @@ export function createPublicApp(
         if ([match.legacyPath, match.legacyPath + "index.html", match.legacyPath + "onsyuri.html"].includes(decoded)) return c.redirect(pilot.route, 302);
         return c.notFound();
       }
-      return fileResponse(
+      return (await fileResponse(
         c.req.raw,
         root,
         decoded.endsWith("/") ? path + "index.html" : path,
         match.legacyPath,
-      );
+      ));
     }
     if (
       (/\.[a-z0-9]+$/i.test(path) &&
@@ -125,7 +125,7 @@ export function createPublicApp(
       /^\/api\//.test(path)
     )
       return c.notFound();
-    return next();
+    return (await next());
   });
   return app;
 }
@@ -143,7 +143,7 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
       return c.json({ error: "来源无效" }, 403);
     if (c.req.path !== "/api/manage/login" && !auth.allowed(c))
       return c.json({ error: "需要登录" }, 401);
-    return next();
+    return (await next());
   });
   app.post("/api/manage/login", async (c) => {
     const body = await c.req.json();
@@ -155,35 +155,35 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
     return c.json({ ok: true });
   });
   app.get("/api/manage/engines", c=>c.json(managementSummary()));
-  app.get("/api/manage/catalog", (c) => c.json(store.list(true)));
-  app.get("/api/manage/pending", (c) => c.json(store.pending()));
+  app.get("/api/manage/catalog", async (c) => c.json((await store.list(true))));
+  app.get("/api/manage/pending", async (c) => c.json((await store.pending())));
   app.post("/api/manage/works", async (c) =>
-    c.json(store.createWork(await c.req.json()), 201),
+    c.json((await store.createWork(await c.req.json())), 201),
   );
   app.post("/api/manage/pending/:id/assign", async (c) => {
     const b = await c.req.json();
-    return c.json(store.bindPending(c.req.param("id"), b.workId), 201);
+    return c.json((await store.bindPending(c.req.param("id"), b.workId)), 201);
   });
   app.get("/api/manage/sources", (c) => c.json(sourceData));
   app.patch("/api/manage/works/:id", async (c) => {
     const b = await c.req.json();
-    return c.json(store.editWork(c.req.param("id"), b.revision, b.patch));
+    return c.json((await store.editWork(c.req.param("id"), b.revision, b.patch)));
   });
   app.post("/api/manage/works/:id/versions", async (c) =>
-    c.json(store.addVersion(c.req.param("id"), await c.req.json()), 201),
+    c.json((await store.addVersion(c.req.param("id"), await c.req.json())), 201),
   );
   app.patch("/api/manage/versions/:id", async (c) => {
     const b = await c.req.json();
-    return c.json(store.editVersion(c.req.param("id"), b.revision, b.patch));
+    return c.json((await store.editVersion(c.req.param("id"), b.revision, b.patch)));
   });
   app.post("/api/manage/versions/:id/reassign", async (c) => {
     const b = await c.req.json();
     return c.json(
-      store.reassignVersion(c.req.param("id"), b.workId, b.revision),
+      (await store.reassignVersion(c.req.param("id"), b.workId, b.revision)),
     );
   });
   app.post("/api/manage/reports", async (c) =>
-    c.json(store.importReport(await c.req.json()), 201),
+    c.json((await store.importReport(await c.req.json())), 201),
   );
   return app;
 }

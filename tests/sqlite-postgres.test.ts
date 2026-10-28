@@ -70,3 +70,27 @@ test('SQLite migration refuses unknown columns before writing any source table',
     assert.equal((await f.db.prepare('SELECT count(*) AS n FROM works').get())?.n, 0);
   } finally { await f.close(); }
 });
+
+test('SQLite migration imports deferred circular references as one atomic snapshot', async () => {
+  const f = await fixture();
+  try {
+    const old = new DatabaseSync(f.source);
+    old.exec("ALTER TABLE works ADD COLUMN default_save TEXT; UPDATE works SET default_save='original-save-id'");
+    old.close();
+    await f.db.exec(`ALTER TABLE works ADD COLUMN default_save text;
+      ALTER TABLE works ADD CONSTRAINT works_default FOREIGN KEY(default_save) REFERENCES saves(id) DEFERRABLE INITIALLY DEFERRED`);
+    const report = await importSqlite({ source: f.source, db: f.db, apply: true });
+    assert.equal(report.status, 'complete');
+    assert.equal((await f.db.prepare('SELECT default_save FROM works WHERE id=$1').get('v4'))?.default_save, 'original-save-id');
+  } finally { await f.close(); }
+});
+
+test('SQLite migration refuses a live WAL source until a consistent snapshot is supplied', async () => {
+  const f = await fixture();
+  const writer = new DatabaseSync(f.source);
+  try {
+    writer.exec("PRAGMA journal_mode=WAL; INSERT INTO works VALUES('v5','live write')");
+    await assert.rejects(importSqlite({ source: f.source, db: f.db, apply: true }), /snapshot|WAL/i);
+    assert.equal((await f.db.prepare('SELECT count(*) AS n FROM works').get())?.n, 0);
+  } finally { writer.close(); await f.close(); }
+});

@@ -14,6 +14,7 @@ function integer(value: string) {
 /** 异步仓储的连接边界；事务内所有查询使用同一连接。 */
 export class PgDatabase {
   readonly pool: Pool;
+  private closing?: Promise<void>;
   private readonly context = new AsyncLocalStorage<TransactionContext>();
 
   constructor(connectionString: string, options: { schema?: string; max?: number } = {}) {
@@ -36,8 +37,8 @@ export class PgDatabase {
       },
     });
     // pg 的空闲连接错误来自事件，不能成为未处理异常；不记录含连接信息的报错文本。
-    this.pool.on('error', (error: { code?: string }) => {
-      console.error('PostgreSQL idle connection failed', { code: error.code ?? 'CONNECTION_ERROR' });
+    this.pool.on('error', (error) => {
+      console.error('PostgreSQL idle connection failed', { code: (error as Error & { code?: string }).code ?? 'CONNECTION_ERROR' });
     });
   }
 
@@ -99,5 +100,5 @@ export class PgDatabase {
     await this.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [key]);
   }
 
-  async close() { await this.pool.end(); }
+  close() { return this.closing ??= this.pool.end(); }
 }

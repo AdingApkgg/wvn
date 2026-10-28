@@ -4,10 +4,10 @@ const store = getStore();
 try {
   const file =
     process.argv.find((v) => v.endsWith(".json")) ?? "data/metadata.json";
-  const result = store.importMetadata(
+  const result = (await store.importMetadata(
     JSON.parse(readFileSync(file, "utf8")),
     process.argv.includes("--apply"),
-  );
+  ));
   console.log(
     JSON.stringify({
       mode: process.argv.includes("--apply") ? "apply" : "dry-run",
@@ -15,5 +15,5 @@ try {
     }),
   );
 } finally {
-  store.close();
+  (await store.close());
 }

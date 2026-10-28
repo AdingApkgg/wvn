@@ -1,12 +1,10 @@
-import { resolve } from "node:path";
-import { mkdirSync } from "node:fs";
 import { Store } from "./store.ts";
-let instance: Store;
+let instance: Store | undefined;
 export function getStore() {
   if (!instance) {
-    const file = resolve(process.env.WG_DATABASE ?? "state/catalog.db");
-    mkdirSync(resolve(file, ".."), { recursive: true });
-    instance = new Store(file);
+    const url = process.env.WG_DATABASE_URL ?? process.env.DATABASE_URL;
+    if (!url) throw new Error('WG_DATABASE_URL or DATABASE_URL is required');
+    instance = new Store(url);
   }
   return instance;
 }

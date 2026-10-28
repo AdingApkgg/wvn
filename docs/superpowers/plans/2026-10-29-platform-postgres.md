@@ -58,9 +58,9 @@
 
 **Interfaces:** `Store` 读写方法返回 Promise；现有领域输入和响应类型不变；`getStore()` 返回已初始化的 PG 仓储，服务启动前应用迁移。
 
-- [ ] 把目录领域测试改为真实 PG fixture，覆盖 URL、版本序号、revision 冲突和 metadata 合并；先观察失败。
-- [ ] 移除运行时 SQLite DDL 和语法，改为 PG 查询与事务；更新 SSR loader、HTTP、管理和脚本的 await 链。
-- [ ] 运行目录与元数据回归、类型检查；核对旧目录导入前后规范化记录，独立提交。
+- [x] 把目录领域测试改为真实 PG fixture，覆盖 URL、版本序号、revision 冲突和 metadata 合并；先观察失败。
+- [x] 移除运行时 SQLite DDL 和语法，改为 PG 查询与事务；更新 SSR loader、HTTP、管理和脚本的 await 链。
+- [x] 运行目录与元数据回归、类型检查；核对旧目录导入前后规范化记录，独立提交。
 
 ## Task 3: 账号、存档、分享和备份恢复改用 PostgreSQL
 

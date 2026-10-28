@@ -5,13 +5,13 @@ import { parseWorkSlug, workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { pilotForVersion } from "../ons/pilots.server.ts";
 import { OnsPlayer } from "../ons/player.tsx";
-export function loader({
+export async function loader({
   params,request,
 }: {
   params: { workId?: string; slot?: string };request?:Request;
 }) {
   const store = getStore();
-  const v = store.resolveRoute(params.workId ?? "", params.slot ?? "");
+  const v = (await store.resolveRoute(params.workId ?? "", params.slot ?? ""));
   if (!v) throw new Response(null, { status: 404 });
   if (
     v.workId !== parseWorkSlug(params.workId ?? "") ||
@@ -20,7 +20,7 @@ export function loader({
     return redirect(`/${workSlug(v.workId)}/${v.number}/`);
   const player=pilotForVersion(v.id,request?new URL(request.url).searchParams.get("engine")??undefined:undefined);
   if(process.env.WG_ALL_ENGINES==='1'&&!player)throw new Response("此版本尚未完成播放器适配",{status:503});
-  const w = store.get(v.workId)!;
+  const w = (await store.get(v.workId))!;
   return {
     version: w.versions.find((x) => x.id === v.id)!,
     work: { title: w.title, url: w.url },

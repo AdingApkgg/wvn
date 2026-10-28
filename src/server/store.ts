@@ -1,7 +1,7 @@
-import { DatabaseSync } from "node:sqlite";
+import { PgDatabase, type PgRow } from "../database/postgres.ts";
+import { migrate } from "../database/migrations.ts";
+import { catalogMigrations } from "../database/catalog.ts";
 import { randomUUID } from "node:crypto";
-import { QueryBuilder } from "drizzle-orm/sqlite-core";
-import { eq } from "drizzle-orm";
 import { z } from "zod";
 import {
   workIdPattern,
@@ -10,7 +10,6 @@ import {
   providerLink,
 } from "../identity.ts";
 import { metadataDocument, type WorkMetadata } from "../metadata.ts";
-import { works } from "./schema.ts";
 import type { CatalogSeed, Version, PublicWork, Check } from "../types.ts";
 export class Conflict extends Error {
   constructor() {
@@ -70,498 +69,230 @@ const reportSchema = z
     detail: z.string().max(5000),
   })
   .strict();
+function versionRow(r: PgRow): Version {
+  return { id: r.id, workId: r.work_id, number: r.number, title: r.title,
+    legacyPath: r.legacy_path, engine: r.engine, revision: r.revision, status: r.status,
+    createdAt: r.created_at, language: r.language, notes: r.notes, sortOrder: r.sort_order };
+}
+
 export class Store {
-  sqlite: DatabaseSync;
-  db: QueryBuilder;
-  constructor(file: string) {
-    this.sqlite = new DatabaseSync(file);
-    this.sqlite
-      .exec(`PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL;
- CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,title TEXT NOT NULL,original_title TEXT NOT NULL,aliases TEXT NOT NULL,evidence TEXT NOT NULL,next_number INTEGER NOT NULL CHECK(next_number>0),revision INTEGER NOT NULL,default_id TEXT);
- CREATE TABLE IF NOT EXISTS versions(id TEXT PRIMARY KEY,work_id TEXT NOT NULL REFERENCES works(id),number INTEGER NOT NULL CHECK(number>0),title TEXT NOT NULL,legacy_path TEXT NOT NULL UNIQUE,engine TEXT NOT NULL,revision INTEGER NOT NULL,status TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(work_id,number));
- CREATE TABLE IF NOT EXISTS routes(work_id TEXT NOT NULL,number INTEGER NOT NULL,version_id TEXT NOT NULL REFERENCES versions(id),PRIMARY KEY(work_id,number));
- CREATE TABLE IF NOT EXISTS reports(version_id TEXT NOT NULL REFERENCES versions(id),kind TEXT NOT NULL,started_at TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(version_id,kind));
- CREATE TABLE IF NOT EXISTS pending(id TEXT PRIMARY KEY,payload TEXT NOT NULL); CREATE TABLE IF NOT EXISTS work_metadata(work_id TEXT PRIMARY KEY REFERENCES works(id),fetched_at TEXT NOT NULL,payload TEXT NOT NULL); PRAGMA user_version=3;`);
-    const cols = this.sqlite
-      .prepare("PRAGMA table_info(versions)")
-      .all()
-      .map((r: any) => r.name);
-    for (const [name, ddl] of [
-      ["language", "TEXT NOT NULL DEFAULT '未标注'"],
-      ["notes", "TEXT NOT NULL DEFAULT ''"],
-      ["sort_order", "INTEGER NOT NULL DEFAULT 0"],
-    ]) {
-      if (!cols.includes(name))
-        this.sqlite.exec(`ALTER TABLE versions ADD COLUMN ${name} ${ddl}`);
-    }
-    this.db = new QueryBuilder();
+  readonly database: PgDatabase;
+  readonly ready: Promise<void>;
+  constructor(database: PgDatabase | string) {
+    this.database = typeof database === 'string' ? new PgDatabase(database) : database;
+    this.ready = migrate(this.database, catalogMigrations);
   }
-  private workRows(id?: string) {
-    const query = this.db.select().from(works);
-    const q = (id ? query.where(eq(works.id, id)) : query).toSQL();
-    return this.sqlite
-      .prepare(q.sql)
-      .all(...(q.params as any[]))
-      .map((r: any) => ({
-        id: r.id as string,
-        title: r.title as string,
-        originalTitle: r.original_title as string,
-        aliases: r.aliases as string,
-        evidence: r.evidence as string,
-        nextNumber: r.next_number as number,
-        revision: r.revision as number,
-        defaultId: r.default_id as string | null,
-      }));
+  private async workRows(id?: string) {
+    await this.ready;
+    return this.database.prepare(`SELECT id,title,original_title AS "originalTitle",aliases,evidence,
+      next_number AS "nextNumber",revision,default_id AS "defaultId" FROM works${id ? ' WHERE id=$1' : ''} ORDER BY catalog_order,id`)
+      .all(...(id ? [id] : []));
   }
-  close() {
-    this.sqlite.close();
+  async close() { await this.database.close(); }
+  async tx<T>(fn: () => T | Promise<T>): Promise<T> {
+    await this.ready;
+    return this.database.transaction(fn, { lock: 'wvn:catalog-write' });
   }
-  tx<T>(fn: () => T): T {
-    this.sqlite.exec("BEGIN IMMEDIATE");
-    try {
-      const result = fn();
-      this.sqlite.exec("COMMIT");
-      return result;
-    } catch (e) {
-      this.sqlite.exec("ROLLBACK");
-      throw e;
-    }
-  }
-  seed(seed: CatalogSeed) {
-    this.tx(() => {
+  async seed(seed: CatalogSeed) {
+    await this.tx(async () => {
       for (const w of seed.works) {
-        workId.parse(w.id);
-        label.parse(w.title);
-        this.sqlite
-          .prepare("INSERT OR IGNORE INTO works VALUES(?,?,?,?,?,1,1,NULL)")
-          .run(
-            w.id,
-            w.title,
-            w.originalTitle,
-            JSON.stringify(w.aliases),
-            w.evidence,
-          );
+        workId.parse(w.id); label.parse(w.title);
+        await this.database.prepare('INSERT INTO works(id,title,original_title,aliases,evidence,next_number,revision,default_id) VALUES($1,$2,$3,$4,$5,1,1,NULL) ON CONFLICT(id) DO NOTHING')
+          .run(w.id, w.title, w.originalTitle, JSON.stringify(w.aliases), w.evidence);
       }
       for (const v of seed.versions) {
-        const old = this.raw(v.id);
+        const old = await this.raw(v.id);
         if (old) {
-          if (old.legacyPath !== legacyPath(v.legacyPath))
-            throw Error("种子身份冲突");
-          this.sqlite.prepare("DELETE FROM pending WHERE id=?").run(v.id);
-          continue;
+          if (old.legacyPath !== legacyPath(v.legacyPath)) throw Error('种子身份冲突');
+        } else {
+          const value = versionInput.parse({ title: v.title, legacyPath: v.legacyPath, engine: v.engine });
+          await this.insert(v.workId, value, v.id, v.number);
         }
-        const value = versionInput.parse({
-          title: v.title,
-          legacyPath: v.legacyPath,
-          engine: v.engine,
-        });
-        this.insert(v.workId, value, v.id, v.number);
-        this.sqlite.prepare("DELETE FROM pending WHERE id=?").run(v.id);
+        await this.database.prepare('DELETE FROM pending WHERE id=$1').run(v.id);
       }
-      for (const p of seed.pending ?? []) {
-        if (!this.raw(p.id))
-          this.sqlite
-            .prepare("INSERT OR IGNORE INTO pending VALUES(?,?)")
-            .run(p.id, JSON.stringify(p));
-      }
+      for (const p of seed.pending ?? []) if (!await this.raw(p.id))
+        await this.database.prepare('INSERT INTO pending VALUES($1,$2) ON CONFLICT(id) DO NOTHING').run(p.id, JSON.stringify(p));
       for (const w of seed.works)
-        this.sqlite
-          .prepare(
-            "UPDATE works SET default_id=(SELECT id FROM versions WHERE work_id=? AND status='published' ORDER BY number LIMIT 1) WHERE id=? AND default_id IS NULL",
-          )
-          .run(w.id, w.id);
+        await this.database.prepare(`UPDATE works SET default_id=(SELECT id FROM versions WHERE work_id=$1 AND status='published' ORDER BY number LIMIT 1)
+          WHERE id=$1 AND default_id IS NULL`).run(w.id);
     });
   }
-  private insert(
-    id: string,
-    input: {
-      title: string;
-      legacyPath: string;
-      engine: string;
-      language?: string;
-      notes?: string;
-      sortOrder?: number;
-    },
-    uuid: string = randomUUID(),
-    slot?: number,
-  ): Version {
+  private async insert(id: string, input: { title: string; legacyPath: string; engine: string; language?: string; notes?: string; sortOrder?: number }, uuid: string = randomUUID(), slot?: number): Promise<Version> {
     workId.parse(id);
-    const row = this.workRows(id)[0];
-    if (!row) throw Error("作品不存在");
+    const row = (await this.workRows(id))[0];
+    if (!row) throw Error('作品不存在');
     const number = slot ?? row.nextNumber;
-    if (slot && slot < row.nextNumber) throw Error("编号不可复用");
-    const now = new Date().toISOString();
-    this.sqlite
-      .prepare(
-        "INSERT INTO versions(id,work_id,number,title,legacy_path,engine,revision,status,created_at,language,notes,sort_order) VALUES(?,?,?,?,?,?,1,'published',?,?,?,?)",
-      )
-      .run(
-        uuid,
-        id,
-        number,
-        input.title,
-        input.legacyPath,
-        input.engine,
-        now,
-        input.language ?? "未标注",
-        input.notes ?? "",
-        input.sortOrder ?? number,
-      );
-    this.sqlite
-      .prepare("INSERT INTO routes VALUES(?,?,?)")
-      .run(id, number, uuid);
-    this.sqlite
-      .prepare("UPDATE works SET next_number=?,revision=revision+1 WHERE id=?")
-      .run(number + 1, id);
-    return this.raw(uuid)!;
+    if (slot && slot < row.nextNumber) throw Error('编号不可复用');
+    await this.database.prepare(`INSERT INTO versions(id,work_id,number,title,legacy_path,engine,revision,status,created_at,language,notes,sort_order)
+      VALUES($1,$2,$3,$4,$5,$6,1,'published',$7,$8,$9,$10)`)
+      .run(uuid, id, number, input.title, input.legacyPath, input.engine, new Date().toISOString(), input.language ?? '未标注', input.notes ?? '', input.sortOrder ?? number);
+    await this.database.prepare('INSERT INTO routes VALUES($1,$2,$3)').run(id, number, uuid);
+    await this.database.prepare('UPDATE works SET next_number=$1,revision=revision+1 WHERE id=$2').run(number + 1, id);
+    return (await this.raw(uuid))!;
   }
-  raw(uuid: string): Version | undefined {
-    const r = this.sqlite
-      .prepare("SELECT * FROM versions WHERE id=?")
-      .get(uuid) as Record<string, any> | undefined;
-    return (
-      r && {
-        id: r.id,
-        workId: r.work_id,
-        number: r.number,
-        title: r.title,
-        legacyPath: r.legacy_path,
-        engine: r.engine,
-        revision: r.revision,
-        status: r.status,
-        createdAt: r.created_at,
-        language: r.language,
-        notes: r.notes,
-        sortOrder: r.sort_order,
-      }
-    );
+  async raw(uuid: string): Promise<Version | undefined> {
+    await this.ready;
+    const row = await this.database.prepare('SELECT * FROM versions WHERE id=$1').get(uuid);
+    return row ? versionRow(row) : undefined;
   }
-  addVersion(id: string, input: unknown) {
+  async addVersion(id: string, input: unknown) {
     const value = versionInput.parse(input);
-    return this.tx(() => {
-      const v = this.insert(id, value);
-      this.sqlite
-        .prepare(
-          "UPDATE works SET default_id=? WHERE id=? AND default_id IS NULL",
-        )
-        .run(v.id, id);
+    return this.tx(async () => {
+      const v = await this.insert(id, value);
+      await this.database.prepare('UPDATE works SET default_id=$1 WHERE id=$2 AND default_id IS NULL').run(v.id, id);
       return v;
     });
   }
-  list(includeHidden = false): PublicWork[] {
-    const metadata = new Map(
-      (
-        this.sqlite
-          .prepare("SELECT work_id,payload FROM work_metadata")
-          .all() as { work_id: string; payload: string }[]
-      ).map((r) => [r.work_id, JSON.parse(r.payload) as WorkMetadata]),
-    );
-    return this.workRows().map((w) => {
-      const vs = (
-        this.sqlite
-          .prepare(
-            "SELECT id FROM versions WHERE work_id=? ORDER BY sort_order,number",
-          )
-          .all(w.id) as { id: string }[]
-      )
-        .map((r) => this.raw(r.id)!)
-        .filter((v) => includeHidden || v.status === "published");
-      return {
-        id: w.id,
-        title: w.title,
-        originalTitle: w.originalTitle,
-        aliases: JSON.parse(w.aliases),
-        evidence: w.evidence,
-        ...(metadata.has(w.id) ? { metadata: metadata.get(w.id) } : {}),
-        revision: w.revision,
-        defaultVersionId: w.defaultId,
-        url: `/${workSlug(w.id)}/`,
-        versions: vs.map((v) => ({
-          id: v.id,
-          workId: v.workId,
-          number: v.number,
-          title: v.title,
-          engine: v.engine,
-          language: v.language,
-          notes: v.notes,
-          sortOrder: v.sortOrder,
-          revision: v.revision,
-          url: `/${workSlug(v.workId)}/${v.number}/`,
-          launchPath: encodeURI(v.legacyPath),
-          checks: this.checks(v.id).map((c) =>
-            includeHidden ? c : { ...c, detail: "" },
-          ),
-          ...(includeHidden ? { status: v.status } : {}),
-        })),
-      };
-    });
+  async list(includeHidden = false): Promise<PublicWork[]> {
+    await this.ready;
+    const works = await this.workRows();
+    const versions = await this.database.prepare('SELECT * FROM versions ORDER BY sort_order,number').all();
+    const metadata = await this.database.prepare('SELECT work_id,payload FROM work_metadata').all();
+    const reports = await this.database.prepare('SELECT version_id,payload FROM reports ORDER BY kind').all();
+    const meta = new Map(metadata.map(r => [r.work_id, JSON.parse(r.payload) as WorkMetadata]));
+    return works.map(w => ({
+      id: w.id, title: w.title, originalTitle: w.originalTitle, aliases: JSON.parse(w.aliases), evidence: w.evidence,
+      ...(meta.has(w.id) ? { metadata: meta.get(w.id) } : {}), revision: w.revision,
+      defaultVersionId: w.defaultId, url: `/${workSlug(w.id)}/`,
+      versions: versions.filter(v => v.work_id === w.id && (includeHidden || v.status === 'published')).map(row => {
+        const v = versionRow(row);
+        return { id: v.id, workId: v.workId, number: v.number, title: v.title, engine: v.engine,
+          language: v.language, notes: v.notes, sortOrder: v.sortOrder, revision: v.revision,
+          url: `/${workSlug(v.workId)}/${v.number}/`, launchPath: encodeURI(v.legacyPath),
+          checks: reports.filter(r => r.version_id === v.id).map(r => {
+            const check = JSON.parse(r.payload) as Check;
+            return includeHidden ? check : { ...check, detail: '' };
+          }), ...(includeHidden ? { status: v.status } : {}) };
+      }),
+    }));
   }
-  get(id: string, includeHidden = false) {
-    return this.list(includeHidden).find((w) => w.id === id);
+  async get(id: string, includeHidden = false) { return (await this.list(includeHidden)).find(w => w.id === id); }
+  async resolveLegacy(path: string) {
+    let decoded: string;
+    try { decoded = decodeURIComponent(path); } catch { return; }
+    await this.ready;
+    const row = await this.database.prepare("SELECT * FROM versions WHERE legacy_path=$1 AND status='published'").get(decoded);
+    return row ? versionRow(row) : undefined;
   }
-  resolveLegacy(path: string) {
-    let decoded;
-    try {
-      decoded = decodeURIComponent(path);
-    } catch {
-      return;
-    }
-    return (
-      this.sqlite
-        .prepare(
-          "SELECT id FROM versions WHERE legacy_path=? AND status='published'",
-        )
-        .get(decoded) as { id: string } | undefined
-    )?.id
-      ? this.raw(
-          (
-            this.sqlite
-              .prepare(
-                "SELECT id FROM versions WHERE legacy_path=? AND status='published'",
-              )
-              .get(decoded) as { id: string }
-          ).id,
-        )
-      : undefined;
-  }
-  resolveRoute(slug: string, number: string) {
+  async resolveRoute(slug: string, number: string) {
     const id = parseWorkSlug(slug);
     if (!id || !/^[1-9]\d{0,8}$/.test(number)) return;
-    const r = this.sqlite
-      .prepare("SELECT version_id FROM routes WHERE work_id=? AND number=?")
-      .get(id, Number(number)) as { version_id: string } | undefined;
-    const v = r && this.raw(r.version_id);
-    return v?.status === "published" ? v : undefined;
+    await this.ready;
+    const row = await this.database.prepare(`SELECT v.* FROM routes r JOIN versions v ON v.id=r.version_id
+      WHERE r.work_id=$1 AND r.number=$2 AND v.status='published'`).get(id, Number(number));
+    return row ? versionRow(row) : undefined;
   }
-  editWork(id: string, revision: number, input: unknown) {
+  async editWork(id: string, revision: number, input: unknown) {
     const patch = workPatch.parse(input);
-    return this.tx(() => {
-      const w = this.get(id, true);
-      if (!w) throw Error("作品不存在");
+    return this.tx(async () => {
+      const w = await this.get(id, true);
+      if (!w) throw Error('作品不存在');
       if (w.revision !== revision) throw new Conflict();
       if (patch.defaultVersionId) {
-        const v = this.raw(patch.defaultVersionId);
-        if (v?.workId !== id || v.status !== "published")
-          throw Error("默认版本必须属于本作品且可见");
+        const v = await this.raw(patch.defaultVersionId);
+        if (v?.workId !== id || v.status !== 'published') throw Error('默认版本必须属于本作品且可见');
       }
-      this.sqlite
-        .prepare(
-          "UPDATE works SET title=?,aliases=?,default_id=?,revision=revision+1 WHERE id=?",
-        )
-        .run(
-          patch.title ?? w.title,
-          JSON.stringify(patch.aliases ?? w.aliases),
-          patch.defaultVersionId === undefined
-            ? w.defaultVersionId
-            : patch.defaultVersionId,
-          id,
-        );
-      return this.get(id, true)!;
+      await this.database.prepare('UPDATE works SET title=$1,aliases=$2,default_id=$3,revision=revision+1 WHERE id=$4')
+        .run(patch.title ?? w.title, JSON.stringify(patch.aliases ?? w.aliases), patch.defaultVersionId === undefined ? w.defaultVersionId : patch.defaultVersionId, id);
+      return (await this.get(id, true))!;
     });
   }
-  editVersion(uuid: string, revision: number, input: unknown) {
+  async editVersion(uuid: string, revision: number, input: unknown) {
     const patch = versionPatch.parse(input);
-    return this.tx(() => {
-      const v = this.raw(uuid);
-      if (!v) throw Error("版本不存在");
+    return this.tx(async () => {
+      const v = await this.raw(uuid);
+      if (!v) throw Error('版本不存在');
       if (v.revision !== revision) throw new Conflict();
-      if (v.status === "deleted") throw Error("已删除的编号不可恢复或复用");
-      if (
-        patch.status &&
-        patch.status !== "published" &&
-        this.get(v.workId, true)?.defaultVersionId === uuid
-      )
-        throw Error("请先调整默认版本");
-      this.sqlite
-        .prepare(
-          "UPDATE versions SET title=?,status=?,language=?,notes=?,sort_order=?,revision=revision+1 WHERE id=?",
-        )
-        .run(
-          patch.title ?? v.title,
-          patch.status ?? v.status,
-          patch.language ?? v.language,
-          patch.notes ?? v.notes,
-          patch.sortOrder ?? v.sortOrder,
-          uuid,
-        );
-      return this.raw(uuid)!;
+      if (v.status === 'deleted') throw Error('已删除的编号不可恢复或复用');
+      if (patch.status && patch.status !== 'published' && (await this.get(v.workId, true))?.defaultVersionId === uuid)
+        throw Error('请先调整默认版本');
+      await this.database.prepare('UPDATE versions SET title=$1,status=$2,language=$3,notes=$4,sort_order=$5,revision=revision+1 WHERE id=$6')
+        .run(patch.title ?? v.title, patch.status ?? v.status, patch.language ?? v.language, patch.notes ?? v.notes, patch.sortOrder ?? v.sortOrder, uuid);
+      return (await this.raw(uuid))!;
     });
   }
-  reassignVersion(uuid: string, target: string, revision: number) {
+  async reassignVersion(uuid: string, target: string, revision: number) {
     workId.parse(target);
-    return this.tx(() => {
-      const v = this.raw(uuid);
-      if (!v) throw Error("版本不存在");
+    return this.tx(async () => {
+      const v = await this.raw(uuid);
+      if (!v) throw Error('版本不存在');
       if (v.revision !== revision) throw new Conflict();
-      if (v.status === "deleted" || v.workId === target)
-        throw Error("无效改归属");
-      const w = this.get(target, true);
-      if (!w) throw Error("目标作品不存在");
-      const slot = (
-        this.sqlite
-          .prepare("SELECT next_number n FROM works WHERE id=?")
-          .get(target) as { n: number }
-      ).n;
-      this.sqlite
-        .prepare(
-          "UPDATE versions SET work_id=?,number=?,revision=revision+1 WHERE id=?",
-        )
-        .run(target, slot, uuid);
-      this.sqlite
-        .prepare("INSERT INTO routes VALUES(?,?,?)")
-        .run(target, slot, uuid);
-      this.sqlite
-        .prepare(
-          "UPDATE works SET next_number=?,default_id=COALESCE(default_id,?),revision=revision+1 WHERE id=?",
-        )
-        .run(slot + 1, v.status === "published" ? uuid : null, target);
-      this.sqlite
-        .prepare(
-          "UPDATE works SET default_id=(SELECT id FROM versions WHERE work_id=? AND status='published' ORDER BY number LIMIT 1),revision=revision+1 WHERE id=? AND default_id=?",
-        )
-        .run(v.workId, v.workId, uuid);
-      return this.raw(uuid)!;
+      if (v.status === 'deleted' || v.workId === target) throw Error('无效改归属');
+      const w = (await this.workRows(target))[0];
+      if (!w) throw Error('目标作品不存在');
+      const slot = w.nextNumber;
+      await this.database.prepare('UPDATE versions SET work_id=$1,number=$2,revision=revision+1 WHERE id=$3').run(target, slot, uuid);
+      await this.database.prepare('INSERT INTO routes VALUES($1,$2,$3)').run(target, slot, uuid);
+      await this.database.prepare('UPDATE works SET next_number=$1,default_id=COALESCE(default_id,$2),revision=revision+1 WHERE id=$3')
+        .run(slot + 1, v.status === 'published' ? uuid : null, target);
+      await this.database.prepare(`UPDATE works SET default_id=(SELECT id FROM versions WHERE work_id=$1 AND status='published' ORDER BY number LIMIT 1),revision=revision+1
+        WHERE id=$1 AND default_id=$2`).run(v.workId, uuid);
+      return (await this.raw(uuid))!;
     });
   }
-  pending() {
-    return (
-      this.sqlite.prepare("SELECT payload FROM pending ORDER BY id").all() as {
-        payload: string;
-      }[]
-    ).map((r) => JSON.parse(r.payload));
+  async pending() {
+    await this.ready;
+    return (await this.database.prepare('SELECT payload FROM pending ORDER BY id').all()).map(r => JSON.parse(r.payload));
   }
-  hasMedia(url: string): boolean {
-    return !!this.sqlite
-      .prepare(
-        "SELECT 1 FROM work_metadata WHERE json_extract(payload,'$.cover.url')=? OR EXISTS(SELECT 1 FROM json_each(payload,'$.screenshots') WHERE json_extract(value,'$.url')=?) LIMIT 1",
-      )
-      .get(url, url);
+  async hasMedia(url: string): Promise<boolean> {
+    await this.ready;
+    return !!await this.database.prepare(`SELECT 1 FROM work_metadata WHERE payload::jsonb #>> '{cover,url}'=$1
+      OR EXISTS(SELECT 1 FROM jsonb_array_elements(COALESCE(payload::jsonb->'screenshots','[]'::jsonb)) image WHERE image->>'url'=$1) LIMIT 1`).get(url);
   }
-  importMetadata(input: unknown, apply = false) {
+  async importMetadata(input: unknown, apply = false) {
     const document = metadataDocument.parse(input);
-    const ids = new Set<string>();
-    const changes: {
-      workId: string;
-      kind: "added" | "updated" | "unchanged";
-    }[] = [];
-    for (const m of document.works) {
-      if (ids.has(m.workId)) throw Error("重复元数据编号");
-      ids.add(m.workId);
-      if (!this.workRows(m.workId).length) throw Error("作品不存在");
-      const old = this.sqlite
-        .prepare("SELECT fetched_at,payload FROM work_metadata WHERE work_id=?")
-        .get(m.workId) as { fetched_at: string; payload: string } | undefined;
-      if (old && Date.parse(m.fetchedAt) < Date.parse(old.fetched_at))
-        throw Error("拒绝较旧的元数据快照");
-      changes.push({
-        workId: m.workId,
-        kind: !old
-          ? "added"
-          : old.payload === JSON.stringify(m)
-            ? "unchanged"
-            : "updated",
-      });
-    }
-    if (apply)
-      this.tx(() => {
-        const put = this.sqlite.prepare(
-          "INSERT INTO work_metadata VALUES(?,?,?) ON CONFLICT(work_id) DO UPDATE SET fetched_at=excluded.fetched_at,payload=excluded.payload",
-        );
-        for (const m of document.works)
-          put.run(m.workId, m.fetchedAt, JSON.stringify(m));
-      });
-    return {
-      total: changes.length,
-      added: changes.filter((c) => c.kind === "added").length,
-      updated: changes.filter((c) => c.kind === "updated").length,
-      unchanged: changes.filter((c) => c.kind === "unchanged").length,
-      changes,
+    const run = async () => {
+      const ids = new Set<string>();
+      const changes: { workId: string; kind: 'added' | 'updated' | 'unchanged' }[] = [];
+      for (const m of document.works) {
+        if (ids.has(m.workId)) throw Error('重复元数据编号');
+        ids.add(m.workId);
+        if (!(await this.workRows(m.workId)).length) throw Error('作品不存在');
+        const old = await this.database.prepare('SELECT fetched_at,payload FROM work_metadata WHERE work_id=$1').get(m.workId);
+        if (old && Date.parse(m.fetchedAt) < Date.parse(old.fetched_at)) throw Error('拒绝较旧的元数据快照');
+        changes.push({ workId: m.workId, kind: !old ? 'added' : old.payload === JSON.stringify(m) ? 'unchanged' : 'updated' });
+      }
+      if (apply) for (const m of document.works)
+        await this.database.prepare(`INSERT INTO work_metadata VALUES($1,$2,$3) ON CONFLICT(work_id)
+          DO UPDATE SET fetched_at=excluded.fetched_at,payload=excluded.payload`).run(m.workId, m.fetchedAt, JSON.stringify(m));
+      return { total: changes.length, added: changes.filter(c => c.kind === 'added').length,
+        updated: changes.filter(c => c.kind === 'updated').length, unchanged: changes.filter(c => c.kind === 'unchanged').length, changes };
     };
+    return apply ? this.tx(run) : run();
   }
-  createWork(input: unknown) {
-    const w = z
-      .object({
-        id: workId,
-        title: label,
-        originalTitle: label,
-        aliases: z.array(label).max(50),
-        evidence: z.string().url(),
-      })
-      .strict()
-      .parse(input);
-    if (w.evidence !== providerLink(w.id))
-      throw Error("需要对应作品的 VNDB 或 BGM 证据链接");
-    return this.tx(() => {
-      this.sqlite
-        .prepare("INSERT INTO works VALUES(?,?,?,?,?,1,1,NULL)")
-        .run(
-          w.id,
-          w.title,
-          w.originalTitle,
-          JSON.stringify(w.aliases),
-          w.evidence,
-        );
-      return this.get(w.id, true)!;
+  async createWork(input: unknown) {
+    const w = z.object({ id: workId, title: label, originalTitle: label, aliases: z.array(label).max(50), evidence: z.string().url() }).strict().parse(input);
+    if (w.evidence !== providerLink(w.id)) throw Error('需要对应作品的 VNDB 或 BGM 证据链接');
+    return this.tx(async () => {
+      await this.database.prepare('INSERT INTO works(id,title,original_title,aliases,evidence,next_number,revision,default_id) VALUES($1,$2,$3,$4,$5,1,1,NULL)').run(w.id, w.title, w.originalTitle, JSON.stringify(w.aliases), w.evidence);
+      return (await this.get(w.id, true))!;
     });
   }
-  bindPending(uuid: string, id: string) {
-    return this.tx(() => {
-      const p = this.pending().find((p: any) => p.id === uuid);
-      if (!p) throw Error("待匹配条目不存在");
-      const engine = /ONSCRIPTER/i.test(p.meta)
-        ? "ONS"
-        : /ARTEMIS/i.test(p.meta)
-          ? "Artemis"
-          : /REN/i.test(p.meta)
-            ? "RenPy"
-            : "Tyrano";
-      const v = this.insert(
-        id,
-        versionInput.parse({
-          title: p.title,
-          legacyPath: p.legacyPath,
-          engine,
-        }),
-        uuid,
-      );
-      this.sqlite
-        .prepare(
-          "UPDATE works SET default_id=COALESCE(default_id,?) WHERE id=?",
-        )
-        .run(v.id, id);
-      this.sqlite.prepare("DELETE FROM pending WHERE id=?").run(uuid);
+  async bindPending(uuid: string, id: string) {
+    return this.tx(async () => {
+      const p = (await this.pending()).find((p: any) => p.id === uuid);
+      if (!p) throw Error('待匹配条目不存在');
+      const engine = /ONSCRIPTER/i.test(p.meta) ? 'ONS' : /ARTEMIS/i.test(p.meta) ? 'Artemis' : /REN/i.test(p.meta) ? 'RenPy' : 'Tyrano';
+      const v = await this.insert(id, versionInput.parse({ title: p.title, legacyPath: p.legacyPath, engine }), uuid);
+      await this.database.prepare('UPDATE works SET default_id=COALESCE(default_id,$1) WHERE id=$2').run(v.id, id);
+      await this.database.prepare('DELETE FROM pending WHERE id=$1').run(uuid);
       return v;
     });
   }
-  checks(uuid: string): Check[] {
-    return (
-      this.sqlite
-        .prepare("SELECT payload FROM reports WHERE version_id=? ORDER BY kind")
-        .all(uuid) as { payload: string }[]
-    ).map((r) => JSON.parse(r.payload));
+  async checks(uuid: string): Promise<Check[]> {
+    await this.ready;
+    return (await this.database.prepare('SELECT payload FROM reports WHERE version_id=$1 ORDER BY kind').all(uuid)).map(r => JSON.parse(r.payload));
   }
-  importReport(input: unknown) {
+  async importReport(input: unknown) {
     const r = reportSchema.parse(input);
-    if (
-      Date.parse(r.checkedAt) < Date.parse(r.startedAt) ||
-      Date.parse(r.checkedAt) > Date.now() + 300000
-    )
-      throw Error("报告时间无效");
-    return this.tx(() => {
-      if (!this.raw(r.versionId)) throw Error("版本不存在");
-      const prev = this.checks(r.versionId).find((x) => x.kind === r.kind);
-      if (
-        prev &&
-        (Date.parse(prev.startedAt) > Date.parse(r.startedAt) ||
-          (prev.startedAt === r.startedAt &&
-            Date.parse(prev.checkedAt) > Date.parse(r.checkedAt)))
-      )
-        throw Error("拒绝过期报告");
-      this.sqlite
-        .prepare(
-          "INSERT INTO reports VALUES(?,?,?,?) ON CONFLICT(version_id,kind) DO UPDATE SET started_at=excluded.started_at,payload=excluded.payload",
-        )
-        .run(r.versionId, r.kind, r.startedAt, JSON.stringify(r));
+    if (Date.parse(r.checkedAt) < Date.parse(r.startedAt) || Date.parse(r.checkedAt) > Date.now() + 300000) throw Error('报告时间无效');
+    return this.tx(async () => {
+      if (!await this.raw(r.versionId)) throw Error('版本不存在');
+      const prev = (await this.checks(r.versionId)).find(x => x.kind === r.kind);
+      if (prev && (Date.parse(prev.startedAt) > Date.parse(r.startedAt) || (prev.startedAt === r.startedAt && Date.parse(prev.checkedAt) > Date.parse(r.checkedAt))))
+        throw Error('拒绝过期报告');
+      await this.database.prepare(`INSERT INTO reports VALUES($1,$2,$3,$4) ON CONFLICT(version_id,kind)
+        DO UPDATE SET started_at=excluded.started_at,payload=excluded.payload`).run(r.versionId, r.kind, r.startedAt, JSON.stringify(r));
       return r;
     });
   }

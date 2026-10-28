@@ -1,3 +1,4 @@
+import { testStore } from "./helpers/catalog.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
@@ -12,7 +13,7 @@ import { createPublicApp } from "../src/server/http.ts";
 
 const bytes = new Uint8Array([0, 255, 17]);
 const snapshot = () => ({ schema: 1, pilot: "clannad", files: [{ path: "save1.dat", data: bytes }] });
-test("snapshot scope, path and quota checks reject cross-game and executable/traversal input", () => {
+(test("snapshot scope, path and quota checks reject cross-game and executable/traversal input", () => {
   assert.deepEqual(validateSnapshot(snapshot(), "clannad").files[0].data, bytes);
   assert.throws(() => validateSnapshot(snapshot(), "saya"));
   for (const path of ["../save1.dat", "/save1.dat", "x/../../save1.dat", "x\\save.dat", "x%2f.dat", "x.js", ".secret", "x//save.dat"]) {
@@ -21,15 +22,15 @@ test("snapshot scope, path and quota checks reject cross-game and executable/tra
   assert.throws(() => validateSnapshot({ ...snapshot(), files: [snapshot().files[0], snapshot().files[0]] }, "clannad"));
   assert.throws(() => validateSnapshot({ ...snapshot(), files: [{ path: "save.dat", data: new Uint8Array(32 * 1024 * 1024 + 1) }] }, "clannad"));
   assert.throws(() => validateSnapshot({ ...snapshot(), files: [{ path: "save.dat", data: {} }] }, "clannad"));
-});
-test("snapshot digest detects changed bytes and names independent of enumeration order", async () => {
+}));
+(test("snapshot digest detects changed bytes and names independent of enumeration order", async () => {
   const original = await snapshotDigest(snapshot());
   assert.notEqual(original, await snapshotDigest({ ...snapshot(), files: [{ path: "save1.dat", data: new Uint8Array([1, 255, 17]) }] }));
   assert.notEqual(original, await snapshotDigest({ ...snapshot(), files: [{ path: "save2.dat", data: bytes }] }));
   const files = [...snapshot().files, { path: "envdata", data: new Uint8Array([2]) }];
   assert.equal(await snapshotDigest({ ...snapshot(), files }), await snapshotDigest({ ...snapshot(), files: files.toReversed() }));
-});
-test("save modification times survive validation and are covered by the portable digest", async () => {
+}));
+(test("save modification times survive validation and are covered by the portable digest", async () => {
   const file = { ...snapshot().files[0], mtime: 1609459200000 };
   const value = { ...snapshot(), files: [file] };
   assert.equal(validateSnapshot(value, "clannad").files[0].mtime, file.mtime);
@@ -37,8 +38,8 @@ test("save modification times survive validation and are covered by the portable
   for (const mtime of [-1, NaN, Infinity, "2021-01-01", 0.5, 8640000000000001]) {
     assert.throws(() => validateSnapshot({ ...value, files: [{ ...file, mtime }] }, "clannad"));
   }
-});
-test("runtime and projected data stay bounded and sandboxed even on direct navigation", async () => {
+}));
+(test("runtime and projected data stay bounded and sandboxed even on direct navigation", async () => {
   const root = mkdtempSync(join(tmpdir(), "wg-ons-"));
   try {
     mkdirSync(join(root, "clannad"));
@@ -76,16 +77,16 @@ test("runtime and projected data stay bounded and sandboxed even on direct navig
     assert.equal(pilots.length, 26);
     assert.equal(pilots[0].engine, pilots[1].engine);
   } finally { rmSync(root, { recursive: true, force: true }); }
-});
-test("encoded legacy entry paths cannot bypass the pilot execution boundary", async () => {
-  const root = mkdtempSync(join(tmpdir(), "wg-ons-encoded-")), store = new Store(":memory:");
+}));
+(test("encoded legacy entry paths cannot bypass the pilot execution boundary", async () => {
+  const root = mkdtempSync(join(tmpdir(), "wg-ons-encoded-")), store = await testStore();
   const before = process.env.WG_ONS_PILOT;
   try {
     process.env.WG_ONS_PILOT = "1";
     mkdirSync(join(root, "clannad"));
     writeFileSync(join(root, "clannad", "index.html"), "UNTRUSTED-LEGACY-HTML");
     writeFileSync(join(root, "clannad", "onsyuri.js"), "UNTRUSTED-LEGACY-JS");
-    store.seed({ snapshotAt: "2026-10-19T00:00:00Z", works: [{ id: "v4", title: "CLANNAD", originalTitle: "CLANNAD", aliases: [], evidence: "https://vndb.org/v4" }], versions: [{ id: pilots[0].versionId, workId: "v4", number: 1, title: "CLANNAD", legacyPath: "/clannad/", engine: "ONS" }] });
+    (await store.seed({ snapshotAt: "2026-10-19T00:00:00Z", works: [{ id: "v4", title: "CLANNAD", originalTitle: "CLANNAD", aliases: [], evidence: "https://vndb.org/v4" }], versions: [{ id: pilots[0].versionId, workId: "v4", number: 1, title: "CLANNAD", legacyPath: "/clannad/", engine: "ONS" }] }));
     const app = createPublicApp(store, root);
     for (const path of ["/clannad/index%2ehtml", "/clannad%2Findex.html", "/clannad/onsyuri%2ejs", "/clannad%2Fonsyuri.js", "/clannad/index.html.", "/clannad/index.html%20"]) {
       const response = await app.request("http://localhost" + path);
@@ -93,9 +94,9 @@ test("encoded legacy entry paths cannot bypass the pilot execution boundary", as
       assert.doesNotMatch(await response.text(), /UNTRUSTED-LEGACY/);
     }
     for (const path of ["/api/catalog", "/api/me/library"]) assert.equal((await app.request("http://localhost" + path, { headers: { Origin: "null", "Sec-Fetch-Site": "cross-site" } })).status, 403);
-  } finally { if (before === undefined) delete process.env.WG_ONS_PILOT; else process.env.WG_ONS_PILOT = before; store.close(); rmSync(root, { recursive: true, force: true }); }
-});
-test("manifest does not grant arbitrary remote URLs or executable files", async () => {
+  } finally { if (before === undefined) delete process.env.WG_ONS_PILOT; else process.env.WG_ONS_PILOT = before; (await store.close()); rmSync(root, { recursive: true, force: true }); }
+}));
+(test("manifest does not grant arbitrary remote URLs or executable files", async () => {
   const root = mkdtempSync(join(tmpdir(), "wg-ons-bad-"));
   try {
     mkdirSync(join(root, "clannad"));
@@ -106,10 +107,10 @@ test("manifest does not grant arbitrary remote URLs or executable files", async 
       assert.equal((await app.request("http://localhost/__ons/manifest/clannad")).status, 503);
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
-});
+}));
 
 // Expansion coverage is derived independently from the catalog, not the registry.
-test("every catalog ONS version has a stable distinct namespace and canonical route", async () => {
+(test("every catalog ONS version has a stable distinct namespace and canonical route", async () => {
   const { readFileSync } = await import("node:fs");
   const catalog = JSON.parse(readFileSync("data/catalog.json", "utf8"));
   const versions = catalog.versions.filter((v: { engine: string }) => v.engine === "ONS");
@@ -131,8 +132,8 @@ test("every catalog ONS version has a stable distinct namespace and canonical ro
   const paths = trustedOnsPaths();
   for (const p of pilots) for (const suffix of ["", "/", ".data", "/_.data"]) assert(paths.includes(p.route.slice(0,-1) + suffix), p.route.slice(0,-1) + suffix);
   assert(paths.includes("/14365/3/")); assert(!paths.includes("/14365/4/")); assert(!paths.includes("/27448/1/"));
-});
-test("projected game audio permits encoded hash names and listed hidden OGG, without weakening saves or hidden-file denial", async () => {
+}));
+(test("projected game audio permits encoded hash names and listed hidden OGG, without weakening saves or hidden-file denial", async () => {
   const root=mkdtempSync(join(tmpdir(),'wg-ons-media-'));
   try{
     mkdirSync(join(root,'clannad','sound'),{recursive:true});mkdirSync(join(root,'clannad','se'),{recursive:true});
@@ -147,4 +148,4 @@ test("projected game audio permits encoded hash names and listed hidden OGG, wit
     for(const name of ['sound/.env','sound/.unlisted.ogg','sound/.nomedia','sound/.se002.ogg.','sound/.hidden/x.ogg'])assert.equal((await app.request('http://localhost/__ons/data/clannad/'+name)).status,404,name);
     for(const path of ['sound/.se002.ogg','se/#basket01.ogg'])assert.throws(()=>validateSnapshot({schema:1,pilot:'clannad',files:[{path,data:bytes}]},'clannad'));
   }finally{rmSync(root,{recursive:true,force:true})}
-});
+}));

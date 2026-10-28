@@ -24,8 +24,8 @@ export function meta() {
   ];
 }
 export async function loader({ request }: { request: Request }) {
-  const all = getStore()
-    .list()
+  const all = (await getStore()
+    .list())
     .filter((w) => w.versions.length);
   const url = new URL(request.url);
   const q = url.searchParams.get("q") ?? "";

@@ -1,3 +1,4 @@
+import { testStore } from "./helpers/catalog.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Store } from "../src/server/store.ts";
@@ -46,35 +47,35 @@ const snapshot = (fetchedAt = "2026-10-19T01:00:00Z") => ({
     },
   ],
 });
-test("metadata dry-run preserves manual fields and apply only changes source metadata", () => {
-  const store = new Store(":memory:");
+(test("metadata dry-run preserves manual fields and apply only changes source metadata", async () => {
+  const store = await testStore();
   try {
-    store.seed(seed);
-    const before = store.get("v4");
-    const plan = store.importMetadata(snapshot(), false);
+    (await store.seed(seed));
+    const before = (await store.get("v4"));
+    const plan = (await store.importMetadata(snapshot(), false));
     assert.equal(plan.added, 1);
-    assert.deepEqual(store.get("v4"), before);
-    store.importMetadata(snapshot(), true);
-    const after = store.get("v4")!;
+    assert.deepEqual((await store.get("v4")), before);
+    (await store.importMetadata(snapshot(), true));
+    const after = (await store.get("v4"))!;
     assert.equal(after.title, "人工标题");
     assert.deepEqual(after.aliases, ["团子"]);
     assert.equal(after.revision, before!.revision);
     assert.deepEqual(after.versions, before!.versions);
     assert.equal(after.metadata?.description, "来自来源的简介。");
     assert.equal(after.metadata?.released, "2004-04-28");
-    assert.equal(store.importMetadata(snapshot(), true).unchanged, 1);
-    assert.throws(() =>
-      store.importMetadata(snapshot("2026-10-18T00:00:00Z"), true),
-    );
+    assert.equal((await store.importMetadata(snapshot(), true)).unchanged, 1);
+    (await assert.rejects(async () =>
+      (await store.importMetadata(snapshot("2026-10-18T00:00:00Z"), true)),
+    ));
   } finally {
-    store.close();
+    (await store.close());
   }
-});
-test("metadata rejects untrusted media, wrong provider identity and unknown works atomically", () => {
-  const store = new Store(":memory:");
+}));
+(test("metadata rejects untrusted media, wrong provider identity and unknown works atomically", async () => {
+  const store = await testStore();
   try {
-    store.seed(seed);
-    assert.equal(store.importMetadata(snapshot(), false).added, 1);
+    (await store.seed(seed));
+    assert.equal((await store.importMetadata(snapshot(), false)).added, 1);
     const unsafe = snapshot();
     unsafe.works[0].cover = {
       url: "https://evil.test/a.jpg",
@@ -83,19 +84,19 @@ test("metadata rejects untrusted media, wrong provider identity and unknown work
       width: 1,
       height: 1,
     } as any;
-    assert.throws(() => store.importMetadata(unsafe, true));
+    (await assert.rejects(async () => (await store.importMetadata(unsafe, true))));
     const wrong = snapshot();
     wrong.works[0].sources[0].url = "https://vndb.org/v5";
-    assert.throws(() => store.importMetadata(wrong, true));
+    (await assert.rejects(async () => (await store.importMetadata(wrong, true))));
     const missing = snapshot();
     missing.works.push({ ...missing.works[0], workId: "v999" });
-    assert.throws(() => store.importMetadata(missing, true));
-    assert.equal(store.get("v4")?.metadata, undefined);
+    (await assert.rejects(async () => (await store.importMetadata(missing, true))));
+    assert.equal((await store.get("v4"))?.metadata, undefined);
   } finally {
-    store.close();
+    (await store.close());
   }
-});
-test("source markup removes spoiler blocks and preserves plain readable attribution", async () => {
+}));
+(test("source markup removes spoiler blocks and preserves plain readable attribution", async () => {
   const { sourceText, trustedImageUrl } = await import("../src/metadata.ts");
   assert.equal(
     sourceText(
@@ -111,9 +112,9 @@ test("source markup removes spoiler blocks and preserves plain readable attribut
     "https://127.0.0.1/pic/cover/a.jpg",
   ])
     assert.equal(trustedImageUrl(url), false);
-});
+}));
 
-test("reviewed official sources accept cached promotional art with exact work attribution", async () => {
+(test("reviewed official sources accept cached promotional art with exact work attribution", async () => {
   const { metadataSchema } = await import("../src/metadata.ts");
   const doc: any = snapshot().works[0];
   doc.workId = "v32805";
@@ -146,4 +147,4 @@ test("reviewed official sources accept cached promotional art with exact work at
   const malformed = structuredClone(doc);
   malformed.cover.sourceUrl = "not a URL";
   assert.equal(metadataSchema.safeParse(malformed).success, false);
-});
+}));

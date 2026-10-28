@@ -1,10 +1,11 @@
+import { testStore } from "./helpers/catalog.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Store } from "../src/server/store.ts";
-test("verified work creation, pending confirmation and version metadata persist", () => {
-  const s = new Store(":memory:");
+(test("verified work creation, pending confirmation and version metadata persist", async () => {
+  const s = await testStore();
   try {
-    s.seed({
+    (await s.seed({
       snapshotAt: "2026-10-19T00:00:00Z",
       works: [],
       versions: [],
@@ -17,38 +18,38 @@ test("verified work creation, pending confirmation and version metadata persist"
           reason: "identity unresolved",
         },
       ],
-    });
-    assert.equal(s.pending().length, 1);
-    assert.throws(() =>
-      s.createWork({
+    }));
+    assert.equal((await s.pending()).length, 1);
+    (await assert.rejects(async () =>
+      (await s.createWork({
         id: "v4",
         title: "test",
         originalTitle: "test",
         aliases: [],
         evidence: "https://evil.example",
-      }),
-    );
-    s.createWork({
+      })),
+    ));
+    (await s.createWork({
       id: "v4",
       title: "CLANNAD",
       originalTitle: "CLANNAD",
       aliases: [],
       evidence: "https://vndb.org/v4",
-    });
-    const v = s.bindPending("pending-a", "v4");
+    }));
+    const v = (await s.bindPending("pending-a", "v4"));
     assert.equal(v.number, 1);
-    assert.equal(s.pending().length, 0);
-    s.editVersion(v.id, v.revision, {
+    assert.equal((await s.pending()).length, 0);
+    (await s.editVersion(v.id, v.revision, {
       language: "简体中文",
       notes: "修复版说明",
       sortOrder: 10,
-    });
-    const edited = s.raw(v.id)!;
+    }));
+    const edited = (await s.raw(v.id))!;
     assert.equal(edited.language, "简体中文");
     assert.equal(edited.sortOrder, 10);
-    assert.equal(s.get("v4")!.versions[0].notes, "修复版说明");
-    assert.throws(() => s.bindPending("pending-a", "v4"));
+    assert.equal((await s.get("v4"))!.versions[0].notes, "修复版说明");
+    (await assert.rejects(async () => (await s.bindPending("pending-a", "v4"))));
   } finally {
-    s.close();
+    (await s.close());
   }
-});
+}));

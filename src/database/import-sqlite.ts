@@ -1,4 +1,4 @@
-import { createReadStream } from 'node:fs';
+import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import type { PgDatabase, PgRow } from './postgres.ts';
@@ -77,7 +77,7 @@ async function tableOrder(db: PgDatabase, tables: SourceTable[]) {
     FROM pg_constraint c JOIN pg_class child ON child.oid=c.conrelid
     JOIN pg_class parent ON parent.oid=c.confrelid
     JOIN pg_namespace n ON n.oid=child.relnamespace
-    WHERE c.contype='f' AND n.nspname=current_schema()`).all();
+    WHERE c.contype='f' AND NOT c.condeferrable AND n.nspname=current_schema()`).all();
   const result: SourceTable[] = [];
   const pending = new Map(tables.map(t => [t.name, t]));
   while (pending.size) {
@@ -88,16 +88,28 @@ async function tableOrder(db: PgDatabase, tables: SourceTable[]) {
   return result;
 }
 
-/** 只读旧 SQLite；目标先由应用的版本化 PG 迁移创建。每表提交并保存校验回执。 */
+/** 只读一致性 SQLite 快照；逐表核对后整份原子提交，支持延迟循环外键。 */
 export async function importSqlite(options: { source: string; db: PgDatabase; apply?: boolean }) {
   const { db } = options;
+  const initial = statSync(options.source, { bigint: true });
+  const checkSource = () => {
+    const wal = options.source + '-wal';
+    if (existsSync(wal) && statSync(wal).size > 0)
+      throw new Error('Live SQLite WAL detected; create a consistent snapshot before importing');
+    const now = statSync(options.source, { bigint: true });
+    if (now.size !== initial.size || now.mtimeNs !== initial.mtimeNs || now.ino !== initial.ino)
+      throw new Error('SQLite snapshot changed while importing');
+  };
+  checkSource();
   const fileHash = createHash('sha256');
   for await (const chunk of createReadStream(options.source)) fileHash.update(chunk);
   const sourceSha256 = fileHash.digest('hex');
+  checkSource();
   const sqlite = new DatabaseSync(options.source, { readOnly: true });
   const reports: TableReport[] = [];
   try {
     sqlite.exec('BEGIN');
+    return await db.transaction(async () => {
     const names = sqlite.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all();
     const allColumns = await db.prepare('SELECT table_name,column_name,data_type FROM information_schema.columns WHERE table_schema=current_schema()').all();
     const tables: SourceTable[] = names.map(({ name }) => {
@@ -153,9 +165,11 @@ export async function importSqlite(options: { source: string; db: PgDatabase; ap
             .run(sourceSha256, table.name, actual.rows, actual.sha256);
         }
         return { name: table.name, sourceRows: expected.rows, targetRows: actual.rows, sourceSha256: expected.sha256, targetSha256: actual.sha256, matches };
-      }, { lock: 'wvn:sqlite-import' });
+      });
       reports.push(report);
     }
+    checkSource();
     return { status: options.apply ? 'complete' : 'dry-run', sourceSha256, tables: reports };
+    }, { lock: 'wvn:sqlite-import' });
   } finally { sqlite.close(); }
 }

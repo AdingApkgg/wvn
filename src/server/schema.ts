@@ -1,10 +1,11 @@
 import {
-  sqliteTable,
+  pgTable,
   text,
   integer,
+  bigint,
   uniqueIndex,
-} from "drizzle-orm/sqlite-core";
-export const works = sqliteTable("works", {
+} from "drizzle-orm/pg-core";
+export const works = pgTable("works", {
   id: text().primaryKey(),
   title: text().notNull(),
   originalTitle: text("original_title").notNull(),
@@ -13,8 +14,9 @@ export const works = sqliteTable("works", {
   nextNumber: integer("next_number").notNull(),
   revision: integer().notNull(),
   defaultId: text("default_id"),
+  catalogOrder: bigint("catalog_order", { mode: "number" }).generatedByDefaultAsIdentity(),
 });
-export const versions = sqliteTable(
+export const versions = pgTable(
   "versions",
   {
     id: text().primaryKey(),
@@ -35,7 +37,7 @@ export const versions = sqliteTable(
   (t) => [uniqueIndex("work_slot").on(t.workId, t.number)],
 );
 
-export const workMetadata = sqliteTable("work_metadata", {
+export const workMetadata = pgTable("work_metadata", {
   workId: text("work_id")
     .primaryKey()
     .references(() => works.id),

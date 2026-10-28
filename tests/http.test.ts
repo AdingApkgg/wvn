@@ -1,3 +1,4 @@
+import { testStore } from "./helpers/catalog.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -12,13 +13,13 @@ import { tmpdir } from "node:os";
 import { Store } from "../src/server/store.ts";
 import { createPublicApp, createAdminApp } from "../src/server/http.ts";
 import { Auth } from "../src/server/auth.ts";
-function fixture() {
+async function fixture() {
   const root = mkdtempSync(join(tmpdir(), "wg-http-"));
   mkdirSync(join(root, "game"));
   writeFileSync(join(root, "game", "index.html"), "<title>game</title>");
   writeFileSync(join(root, "game", "engine.wasm"), "0123456789");
-  const store = new Store(":memory:");
-  store.seed({
+  const store = await testStore();
+  (await store.seed({
     snapshotAt: "2026-10-19T00:00:00Z",
     works: [
       {
@@ -39,7 +40,7 @@ function fixture() {
         engine: "ONS",
       },
     ],
-  });
+  }));
   const auth = new Auth("secret");
   return {
     root,
@@ -47,14 +48,14 @@ function fixture() {
     auth,
     pub: createPublicApp(store, root),
     admin: createAdminApp(store, auth, { sources: [] }),
-    close() {
-      store.close();
+    async close() {
+      (await store.close());
       rmSync(root, { recursive: true, force: true });
     },
   };
 }
-test("resource ranges, HEAD, traversal and missing JS do not fall into HTML", async () => {
-  const f = fixture();
+(test("resource ranges, HEAD, traversal and missing JS do not fall into HTML", async () => {
+  const f = (await fixture());
   try {
     let r = await f.pub.request("/game/engine.wasm", {
       headers: { range: "bytes=2-4" },
@@ -86,14 +87,14 @@ test("resource ranges, HEAD, traversal and missing JS do not fall into HTML", as
     } catch {}
     assert.equal((await f.pub.request("/game/leak")).status, 404);
   } finally {
-    f.close();
+    (await f.close());
   }
-});
+}));
 function rootOutside() {
   return tmpdir();
 }
-test("management is absent from public server and protected on private listener", async () => {
-  const f = fixture();
+(test("management is absent from public server and protected on private listener", async () => {
+  const f = (await fixture());
   try {
     for (const p of ["/manage", "/api/manage/catalog", "/api/manage/login"])
       assert.equal(
@@ -151,11 +152,11 @@ test("management is absent from public server and protected on private listener"
     assert.equal(api.includes(f.root), false);
     assert.equal(api.includes("legacyPath"), false);
   } finally {
-    f.close();
+    (await f.close());
   }
-});
-test("private edit conflicts are 409 and old routes stay tied to exact versions", async () => {
-  const f = fixture();
+}));
+(test("private edit conflicts are 409 and old routes stay tied to exact versions", async () => {
+  const f = (await fixture());
   try {
     const login = await f.admin.request("/api/manage/login", {
       method: "POST",
@@ -166,7 +167,7 @@ test("private edit conflicts are 409 and old routes stay tied to exact versions"
       body: JSON.stringify({ token: "secret" }),
     });
     const cookie = login.headers.get("set-cookie")!.split(";")[0];
-    const revision = f.store.get("v4")!.revision;
+    const revision = (await f.store.get("v4"))!.revision;
     const edit = () =>
       f.admin.request("/api/manage/works/v4", {
         method: "PATCH",
@@ -182,18 +183,18 @@ test("private edit conflicts are 409 and old routes stay tied to exact versions"
     assert.equal((await f.pub.request("/game/")).status, 200);
     assert.equal((await f.pub.request("/api/works/04")).status, 404);
   } finally {
-    f.close();
+    (await f.close());
   }
-});
-test("containment rejects Windows cross-volume and prefix collisions", async () => {
+}));
+(test("containment rejects Windows cross-volume and prefix collisions", async () => {
   const { insideRoot } = await import("../src/server/resources.ts");
   const { win32 } = await import("node:path");
   assert.equal(insideRoot("H:\\wg", "C:\\private\\file", win32), false);
   assert.equal(insideRoot("H:\\wg", "H:\\wg-other\\file", win32), false);
   assert.equal(insideRoot("H:\\wg", "H:\\wg\\atri\\file", win32), true);
-});
-test("public app passes built client assets and known framework data paths to their dedicated handlers", async () => {
-  const f = fixture();
+}));
+(test("public app passes built client assets and known framework data paths to their dedicated handlers", async () => {
+  const f = (await fixture());
   try {
     f.pub.get("/assets/app.js", (c) => c.text("hydrate()"));
     for (const p of ["/_.data", "/27448/_.data", "/27448/1/_.data"])
@@ -204,18 +205,18 @@ test("public app passes built client assets and known framework data paths to th
     assert.equal(r.status, 200);
     assert.equal(await r.text(), "hydrate()");
   } finally {
-    f.close();
+    (await f.close());
   }
-});
-test("only imported cached metadata images are served from the isolated media root", async () => {
-  const f = fixture();
+}));
+(test("only imported cached metadata images are served from the isolated media root", async () => {
+  const f = (await fixture());
   try {
     const file = "a".repeat(64) + ".jpg";
     mkdirSync(join(f.root, "media"));
     writeFileSync(join(f.root, "media", file), Buffer.from([255, 216, 255, 0]));
     const app = createPublicApp(f.store, f.root, join(f.root, "media"));
     assert.equal((await app.request("/media/" + file)).status, 404);
-    f.store.importMetadata(
+    (await f.store.importMetadata(
       {
         schemaVersion: 1,
         fetchedAt: "2026-10-19T02:00:00Z",
@@ -246,7 +247,7 @@ test("only imported cached metadata images are served from the isolated media ro
         ],
       },
       true,
-    );
+    ));
     const response = await app.request("/media/" + file);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("content-type"), "image/jpeg");
@@ -265,6 +266,6 @@ test("only imported cached metadata images are served from the isolated media ro
       200,
     );
   } finally {
-    f.close();
+    (await f.close());
   }
-});
+}));

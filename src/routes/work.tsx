@@ -21,7 +21,7 @@ export async function loader({
 }) {
   const id = parseWorkSlug(params.workId ?? "");
   if (!id) throw new Response(null, { status: 404 });
-  const w = getStore().get(id);
+  const w = (await getStore().get(id));
   if (!w?.versions.length) throw new Response(null, { status: 404 });
   const url = new URL(request.url);
   const version = url.searchParams.get("saveVersion") ?? "";

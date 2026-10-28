@@ -7,6 +7,7 @@ import { createPublicApp, createAdminApp } from "./src/server/http.ts";
 import { Auth } from "./src/server/auth.ts";
 import { fileResponse } from "./src/server/resources.ts";
 const store = getStore();
+await store.ready;
 const auth = new Auth();
 const stateDir = resolve(process.env.WG_STATE_DIR ?? "state");
 mkdirSync(stateDir, { recursive: true });

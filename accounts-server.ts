@@ -41,7 +41,7 @@ const service = await createAccountService({
   revision: process.env.WG_ACCOUNT_REVISION,
   shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
   catalogOrigin: process.env.WG_ACCOUNT_CATALOG_ORIGIN,
-  catalogProvider:process.env.WG_ALL_ENGINES==='1'?async()=>getStore().list().filter(w=>w.versions.length).map(w=>({id:w.id,title:w.title,url:w.url,versions:w.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))})):undefined,
+  catalogProvider:process.env.WG_ALL_ENGINES==='1'?async()=>(await getStore().list()).filter(w=>w.versions.length).map(w=>({id:w.id,title:w.title,url:w.url,versions:w.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))})):undefined,
   database: required("WG_ACCOUNT_DATABASE"),
   deletionLedger: required("WG_ACCOUNT_DELETION_LEDGER"),
   blobRoot: required("WG_ACCOUNT_BLOBS"),
