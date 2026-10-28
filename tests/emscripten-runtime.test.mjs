@@ -93,3 +93,13 @@ test('download observers preserve upstream status/dependency hooks and cannot ab
  const noisy=createEmscriptenDriver({kind:'ONS',progress:()=>{throw Error('Observer offline')}});
  return noisy.startFactory(async config=>{config.setStatus('Downloading...');return config},{}).then(()=>assert.equal(noisy.state,'initialized'));
 });
+
+test('direct CDN engines reuse already verified WASM and package bytes without a second download',()=>{
+ const wasm=new Uint8Array([0,97,115,109]),data=new Uint8Array([1,2,3,4]);
+ const driver=createEmscriptenDriver({kind:'RenPy',engineBytes:new Map([['renpy.wasm',wasm],['renpy.data',data]])}),win={};driver.installGlobal(win);
+ win.Module={getPreloadedPackage:()=> 'original-fallback'};
+ assert.equal(win.Module.wasmBinary,wasm);
+ assert.equal(win.Module.getPreloadedPackage('https://wg-b2.saop.cc/__engines/resource/release/renpy.data',4),data.buffer);
+ assert.equal(win.Module.getPreloadedPackage('game.zip',77),'original-fallback');
+ assert.throws(()=>win.Module.getPreloadedPackage('renpy.data',9),/size/);
+});

@@ -122,3 +122,7 @@ docker compose --env-file state/compose/compose.env --profile qa run --rm --no-d
 回退时恢复经过验收的镜像标签与配置，保留最新持久数据，再核对健康、原生存读档和历史。镜像回退不自动回灌旧数据库，也不覆盖新存档。
 
 `ops/compose/production.env.example` 只提供生产覆盖项。真正切换前需单独授权，先把原数据、秘密和存储连接恢复到候选环境并完成验收，再调整入口代理。此轮不接管原 systemd 服务、Windows 存储进程、Tailscale、宿主代理或 Cloudflare 配置。
+
+## B2 资源直链
+
+后续公开资源切换使用 `ops/b2/compose.direct.yaml`，仅增加本地公开控制清单；浏览器直接向 `wg-b2.saop.cc` 获取游戏和引擎对象，账号服务不转发对象正文。配置、实际游戏验收和回退边界见 [B2 公开游戏资源直链](b2-resource-cutover.md)。前文 B2 profile 记录的是初次隔离预览，保留原部署，不作为此次直链发布路径；账号服务和私人存档的 Compose 迁移仍需分别安排。

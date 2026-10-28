@@ -1,5 +1,6 @@
 import { mountPublicPlatform } from './src/platform/public.server.ts';
 import { mountAccountRooms } from './src/platform/rooms.server.ts';
+import {registerDirectB2Resources} from './src/player/b2.server.ts';
 import {configuredCloudRuntime} from './src/engines/cloud-runtime.ts';
 import {configuredCandidate} from './src/engines/candidate.ts';
 import {registerEngineArtifacts} from './src/engines/artifacts.ts';
@@ -61,8 +62,8 @@ if (moderation)
   writeFileSync(required("WG_SHARE_ADMIN_TOKEN_FILE"), moderation.token, {
     mode: 0o600,
   });
-if(engineRuntime)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineRuntime.release]});
-if(engineCandidate)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineCandidate.release]});
+if(engineRuntime&&!process.env.WG_B2_CONTROL_FILE)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineRuntime.release]});
+if(engineCandidate&&!process.env.WG_B2_CONTROL_FILE)registerEngineArtifacts(service.app,{root:required("WG_ENGINE_ARTIFACT_ROOT"),releases:[engineCandidate.release]});
 if (process.env.WG_ACCOUNT_UI === "1") {
   const buildPath = "./build/server/index.js";
   const handler = createRequestHandler(await import(buildPath), "production");
@@ -83,7 +84,10 @@ if (process.env.WG_ACCOUNT_UI === "1") {
   );
   if(process.env.WG_ONS_CLOUD==='1'){
     if(process.env.WG_ONS_PILOT!=='1')throw new Error('Cloud player requires the sandbox pilot');
-    if (process.env.WG_RESOURCE_UPSTREAM) {
+    if(process.env.WG_B2_CONTROL_FILE){
+      registerOnsModules(service.app);
+      registerDirectB2Resources(service.app,{document:JSON.parse(readFileSync(process.env.WG_B2_CONTROL_FILE,'utf8')),origin,engineReleaseId:engineRuntime?.release.id??engineCandidate?.release.id});
+    } else if (process.env.WG_RESOURCE_UPSTREAM) {
       registerOnsModules(service.app);
       registerRemotePlayerResources(service.app, { upstream: process.env.WG_RESOURCE_UPSTREAM,projections:process.env.WG_PREVIEW_RESOURCE_PROJECTIONS?previewResourceProjections(JSON.parse(readFileSync(process.env.WG_PREVIEW_RESOURCE_PROJECTIONS,'utf8')),process.env.WG_DEPLOYMENT_MODE??'preview'):undefined });
     } else {

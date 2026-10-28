@@ -25,7 +25,7 @@ export function captureFilesystem(FS,mounts,limits={files:512,fileBytes:32*1024*
  }
  for(const mount of mounts)walk(mount.path,mount.prefix);return files;
 }
-export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,prepareRuntime,resources,progress=()=>{}}={}){
+export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,prepareRuntime,resources,engineBytes,progress=()=>{}}={}){
  if(!['ONS','Artemis','RenPy'].includes(kind))throw Error('Unsupported Emscripten driver');
  let state='waiting',module={},filesystemPrepared=false,runtimePrepared=false;const configured=new WeakSet();
  const change=next=>{if(state==='failed'&&next!=='failed')throw Error('Emscripten driver failed');state=next;status(next);};
@@ -60,6 +60,16 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,pre
    const assign=input=>{const callbacks=typeof input==='function'?[input]:input??[];if(!Array.isArray(callbacks)||callbacks.some(fn=>typeof fn!=='function'))throw Error('Invalid preRun hooks');runs=[...callbacks.filter(fn=>fn!==prepare),prepare];};
    assign(value.preRun);
    Object.defineProperty(value,'preRun',{configurable:true,enumerable:true,get:()=>runs,set:assign});
+  }
+  if(engineBytes){
+   const wasm=engineBytes.get(kind==='RenPy'?'renpy.wasm':kind==='Artemis'?'artemis.wasm':'onsyuri.wasm');
+   if(wasm){if(!(wasm instanceof Uint8Array))throw Error('Invalid verified engine bytes');value.wasmBinary=wasm;}
+   const original=value.getPreloadedPackage;
+   value.getPreloadedPackage=function(name,size){
+    const path=typeof name==='string'?name.split(/[?#]/,1)[0].split('/').at(-1):'',bytes=/\.data$/.test(path)?engineBytes.get(path):null;
+    if(bytes){if(Number.isFinite(size)&&size!==bytes.byteLength)throw Error('Verified package size differs');return bytes.byteOffset===0&&bytes.byteLength===bytes.buffer.byteLength?bytes.buffer:bytes.slice().buffer;}
+    return typeof original==='function'?original.call(this,name,size):undefined;
+   };
   }
   if(resources)value.locateFile=path=>resolveEngineResource(path,resources);
   return value;

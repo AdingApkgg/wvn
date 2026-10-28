@@ -71,3 +71,9 @@ test('known uncompressed length mismatches still fail and are never cached',asyn
 test('unknown-length demand reads remain capped and fall back without persisting oversized data',async()=>{
  const f=await fixture({maxFileBytes:2,fetcher:async(url,init)=>new Response(init.method==='HEAD'?null:new Uint8Array([1,2,3,4]))});assert.equal((await f.cache.load('game:nscript.dat')).direct,true);assert.equal(f.store.rows.size,0);f.cache.close();
 });
+
+test('B2 直连清单只接受固定 CDN，游戏和引擎正文均由浏览器直读',async()=>{
+ const direct={...manifest(),resourceOrigin:'https://wg-b2.saop.cc'};direct.files=direct.files.map(row=>({...row,url:direct.resourceOrigin+row.url}));
+ const plan=await api.createOnsResourcePlan(pilot,direct,origin);assert.equal(plan.resources.get('game:nscript.dat').url,'https://wg-b2.saop.cc/__ons/data/clannad/nscript.dat');assert.equal(plan.resources.get('engine:wasm').url,'https://wg-b2.saop.cc/__ons/engine/'+pilot.engine+'/onsyuri.wasm');
+ await assert.rejects(api.createOnsResourcePlan(pilot,{...direct,resourceOrigin:'https://evil.invalid'},origin));const bad=structuredClone(direct);bad.files[0].url='https://wg-b2.saop.cc/__ons/data/other/nscript.dat';await assert.rejects(api.createOnsResourcePlan(pilot,bad,origin));
+});

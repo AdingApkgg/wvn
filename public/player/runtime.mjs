@@ -1,3 +1,4 @@
+import {runtimeResourceOrigin,verifyDirectEngine} from './resource-location.mjs';
 import {createResourceReporter} from '../ons/resource-loading.mjs';
 import {createLoadingReporter,observeStartupRequests} from '../ons/loading.mjs';
 import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} from './emscripten.mjs';
@@ -42,6 +43,7 @@ addEventListener('message',async function initialize(event){
     loading.phase('restoring');
     installNativeInput(window,id,init.nativeInput);
     installAnonymousMedia(window);
+    const assetOrigin=runtimeResourceOrigin(document.baseURI,entry,origin);
     const memory=createMemoryStorage(()=>{if(entry.runtimeKind==='Tyrano')queueMicrotask(()=>{if(!failed)void persist(storageSnapshot(memory)).catch(()=>{})})});
     if(entry.runtimeKind==='Tyrano'){restoreStorage(memory,snapshot.files);capture=()=>storageSnapshot(memory)}
     Object.defineProperty(window,'localStorage',{value:memory});Object.defineProperty(window,'sessionStorage',{value:createMemoryStorage()});
@@ -51,12 +53,13 @@ addEventListener('message',async function initialize(event){
     const nativeFetch=fetch.bind(window);window.fetch=(resource,options)=>nativeFetch(resource,{...options,credentials:'omit'});
     stopObserving=observeStartupRequests(window,loading,resource=>{
       const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href??'',document.baseURI);
-      if(url.origin!==origin)return null;
+      if(url.origin!==assetOrigin)return null;
       if(url.pathname.startsWith('/__engines/resource/'))return 'engine';
       if(!url.pathname.startsWith('/__player/resource/'+id+'/'))return null;
       return /\/(?:renpy|artemis)(?:-pre)?\.(?:js|wasm|data)$/.test(url.pathname)?'engine':'game';
     },resources);
-    let driver;const engineResources=engineResourcesForSession(init.engineRelease,entry.runtimeKind,origin);
+    let driver;const engineResources=engineResourcesForSession(init.engineRelease,entry.runtimeKind,assetOrigin);
+    const engineBytes=await verifyDirectEngine(entry,init.engineRelease,assetOrigin);
     function instrument(){
       const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;
       if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
@@ -65,7 +68,7 @@ addEventListener('message',async function initialize(event){
       loading.phase('restoring');status('存档适配已连接');
     }
     if(entry.runtimeKind!=='Tyrano'){
-      driver=createEmscriptenDriver({kind:entry.runtimeKind,prepareFilesystem:instrument,prepareRuntime:module=>prepareRenpyAudio(module,init.engineRelease?.id),resources:engineResources,progress:event=>loading.engine(event),status:state=>{if(state==='failed')loading.fail('引擎加载失败，请取消后重试');else if(['initializing','initialized'].includes(state))loading.phase('initializing')}});
+      driver=createEmscriptenDriver({kind:entry.runtimeKind,engineBytes,prepareFilesystem:instrument,prepareRuntime:module=>prepareRenpyAudio(module,init.engineRelease?.id),resources:engineResources,progress:event=>loading.engine(event),status:state=>{if(state==='failed')loading.fail('引擎加载失败，请取消后重试');else if(['initializing','initialized'].includes(state))loading.phase('initializing')}});
       driver.installGlobal(window);
     }
     if(entry.runtimeKind==='Tyrano')Object.defineProperty(document,'readyState',{configurable:true,get:()=>"loading"});
@@ -73,7 +76,7 @@ addEventListener('message',async function initialize(event){
     for(const placeholder of scripts){
       const config=JSON.parse(placeholder.textContent),script=document.createElement('script');
       if(config.src){
-        const url=new URL(config.src,document.baseURI),prefix=`${origin}/__player/resource/${id}/`;
+        const url=new URL(config.src,document.baseURI),prefix=`${assetOrigin}/__player/resource/${id}/`;
         if(!url.href.startsWith(prefix))throw Error('脚本路径不属于当前游戏');
         if(entry.runtimeKind!=='Tyrano'&&/\/(?:artemis|renpy)\.js$/.test(url.pathname)){
           // These audited Emscripten builds unshift preRun callbacks internally,
@@ -83,6 +86,7 @@ addEventListener('message',async function initialize(event){
         const engineFile=url.pathname.slice(`/__player/resource/${id}/`.length);
         loading.phase('downloading','engine');
         script.src=engineResources?.files.includes(engineFile)?resolveEngineResource(engineFile,engineResources):url.href;script.crossOrigin='anonymous';
+        const digest=init.engineRelease?.files.find(f=>f.path===engineFile)?.sha256??entry.engineFiles[engineFile];if(digest)script.integrity='sha256-'+btoa(String.fromCharCode(...digest.match(/../g).map(h=>parseInt(h,16))));
         await new Promise((resolve,reject)=>{script.onload=()=>{
           if(entry.runtimeKind==='Tyrano'&&/\/html2canvas(?:\.min)?\.js$/i.test(url.pathname))window.html2canvas=sandboxThumbnail(()=>document.createElement('canvas'),()=>({title:entry.title,text:window.TYRANO?.kag?.stat?.current_save_str||window.TYRANO?.kag?.stat?.current_message_str||''}));
           resolve();

@@ -1,0 +1,12 @@
+# 浏览器直连 B2；账号服务只读取本地公开控制清单。
+services:
+  web:
+    environment:
+      WG_B2_CONTROL_FILE: /run/wvn-b2/control.json
+    volumes:
+      - type: bind
+        source: ${WVN_B2_CONTROL_FILE:?Set an absolute public control file path}
+        target: /run/wvn-b2/control.json
+        read_only: true
+        bind:
+          create_host_path: false
