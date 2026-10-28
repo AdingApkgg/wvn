@@ -1,0 +1,127 @@
+{
+  "runId": "platform-57a881cf70e648eb",
+  "startedAt": "2026-10-28T21:55:02.908Z",
+  "host": "localhost",
+  "schemas": {
+    "catalog": "e2e_57a881cf70e648eb_catalog",
+    "accounts": "e2e_57a881cf70e648eb_accounts",
+    "resources": "e2e_57a881cf70e648eb_resources"
+  },
+  "indexUid": "e2e_platform_57a881cf70e648eb",
+  "boundary": "真实入口与Passkey/PG/Redis/Meili接线；不代表游戏/NAT/公网部署验收",
+  "steps": [
+    {
+      "name": "initialize-schemas",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "seed-qa-catalog",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "rebuild-own-search-index",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "playwright",
+      "code": 1,
+      "signal": null
+    }
+  ],
+  "children": [
+    {
+      "name": "initialize-schemas",
+      "pid": 3961174,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/initialize-schemas.log"
+    },
+    {
+      "name": "seed-qa-catalog",
+      "pid": 3961243,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/seed-qa-catalog.log"
+    },
+    {
+      "name": "rebuild-own-search-index",
+      "pid": 3961446,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/rebuild-own-search-index.log"
+    },
+    {
+      "name": "search-worker",
+      "pid": 3961529,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/search-worker.log"
+    },
+    {
+      "name": "catalog-server",
+      "pid": 3961530,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/catalog-server.log"
+    },
+    {
+      "name": "account-server",
+      "pid": 3961531,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/account-server.log"
+    },
+    {
+      "name": "playwright",
+      "pid": 3961686,
+      "log": "state/platform-qa/platform-57a881cf70e648eb/playwright.log"
+    }
+  ],
+  "cleanup": {
+    "children": [
+      {
+        "name": "playwright",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "name": "account-server",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "catalog-server",
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      {
+        "name": "search-worker",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "rebuild-own-search-index",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "seed-qa-catalog",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "initialize-schemas",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "forcedChildren": [
+      "catalog-server"
+    ],
+    "indexes": [
+      "e2e_platform_57a881cf70e648eb"
+    ],
+    "redisKeys": 2,
+    "schemas": [
+      "e2e_57a881cf70e648eb_resources",
+      "e2e_57a881cf70e648eb_accounts",
+      "e2e_57a881cf70e648eb_catalog"
+    ]
+  },
+  "status": "failed",
+  "freeBytesBefore": 617069993984,
+  "freeBytesAtBrowser": 617067159552,
+  "cdn": "blocked_missing_cors",
+  "finishedAt": "2026-10-28T21:55:47.502Z"
+}

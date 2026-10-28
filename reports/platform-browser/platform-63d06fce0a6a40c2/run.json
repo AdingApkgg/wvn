@@ -1,0 +1,87 @@
+{
+  "runId": "platform-63d06fce0a6a40c2",
+  "startedAt": "2026-10-28T21:46:13.751Z",
+  "host": "localhost",
+  "schemas": {
+    "catalog": "e2e_63d06fce0a6a40c2_catalog",
+    "accounts": "e2e_63d06fce0a6a40c2_accounts",
+    "resources": "e2e_63d06fce0a6a40c2_resources"
+  },
+  "indexUid": "e2e_platform_63d06fce0a6a40c2",
+  "boundary": "真实入口与Passkey/PG/Redis/Meili接线；不代表游戏/NAT/公网部署验收",
+  "steps": [
+    {
+      "name": "initialize-schemas",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "seed-qa-catalog",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "rebuild-own-search-index",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "playwright",
+      "code": 1,
+      "signal": null
+    }
+  ],
+  "children": [
+    {
+      "name": "initialize-schemas",
+      "pid": 3909321,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/initialize-schemas.log"
+    },
+    {
+      "name": "seed-qa-catalog",
+      "pid": 3909413,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/seed-qa-catalog.log"
+    },
+    {
+      "name": "rebuild-own-search-index",
+      "pid": 3909478,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/rebuild-own-search-index.log"
+    },
+    {
+      "name": "search-worker",
+      "pid": 3909648,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/search-worker.log"
+    },
+    {
+      "name": "catalog-server",
+      "pid": 3909649,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/catalog-server.log"
+    },
+    {
+      "name": "account-server",
+      "pid": 3909650,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/account-server.log"
+    },
+    {
+      "name": "playwright",
+      "pid": 3909832,
+      "log": "state/platform-qa/platform-63d06fce0a6a40c2/playwright.log"
+    }
+  ],
+  "cleanup": {
+    "indexes": [
+      "e2e_platform_63d06fce0a6a40c2"
+    ],
+    "redisKeys": 2,
+    "schemas": [
+      "e2e_63d06fce0a6a40c2_resources",
+      "e2e_63d06fce0a6a40c2_accounts",
+      "e2e_63d06fce0a6a40c2_catalog"
+    ]
+  },
+  "status": "failed",
+  "freeBytesBefore": 616887959552,
+  "freeBytesAtBrowser": 616885133312,
+  "cdn": "blocked_missing_cors",
+  "finishedAt": "2026-10-28T21:49:48.144Z"
+}

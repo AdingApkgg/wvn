@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-28T22:10:43.558Z",
+  "portsClosed": [
+    4281,
+    4282,
+    4283,
+    4284
+  ],
+  "schemasAbsent": [
+    "e2e_0ebdfc52269f47d7_catalog",
+    "e2e_0ebdfc52269f47d7_accounts",
+    "e2e_0ebdfc52269f47d7_resources"
+  ],
+  "preservedResourceRehearsal": true,
+  "privatePermissions": true,
+  "redisEmpty": true,
+  "indexAbsent": true
+}

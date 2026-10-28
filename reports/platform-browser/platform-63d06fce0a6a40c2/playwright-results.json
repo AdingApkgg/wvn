@@ -1,0 +1,311 @@
+{
+  "stats": {
+    "startTime": "2026-10-28T21:46:18.638Z",
+    "duration": 209239.99,
+    "expected": 16,
+    "skipped": 0,
+    "unexpected": 9,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "accounts.spec.ts / Passkey-first: registration, sign-out, login and last-key protection",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 260,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / recovery ticket has no ordinary access and replacing a key revokes old sessions",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 350,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / account page lets a player register and keep a recovery kit",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "failed",
+          "duration": 5175,
+          "errors": [
+            "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: '让进度，随你同行。' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: '让进度，随你同行。' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: '让进度，随你同行。' })\u001b[22m\n\n\n  109 |   await expect(\n  110 |     page.getByRole(\"heading\", { name: \"让进度，随你同行。\" }),\n> 111 |   ).toBeVisible();\n      |     ^\n  112 |   await page.getByLabel(\"昵称\").fill(\"UI Reader\");\n  113 |   await expect(page.locator(\"#account-invite\")).toHaveCount(0);\n  114 |   await page.getByRole(\"button\", { name: \"创建通行密钥并注册\" }).click();\n    at /home/i/wvn-platform-20261029/source/tests/e2e/accounts.spec.ts:111:5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / server refuses valid none-attestation without user verification",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 210,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / private library survives login and another account cannot read it",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 343,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / additional keys, safe names, stale bindings and account deletion",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 210,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / manual cloud backup uploads exact files and restores history without touching game storage",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "timedOut",
+          "duration": 30021,
+          "errors": [
+            "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+            "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('昵称')\u001b[22m\n\n\n  270 |   await page.goto(origin + \"/account\");\n  271 |   await authenticator(page);\n> 272 |   await page.getByLabel(\"昵称\").fill(\"Cloud Reader\");\n      |                               ^\n  273 |   await expect(page.locator(\"#account-invite\")).toHaveCount(0);\n  274 |   await page.getByRole(\"button\", { name: \"创建通行密钥并注册\" }).click();\n  275 |   const select = page.getByRole(\"combobox\", { name: \"存档所属版本\" });\n    at /home/i/wvn-platform-20261029/source/tests/e2e/accounts.spec.ts:272:31"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / interrupted cloud upload stays local after reload and is hidden from a different account",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "timedOut",
+          "duration": 30021,
+          "errors": [
+            "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+            "Error: locator.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('昵称')\u001b[22m\n\n\n  333 |   await page.goto(origin + \"/account\");\n  334 |   await authenticator(page);\n> 335 |   await page.getByLabel(\"昵称\").fill(\"Draft Owner\");\n      |                               ^\n  336 |   await expect(page.locator(\"#account-invite\")).toHaveCount(0);\n  337 |   await page.getByRole(\"button\", { name: \"创建通行密钥并注册\" }).click();\n  338 |   const select = page.getByRole(\"combobox\", { name: \"存档所属版本\" });\n    at /home/i/wvn-platform-20261029/source/tests/e2e/accounts.spec.ts:335:31"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / recovery completion keeps the target kit separate from another discoverable account",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "timedOut",
+          "duration": 30018,
+          "errors": [
+            "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+            "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: '恢复账号' })\u001b[22m\n\n\n  395 |     window.addEventListener(\"focus\", (e) => e.stopImmediatePropagation(), true),\n  396 |   );\n> 397 |   await page.getByRole(\"tab\", { name: \"恢复账号\" }).click();\n      |                                                 ^\n  398 |   await page.getByLabel(\"恢复账号标识\").fill(a.user.id);\n  399 |   await page.getByLabel(\"一次性恢复码\").fill(codes.codes[0]);\n  400 |   await page.route(\"**/api/recovery/complete\", async (route) => {\n    at /home/i/wvn-platform-20261029/source/tests/e2e/accounts.spec.ts:397:49"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / late rotation refresh cannot restore A recovery secrets after a cross-tab switch to B",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "timedOut",
+          "duration": 30023,
+          "errors": [
+            "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+            "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '生成恢复码', exact: true })\u001b[22m\n\n\n  470 |       await route.fulfill({ response }).catch(() => {});\n  471 |     });\n> 472 |     await page.getByRole(\"button\", { name: \"生成恢复码\", exact: true }).click();\n      |                                                                    ^\n  473 |     await held;\n  474 |     await page.context().addCookies(cookiesB);\n  475 |     await page.evaluate(() =>\n    at /home/i/wvn-platform-20261029/source/tests/e2e/accounts.spec.ts:472:68"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "accounts.spec.ts / old signup and add-key challenges cannot complete after switching accounts",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 248,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "catalog.spec.ts / desktop catalog search, work navigation, version URL and exit confirmation",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "timedOut",
+          "duration": 30018,
+          "errors": [
+            "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+            "Error: locator.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: '开始 ↗' })\u001b[22m\n\n\n  24 |     page.getByRole(\"heading\", { name: \"ATRI\", exact: true, level: 1 }),\n  25 |   ).toBeVisible();\n> 26 |   await page.getByRole(\"link\", { name: \"开始 ↗\" }).click();\n     |                                                  ^\n  27 |   await expect(page).toHaveURL(/\\/27448\\/1\\/?$/);\n  28 |   await expect(page.locator(\"iframe\")).toHaveAttribute(\"src\", \"/atri/\");\n  29 |   await page.locator(\".player-bar button\").first().click();\n    at /home/i/wvn-platform-20261029/source/tests/e2e/catalog.spec.ts:26:50"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "catalog.spec.ts / mobile, empty results and malformed IDs",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 544,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "catalog.spec.ts / public management never renders",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 92,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "catalog.spec.ts / private management edits persist and stale edit retains unsaved draft",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 2264,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "catalog.spec.ts / Bangumi fallback search and hydrated navigation preserve the legacy execution path",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "failed",
+          "duration": 5489,
+          "errors": [
+            "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('link', { name: '在 BGM 查看 ↗' })\nExpected: \u001b[32m\"https://bgm.tv/subject/315601\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByRole('link', { name: '在 BGM 查看 ↗' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('link', { name: '在 BGM 查看 ↗' })\u001b[22m\n\n\n  172 |   await expect(\n  173 |     page.getByRole(\"link\", { name: \"在 BGM 查看 ↗\" }),\n> 174 |   ).toHaveAttribute(\"href\", \"https://bgm.tv/subject/315601\");\n      |     ^\n  175 |   await page.getByRole(\"link\", { name: \"开始 ↗\" }).click();\n  176 |   await expect(page).toHaveURL(/\\/b315601\\/1\\/?$/);\n  177 |   await expect(page.locator(\"iframe\")).toHaveAttribute(\n    at /home/i/wvn-platform-20261029/source/tests/e2e/catalog.spec.ts:174:5"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "platform.spec.ts / actual public and account listeners resolve version resources through opaque UUID keys",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 344,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "platform.spec.ts / actual indexed Chinese search renders matches and explains malformed queries",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 274,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "platform.spec.ts / real Passkey sessions connect RoomClient over WS and account deletion invalidates existing sockets and tickets",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 1266,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "platform.spec.ts / COEP account page records the actual CDN CORS fetch boundary separately from API success",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 932,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "preview-tls.spec.ts / preview browser and API trust the fixture certificate without ignoring HTTPS errors",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 345,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "preview-tls.spec.ts / trusting a different localhost certificate does not bypass browser certificate errors",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 477,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "shares.spec.ts / link and public shares can be published, moderated, claimed and withdrawn without changing the receiver head",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "failed",
+          "duration": 5193,
+          "errors": [
+            "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('combobox', { name: '存档所属版本' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('combobox', { name: '存档所属版本' }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('combobox', { name: '存档所属版本' })\u001b[22m\n\n\n  15 |   await page.reload();\n  16 |   const select = page.getByRole(\"combobox\", { name: \"存档所属版本\" });\n> 17 |   await expect(select).toBeVisible();\n     |                        ^\n  18 |   const versionId = await select.locator(\"option\").nth(1).getAttribute(\"value\");\n  19 |   await select.selectOption(versionId!);\n  20 |   await page.getByLabel(\"游戏导出的存档文件\").setInputFiles({\n    at /home/i/wvn-platform-20261029/source/tests/e2e/shares.spec.ts:17:24"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "shares.spec.ts / anonymous invalid links and public moderation endpoints stay isolated on narrow screens",
+      "status": "expected",
+      "outcomes": [
+        {
+          "status": "passed",
+          "duration": 250,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "shares.spec.ts / public version and progress filters persist through the next page and reset its cursor on submit",
+      "status": "unexpected",
+      "outcomes": [
+        {
+          "status": "timedOut",
+          "duration": 30025,
+          "errors": [
+            "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+            "Error: locator.selectOption: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('combobox', { name: '存档所属版本' })\u001b[22m\n\n\n  346 |   await page\n  347 |     .getByRole(\"combobox\", { name: \"存档所属版本\" })\n> 348 |     .selectOption(one.id);\n      |      ^\n  349 |   await page.getByLabel(\"游戏导出的存档文件\").setInputFiles({\n  350 |     name: \"filter-fixture.dat\",\n  351 |     mimeType: \"application/octet-stream\",\n    at /home/i/wvn-platform-20261029/source/tests/e2e/shares.spec.ts:348:6"
+          ]
+        }
+      ]
+    }
+  ]
+}
