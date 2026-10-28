@@ -107,12 +107,14 @@ test("account page lets a player register and keep a recovery kit", async ({
   await page.goto(origin + "/account");
   await authenticator(page);
   await expect(
-    page.getByRole("heading", { name: "让进度，随你同行。" }),
+    page.getByRole("heading", { name: "管理你的作品与存档" }),
   ).toBeVisible();
+  await page.getByRole("tab", { name: "创建账号", exact: true }).click();
   await page.getByLabel("昵称").fill("UI Reader");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
   await expect(page.getByRole("heading", { name: "我的故事" })).toBeVisible();
+  await page.getByRole("tab", { name: "账号安全", exact: true }).click();
   await page.getByRole("button", { name: "生成恢复码" }).click();
   await expect(
     page.getByRole("heading", { name: "保存你的恢复码" }),
@@ -269,9 +271,11 @@ test("manual cloud backup uploads exact files and restores history without touch
 }) => {
   await page.goto(origin + "/account");
   await authenticator(page);
+  await page.getByRole("tab", { name: "创建账号", exact: true }).click();
   await page.getByLabel("昵称").fill("Cloud Reader");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  await page.getByRole("tab", { name: "存档", exact: true }).click();
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
   const version = await select.locator("option").nth(1).getAttribute("value");
@@ -332,9 +336,11 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
 }) => {
   await page.goto(origin + "/account");
   await authenticator(page);
+  await page.getByRole("tab", { name: "创建账号", exact: true }).click();
   await page.getByLabel("昵称").fill("Draft Owner");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  await page.getByRole("tab", { name: "存档", exact: true }).click();
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
   const version = await select.locator("option").nth(1).getAttribute("value");
@@ -359,6 +365,7 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
     page.getByRole("button", { name: "继续上传", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "退出账号", exact: true }).click();
+  await page.getByRole("tab", { name: "创建账号", exact: true }).click();
   await page.getByLabel("昵称").fill("Other Draft Reader");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
@@ -394,7 +401,7 @@ test("recovery completion keeps the target kit separate from another discoverabl
   await page.evaluate(() =>
     window.addEventListener("focus", (e) => e.stopImmediatePropagation(), true),
   );
-  await page.getByRole("tab", { name: "恢复账号" }).click();
+  await page.getByRole("button", { name: "丢失通行密钥？恢复账号", exact: true }).click();
   await page.getByLabel("恢复账号标识").fill(a.user.id);
   await page.getByLabel("一次性恢复码").fill(codes.codes[0]);
   await page.route("**/api/recovery/complete", async (route) => {
@@ -412,13 +419,14 @@ test("recovery completion keeps the target kit separate from another discoverabl
   await expect(page.locator(".recovery-code")).toHaveCount(10);
   await expect(
     page.getByRole("button", {
-      name: "使用通行密钥登录",
+      name: "返回登录",
       exact: true,
       includeHidden: true,
     }),
   ).toHaveCount(1);
   expect((await api(page, "/api/me")).status).toBe(401);
   await page.getByRole("button", { name: "我已保存，关闭" }).click();
+  await page.getByRole("button", { name: "返回登录", exact: true }).click();
   await page
     .getByRole("button", { name: "使用通行密钥登录", exact: true })
     .click();
@@ -469,6 +477,7 @@ test("late rotation refresh cannot restore A recovery secrets after a cross-tab 
       await released;
       await route.fulfill({ response }).catch(() => {});
     });
+    await page.getByRole("tab", { name: "账号安全", exact: true }).click();
     await page.getByRole("button", { name: "生成恢复码", exact: true }).click();
     await held;
     await page.context().addCookies(cookiesB);

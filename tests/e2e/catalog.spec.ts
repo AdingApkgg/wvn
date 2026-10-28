@@ -23,7 +23,7 @@ test("desktop catalog search, work navigation, version URL and exit confirmation
   await expect(
     page.getByRole("heading", { name: "ATRI", exact: true, level: 1 }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "开始 ↗" }).click();
+  await page.getByRole("link", { name: "开始阅读" }).click();
   await expect(page).toHaveURL(/\/27448\/1\/?$/);
   await expect(page.locator("iframe")).toHaveAttribute("src", "/atri/");
   await page.locator(".player-bar button").first().click();
@@ -170,9 +170,9 @@ test("Bangumi fallback search and hydrated navigation preserve the legacy execut
     page.getByRole("heading", { name: "尼特与天使与色色家族", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "在 BGM 查看 ↗" }),
+    page.getByRole("link", { name: "BGM ↗" }),
   ).toHaveAttribute("href", "https://bgm.tv/subject/315601");
-  await page.getByRole("link", { name: "开始 ↗" }).click();
+  await page.getByRole("link", { name: "开始阅读" }).click();
   await expect(page).toHaveURL(/\/b315601\/1\/?$/);
   await expect(page.locator("iframe")).toHaveAttribute(
     "src",
