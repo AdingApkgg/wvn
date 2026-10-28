@@ -34,7 +34,7 @@ services:
       DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?仅从原机私有env读取}@postgres:5432/umami
       APP_SECRET: ${UMAMI_APP_SECRET:?仅从原机私有env读取}
       DISABLE_TELEMETRY: "1"
-    ports: ["127.0.0.1:18561:3000"]
+    ports: ["127.0.0.1:${WVN_ANALYTICS_PORT:-18561}:3000"]
     networks: [analytics, frontend]
     mem_limit: 1g
     cpus: 2

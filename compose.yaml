@@ -1,0 +1,255 @@
+name: ${WVN_COMPOSE_PROJECT:-wvn-compose-preview}
+include:
+  - path: ./ops/analytics/compose.yaml
+
+x-build: &build
+  context: .
+  target: runtime
+  network: host
+  entitlements: [network.host]
+  args:
+    HTTP_PROXY: ${WVN_BUILD_PROXY:-}
+    HTTPS_PROXY: ${WVN_BUILD_PROXY:-}
+    http_proxy: ${WVN_BUILD_PROXY:-}
+    https_proxy: ${WVN_BUILD_PROXY:-}
+    NO_PROXY: localhost,127.0.0.1
+x-logging: &logging
+  driver: json-file
+  options: {max-size: 10m, max-file: "3"}
+x-app: &app
+  image: ${WVN_IMAGE:-wvn-app:local}
+  build: *build
+  network_mode: host
+  init: true
+  user: "${WVN_UID:-1000}:${WVN_GID:-1000}"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:size=64m,mode=1777"]
+  restart: unless-stopped
+  stop_grace_period: 30s
+  logging: *logging
+  mem_limit: 768m
+  cpus: 1
+  pids_limit: 256
+  healthcheck:
+    test: [CMD, node, ops/compose/check-health.mjs]
+    interval: 10s
+    timeout: 6s
+    retries: 12
+    start_period: 30s
+x-account-env: &account-env
+  WG_DEPLOYMENT_MODE: ${WVN_DEPLOYMENT_MODE:-preview}
+  WG_ACCOUNT_REVISION: ${WVN_REVISION:-compose-preview}
+  WG_ACCOUNT_BIND: 127.0.0.1
+  WG_ACCOUNT_UI: "1"
+  WG_ALL_ENGINES: "1"
+  WG_ONS_PILOT: "1"
+  WG_ONS_CLOUD: "1"
+  WG_DATABASE: /var/lib/wvn/catalog/catalog.db
+  WG_ACCOUNT_DATABASE: /var/lib/wvn/account/accounts.sqlite
+  WG_ACCOUNT_BLOBS: /var/lib/wvn/account/blobs
+  WG_ACCOUNT_DELETION_LEDGER: /var/lib/wvn/account/deletions.jsonl
+  WG_ACCOUNT_SHARE_LEDGER: /var/lib/wvn/account/shares.jsonl
+  WG_ACCOUNT_SECRET_FILE: /run/wvn/account-secret
+  WG_ACCOUNT_TLS_KEY: /run/wvn/tls.key
+  WG_ACCOUNT_TLS_CERT: /run/wvn/tls.crt
+  WG_RESOURCE_ROOT: /srv/wvn/resources
+  WG_RESOURCE_UPSTREAM: ${WVN_RESOURCE_UPSTREAM:-}
+  WG_MEDIA_ROOT: /srv/wvn/media
+  WG_PLAYER_MEDIA_ROOT: /srv/wvn/player-media
+  WG_SHARE_ADMIN_ORIGIN: https://localhost:${WVN_SHARE_ADMIN_PORT:-18894}
+  WG_SHARE_ADMIN_PORT: ${WVN_SHARE_ADMIN_PORT:-18894}
+  WG_SHARE_ADMIN_TOKEN_FILE: /var/lib/wvn/account/share-admin-token
+  WVN_HEALTH_CA_FILE: /run/wvn/tls.crt
+
+services:
+  catalog-init:
+    <<: *app
+    restart: "no"
+    command: [node, --import, tsx, ops/compose/seed-catalog.ts]
+    environment: {WG_DATABASE: /var/lib/wvn/catalog/catalog.db}
+    volumes:
+      - type: bind
+        source: ${WVN_STATE_ROOT:-./state/compose}/catalog
+        target: /var/lib/wvn/catalog
+        bind: {create_host_path: false}
+    healthcheck: {disable: true}
+
+  analytics-init:
+    <<: *app
+    restart: "no"
+    command: [node, ops/compose/init-analytics.mjs]
+    environment:
+      WVN_ANALYTICS_ORIGIN: http://127.0.0.1:${WVN_ANALYTICS_PORT:-18961}
+      WVN_ANALYTICS_STATE: /var/lib/wvn/analytics
+    volumes:
+      - type: bind
+        source: ${WVN_STATE_ROOT:-./state/compose}/analytics
+        target: /var/lib/wvn/analytics
+        bind: {create_host_path: false}
+    depends_on: {umami: {condition: service_healthy}}
+    healthcheck: {disable: true}
+
+  web:
+    <<: *app
+    environment:
+      <<: *account-env
+      WG_ACCOUNT_ORIGIN: ${WVN_WEB_ORIGIN:-https://localhost:18891}
+      WG_ACCOUNT_PORT: ${WVN_WEB_PORT:-18891}
+      WG_ACCOUNT_COOKIE_PREFIX: __Host-wg-compose
+      WG_UMAMI_WEBSITE_ID: ${WVN_UMAMI_WEBSITE_ID:-}
+      WG_UMAMI_INTERNAL_URL: ${WVN_UMAMI_INTERNAL_URL:-}
+      WVN_HEALTH_URL: https://localhost:${WVN_WEB_PORT:-18891}/health
+      WVN_HEALTH_SERVERNAME: ${WVN_WEB_TLS_SERVERNAME:-localhost}
+      WVN_HEALTH_HOST: ${WVN_WEB_HOST:-localhost:18891}
+    secrets:
+      - {source: account-secret, target: /run/wvn/account-secret}
+      - {source: tls-key, target: /run/wvn/tls.key}
+      - {source: tls-cert, target: /run/wvn/tls.crt}
+    volumes:
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/web", target: /var/lib/wvn/account, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/catalog", target: /var/lib/wvn/catalog, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_RESOURCE_ROOT:-./state/compose/resources}", target: /srv/wvn/resources, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_MEDIA_ROOT:-./state/compose/media}", target: /srv/wvn/media, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_PLAYER_MEDIA_ROOT:-./state/compose/player-media}", target: /srv/wvn/player-media, read_only: true, bind: {create_host_path: false}}
+    depends_on:
+      catalog-init: {condition: service_completed_successfully}
+      analytics-init: {condition: service_completed_successfully}
+
+  manager:
+    <<: *app
+    command: [node, --import, tsx, server.ts]
+    environment:
+      WG_DATABASE: /var/lib/wvn/catalog/catalog.db
+      WG_STATE_DIR: /var/lib/wvn/manager
+      WG_PORT: ${WVN_MANAGER_PORT:-18892}
+      WG_ADMIN_PORT: ${WVN_ADMIN_PORT:-18893}
+      WG_RESOURCE_ROOT: /srv/wvn/resources
+      WG_MEDIA_ROOT: /srv/wvn/media
+      WVN_HEALTH_URL: http://127.0.0.1:${WVN_MANAGER_PORT:-18892}/health
+    volumes:
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/catalog", target: /var/lib/wvn/catalog, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/manager", target: /var/lib/wvn/manager, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_RESOURCE_ROOT:-./state/compose/resources}", target: /srv/wvn/resources, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_MEDIA_ROOT:-./state/compose/media}", target: /srv/wvn/media, read_only: true, bind: {create_host_path: false}}
+    depends_on: {catalog-init: {condition: service_completed_successfully}}
+
+  b2-preview:
+    <<: *app
+    profiles: [b2]
+    command: [node, --import, tsx, b2-entry.ts]
+    environment:
+      <<: *account-env
+      WG_DEPLOYMENT_MODE: preview
+      WG_ACCOUNT_ORIGIN: https://localhost:${WVN_B2_PORT:-18895}
+      WG_ACCOUNT_PORT: ${WVN_B2_PORT:-18895}
+      WG_ACCOUNT_COOKIE_PREFIX: __Host-wg-compose-b2
+      WG_ACCOUNT_SECRET_FILE: /run/wvn/b2-secret
+      WG_RESOURCE_UPSTREAM: https://f003.backblazeb2.com
+      WG_ENGINE_CANDIDATE_FILE: /run/wvn-b2/candidate.json
+      WG_ENGINE_ARTIFACT_ROOT: /run/wvn-b2
+      WG_SHARE_ADMIN_ORIGIN: https://localhost:${WVN_B2_SHARE_ADMIN_PORT:-18898}
+      WG_SHARE_ADMIN_PORT: ${WVN_B2_SHARE_ADMIN_PORT:-18898}
+      NODE_USE_ENV_PROXY: "1"
+      HTTPS_PROXY: ${WVN_RUNTIME_PROXY:-}
+      HTTP_PROXY: ${WVN_RUNTIME_PROXY:-}
+      NO_PROXY: localhost,127.0.0.1,::1
+      WVN_HEALTH_URL: https://localhost:${WVN_B2_PORT:-18895}/health
+    secrets:
+      - {source: b2-secret, target: /run/wvn/b2-secret}
+      - {source: tls-key, target: /run/wvn/tls.key}
+      - {source: tls-cert, target: /run/wvn/tls.crt}
+    volumes:
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/b2", target: /var/lib/wvn/account, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/b2", target: /app/state, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/catalog", target: /var/lib/wvn/catalog, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_B2_CONFIG_ROOT:-./state/compose/b2-config}", target: /run/wvn-b2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_B2_CONFIG_ROOT:-./state/compose/b2-config}/b2-entry.ts", target: /app/b2-entry.ts, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_B2_CONFIG_ROOT:-./state/compose/b2-config}/b2-resources.mjs", target: /app/b2-resources.mjs, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_MEDIA_ROOT:-./state/compose/media}", target: /srv/wvn/media, read_only: true, bind: {create_host_path: false}}
+    depends_on: {catalog-init: {condition: service_completed_successfully}}
+
+  resources:
+    <<: *app
+    profiles: [storage]
+    command: [node, --import, tsx, resource-server.ts]
+    environment:
+      WG_RESOURCE_ROOT: /srv/wvn/resources
+      WG_PLAYER_MEDIA_ROOT: /srv/wvn/player-media
+      WG_RESOURCE_BIND: ${WVN_TAILSCALE_IP:-}
+      WG_RESOURCE_PORT: ${WVN_RESOURCE_PORT:-18896}
+      WG_RESOURCE_CLIENTS: ${WVN_STORAGE_CLIENTS:-}
+      WVN_HEALTH_URL: http://${WVN_TAILSCALE_IP:-100.64.0.1}:${WVN_RESOURCE_PORT:-18896}/__wvn-health
+      WVN_HEALTH_STATUS: "404"
+    volumes:
+      - {type: bind, source: "${WVN_RESOURCE_ROOT:-./state/compose/resources}", target: /srv/wvn/resources, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_PLAYER_MEDIA_ROOT:-./state/compose/player-media}", target: /srv/wvn/player-media, read_only: true, bind: {create_host_path: false}}
+
+  blobs:
+    <<: *app
+    profiles: [storage]
+    command: [node, --import, tsx, blob-server.ts]
+    environment:
+      WG_BLOB_ROOT: /var/lib/wvn/blobs
+      WG_BLOB_BIND: ${WVN_TAILSCALE_IP:-}
+      WG_BLOB_PORT: ${WVN_BLOB_PORT:-18897}
+      WG_BLOB_CLIENTS: ${WVN_STORAGE_CLIENTS:-}
+      WG_BLOB_TOKEN_FILE: /run/wvn/blob-token
+      WVN_HEALTH_URL: http://${WVN_TAILSCALE_IP:-100.64.0.1}:${WVN_BLOB_PORT:-18897}/space
+      WVN_HEALTH_STATUS: "401"
+    secrets:
+      - {source: blob-token, target: /run/wvn/blob-token}
+    volumes:
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/blobs", target: /var/lib/wvn/blobs, bind: {create_host_path: false}}
+
+  browser:
+    image: ${WVN_BROWSER_IMAGE:-wvn-browser:local}
+    entrypoint: []
+    command: [node, ops/compose/browser-check.mjs]
+    build:
+      <<: *build
+      target: browser
+      args:
+        HTTP_PROXY: ${WVN_BUILD_PROXY:-}
+        HTTPS_PROXY: ${WVN_BUILD_PROXY:-}
+        http_proxy: ${WVN_BUILD_PROXY:-}
+        https_proxy: ${WVN_BUILD_PROXY:-}
+        NO_PROXY: localhost,127.0.0.1
+        QA_BASE_IMAGE: ${WVN_QA_BASE_IMAGE:-node:24-bookworm-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5}
+    profiles: [qa]
+    network_mode: host
+    init: true
+    user: "${WVN_UID:-1000}:${WVN_GID:-1000}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=1g,mode=1777", "/opt/wvn/state:size=64m,mode=0700,uid=${WVN_UID:-1000},gid=${WVN_GID:-1000}"]
+    shm_size: 512m
+    mem_limit: 3g
+    cpus: 2
+    pids_limit: 512
+    restart: "no"
+    environment:
+      WVN_WEB_ORIGIN: ${WVN_WEB_ORIGIN:-https://localhost:18891}
+      WVN_MANAGER_ORIGIN: http://127.0.0.1:${WVN_ADMIN_PORT:-18893}
+      WVN_B2_ORIGIN: ${WVN_QA_B2_ORIGIN:-}
+      WVN_QA_CERT: /run/wvn/tls.crt
+      WVN_MANAGER_TOKEN_FILE: /run/wvn-manager/admin-token
+      WVN_QA_REPORT: /qa/browser.json
+      WVN_QA_PROXY: ${WVN_RUNTIME_PROXY:-}
+    volumes:
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/secrets/tls.crt", target: /run/wvn/tls.crt, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/manager", target: /run/wvn-manager, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_B2_CONFIG_ROOT:-./state/compose/b2-config}", target: /run/wvn-b2, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: "${WVN_STATE_ROOT:-./state/compose}/reports", target: /qa, bind: {create_host_path: false}}
+    depends_on:
+      web: {condition: service_healthy}
+      manager: {condition: service_healthy}
+
+secrets:
+  account-secret: {file: "${WVN_STATE_ROOT:-./state/compose}/secrets/account-secret"}
+  b2-secret: {file: "${WVN_STATE_ROOT:-./state/compose}/secrets/b2-secret"}
+  blob-token: {file: "${WVN_BLOB_TOKEN_FILE:-${WVN_STATE_ROOT:-./state/compose}/secrets/blob-token}"}
+  tls-key: {file: "${WVN_STATE_ROOT:-./state/compose}/secrets/tls.key"}
+  tls-cert: {file: "${WVN_STATE_ROOT:-./state/compose}/secrets/tls.crt"}

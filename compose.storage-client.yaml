@@ -1,0 +1,8 @@
+# 可选：主站连接私有存档服务；B2 预览仍保持自己的独立存储。
+services:
+  web:
+    environment:
+      WG_BLOB_UPSTREAM: ${WVN_BLOB_UPSTREAM:?设置已确认的私有存档服务地址}
+      WG_BLOB_TOKEN_FILE: /run/wvn/blob-token
+    secrets:
+      - {source: blob-token, target: /run/wvn/blob-token}

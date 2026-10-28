@@ -56,6 +56,7 @@ NODE_ENV=production npm run build
 - [Meilisearch 搜索](docs/search.md)、[PG 备份恢复](docs/pg-backups.md)、[房间与联机基础](docs/rooms.md)
 
 - [公开仓库与私有配置边界](docs/public-repository.md)
+- [Compose 部署与隔离验收](docs/compose-deployment.md)
 - [账号与云存档](docs/accounts-preview.md)、[存档分享](docs/save-sharing-preview.md)
 - [Emscripten 统一管理](docs/emscripten-management.md)、[Ren’Py 云存档兼容](docs/renpy-cloud-saves.md)
 - [启动加载反馈](docs/player-loading.md)、[ONS 资源缓存](docs/ons-resource-cache.md)
