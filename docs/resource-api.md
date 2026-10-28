@@ -65,6 +65,9 @@ const resource = await resources.findByOriginalPath(namespace, originalPath);
 以下命令只在已授权的远程构建机持久化任务内执行。示例隔离 schema 为 `resource_full_20261029`；源路径按实际传递位置填写。首次使用由主任务先创建该 schema：
 
 ```sh
+# 隔离演练明确使用专用 QA 数据库；不要使用生产连接串。
+export DATABASE_URL="$WVN_TEST_DATABASE_URL"
+
 node --import tsx --input-type=module <<'JS'
 import { PgDatabase } from './src/database/postgres.ts';
 const db = new PgDatabase(process.env.DATABASE_URL);
@@ -91,7 +94,7 @@ node_modules/.bin/tsx scripts/migration/import-resources.ts \
   --verify --report reports/resource-api/full-verify.json
 ```
 
-完成后在该 schema 内查询 `wvn_resource_snapshots` 与 `wvn_resource_import_runs`，核对 `published=true`、`processed=total`、`status='complete'`、无错误代码。预期正式源为 1,420,065 条路径、1,067,041 个内容对象、239,205,984,120 逻辑字节；这些是迁移源交接值，必须由实际全量导入再次证明。
+完成后在该 schema 内查询 `wvn_resource_snapshots` 与 `wvn_resource_import_runs`，核对 `published=true`、`processed=total`、`status='complete'`、无错误代码。2026-10-29 已在专用 `wvn_qa.resource_full_20261029` 完成正式公共索引的全量导入与独立 verify，实际得到 1,420,065 个唯一 UUID、1,067,041 个内容对象、239,205,984,120 逻辑字节。详见 [全量演练记录](../reports/resource-api/full-rehearsal-20261029.md)；其他 schema 不会自动拥有这批映射。
 
 ```sql
 SELECT namespace,inventory_sha256,source_sha256,metadata_sha256,total,logical_bytes,processed,published
@@ -109,7 +112,7 @@ SELECT count(*) AS paths,count(DISTINCT key) AS unique_keys FROM resource_full_2
 在远程持久化任务中运行：
 
 ```sh
-RESOURCE_DATABASE_SCHEMA=resource_full_20261029 \
+DATABASE_URL="$WVN_TEST_DATABASE_URL" RESOURCE_DATABASE_SCHEMA=resource_full_20261029 \
 RESOURCE_HOST=127.0.0.1 RESOURCE_PORT=4270 \
 node_modules/.bin/tsx src/resources/server.ts
 ```

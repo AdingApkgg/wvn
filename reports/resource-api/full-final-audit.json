@@ -1,0 +1,31 @@
+{
+  "status": "verified",
+  "identity": {
+    "role": "wvn_qa",
+    "database": "wvn_qa",
+    "schema": "resource_full_20261029"
+  },
+  "runs": [
+    {
+      "id": "2873e3a4-7404-4bc5-8ee3-c0e4d1016b38",
+      "status": "complete",
+      "total": 1420065,
+      "processed": 1420065,
+      "inserted": 1420065,
+      "error_code": null,
+      "error_path": null
+    }
+  ],
+  "files": [
+    {
+      "name": "resources.sqlite",
+      "bytes": 1786675200,
+      "mode": "600"
+    },
+    {
+      "name": "resources.sqlite.gz",
+      "bytes": 385580112,
+      "mode": "600"
+    }
+  ]
+}

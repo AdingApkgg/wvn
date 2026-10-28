@@ -1,0 +1,18 @@
+{
+  "status": "verified",
+  "gzipSha256": "663440a08172ae298c52c11444ba1040ddc3f702796dbf44d18da919a598fb1b",
+  "gzipBytes": 385580112,
+  "sourceSha256": "2a04ee201a45363d073eb09f80c0d6ac93089ceeb0b90a5ca850084a18e0e7ee",
+  "sourceBytes": 1786675200,
+  "counts": {
+    "b2_cas_locations": 1067041,
+    "b2_cas_snapshots": 1,
+    "b2_cas_sources": 1420065,
+    "resource_objects": 1067041,
+    "resource_paths": 1420065
+  },
+  "downloadSeconds": 724.589,
+  "decompressSeconds": 19.497,
+  "totalSeconds": 744.332,
+  "completedEndpoint": true
+}

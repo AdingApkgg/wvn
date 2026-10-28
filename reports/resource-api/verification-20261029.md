@@ -35,8 +35,8 @@ node_modules/.bin/tsc --ignoreConfig --noEmit --module ESNext --moduleResolution
 
 PG fixture 为每项测试创建随机 schema，且限制专用 `wvn_qa` 数据库/角色；Redis 只清理随机测试前缀。未运行账号/目录/RTC 等其他子系统的测试，最终全套集成由主任务执行。
 
-## 尚未执行的验收
+## 首轮专项之后补跑的验收
 
-本子任务未取用正式 `resources.sqlite`，未执行 1,420,065 条路径的全量导入，也未宣称正式对象数或逻辑字节数已经在 PG 重现。`docs/resource-api.md` 提供 `resource_full_20261029` 专用 schema 的 dry-run / apply / verify 命令与 SQL 核对项目，由主任务接续。
+首轮 16 项专项时尚未取得正式 `resources.sqlite`。随后在主任务授权并提供临时只读下载票据后，已完成公共索引下载和双摘要核验，并在专用 `wvn_qa.resource_full_20261029` 完成 1,420,065 条路径的 dry-run / apply / 独立 verify 和真实 API/Redis 探测。最新结果见 [全量演练记录](full-rehearsal-20261029.md)、[结构化回执](full-rehearsal.json)。
 
 本子任务未修改 B2/Cloudflare/生产配置，未上传或删除 B2 对象。生产 `wg-b2.saop.cc` CORS 是单独的待办；API URL 和元数据测试不构成浏览器跨域或播放器验收。

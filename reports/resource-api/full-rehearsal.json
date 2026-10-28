@@ -1,0 +1,119 @@
+{
+  "status": "complete",
+  "schema": "resource_full_20261029",
+  "namespace": "b2/web-visual-novel/snapshot-20261028",
+  "sourceSha256": "2a04ee201a45363d073eb09f80c0d6ac93089ceeb0b90a5ca850084a18e0e7ee",
+  "expected": {
+    "paths": 1420065,
+    "objects": 1067041,
+    "logicalBytes": 239205984120
+  },
+  "elapsedSeconds": 459.117035,
+  "steps": {
+    "sourceCounts": {
+      "paths": 1420065,
+      "objects": 1067041,
+      "logicalBytes": 239205984120,
+      "errors": 0
+    },
+    "dryRun": {
+      "seconds": 43.759,
+      "result": {
+        "status": "dry-run",
+        "namespace": "b2/web-visual-novel/snapshot-20261028",
+        "inventorySha256": "fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01",
+        "sourceSha256": "2a04ee201a45363d073eb09f80c0d6ac93089ceeb0b90a5ca850084a18e0e7ee",
+        "metadataSha256": "051416cf585d8241a35996811f093b7c24064b74b98a5b0feb39934d80f572bd",
+        "total": 1420065,
+        "logicalBytes": 239205984120,
+        "inserted": 1420065,
+        "resumed": 0,
+        "batches": 1421
+      }
+    },
+    "apply": {
+      "seconds": 322.336,
+      "result": {
+        "status": "complete",
+        "namespace": "b2/web-visual-novel/snapshot-20261028",
+        "inventorySha256": "fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01",
+        "sourceSha256": "2a04ee201a45363d073eb09f80c0d6ac93089ceeb0b90a5ca850084a18e0e7ee",
+        "metadataSha256": "051416cf585d8241a35996811f093b7c24064b74b98a5b0feb39934d80f572bd",
+        "total": 1420065,
+        "logicalBytes": 239205984120,
+        "runId": "2873e3a4-7404-4bc5-8ee3-c0e4d1016b38",
+        "inserted": 1420065,
+        "resumed": 0,
+        "batches": 1421
+      }
+    },
+    "verify": {
+      "seconds": 77.464,
+      "result": {
+        "status": "verified",
+        "namespace": "b2/web-visual-novel/snapshot-20261028",
+        "inventorySha256": "fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01",
+        "sourceSha256": "2a04ee201a45363d073eb09f80c0d6ac93089ceeb0b90a5ca850084a18e0e7ee",
+        "metadataSha256": "051416cf585d8241a35996811f093b7c24064b74b98a5b0feb39934d80f572bd",
+        "total": 1420065,
+        "logicalBytes": 239205984120,
+        "inserted": 0,
+        "resumed": 0,
+        "batches": 1421
+      }
+    },
+    "targetCounts": {
+      "seconds": 9.482,
+      "result": {
+        "paths": 1420065,
+        "unique_keys": 1420065,
+        "objects": 1067041,
+        "objectRows": 1067041,
+        "processed": 1420065,
+        "total": 1420065,
+        "logical_bytes": 239205984120,
+        "published": true
+      }
+    },
+    "api": {
+      "seconds": 0.15,
+      "result": {
+        "endpoint": "http://127.0.0.1:4270",
+        "samples": [
+          {
+            "key": "97731e2b-6a25-43fa-822d-d82f7be0e5d6",
+            "path": "imports/webgal.moe/2026-10-27/cdn/Cherry-Petals-Fall-Like-Teardrops/artemis.data",
+            "sha256": "c37ca15eefe5f851e2eeb0da946aabc9e054462676ee68fb9c9e0e2da74c1ff4",
+            "mime": "application/octet-stream"
+          },
+          {
+            "key": "38879bef-8b19-4072-a2bf-e7fa34495b8b",
+            "path": "imports/webgal.moe/2026-10-27/cdn/Cherry-Petals-Fall-Like-Teardrops/artemis.js",
+            "sha256": "3cf213317631aa2460a0721f1b0de431ece208b64a29fc2ebe740c1b1d30123e",
+            "mime": "application/javascript"
+          },
+          {
+            "key": "ffc1cbc2-6187-4bc2-8d40-94e8e8c85848",
+            "path": "imports/webgal.moe/2026-10-27/cdn/Cherry-Petals-Fall-Like-Teardrops/artemis.wasm",
+            "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c",
+            "mime": "application/wasm"
+          }
+        ],
+        "get": 200,
+        "pathLookup": true,
+        "batchFound": 2,
+        "batchMissing": 1,
+        "manifestPageSizes": [
+          2,
+          2
+        ],
+        "unknown": 404,
+        "invalid": 400,
+        "health": 200,
+        "redisTtl": 300,
+        "redisHitWithClosedPg": true,
+        "redisUnavailableFallbackMs": 22.493
+      }
+    }
+  }
+}
