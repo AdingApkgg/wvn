@@ -16,6 +16,7 @@ export class RoomClient extends EventTarget {
   publishState(data: unknown, id?: string): Promise<RoomEvent>;
   send(kind: 'state' | 'offer' | 'answer' | 'ice', data: unknown, target?: string, id?: string): Promise<RoomEvent>;
   pingDatagram(): Promise<void>;
+  /** TURN和SDP异步工作随当前连接取消，关闭后不会创建peer或发送信令。 */
   openPeer(userId: string, options?: { relayOnly?: boolean }): Promise<RTCPeerConnection>;
   sendPeer(userId: string, data: unknown): void;
   closePeer(userId: string): void;

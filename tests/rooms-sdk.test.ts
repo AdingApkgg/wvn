@@ -141,6 +141,7 @@ function controlledWebTransport() {
     private finished = deferred<void>();
     closed = this.finished.promise;
     private stopped = false;
+    sent: any[] = [];
     private streamController!: ReadableStreamDefaultController<Uint8Array>;
     private datagramController!: ReadableStreamDefaultController<Uint8Array>;
     private readable = new ReadableStream<Uint8Array>({ start: controller => { this.streamController = controller; } });
@@ -150,9 +151,11 @@ function controlledWebTransport() {
     };
     constructor() { instances.push(this); }
     async createBidirectionalStream() {
-      return { readable: this.readable, writable: new WritableStream<Uint8Array>({ write: () => this.frame({
-        type: 'ready', userId: 'owner', snapshot: { id: 'terminal', ownerUserId: 'owner', versionId: 'published', status: 'open', seq: 0, state: {}, stateSeq: 0, members: [] }, events: [], cursor: 0, head: 0,
-      }) }) };
+      return { readable: this.readable, writable: new WritableStream<Uint8Array>({ write: bytes => {
+        const input = JSON.parse(new TextDecoder().decode(bytes)); this.sent.push(input);
+        if (input.type === 'auth') this.frame({ type: 'ready', userId: 'owner', snapshot: { id: 'terminal', ownerUserId: 'owner', versionId: 'published', status: 'open', seq: 0, state: {}, stateSeq: 0, members: [] }, events: [], cursor: 0, head: 0 });
+        else if (input.type === 'event') this.frame({ type: 'ack', id: input.event.id, event: { ...input.event, seq: this.sent.length, actor: 'owner' } });
+      } }) };
     }
     frame(value: unknown) { this.streamController.enqueue(new TextEncoder().encode(JSON.stringify(value) + '\n')); }
     fail() { this.finished.reject(new Error('temporary QUIC network failure')); }
@@ -307,4 +310,41 @@ test('close discards queued signal work before it can request TURN or create a p
     assert.equal(turnRequests, 0, 'closed queued signal must not request TURN');
     assert.equal(client.peers.size, 0);
   } finally { client.close(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; }
+});
+
+test('simultaneous openPeer and incoming offer share one peer after both TURN requests finish', async () => {
+  const originalFetch = globalThis.fetch, originalWT = (globalThis as any).WebTransport, originalPeer = globalThis.RTCPeerConnection;
+  const transport = controlledWebTransport(), turn = deferred<void>(), entered = deferred<void>();
+  let turnRequests = 0, created = 0, closed = 0;
+  globalThis.fetch = (async (input: unknown) => {
+    if (String(input).endsWith('/turn')) {
+      if (++turnRequests === 2) entered.resolve(); await turn.promise;
+      return Response.json({ urls: ['turn:127.0.0.1:28440'], username: 'qa', credential: 'qa' });
+    }
+    return Response.json({ ticket: 'unused', webTransportUrl: 'https://sdk.test/rooms' });
+  }) as typeof fetch;
+  (globalThis as any).WebTransport = transport.WT;
+  globalThis.RTCPeerConnection = class {
+    localDescription: any; remoteDescription: any; signalingState = 'stable';
+    constructor() { created++; }
+    createDataChannel() { return { close() {} }; }
+    async createOffer() { return { type: 'offer', sdp: 'qa' }; }
+    async createAnswer() { return { type: 'answer', sdp: 'qa' }; }
+    async setLocalDescription(value: any) { this.localDescription = { toJSON: () => value }; this.signalingState = value.type === 'offer' ? 'have-local-offer' : 'stable'; }
+    async setRemoteDescription(value: any) { this.remoteDescription = value; }
+    close() { closed++; }
+  } as any;
+  const client = new RoomClient({ roomId: 'peer-concurrent', baseUrl: 'https://sdk.test' });
+  try {
+    await client.connect();
+    client.snapshot!.members.push({ userId: 'member', displayName: 'Member' });
+    const opening = client.openPeer('member').then(value => value, error => error);
+    transport.instances[0].frame({ type: 'event', event: { seq: 1, id: 'offer', actor: 'member', kind: 'offer', target: 'owner', data: { type: 'offer', sdp: 'qa' } } });
+    await entered.promise;
+    const queued = (client as any).signalChain;
+    turn.resolve(); await Promise.all([opening, queued]);
+    assert.equal(created, 1, 'concurrent peer setup must not overwrite an orphaned RTCPeerConnection');
+    assert.equal(client.peers.size, 1);
+    client.close(); assert.equal(closed, 1, 'close must reclaim the only constructed peer');
+  } finally { client.close(); globalThis.fetch = originalFetch; (globalThis as any).WebTransport = originalWT; globalThis.RTCPeerConnection = originalPeer; }
 });

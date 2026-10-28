@@ -215,7 +215,13 @@ export class RoomClient extends EventTarget {
     this.sequence = event.seq;
     if (event.kind === 'state' && this.snapshot && event.seq > this.snapshot.stateSeq) { this.snapshot.state = event.data; this.snapshot.stateSeq = event.seq; }
     if (['offer', 'answer', 'ice'].includes(event.kind) && event.target === this.userId) {
-      this.signalChain = (this.signalChain ?? Promise.resolve()).then(() => this.signal(event)).catch(error => this.emit('error', { code: 'peer_signal_failed', message: error.message }));
+      const attempt = this.attempt, generation = this.generation;
+      this.signalChain = (this.signalChain ?? Promise.resolve()).then(() => {
+        this.assertPeerContext(attempt, generation);
+        return this.signal(event, attempt, generation);
+      }).catch(error => {
+        if (this.activeAttempt(attempt) && generation === this.generation) this.emit('error', { code: 'peer_signal_failed', message: error.message });
+      });
     }
     if (event.kind === 'member.joined' && this.snapshot && !this.snapshot.members.some(m => m.userId === event.data.userId)) this.snapshot.members.push({ userId: event.data.userId, displayName: event.data.displayName ?? event.data.userId });
     if (event.kind === 'member.kicked' || event.kind === 'member.left') {
@@ -240,50 +246,76 @@ export class RoomClient extends EventTarget {
     if (this.transport !== 'webtransport' || !this.datagramWriter) throw new Error('webtransport_required');
     await this.datagramWriter.write(new TextEncoder().encode(JSON.stringify({ type: 'ping' })));
   }
-  async peer(userId, relayOnly = false) {
+  peerCurrent(attempt, generation, userId, peer) {
+    return this.activeAttempt(attempt) && generation === this.generation && this.peers.get(userId) === peer;
+  }
+  assertPeerContext(attempt, generation, userId, peer) {
+    this.assertAttempt(attempt);
+    if (generation !== this.generation || (peer && this.peers.get(userId) !== peer)) throw new DOMException('Peer connection cancelled', 'AbortError');
+  }
+  async peer(userId, relayOnly = false, attempt = this.attempt, generation = this.generation) {
+    this.assertPeerContext(attempt, generation);
     if (this.peers.has(userId)) return this.peers.get(userId);
     if (!this.snapshot?.members.some(m => m.userId === userId) || userId === this.userId) throw new Error('peer_not_a_member');
-    const turn = await this.request('/turn', {});
+    const turn = await this.request('/turn', {}, { signal: attempt.controller.signal });
+    this.assertPeerContext(attempt, generation);
+    // 同成员的本地主动连接与入站offer可能同时取TURN；返回后复用先完成的peer。
+    if (this.peers.has(userId)) return this.peers.get(userId);
     const pc = new RTCPeerConnection({ iceServers: [{ urls: turn.urls, username: turn.username, credential: turn.credential }], iceTransportPolicy: relayOnly ? 'relay' : 'all' });
-    const peer = { pc, channel: null, candidates: [] };
+    const peer = { pc, channel: null, candidates: [], attempt, generation };
     this.peers.set(userId, peer);
-    pc.onicecandidate = event => { if (event.candidate) void this.send('ice', event.candidate.toJSON(), userId).catch(error => this.emit('error', { code: 'ice_send_failed', message: error.message })); };
-    pc.ondatachannel = event => this.channel(userId, peer, event.channel);
-    pc.onconnectionstatechange = () => this.emit('peerstate', { userId, state: pc.connectionState });
+    const current = () => this.peerCurrent(attempt, generation, userId, peer);
+    pc.onicecandidate = event => {
+      if (event.candidate && current()) void this.send('ice', event.candidate.toJSON(), userId).catch(error => {
+        if (current()) this.emit('error', { code: 'ice_send_failed', message: error.message });
+      });
+    };
+    pc.ondatachannel = event => { if (current()) this.channel(userId, peer, event.channel); else event.channel.close(); };
+    pc.onconnectionstatechange = () => { if (current()) this.emit('peerstate', { userId, state: pc.connectionState }); };
     return peer;
   }
   channel(userId, peer, channel) {
+    const current = () => this.peerCurrent(peer.attempt, peer.generation, userId, peer);
     peer.channel = channel;
-    channel.onopen = () => this.emit('peeropen', { userId });
+    channel.onopen = () => { if (current()) this.emit('peeropen', { userId }); };
     channel.onmessage = event => {
-      if (typeof event.data !== 'string' || new TextEncoder().encode(event.data).length > 4096) return;
+      if (!current() || typeof event.data !== 'string' || new TextEncoder().encode(event.data).length > 4096) return;
       try { this.emit('peerdata', { userId, data: JSON.parse(event.data), authoritative: false }); } catch {}
     };
     channel.onclose = () => this.emit('peerclose', { userId });
   }
   async openPeer(userId, options = {}) {
-    const peer = await this.peer(userId, options.relayOnly ?? false);
+    const attempt = this.attempt, generation = this.generation;
+    this.assertPeerContext(attempt, generation);
+    const peer = await this.peer(userId, options.relayOnly ?? false, attempt, generation);
+    const check = () => this.assertPeerContext(attempt, generation, userId, peer);
+    check();
     if (!peer.channel) this.channel(userId, peer, peer.pc.createDataChannel('wvn.ephemeral.v1', { ordered: false, maxRetransmits: 0 }));
-    await peer.pc.setLocalDescription(await peer.pc.createOffer());
-    await this.send('offer', peer.pc.localDescription.toJSON(), userId);
+    const offer = await peer.pc.createOffer(); check();
+    await peer.pc.setLocalDescription(offer); check();
+    await this.send('offer', peer.pc.localDescription.toJSON(), userId); check();
     return peer.pc;
   }
-  async signal(event) {
-    const peer = await this.peer(event.actor, this.options.relayOnly ?? false), pc = peer.pc;
+  async signal(event, attempt = this.attempt, generation = this.generation) {
+    this.assertPeerContext(attempt, generation);
+    const peer = await this.peer(event.actor, this.options.relayOnly ?? false, attempt, generation), pc = peer.pc;
+    const check = () => this.assertPeerContext(attempt, generation, event.actor, peer);
+    check();
     if (event.kind === 'ice') {
       if (!pc.remoteDescription) peer.candidates.push(event.data);
-      else await pc.addIceCandidate(event.data);
+      else { await pc.addIceCandidate(event.data); check(); }
       return;
     }
     if (event.kind === 'offer' && pc.signalingState !== 'stable') {
       if (this.userId < event.actor) return;
-      await pc.setLocalDescription({ type: 'rollback' });
+      await pc.setLocalDescription({ type: 'rollback' }); check();
     }
-    await pc.setRemoteDescription(event.data);
-    for (const candidate of peer.candidates.splice(0)) await pc.addIceCandidate(candidate);
+    await pc.setRemoteDescription(event.data); check();
+    for (const candidate of peer.candidates.splice(0)) { await pc.addIceCandidate(candidate); check(); }
     if (event.kind === 'offer') {
-      await pc.setLocalDescription(await pc.createAnswer());
-      await this.send('answer', pc.localDescription.toJSON(), event.actor);
+      const answer = await pc.createAnswer(); check();
+      await pc.setLocalDescription(answer); check();
+      await this.send('answer', pc.localDescription.toJSON(), event.actor); check();
     }
   }
   sendPeer(userId, data) {
@@ -322,7 +354,7 @@ export class RoomClient extends EventTarget {
   }
   resetTransport() {
     ++this.generation;
-    this.write = null; this.onReady = null; this.transport = null;
+    this.write = null; this.onReady = null; this.transport = null; this.signalChain = null;
     this.connection?.close(); this.connection = null;
     this.writer?.releaseLock(); this.writer = null;
     this.datagramWriter?.releaseLock(); this.datagramWriter = null;
