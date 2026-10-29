@@ -110,6 +110,11 @@ test('Artemis uses the verified registered game package through its native prelo
  assert.throws(()=>win.Module.getPreloadedPackage('root.pfs',4),/size/);
  assert.equal(win.Module.getPreloadedPackage('unregistered.pfs',3),undefined);
 });
+test('CAS package hash URLs retain the original preload filename',()=>{
+ const bytes=new Uint8Array([1,2,3]),url='https://wg-b2.saop.cc/'+'a'.repeat(64)+'.bin',win={};
+ const driver=createEmscriptenDriver({kind:'Artemis',engineBytes:new Map([['artemis.data',bytes]]),resources:{resolve:name=>name==='artemis.data'?url:name,path:name=>name===url?'artemis.data':name}});
+ driver.installGlobal(win);assert.equal(win.Module.getPreloadedPackage(url,3),bytes.buffer);assert.throws(()=>win.Module.getPreloadedPackage(url,4),/size/);
+});
 
 // 虚拟时钟仅在单例内替换，每次等待推进一分钟，不经过真实等待。
 async function readinessClock(run){
