@@ -18,7 +18,7 @@ async function fixture() {
   return { ...f, key };
 }
 
-test('real Redis caches only bounded-TTL public metadata and serves a hit with PostgreSQL unavailable', async () => {
+test('real Redis caches bounded-TTL metadata but requires current PostgreSQL publication and MIME validation', async () => {
   const f = await fixture(); const prefix = 'qa:resources:' + randomUUID() + ':';
   const admin = createClient({ url: process.env.REDIS_URL, socket: { reconnectStrategy: false, connectTimeout: 500 }, disableOfflineQueue: true });
   admin.on('error', () => {}); await admin.connect();
@@ -31,8 +31,9 @@ test('real Redis caches only bounded-TTL public metadata and serves a hit with P
     const ttl = await admin.ttl(keys[0]); assert.ok(ttl > 0 && ttl <= 30);
     const encoded = (await admin.get(keys[0]))!;
     assert.equal(encoded.includes('https:'), false); assert.equal(encoded.includes('source'), false);
-    await f.db.close();
     assert.deepEqual(await repo.findByKey(f.key), value);
+    await f.db.close();
+    await assert.rejects(repo.findByKey(f.key));
   } finally {
     cache.close();
     const keys = await admin.keys(prefix + '*'); if (keys.length) await admin.del(keys);

@@ -62,7 +62,7 @@ node ops/b2/verify-browser.mjs
 
 ## 实际 HTTP MIME 证明导入
 
-公开 `contentType` 优先取物理对象的 `wvn_resource_objects.http_content_type`；未知时仍取各逻辑路径原有 `wvn_resources.content_type`。按 UUID、原路径、namespace、版本以及播放器依赖的查询采用同一规则。原始记录的 MIME、UUID、源/目标版本ID、路径、摘要、大小与创建时间均不改，根级 SHA URL 也不变。Redis 使用 schema=2 的负载信封；旧格式即使配置了自定义 prefix 也视为未命中。
+公开 `contentType` 优先取物理对象的 `wvn_resource_objects.http_content_type`；未知时仍取各逻辑路径原有 `wvn_resources.content_type`。按 UUID、原路径、namespace、版本以及播放器依赖的查询采用同一规则。原始记录的 MIME、UUID、源/目标版本ID、路径、摘要、大小与创建时间均不改，根级 SHA URL 也不变。Redis 使用 schema=2 的负载信封；旧格式即使配置了自定义 prefix 也视为未命中。按key读取缓存时每批向PG核对当前公开MIME及发布状态；预热原MIME或并发迟到的旧写回均无法掩盖已提交的canonical类型，PG不可用时拒绝返回未经验证的缓存。
 
 证明文件为 UTF-8 JSON，摘要必须针对完整文件原始字节计算：
 
@@ -70,7 +70,7 @@ node ops/b2/verify-browser.mjs
 {"schema":1,"bucket":"web-visual-novel","namespace":"b2/web-visual-novel/snapshot-20261028","inventorySha256":"fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01","objects":[{"sha256":"<64位小写hex>","bytes":123,"contentType":"application/octet-stream","versionId":"<冻结B2精确版本ID>"}]}
 ```
 
-每个 SHA 只能一行，必须完整覆盖该 namespace 已发布匹配清单的所有被引用对象；每一条原记录的目标版本ID及大小均需吻合。文件由独立流程读取冻结精确 B2 版本的 HTTP 元数据产生；CLI 本身不请求 B2。只接受上述固定桶、namespace 和 inventory；证明中未知、多余、重复、缺失对象、版本/大小冲突、未发布快照或既有不同证明均拒绝。
+每个 SHA 只能一行，可提交本次22个选定哈希的子集证明；只补写所列对象，未选对象保持原值。数据库按所选SHA聚合其在当前namespace的全部引用，每一条对应原记录的目标版本ID及大小均需吻合。文件由独立流程读取冻结精确 B2 版本的 HTTP 元数据产生；CLI 本身不请求 B2。只接受上述固定桶、namespace 和 inventory；证明中未知、多余、重复、未引用对象、版本/大小冲突、未发布快照或既有不同证明均拒绝。
 
 ```sh
 npx tsx scripts/import-resource-http-metadata.ts \

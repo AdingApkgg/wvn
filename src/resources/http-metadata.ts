@@ -43,16 +43,20 @@ export async function importHttpMetadata(options: {
     if (options.apply) await db.exec('LOCK TABLE wvn_resource_objects,wvn_resources,wvn_resource_snapshots IN SHARE ROW EXCLUSIVE MODE');
     const snapshot = await db.prepare('SELECT 1 FROM wvn_resource_snapshots WHERE namespace=$1 AND inventory_sha256=$2 AND published=true').get(proof.namespace, proof.inventorySha256);
     if (!snapshot) throw invalid();
-    const rows = await db.prepare(`SELECT r.sha256,o.bytes,r.target_file_id AS "versionId",
-      to_jsonb(o)->>'http_content_type' AS "contentType",to_jsonb(o)->>'http_metadata_proof_sha256' AS proof
-      FROM wvn_resources r JOIN wvn_resource_objects o ON o.sha256=r.sha256 WHERE r.namespace=$1`).all<{
-        sha256: string; bytes: number; versionId: string; contentType: string | null; proof: string | null;
-      }>(proof.namespace);
     const bySha = new Map(proof.objects.map(row => [row.sha256, row]));
+    // 只聚合本次选定SHA的全部引用；每个物理对象仅回传一行，不读取整个namespace。
+    const rows = await db.prepare(`SELECT o.sha256,o.bytes,count(*) AS references,
+      bool_and(r.target_file_id=w.version_id) AS "versionsMatch",
+      to_jsonb(o)->>'http_content_type' AS "contentType",to_jsonb(o)->>'http_metadata_proof_sha256' AS proof
+      FROM wvn_resource_objects o JOIN wvn_resources r ON r.sha256=o.sha256
+      JOIN unnest($2::text[],$3::text[]) w(sha256,version_id) ON w.sha256=o.sha256
+      WHERE r.namespace=$1 GROUP BY o.sha256`).all<{
+        sha256: string; bytes: number; references: number; versionsMatch: boolean; contentType: string | null; proof: string | null;
+      }>(proof.namespace, proof.objects.map(row => row.sha256), proof.objects.map(row => row.versionId));
     const referenced = new Set<string>(); const pending = new Set<string>();
     for (const row of rows) {
       const item = bySha.get(row.sha256);
-      if (!item || item.bytes !== row.bytes || item.versionId !== row.versionId) throw invalid();
+      if (!item || item.bytes !== row.bytes || !row.versionsMatch) throw invalid();
       referenced.add(row.sha256);
       if (row.contentType !== null || row.proof !== null) {
         if (row.contentType !== item.contentType || row.proof !== options.expectedProofSha256) throw new Error('HTTP_METADATA_CONFLICT');
@@ -65,6 +69,6 @@ export async function importHttpMetadata(options: {
         .run(bySha.get(sha)!.contentType, options.expectedProofSha256, sha);
     }
     return { status: options.apply ? 'complete' : 'dry-run', namespace: proof.namespace, inventorySha256: proof.inventorySha256,
-      proofSha256: options.expectedProofSha256, objects: bySha.size, resources: rows.length, changed: pending.size };
+      proofSha256: options.expectedProofSha256, objects: bySha.size, resources: rows.reduce((sum, row) => sum + row.references, 0), changed: pending.size };
   });
 }

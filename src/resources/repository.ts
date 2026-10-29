@@ -19,6 +19,14 @@ export class ResourceRepository {
       throw new ResourceRequestError('Expected 1 to 100 UUID resource keys');
     const keys = [...new Set(input)];
     const found = await this.cache?.getMany(keys).catch(() => new Map<string, ResourceMetadata>()) ?? new Map<string, ResourceMetadata>();
+    if (found.size) {
+      // MIME及发布状态可在缓存TTL内改变；每批核对PG当前投影，迟到旧写回也不能绕过校验。
+      // SHA/bytes/key保持不可变；证明变化但公开MIME相同时，缓存仍等价。
+      const current = await this.db.prepare(`SELECT r.key::text AS key,COALESCE(o.http_content_type,r.content_type) AS "contentType"
+        ${joined} WHERE r.key=ANY($1::uuid[])`).all<{ key: string; contentType: string }>([...found.keys()]);
+      const types = new Map(current.map(row => [row.key, row.contentType]));
+      for (const [key, value] of found) if (types.get(key) !== value.contentType) found.delete(key);
+    }
     const uncached = keys.filter(key => !found.has(key));
     if (uncached.length) {
       const rows = await this.db.prepare(`SELECT ${metadata} ${joined} WHERE r.key=ANY($1::uuid[])`).all<ResourceMetadata>(uncached);

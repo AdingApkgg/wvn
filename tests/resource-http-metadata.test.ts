@@ -116,3 +116,36 @@ test('apply validates before migrating old schema; paired fields and MIME constr
     assert.equal((await f.db.prepare('SELECT http_content_type FROM wvn_resource_objects').get())?.http_content_type, 'application/octet-stream');
   } finally { await f.close(); }
 });
+
+test('selected proof updates all selected references and leaves other namespace objects untouched', async () => {
+  const f = await fixture(); const other = 'e'.repeat(64);
+  try {
+    await f.db.prepare('INSERT INTO wvn_resource_objects(sha256,bytes) VALUES($1,99)').run(other);
+    await f.db.prepare(`INSERT INTO wvn_resources(key,namespace,original_path,sha256,content_type,source_file_id,target_file_id,content_sha1)
+      VALUES($1,$2,'unselected', $3,'text/plain','other-source','other-target',$4)`).run(randomUUID(), HTTP_METADATA_SCOPE.namespace, other, 'f'.repeat(40));
+    const before = await f.db.prepare('SELECT row_to_json(o) AS object FROM wvn_resource_objects o WHERE sha256=$1').get(other);
+    const result = await f.run(proof(), true); assert.equal(result.objects, 1); assert.equal(result.resources, 2);
+    assert.deepEqual(await f.db.prepare('SELECT row_to_json(o) AS object FROM wvn_resource_objects o WHERE sha256=$1').get(other), before);
+    assert.equal((await f.db.prepare('SELECT count(*)::int AS n FROM wvn_resources WHERE sha256=$1').get(sha))?.n, 2);
+  } finally { await f.close(); }
+});
+
+test('warm schema2 cache and late old writeback cannot hide applied MIME or snapshot revocation', async () => {
+  const f = await fixture(); const prefix = 'qa:mime-warm:' + randomUUID() + ':';
+  const client = createClient({ url: process.env.REDIS_URL }); await client.connect();
+  const cache = new RedisResourceCache({ url: process.env.REDIS_URL!, prefix });
+  const repo = new ResourceRepository(f.db, { cache });
+  try {
+    assert.equal((await repo.findByKey(f.keys[0]))?.contentType, 'image/png');
+    const oldPayload = (await client.get(prefix + f.keys[0]))!; assert.equal(JSON.parse(oldPayload).schema, 2);
+    await f.run(proof(), true);
+    assert.equal((await repo.findByKey(f.keys[0]))?.contentType, 'application/octet-stream');
+    assert.equal((await repo.findByOriginalPath(HTTP_METADATA_SCOPE.namespace, 'game/0'))?.contentType, 'application/octet-stream');
+    assert.ok((await repo.manifest({ namespace: HTTP_METADATA_SCOPE.namespace, version: HTTP_METADATA_SCOPE.inventorySha256 }))?.resources.every(r => r.contentType === 'application/octet-stream'));
+    await client.set(prefix + f.keys[0], oldPayload);
+    assert.equal((await repo.findByKey(f.keys[0]))?.contentType, 'application/octet-stream');
+    await f.db.exec('UPDATE wvn_resource_snapshots SET published=false');
+    await client.set(prefix + f.keys[0], oldPayload);
+    assert.equal(await repo.findByKey(f.keys[0]), undefined);
+  } finally { cache.close(); for (const key of f.keys) await client.del(prefix + key); client.destroy(); await f.close(); }
+});
