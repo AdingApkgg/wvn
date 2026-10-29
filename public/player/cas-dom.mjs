@@ -1,4 +1,4 @@
-import {rewriteCasCss,rewriteCasCssUrls,rewriteCasCssParts,rewriteCasCssPartsAsync} from './cas-resources.mjs';
+import {rewriteCasCss,rewriteCasCssUrls,rewriteCasCssParts,rewriteCasCssPartsAsync,applyCasCssCompatibility} from './cas-resources.mjs';
 // 在浏览器原生请求开始之前同步映射；不使用 MutationObserver 补救已发出的请求。
 export function installCasBrowser(win,resolver){
  const doc=win.document,EP=win.Element.prototype,NP=win.Node.prototype;
@@ -30,11 +30,11 @@ export function installCasBrowser(win,resolver){
   };reconcile();
  }
  async function ready(){reconcile();while(pending.size)await Promise.all([...pending]);const failed=failures.splice(0).find(item=>current(item.state));if(failed)throw failed.error;}
- const cssCache=new Map();
+ const cssCache=new Map(),compatibility=[];
  async function readCSS(path,signal){
   signal.throwIfAborted();if(cssCache.has(path))return cssCache.get(path);
   const row=resolver.files.get(path)??resolver.engines.get(path);if(!row)throw Error('Unregistered stylesheet');if(row.bytes>8*1024**2)throw Error('Stylesheet exceeds limit');
-  const response=await nativeFetch(row.url,{credentials:'omit',redirect:'error',signal});if(!response.ok)throw Error('Stylesheet download failed');const value=await response.text();signal.throwIfAborted();if(value.length>8*1024**2)throw Error('Stylesheet exceeds limit');cssCache.set(path,value);return value;
+  const response=await nativeFetch(row.url,{credentials:'omit',redirect:'error',signal});if(!response.ok)throw Error('Stylesheet download failed');const value=await response.text();signal.throwIfAborted();if(value.length>8*1024**2)throw Error('Stylesheet exceeds limit');let prepared={text:value};if(path==='tyrano/libs/jquery-ui.css'){const digest=[...new Uint8Array(await win.crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(n=>n.toString(16).padStart(2,'0')).join('');signal.throwIfAborted();prepared=applyCasCssCompatibility(value,path,resolver,digest);if(prepared.applied){compatibility.push(prepared.applied);win.console.info('WVN CSS compatibility',JSON.stringify(prepared.applied));}}cssCache.set(path,prepared.text);return prepared.text;
  }
  function sourceText(node){const value=text.get.call(node),saved=textSources.get(node);return saved?.rendered===value?saved.source:value;}
  function prepareStyle(node,nodes=[...node.childNodes]){
@@ -150,7 +150,7 @@ export function installCasBrowser(win,resolver){
  rules.insertRule=function(rule,...args){return insertRule.call(this,css(rule),...args)};
  const Audio=win.Audio;if(Audio){win.Audio=function(src){const node=new Audio();set.call(node,'crossorigin','anonymous');if(src!==undefined)node.src=src;return node};win.Audio.prototype=Audio.prototype;}
  return {
-  resolver,
+  resolver,compatibility,
   async restoreDocument(){const template=doc.getElementById('wg-cas-document');if(template){preparing++;try{const content=prepare(template.content),body=content.querySelector('[data-cas-body]');if(body){for(const {name,value} of [...body.attributes])if(name!=='data-cas-body')set.call(doc.body,name,attr(doc.body,name,value));while(body.firstChild)insert.call(body.parentNode,body.firstChild,body);body.remove();}append.call(doc.body,content);template.remove();}finally{preparing--}}await ready();},
   ready,
  };
