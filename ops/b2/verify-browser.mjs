@@ -1,5 +1,6 @@
 // 真实远程浏览器；只使用本轮隔离预览和新建浏览器上下文，不读取用户存档。
 import fs from 'node:fs';
+import {observeBrowserManifest} from './cas-manifest-observer.mjs';
 import {validateBrowserManifest,validateBrowserResourceURL,finishBrowserCase} from './cas-provenance.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -26,12 +27,11 @@ const opts=previewChromiumOptions(process.env.WVN_QA_CERT);opts.args.push('--ena
 const require=createRequire(import.meta.url),{PNG}=require(path.dirname(require.resolve('playwright-core/package.json'))+'/lib/utilsBundle.js');
 const browser=await chromium.launch(opts),results=[];
 try{for(const test of cases){
- const entry=players.find(p=>p.id===test.id);assert(entry);const label=entry.id+(test.shared?'-shared':'-original'),context=await browser.newContext({viewport:test.mobile?{width:390,height:900}:{width:1280,height:960}}),page=await context.newPage();context.setDefaultTimeout(30000);const errors=[],errorDetails=[],network=[],sources=[],mainObjectResponses=[],finishedRequests=new Set(),logs=[],responseTasks=[],unexpectedRequests=[];let allowedURLs=new Map(),frame,stage='navigate';const record={id:entry.id,label,kind:entry.runtimeKind??'ONS',shared:!!test.shared,deliveryMode:'cas-browser-direct',startedAt:new Date().toISOString()};
+ const entry=players.find(p=>p.id===test.id);assert(entry);const label=entry.id+(test.shared?'-shared':'-original'),context=await browser.newContext({viewport:test.mobile?{width:390,height:900}:{width:1280,height:960}}),page=await context.newPage();context.setDefaultTimeout(30000);const errors=[],errorDetails=[],network=[],sources=[],mainObjectResponses=[],finishedRequests=new Set(),logs=[],responseTasks=[],unexpectedRequests=[];let allowedURLs=new Map(),frame,stage='navigate',starts=0;const record={id:entry.id,label,kind:entry.runtimeKind??'ONS',shared:!!test.shared,deliveryMode:'cas-browser-direct',startedAt:new Date().toISOString()};
  page.on('request',request=>{const u=new URL(request.url());if(u.hostname===cdnHost){try{validateBrowserResourceURL(request.url(),allowedURLs)}catch(e){unexpectedRequests.push({url:request.url(),error:e.message})}}else if(isMainBodyRequest(request)){unexpectedRequests.push({url:request.url(),error:'Main-site object request'});}});
- page.on('requestfinished',r=>finishedRequests.add(r));page.on('dialog',d=>d.accept());page.on('pageerror',e=>{errors.push(e.message);errorDetails.push({stage,stack:e.stack,at:new Date().toISOString()});});page.on('console',m=>{if(['error','warning'].includes(m.type()))logs.push(m.text().slice(0,400));});
+ page.on('requestfinished',r=>finishedRequests.add(r));page.on('dialog',d=>d.accept());page.on('pageerror',e=>{errors.push(e.message);errorDetails.push({stage,stack:e.stack,at:new Date().toISOString()});});page.on('console',m=>{if(m.text().startsWith('WVN CSS compatibility '))(record.cssCompatibility??=[]).push(m.text().slice(22));if(['error','warning'].includes(m.type()))logs.push(m.text().slice(0,400));});
  page.on('response',r=>{const task=(async()=>{const parsed=new URL(r.url());
   if([200,206].includes(r.status())&&isMainBodyRequest(r.request()))mainObjectResponses.push({url:r.url(),status:r.status()});
-  if(parsed.origin===origin&&parsed.pathname==='/api/player/'+entry.id+'/resources'&&r.status()===200){validateBrowserManifest(expectedManifests[entry.id],await r.json());}
   if(parsed.hostname!==cdnHost)return;
   const h=await r.allHeaders().catch(()=>({}));let metadata;
   try{metadata=validateBrowserResourceURL(r.url(),allowedURLs)}catch(e){unexpectedRequests.push({url:r.url(),error:e.message});return;}
@@ -39,10 +39,11 @@ try{for(const test of cases){
   if(r.status()>=400)network.push({url:r.url(),status:r.status()});
  })();task.catch(error=>unexpectedRequests.push({url:r.url(),error:error.message}));responseTasks.push(task);});
  page.on('requestfailed',r=>{if(!r.failure()?.errorText?.includes('ERR_ABORTED'))network.push({url:r.url(),error:r.failure()?.errorText});});
- async function assertProvenance(){await Promise.all(responseTasks);assert(sources.length>0,'No real CDN responses');assert.deepEqual(unexpectedRequests,[],'All body requests must be literal known root hashes');for(const source of sources){validateBrowserResourceURL(source.url,allowedURLs);assert([200,206,304].includes(source.status),'CDN object response failed');if(source.status!==304){assert(source.contentType,'Missing object MIME');assert.equal(source.contentType.split(';')[0].trim().toLowerCase(),source.expectedContentType.split(';')[0].trim().toLowerCase(),'Actual MIME differs from independent metadata');}if(source.status===206){assert.match(source.contentRange??'',new RegExp('^bytes [0-9]+-[0-9]+/'+source.expectedBytes+'$'),'Range total differs from independent metadata');}}}
+ async function assertProvenance(){await Promise.all(responseTasks);assert.equal(record.browserManifests.length,starts,'Every browser start must consume an independently verified manifest');assert(sources.length>0,'No real CDN responses');assert.deepEqual(unexpectedRequests,[],'All body requests must be literal known root hashes');for(const source of sources){validateBrowserResourceURL(source.url,allowedURLs);assert([200,206,304].includes(source.status),'CDN object response failed');if(source.status!==304){assert(source.contentType,'Missing object MIME');assert.equal(source.contentType.split(';')[0].trim().toLowerCase(),source.expectedContentType.split(';')[0].trim().toLowerCase(),'Actual MIME differs from independent metadata');}if(source.status===206){assert.match(source.contentRange??'',new RegExp('^bytes [0-9]+-[0-9]+/'+source.expectedBytes+'$'),'Range total differs from independent metadata');}}}
  const pulse=setInterval(async()=>console.log(JSON.stringify({label,stage,resources:sources.length,lastSources:sources.slice(-3),ui:await page.locator('[data-testid=reader-loading]').innerText().catch(()=>''),cache:await page.getByRole('status').allTextContents().catch(()=>[]),at:new Date().toISOString()})),30000);pulse.unref();
  const command=async script=>{const r=await frame.evaluate(async s=>await Promise.race([renpy_exec(s).then(value=>({value})),new Promise(resolve=>setTimeout(()=>resolve({timeout:true}),20000))]),script);assert(!r.timeout,'Native RenPy VM timed out');return r.value;};
  async function start(){
+  starts++;
   const pending=page.waitForResponse(r=>r.status()===200&&r.request().method()==='POST'&&new URL(r.url()).pathname==='/api/public/works/'+entry.workId+'/read',{timeout:480000});pending.catch(()=>{});
   await page.getByRole('button',{name:/^(开始阅读|继续阅读)$/}).click();
   await page.waitForFunction(selector=>!!document.querySelector(selector),gameFrameSelector,{timeout:30000});
@@ -52,6 +53,8 @@ try{for(const test of cases){
  }
  async function stop(){await page.getByRole('button',{name:'保存并退出',exact:true}).click();await page.getByRole('button',{name:/^(开始阅读|继续阅读)$/}).waitFor({timeout:45000});assert.equal(await page.locator(gameFrameSelector).count(),0);}
  try{
+  record.browserManifests=[];
+  await observeBrowserManifest({session:await context.newCDPSession(page),url:origin+'/api/player/'+entry.id+'/resources',tasks:responseTasks,onManifest(actual,evidence){validateBrowserManifest(expectedManifests[entry.id],actual);record.browserManifests.push({...evidence,pilot:actual.pilot,resources:actual.resources.length});}});
   assert.equal((await page.goto(origin+entry.route+(test.shared?'?engine='+shared:''),{waitUntil:'domcontentloaded'})).status(),200);
   await page.getByRole('button',{name:/^(开始阅读|继续阅读)$/}).waitFor();
   record.driverHashes=await page.evaluate(async()=>{const result={};for(const name of ['runtime.mjs','emscripten.mjs','resource-location.mjs','cas-resources.mjs','cas-dom.mjs']){const response=await fetch('/player/'+name,{credentials:'omit',cache:'no-store'});if(!response.ok)throw Error('Trusted driver unavailable');result[name]=[...new Uint8Array(await crypto.subtle.digest('SHA-256',await response.arrayBuffer()))].map(n=>n.toString(16).padStart(2,'0')).join('');}return result;});
