@@ -1,28 +1,28 @@
 # WebGAL 2026-10-27 归档导入
 
-本轮仅接入 Alice 隔离预览，尚未发布生产。归档源站品牌为 WebGAL，实际 15 个可获取转换包均为 Artemis。
+本轮已完成 Alice 隔离预览，并经用户授权发布到生产；发布证据见 [生产发布记录](webgal-production-20261029.md)。归档源站品牌为 WebGAL，实际 15 个可获取转换包均为 Artemis。
 
 转存记录：290,665 个对象、58,961,797,257 字节，原全量 SHA-1 校验无差异。复用已冻结 CAS 映射，不重传或删除正文。资源请求由浏览器直达 `https://wg-b2.saop.cc/{sha256}.bin`，应用只承载目录、存档协议、元数据和可信启动 HTML。
 
 新增 8 部作品，为 7 部既有作品追加独立版本，总计 72 部作品、94 个版本。保留原 79 版本的全部种子字段和引擎/存档身份，既有默认入口不变。新旧转换版存档互不自动混用。
 
-| 游戏 | 作品 | 新版本 | 预览 |
+| 游戏 | 作品 | 新版本 | 生产 |
 |---|---|---|---|
-| 宿星Girlfriend · WebGAL 2026-10-27 | v22880 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/22880/1/) |
-| 宿星Girlfriend2 · WebGAL 2026-10-27 | v23290 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/23290/1/) |
-| 宿星Girlfriend3 · WebGAL 2026-10-27 | v23772 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/23772/1/) |
-| 常轨脱离Creative · WebGAL 2026-10-27 | v27449 | 2 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/27449/2/) |
-| 常轨脱离 Creative 凸 · WebGAL 2026-10-27 | v33205 | 2 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/33205/2/) |
-| 常轨脱离Creative Re:Re:call · WebGAL 2026-10-27 | v53590 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/53590/1/) |
-| 树莓立方体 · WebGAL 2026-10-27 | v22847 | 2 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/22847/2/) |
-| SELECT OBLIGE · WebGAL 2026-10-27 | v47175 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/47175/1/) |
-| FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜 · WebGAL 2026-10-27 | v37021 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/37021/1/) |
-| FLIP＊FLOP ～RAMBLING OVERRUN～ · WebGAL 2026-10-27 | v39197 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/39197/1/) |
-| 繁花落舞恋如樱 · WebGAL 2026-10-27 | v1115 | 2 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/1115/2/) |
-| 樱之诗 · WebGAL 2026-10-27 | v562 | 3 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/562/3/) |
-| 樱之刻 · WebGAL 2026-10-27 | v20431 | 2 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/20431/2/) |
-| ATRI · WebGAL 2026-10-27 | v27448 | 2 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/27448/2/) |
-| 千之刃涛，桃花染之皇姬 · WebGAL 2026-10-27 | v15708 | 1 | [打开](https://localhost-1.tailac9c6f.ts.net:19482/15708/1/) |
+| 宿星Girlfriend · WebGAL 2026-10-27 | v22880 | 1 | [打开](https://wg.saop.cc/22880/1/) |
+| 宿星Girlfriend2 · WebGAL 2026-10-27 | v23290 | 1 | [打开](https://wg.saop.cc/23290/1/) |
+| 宿星Girlfriend3 · WebGAL 2026-10-27 | v23772 | 1 | [打开](https://wg.saop.cc/23772/1/) |
+| 常轨脱离Creative · WebGAL 2026-10-27 | v27449 | 2 | [打开](https://wg.saop.cc/27449/2/) |
+| 常轨脱离 Creative 凸 · WebGAL 2026-10-27 | v33205 | 2 | [打开](https://wg.saop.cc/33205/2/) |
+| 常轨脱离Creative Re:Re:call · WebGAL 2026-10-27 | v53590 | 1 | [打开](https://wg.saop.cc/53590/1/) |
+| 树莓立方体 · WebGAL 2026-10-27 | v22847 | 2 | [打开](https://wg.saop.cc/22847/2/) |
+| SELECT OBLIGE · WebGAL 2026-10-27 | v47175 | 1 | [打开](https://wg.saop.cc/47175/1/) |
+| FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜 · WebGAL 2026-10-27 | v37021 | 1 | [打开](https://wg.saop.cc/37021/1/) |
+| FLIP＊FLOP ～RAMBLING OVERRUN～ · WebGAL 2026-10-27 | v39197 | 1 | [打开](https://wg.saop.cc/39197/1/) |
+| 繁花落舞恋如樱 · WebGAL 2026-10-27 | v1115 | 2 | [打开](https://wg.saop.cc/1115/2/) |
+| 樱之诗 · WebGAL 2026-10-27 | v562 | 3 | [打开](https://wg.saop.cc/562/3/) |
+| 樱之刻 · WebGAL 2026-10-27 | v20431 | 2 | [打开](https://wg.saop.cc/20431/2/) |
+| ATRI · WebGAL 2026-10-27 | v27448 | 2 | [打开](https://wg.saop.cc/27448/2/) |
+| 千之刃涛，桃花染之皇姬 · WebGAL 2026-10-27 | v15708 | 1 | [打开](https://wg.saop.cc/15708/1/) |
 
 《圣女不死心》（Saint-Necromancer）源站核心 JS/WASM/数据包缺失，只保留归档记录，不发布为可玩版本。
 
