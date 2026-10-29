@@ -66,7 +66,7 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,pre
    if(wasm){if(!(wasm instanceof Uint8Array))throw Error('Invalid verified engine bytes');value.wasmBinary=wasm;}
    const original=value.getPreloadedPackage;
    value.getPreloadedPackage=function(name,size){
-    const path=typeof name==='string'?name.split(/[?#]/,1)[0].split('/').at(-1):'',bytes=/\.data$/.test(path)?engineBytes.get(path):null;
+    const path=typeof name==='string'?name.split(/[?#]/,1)[0].split('/').at(-1):'',bytes=/\.data$/.test(path)||kind==='Artemis'&&path==='root.pfs'?engineBytes.get(path):null;
     if(bytes){if(Number.isFinite(size)&&size!==bytes.byteLength)throw Error('Verified package size differs');return bytes.byteOffset===0&&bytes.byteLength===bytes.buffer.byteLength?bytes.buffer:bytes.slice().buffer;}
     return typeof original==='function'?original.call(this,name,size):undefined;
    };

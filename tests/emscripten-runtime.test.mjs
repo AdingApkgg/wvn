@@ -104,6 +104,13 @@ test('direct CDN engines reuse already verified WASM and package bytes without a
  assert.throws(()=>win.Module.getPreloadedPackage('renpy.data',9),/size/);
 });
 
+test('Artemis uses the verified registered game package through its native preload hook',()=>{
+ const bytes=new Uint8Array([4,5,6]),driver=createEmscriptenDriver({kind:'Artemis',engineBytes:new Map([['root.pfs',bytes]])}),win={};driver.installGlobal(win);
+ assert.equal(win.Module.getPreloadedPackage('root.pfs',3),bytes.buffer);
+ assert.throws(()=>win.Module.getPreloadedPackage('root.pfs',4),/size/);
+ assert.equal(win.Module.getPreloadedPackage('unregistered.pfs',3),undefined);
+});
+
 // 虚拟时钟仅在单例内替换，每次等待推进一分钟，不经过真实等待。
 async function readinessClock(run){
  const originalNow=Date.now,originalTimer=globalThis.setTimeout;let now=0,onTick=()=>{};

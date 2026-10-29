@@ -1,4 +1,5 @@
 import {runtimeResourceOrigin,verifyDirectEngine} from './resource-location.mjs';
+import {createResilientFetch,installResilientXHR} from './resource-download.mjs';
 import {createResourceReporter} from '../ons/resource-loading.mjs';
 import {createLoadingReporter,observeStartupRequests} from '../ons/loading.mjs';
 import {createEmscriptenDriver,engineResourcesForSession,resolveEngineResource} from './emscripten.mjs';
@@ -6,7 +7,7 @@ import {findPlayer} from './registry.mjs';
 import {validateSnapshot} from '../ons/protocol.mjs';
 import {installNativeInput} from './native-input.mjs';
 import {prepareRenpyAudio} from './renpy-audio.mjs';
-import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility,waitForTyranoReady} from './adapters.mjs';
+import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence,sandboxThumbnail,installAnonymousMedia,requestNativeMenu,installTyranoLoadCompatibility,waitForTyranoReady,memoizePublicBinaryLoader} from './adapters.mjs';
 const origin=new URL(location.href).origin,id=/^\/__player\/resource\/([^/]+)\/index\.html$/.exec(location.pathname)?.[1],entry=findPlayer(id);
 let initialized=false;
 addEventListener('message',async function initialize(event){
@@ -51,7 +52,9 @@ addEventListener('message',async function initialize(event){
     // Optional upstream PWA caching is disabled; never register a worker on the
     // credentialed site. Resources are served by the scoped read-only projection.
     Object.defineProperty(navigator,'serviceWorker',{value:undefined});
-    const nativeFetch=fetch.bind(window);window.fetch=(resource,options)=>nativeFetch(resource,{...options,credentials:'omit'});
+    const publicResource=resource=>{const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href,document.baseURI);return url.origin===assetOrigin&&(url.pathname.startsWith('/__player/resource/'+id+'/')||url.pathname.startsWith('/__engines/resource/'))};
+    const nativeFetch=fetch.bind(window),resilientFetch=createResilientFetch({fetcher:nativeFetch,allowed:publicResource});window.fetch=(resource,options)=>resilientFetch(resource,{...options,credentials:'omit'});
+    installResilientXHR(window,publicResource);
     stopObserving=observeStartupRequests(window,loading,resource=>{
       const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href??'',document.baseURI);
       if(url.origin!==assetOrigin)return null;
@@ -68,6 +71,7 @@ addEventListener('message',async function initialize(event){
       if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
       if(capture)return;
       capture=installMemoryPersistence({FS,IDBFS,MEMFS,mount:entry.mount,extraMount:entry.extraMount,files:snapshot.files,persist:files=>persist(files)});
+      if(entry.runtimeKind==='Artemis'&&typeof window.readAsync==='function')window.readAsync=memoizePublicBinaryLoader(window.readAsync,publicResource);
       loading.phase('restoring');status('存档适配已连接');
     }
     if(entry.runtimeKind!=='Tyrano'){

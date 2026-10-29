@@ -2,6 +2,36 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createMemoryStorage,storageSnapshot,restoreStorage,installMemoryPersistence} from '../public/player/adapters.mjs';
 
+test('repeated public native assets reuse isolated immutable bytes and coalesce parallel reads',async()=>{
+ const {memoizePublicBinaryLoader}=await import('../public/player/adapters.mjs');let calls=0,complete;
+ const read=memoizePublicBinaryLoader((_url,ok)=>{calls++;complete=ok},url=>url.startsWith('data/'));
+ const obtain=url=>new Promise((resolve,reject)=>read(url,resolve,reject));
+ const a=obtain('data/font.ttf'),b=obtain('data/font.ttf');assert.equal(calls,1);complete(new Uint8Array([1,2,3]).buffer);
+ const first=new Uint8Array(await a);first[0]=99;assert.deepEqual([...new Uint8Array(await b)],[1,2,3]);
+ assert.deepEqual([...new Uint8Array(await obtain('data/font.ttf'))],[1,2,3]);assert.equal(calls,1);
+ assert.deepEqual(read.stats(),{hits:2,downloads:1,bytes:3});
+});
+test('native binary reuse never caches excluded paths, failed transfers or over-budget files',async()=>{
+ const {memoizePublicBinaryLoader}=await import('../public/player/adapters.mjs');let calls=0;
+ const read=memoizePublicBinaryLoader((url,ok,fail)=>{calls++;queueMicrotask(()=>url==='data/fail'?fail(Error('network')):ok(new Uint8Array([1,2,3]).buffer))},url=>url.startsWith('data/'),{maxBytes:4,maxFileBytes:2});
+ const obtain=url=>new Promise((resolve,reject)=>read(url,resolve,reject));
+ await obtain('/savedata/save0001.dat');await obtain('/savedata/save0001.dat');assert.equal(calls,2);
+ await assert.rejects(obtain('data/fail'),/network/);await assert.rejects(obtain('data/fail'),/network/);assert.equal(calls,4);
+ await obtain('data/large');await obtain('data/large');assert.equal(calls,6);assert.equal(read.stats().bytes,0);
+});
+test('native public resource reuse evicts the least recent bytes within both limits',async()=>{
+ const {memoizePublicBinaryLoader}=await import('../public/player/adapters.mjs');let calls=0;
+ const read=memoizePublicBinaryLoader((_url,ok)=>{calls++;queueMicrotask(()=>ok(new Uint8Array([1,2,3]).buffer))},()=>true,{maxBytes:4,maxFileBytes:4,maxEntries:1});
+ const obtain=url=>new Promise((resolve,reject)=>read(url,resolve,reject));
+ await obtain('a');await obtain('a');assert.equal(calls,1);await obtain('b');assert.equal(read.stats().bytes,3);await obtain('a');assert.equal(calls,3);assert.equal(read.stats().bytes,3);
+});
+test('the native resource budget covers the registered 17 MB font without sharing mutable bytes',async()=>{
+ const {memoizePublicBinaryLoader}=await import('../public/player/adapters.mjs');let calls=0;
+ const read=memoizePublicBinaryLoader((_url,ok)=>{calls++;queueMicrotask(()=>ok(new ArrayBuffer(16998496)))},()=>true);
+ const obtain=()=>new Promise((resolve,reject)=>read('data/font/sourcehansans-bold.otf',resolve,reject));
+ const a=await obtain();new Uint8Array(a)[0]=1;const b=await obtain();assert.equal(calls,1);assert.equal(b.byteLength,16998496);assert.equal(new Uint8Array(b)[0],0);
+});
+
 test('WebStorage methods and property access retain exact strings and isolated keys',()=>{
  const changes=[];const s=createMemoryStorage(()=>changes.push(true));
  s.setItem('project_sf','%7B%22a%22%3A1%7D');s.project_tyrano_data='raw-compressed';

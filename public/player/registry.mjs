@@ -14,6 +14,7 @@ export const otherPlayers=Object.freeze([
     "engine": "0cad1648bfa752428c66e56f7d5e450827347251a86e053599afb94f5b5f95a9",
     "runtimeKind": "Artemis",
     "mount": "/savedata_maker_title_atri",
+    "packageFiles": {"root.pfs":"e4139ae8aeb40e2c8acc3ac271629ddd0a50e1b23df1c485db8a3ec47adc19fc"},
     "engineFiles": {
       "artemis.js": "ed43d224fa56e653f19b5320b45d8bdf033ca59209b2644a5532246bed6e42e8",
       "artemis.wasm": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"

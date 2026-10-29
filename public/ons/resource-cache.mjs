@@ -1,4 +1,5 @@
 import {resourceOriginForManifest} from '../player/resource-location.mjs';
+import {createResilientFetch} from '../player/resource-download.mjs';
 // 资源缓存独立于账号与存档数据库。仅允许可信页面核准的本作资源清单和固定 WASM。
 const MiB=1024*1024,DB='wvn-public-resource-cache-v1';
 const digest=async data=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',data))].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -40,6 +41,8 @@ export async function openResourceCacheStore(idb=globalThis.indexedDB){
  };
 }
 export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fetch,now=()=>Date.now(),maxBytes=256*MiB,maxFileBytes=32*MiB,ttl=7*86400000,prefetchFiles=6,prefetchBytes=8*MiB,idleMs=1000,onStats=()=>{}}){
+ const registered=new Set([...plan.resources.values()].map(row=>row.url));
+ const transfer=createResilientFetch({fetcher,allowed:value=>typeof value==='string'&&value.startsWith('https://wg-b2.saop.cc/')&&registered.has(value)});
  const flights=new Map(),queue=[],queued=new Set(),waiters=[];let closed=false,foreground=0,background=null,timer=null,started=false,attempts=0,preloadBudget=prefetchBytes;
  const stats={available:!!store,hits:0,downloads:0,preloaded:0,bytes:0,maxBytes,prefetching:false};
  const publish=()=>{try{onStats({...stats})}catch{/* 状态显示不影响游戏。 */}},remove=async keys=>{if(store)try{await store.remove(keys)}catch{stats.available=false;publish()}},meta=async()=>{try{return await store?.list()??[]}catch{stats.available=false;return []}};
@@ -65,12 +68,12 @@ export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fet
    await remove([resource.key]);
   }
   const options={credentials:'omit',redirect:'error',cache:'no-store',signal};
-  const head=await fetcher(resource.url,{...options,method:'HEAD'});check();if(!head.ok)throw Error('资源读取失败 '+head.status);
+  const head=await transfer(resource.url,{...options,method:'HEAD'});check();if(!head.ok)throw Error('资源读取失败 '+head.status);
   const length=decodedLength(head),limit=mode==='prefetch'?Math.min(maxFileBytes,MiB,preloadBudget):maxFileBytes;
   if(length!==null&&length>limit||mode==='prefetch'&&(length===null||length===0))return {direct:true};
   if(mode==='prefetch'&&length!==null&&length>preloadBudget)return {direct:true};
   notify({loaded:0,total:length??0,source:'network'});
-  const response=await fetcher(resource.url,{...options,method:'GET'});check();if(response.status!==200||response.headers.has('content-range'))throw Error('资源响应无效');
+  const response=await transfer(resource.url,{...options,method:'GET'});check();if(response.status!==200||response.headers.has('content-range'))throw Error('资源响应无效');
   const responseLength=decodedLength(response),expected=responseLength??length;
   if(length!==null&&responseLength!==null&&length!==responseLength)throw Error('资源读取期间大小发生变化');
   const reader=response.body?.getReader(),chunks=[];let received=0;

@@ -1,4 +1,26 @@
 import {captureFilesystem} from './emscripten.mjs';
+// 旧 Artemis 的 wget_data 会反复请求字体/图片；只在本次沙箱内复用公开字节。
+// 每次交给引擎的都是独立副本，不接触保存目录，也不跨游戏共享可变缓冲区。
+export function memoizePublicBinaryLoader(read,allowed,{maxBytes=64*1024**2,maxFileBytes=32*1024**2,maxEntries=256}={}){
+ const cache=new Map(),flights=new Map(),state={hits:0,downloads:0,bytes:0};
+ function load(url,onload,onerror){
+  if(!allowed(url))return read.apply(this,arguments);
+  const key=String(url),found=cache.get(key);
+  if(found){state.hits++;cache.delete(key);cache.set(key,found);queueMicrotask(()=>onload(found.slice(0)));return}
+  if(flights.has(key)){state.hits++;flights.get(key).push({onload,onerror});return}
+  const waiting=[{onload,onerror}];flights.set(key,waiting);state.downloads++;
+  const failed=error=>{flights.delete(key);for(const sink of waiting)queueMicrotask(()=>sink.onerror?.(error))};
+  try{return read.call(this,url,buffer=>{
+   flights.delete(key);
+   if(buffer instanceof ArrayBuffer&&buffer.byteLength<=maxFileBytes&&buffer.byteLength<=maxBytes&&maxEntries>0){
+    while(cache.size&&(state.bytes+buffer.byteLength>maxBytes||cache.size>=maxEntries)){const [old,bytes]=cache.entries().next().value;state.bytes-=bytes.byteLength;cache.delete(old)}
+    const saved=buffer.slice(0);cache.set(key,saved);state.bytes+=saved.byteLength;
+   }
+   for(const sink of waiting)queueMicrotask(()=>sink.onload(buffer instanceof ArrayBuffer?buffer.slice(0):buffer));
+  },failed)}catch(error){flights.delete(key);throw error}
+ }
+ load.stats=()=>({...state});return load;
+}
 /* Runtime-local persistence only. The opaque frame never opens browser databases. */
 const states = new WeakMap();
 const encoder = new TextEncoder(), decoder = new TextDecoder('utf-8', {fatal:true});

@@ -13,7 +13,9 @@ export function runtimeResourceOrigin(base,entry,origin){
 }
 export async function verifyDirectEngine(entry,release,assetOrigin,{fetcher=fetch}={}){
  if(assetOrigin!==b2ResourceOrigin)return;
- const verified=new Map(),rows=release?.files??Object.entries(entry.engineFiles).map(([path,sha256])=>({path,sha256}));
+ const verified=new Map(),rows=[...(release?.files??Object.entries(entry.engineFiles).map(([path,sha256])=>({path,sha256})))];
+ // 已登记的游戏启动包先走可恢复读取，再由原生 getPreloadedPackage 接收。
+ if(!release)rows.push(...Object.entries(entry.packageFiles??{}).map(([path,sha256])=>({path,sha256})));
  const base=assetOrigin+(release?'/__engines/resource/'+release.id+'/':'/__player/resource/'+entry.id+'/');
  if(!Array.isArray(rows)||rows.length>30||rows.some(f=>typeof f.path!=='string'||f.path.split('/').some(p=>!p||p==='.'||p==='..')||/[\\%?#:]/.test(f.path)||!/^[a-f0-9]{64}$/.test(f.sha256)))throw Error('Unregistered engine fingerprint');
  // 逐个核验，避免移动浏览器同时持有数个大引擎文件；随后由浏览器 HTTP 缓存复用。
