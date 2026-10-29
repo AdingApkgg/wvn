@@ -55,3 +55,23 @@
 - [ ] Deploy verified artifact to production and remove all this-project Worker routes for wg-b2.saop.cc; preserve unrelated rules/services. Verify live modules/route absence, then full public native/HTTP acceptance. No rollback to Worker without discussion.
 - [ ] Only after accepted, refresh whole-version/target comparison, bind receipt to exact plan and actual no-Worker deployment; delete10 verified old versions, reconcile, then resume bounded exact-version bulk cleanup. Stop on unknown/changed/protected data.
 - [ ] Re-list all surviving versions, verify full CAS and mapping preservation, repeat native/HTTP checks, document actual counts/bytes and risks. Complete final independent review; no completion claim from started jobs.
+
+### Task 4: 实际对象 MIME 与原始类型分离（用户明确追加确认）
+
+**依赖顺序：** Task2复审通过后实施，Task3真实验收与发布前完成。用户明确选择“API采用实际MIME，原始值留库”；只改PG公开元数据投影，不修改B2对象、字节、版本ID或源记录。
+**Files:** `src/resources/schema.ts`, `src/resources/repository.ts`, `src/resources/cache.ts`, `src/platform/version-resources.server.ts`；新增小型物理HTTP元数据校验/导入模块、CLI与聚焦测试；更新公开说明。
+**Interfaces:** 不修改既有003迁移；新增幂等迁移，为 `wvn_resource_objects` 增加可空 `http_content_type` 与 `http_metadata_proof_sha256`，成对为空或MIME合法且proof为64小写hex；原 `wvn_resources.content_type` 与所有key/SHA/bytes/源目标ID/created_at保持。所有公开资源投影的contentType采用对象实际类型优先、原记录类型兜底（含按key/原路径/namespace清单/版本清单/播放器引擎媒体），URL不变。Redis必须拒绝读取旧格式MIME缓存，包含显式prefix的配置，不靠等待TTL。
+**Proof contract:** schema1/bucket=`web-visual-novel`/namespace=`b2/web-visual-novel/snapshot-20261028`/inventorySha256=`fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01`/objects数组，每行 `{sha256,bytes,contentType,versionId}`。主流程从冻结精确B2版本读取实际元数据并绑定完整文件SHA，22组证明准备中；实现者只写代码/合成测试，不访问B2或生产。校验必须存在已发布匹配快照，SHA唯一、对象大小及版本ID与当前namespace所有对应原始记录一致，无未引用/未知对象，MIME合法；禁止只凭输入覆盖任意对象。默认dry-run无DB写入，显式apply经同一验证后事务写入；可重复同一证明，冲突拒绝；CLI要求expected proof SHA与显式schema/namespace/inventory，无密钥或连接串输出。
+
+- [ ] 写并远程运行先RED后GREEN：canonical MIME覆盖但原值不变、全部查询面一致、旧缓存无效、proof错SHA/重复/未知/不匹配bytes或version/未发布/冲突不写入、dryrun零写与apply幂等。
+- [ ] 实现最小PG字段和元数据导入；不增加服务/对象命名空间/每次API回源探测，不修改冻结SQLite或原始metadata。
+- [ ] 远程聚焦PG/Redis/CLI/API测试与必要类型检查/构建；原子提交、报告task-4-report.md含确切CLI/输入格式/摘要/验证输出。主流程独审后才在隔离PG演练，生产写入仍需演练比对后执行。
+
+### Task 5: 无 Worker 清理凭据与已证实重复 CAS 保留
+
+**依赖顺序：** Task4后实施，可与Task3只读验收协调，真实删除依旧最后。完整补充要求见本计划同名SDD workspace `cleanup-addendum.md`，分派前复制完整内容入task-5-brief，使唯一brief自足。
+**Files:** `scripts/migration/b2-cas-cleanup.py`, `tests/b2_cas_cleanup_test.py` 和公开说明。
+**Boundary:** 只改验收门槛与计划构建，保留精确Key+VersionId删除、同计划/检查点双互斥、pending恢复、失败停机及不删CAS。旧Worker回执拒绝；新的浏览器直连回执及保留CAS重复证明须绑定不可变plan/inventory/frozen/enrichment。只有主流程真实生产验收后签发accepted回执。实现者不部署、不读密钥、不调用真实删除。
+
+- [ ] TDD补充无Worker回执与证明真实性/完整性/重复/冲突拒绝；运行同一Python测试文件并保留原23项保护。
+- [ ] 最小实现用户已授权方案所需适配，原子提交、独立审查；报告task-5-report.md给出新enrichment/receipt合同，主流程才重建新0400计划。
