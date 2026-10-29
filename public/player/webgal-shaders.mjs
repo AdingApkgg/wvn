@@ -1,6 +1,6 @@
-// 仅对三个已冻结转换包中核对过的 Direct3D FX 程序作浏览器内转换。
+// 仅对五个已冻结转换包中核对过的 Direct3D FX 程序作浏览器内转换。
 // B2 正文、WASM 和存档身份不变；未知程序和其他版本保持原样。
-const games=new Set(['artemis-v37021-1','artemis-v39197-1','artemis-v562-3']);
+const games=new Set(['artemis-v37021-1','artemis-v39197-1','artemis-v562-3','artemis-v1115-2','artemis-v20431-2']);
 const hashes=new Set([
  "0bfbaf6dfe46151fbad0687e6eae2810cc2755cd2ebced890aabb0bb13e8a006",
  "110ec434d003b0848f28465834df5334da5f2f5b38f17f4850a4cacbfacfb09d",

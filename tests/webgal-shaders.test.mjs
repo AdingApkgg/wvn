@@ -8,3 +8,10 @@ test('other games, changed bytes and unsupported stages are never rewritten',()=
 test('registered Sakura grain FX retains its coordinate perturbation in GLSL',()=>{const source=JSON.parse(fs.readFileSync('tests/fixtures/webgal-grain.json','utf8')).source,result=translateWebgalShader(source,35632,'artemis-v562-3');assert.notEqual(result,source);assert.match(result,/fract\(sin\(dot/);assert.match(result,/mask_a \* alpha/);assert.doesNotMatch(result,/\bfrac\(/);});
 
 test('registered edge FX preserves the original floating point division',()=>{const source=JSON.parse(fs.readFileSync('tests/fixtures/webgal-edge.json','utf8')).source,result=translateWebgalShader(source,35632,'artemis-v562-3');assert.match(result,/\(1\.0 - steps\) \/ 2\.0;/);assert.match(result,/smoothstep\(-dost/);});
+test('Cherry Petals and Sakura no Toki use the registered FX translation without changing other versions',()=>{
+ for(const id of ['artemis-v1115-2','artemis-v20431-2']){
+  const fragment=translateWebgalShader(source,35632,id);assert.notEqual(fragment,source);assert.match(fragment,/uniform sampler2D textureFore/);assert.match(fragment,/gl_FragColor=result/);
+  assert.equal(translateWebgalShader(source+' ',35632,id),source+' ');
+ }
+ for(const id of ['artemis-v1115-1','artemis-v20431-1'])assert.equal(translateWebgalShader(source,35632,id),source);
+});

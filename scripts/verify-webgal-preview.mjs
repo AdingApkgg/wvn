@@ -51,8 +51,10 @@ async function run(entry){
   stage='start';await start();record.native=await frame.evaluate(mount=>{const F=Module.FS??FS;return {origin:self.origin,aborted:!!Module.ABORT,mountPoint:F.lookupPath(mount).node.mount.mountpoint,files:F.readdir(mount),storageKeys:Object.keys(localStorage)}},entry.mount);
   assert.equal(record.native.origin,'null');assert(record.native.mountPoint===entry.mount);stage='render';await visual();
   await page.screenshot({path:root+'/'+entry.id+'-running.png'});
-  record.graphics=await frame.evaluate(()=>({errors:globalThis.qaShaderErrors??[],compatibility:globalThis.__wvnShaderCompatibility??null}));assert.deepEqual(record.graphics.errors,[]);
-  if(['artemis-v37021-1','artemis-v39197-1'].includes(entry.id))assert(record.graphics.compatibility?.translated>0,'Registered FX compatibility must execute');
+  const needsFx=['artemis-v37021-1','artemis-v39197-1','artemis-v562-3','artemis-v1115-2','artemis-v20431-2'].includes(entry.id);
+  if(needsFx)await frame.waitForFunction(()=>globalThis.__wvnShaderCompatibility?.translated>0,null,{timeout:30000});
+  await page.waitForTimeout(500);record.graphics=await frame.evaluate(()=>({errors:globalThis.qaShaderErrors??[],compatibility:globalThis.__wvnShaderCompatibility??null}));assert.deepEqual(record.graphics.errors,[]);
+  if(needsFx)assert(record.graphics.compatibility?.translated>0,'Registered FX compatibility must execute');
   stage='save-channel';record.beforeSave=native.describe(await native.nativeFiles(page,entry));
   await frame.evaluate(async mount=>{const F=Module.FS??FS;F.writeFile(mount+'/wvn-qa-retention.dat',new Uint8Array([87,86,78,1]));await new Promise((resolve,reject)=>F.syncfs(false,e=>e?reject(e):resolve()));},entry.mount);
   const expectedFiles=native.describe(await native.nativeFiles(page,entry));assert(expectedFiles.some(f=>f.path==='wvn-qa-retention.dat'));
