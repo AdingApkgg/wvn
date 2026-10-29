@@ -136,8 +136,11 @@ PG 测试使用 `WVN_TEST_DATABASE_URL`，仅允许专用 `wvn_qa` 数据库和�
 
 Worker 保留 `/releases/20261027-01/` 以及游戏/引擎虚拟路径；先归一到完整原路径，再只查询固定 `https://wg.saop.cc/api/resources/by-path`、命名空间 `b2/web-visual-novel/snapshot-20261028`。元数据最长 8192 字节；缓存查询、网络查询、正文读取与缓存写入共同受完整阶段 5 秒期限约束；只有有效 UUID v4、64 位小写 SHA、与 SHA 完全相同的公开 URL、安全整数大小及合法 MIME 才能使用。边缘元数据缓存版本为 `wvn-metadata-v=1`，有效期一天；缓存命中也重新验证。缺失、非法或失败均不读取旧 B2 对象。
 
-实际正文只请求 `https://f003.backblazeb2.com/file/web-visual-novel/{sha256}.bin`，不转发 Cookie/Authorization，拒绝重定向。正文缓存键包含 `wvn-cdn-v=3` 和摘要，隔离旧缓存。小于等于 32 MiB 且有明确正整数 Content-Length 的成功 GET 会完整填入 Cache API 后响应，长度不一致/断流重试，最多三次，每次 30 秒。大对象、未知长度、Range 直接流式返回，不设置总下载期限。HEAD 忽略 Range/If-Range，仅返回完整表示的头且不传正文；206/304 不写完整对象缓存。完整200、HEAD及缓存命中的 Content-Length 必须与已发布 PG bytes 一致；206 校验可解析单范围、范围长度与PG总长。未知长度与大对象按流式计数校验PG长度，不做完整缓冲；长度矛盾在响应头前返回502，开始流式交付后才发现的超长/短流则终止该流。缓存命中按验证器处理 If-None-Match/If-Modified-Since，If-Range 失配忽略 Range 并返回完整对象；匹配后使用 Cache API 的 Range，若缓存实现不能返回部分内容则请求 B2。
+实际正文只请求 `https://f003.backblazeb2.com/file/web-visual-novel/{sha256}.bin`，不转发 Cookie/Authorization，拒绝重定向。正文缓存键包含 `wvn-cdn-v=4` 和摘要，隔离旧缓存。小于等于 32 MiB 且有明确正整数 Content-Length 的成功 GET 会完整填入 Cache API 后响应，长度不一致/断流重试，最多三次，每次 30 秒。大对象、未知长度、Range 直接流式返回，不设置总下载期限。HEAD 忽略 Range/If-Range，仅返回完整表示的头且不传正文；206/304 不写完整对象缓存。完整200、HEAD及缓存命中的 Content-Length 必须与已发布 PG bytes 一致；206 校验可解析单范围、范围长度与PG总长。未知长度与大对象按流式计数校验PG长度，不做完整缓冲；长度矛盾在响应头前返回502，开始流式交付后才发现的超长/短流则终止该流。缓存命中按验证器处理 If-None-Match/If-Modified-Since，If-Range 失配忽略 Range 并返回完整对象；匹配后使用 Cache API 的 Range，若缓存实现不能返回部分内容则请求 B2。
 
 诊断头 `X-WVN-B2-Key` 为实际物理 `{sha256}.bin`；`X-WVN-Original-Key` 为 `encodeURIComponent` 编码的完整原路径（含 `releases/20261027-01/`）；`X-WVN-Resource-Source: b2`；`X-WVN-CDN-Cache: HIT|MISS`。四者均通过 CORS 暴露。MIME 与HTML隔离统一使用已验证、解码后的原路径（包括编码后缀）；脚本/WASM 继续使用扩展名对应 MIME，其余使用映射 MIME；HTML 保持 `application/octet-stream`、`no-transform`，供主站网关隔离。CORS `*`、CORP `cross-origin` 与 `nosniff` 保持不变。
 
 以上为实现合同；生产切换、Cloudflare/B2 配置和真实浏览器验收须单独记录。
+
+
+Cloudflare Workers 的普通 ReadableStream 会让运行时改用未知长度传输，手工 Content-Length 不能代替流的长度属性。已知长度的正文在 Workers 使用原生 `FixedLengthStream(expectedBytes)`，其 readable 直接穿过 Response/MIME 包装与 Cache API，保留真实长度并由原生流拒绝超长/短流。Node 无此原生 API 时保留计数转换流；未知长度响应保持未知长度与流式计数，不强行完整缓冲。v4 正文键隔离此前可能丢失长度的 v3 缓存。依据 [Response](https://developers.cloudflare.com/workers/runtime-apis/response/) 与 [FixedLengthStream](https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/) 官方文档；实际边缘 HEAD/GET/Range 仍须由独立 canary 验证。

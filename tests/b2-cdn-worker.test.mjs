@@ -267,3 +267,26 @@ test('复审：缓存正文与合法206也按预期长度流式计数，正确�
  const large=await rawHandle(new Request(origin+path),rawFixture(40*1024**2,async()=>new Response(new ReadableStream({start(c){end=()=>c.close()}}),{headers:{'content-length':String(40*1024**2)}})));
  assert.equal(large.status,200);end();await assert.rejects(large.arrayBuffer());
 });
+
+test('真实边缘回归：已知长度使用原生 FixedLengthStream，未知长度和HEAD保持原语义',async()=>{
+ const previous=globalThis.FixedLengthStream;const lengths=[];
+ globalThis.FixedLengthStream=class {
+  constructor(expected){
+   lengths.push(expected);let received=0;
+   const stream=new TransformStream({transform(chunk,c){received+=chunk.byteLength;if(received>expected)throw Error('native fixed overflow');c.enqueue(chunk)},flush(){if(received!==expected)throw Error('native fixed short')}});
+   this.readable=stream.readable;this.writable=stream.writable;
+  }
+ };
+ try{
+  const store=cache();const originalPut=store.put;
+  store.put=async(r,response)=>{if(r.url.includes('wvn-cdn-v=')){const data=await response.arrayBuffer();assert.equal(data.byteLength,4);store.entries.set(r.url,new Response(data,{headers:response.headers}));}else await originalPut(r,response)};
+  const options=rawFixture(4,async()=>new Response('abcd',{headers:{'content-length':'4'}}),store);
+  const cold=await rawHandle(new Request(origin+path),options);assert.equal(cold.status,200);assert.equal(await cold.text(),'abcd');
+  const warm=await rawHandle(new Request(origin+path),options);assert.equal(warm.headers.get('x-wvn-cdn-cache'),'HIT');assert.equal(await warm.text(),'abcd');
+  assert(lengths.length>=3,'native fixed-length path must be used for fill and cache delivery');assert(lengths.every(n=>n===4));assert([...store.entries.keys()].some(k=>k.includes('wvn-cdn-v=4')));
+  const before=lengths.length;
+  const unknown=await rawHandle(new Request(origin+path),rawFixture(4,async()=>new Response('abcd')));assert.equal(unknown.headers.get('content-length'),null);assert.equal(await unknown.text(),'abcd');assert.equal(lengths.length,before);
+  const head=await rawHandle(new Request(origin+path,{method:'HEAD',headers:{range:'bytes=0-1'}}),options);assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),'4');assert.equal(await head.text(),'');assert.equal(lengths.length,before);
+  const partial=await rawHandle(new Request(origin+path,{headers:{range:'bytes=0-1'}}),rawFixture(4,async()=>new Response('ab',{status:206,headers:{'content-range':'bytes 0-1/4','content-length':'2'}})));assert.equal(await partial.text(),'ab');assert.equal(lengths.at(-1),2);
+ }finally{if(previous===undefined)delete globalThis.FixedLengthStream;else globalThis.FixedLengthStream=previous;}
+});

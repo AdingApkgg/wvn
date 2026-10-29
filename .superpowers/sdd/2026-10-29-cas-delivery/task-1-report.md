@@ -61,3 +61,23 @@ Worker 固定命名空间 `b2/web-visual-novel/snapshot-20261028`，固定元数
 RED 输出明确包含：编码HTML `actual text/html` / `expected application/octet-stream`；错误长度 `200 !== 502`；未知长度流 `Missing expected rejection`；HEAD 上游仍有 `bytes=0-0`；缓存挂起 `metadata stage must finish`。五个具名回归均先失败再修实现。GREEN 期限回归同时注入挂起 match/put，约5002ms结束；末次新增覆盖缓存实际短流、合法206正例、206长度矛盾及大对象收到头即返回、结束短流失败。
 
 已有合成 fixture 的元数据 bytes 已同步为对应HTML/HEAD/虚拟路径正文的真实长度，不再让合法行为测试依赖不一致的PG元数据。`git diff --check` 通过。遵照本轮要求，仅运行 API/Worker 专项，未重跑先前已通过的全套/类型检查/构建。修复、专项测试、接口文档与本追加报告采用同一个原子提交（标题 `fix(cdn): enforce CAS isolation and delivery bounds`），提交哈希由主代理读取该提交确认。
+
+## 真实边缘修复第 2 轮
+
+基于 `7977d80`，未修改 Task2 清理实现文件。主代理隔离 canary 发现：上游200的 Content-Length 正确，放入 Cache API 后读取长度为 null，完整长度门禁因此返回502。原第1轮普通 TransformStream 虽在Node测试保留手工头，但不符合实际Workers对流长度的处理，属于本轮真实修复对象。
+
+已读取官方 [Response](https://developers.cloudflare.com/workers/runtime-apis/response/) 的 Content-Length 小节和 [FixedLengthStream](https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/)：Workers按数据源确定长度，普通流不能靠手工头保留长度，原生定长流可保留长度并拒绝字节数矛盾。实现对拥有已验证Content-Length的GET正文使用 `globalThis.FixedLengthStream(expected)`，源流pipeTo原生writable，readable直接构造Response，并保持其经过result包装时不经过普通转换流。pipeTo错误由readable传递给缓存/客户端，并接收其拒绝避免未处理Promise。Node没有原生API时使用原有计数回退；未知长度仍计数且不伪造Content-Length、不缓冲大对象。HTML、PG长度/206检查、HEAD忽略Range和完整metadata期限全部保持。正文键升级 `wvn-cdn-v=4`，隔离先前v3无长度缓存。
+
+HEAD继续返回无正文、完整Content-Length、无Content-Range；覆盖测试明确断言HEAD不创建定长流，也不消费/生成正文。这两页官方文档没有HEAD专门示例，因此真实边缘序列化后的HEAD长度仍交由主代理canary验收，不能以Node测试替代。
+
+远程仅运行Worker测试，所有任务仍在同一 `localhost` 独立tmux及 `/home/i/.local/state/ai-jobs/<ID>/`：
+
+| 阶段 | 任务ID | UTC开始–结束 | 命令 | 结果 |
+| --- | --- | --- | --- | --- |
+| 初始RED | `wvn-platform-20261029-cas-task1-fix2-red` | 03:12:30–03:12:42 | `node --test tests/b2-cdn-worker.test.mjs` | exit1；24 tests /23 pass /1 fail；先被v4缓存键断言触发502 |
+| 精确原生路径RED | `wvn-platform-20261029-cas-task1-fix2-native-red` | 03:13:07–03:13:07 | `node --test --test-name-pattern='真实边缘回归' tests/b2-cdn-worker.test.mjs` | exit1；1 test /0 pass /1 fail；明确输出 `native fixed-length path must be used for fill and cache delivery` |
+| GREEN | `wvn-platform-20261029-cas-task1-fix2-green` | 03:13:55–03:14:06 | `node --test tests/b2-cdn-worker.test.mjs` | exit0；24 tests /24 pass /0 fail |
+
+专项用模拟原生FixedLengthStream捕获构造参数：4字节填充/冷热缓存实际调用定长流且全为4，206实际使用2，未知长度与HEAD不会调用；测试完整消费返回正文，断言v4键。已有23项回归同时通过。此测试证明分支使用与参数正确，不声称模拟Node流能复现Workers缓存序列化；真实canary仍由主代理完成。
+
+`git diff --check`通过。本轮修改Worker、Worker测试、资源文档及本追加报告，同一原子提交，标题 `fix(cdn): preserve native fixed-length streams in edge cache`。未部署、未更改CF/B2、未删除、未操作清理代码或生产游戏。

@@ -58,6 +58,14 @@ function boundResponse(response, metadata, method) {
   catch (error) { response.body?.cancel().catch(() => {}); throw error; }
   if (expected === null || method === 'HEAD') return response;
   if (!response.body) { if (expected !== 0) throw Error('Missing B2 body'); return response; }
+  if (response.headers.has('content-length') && typeof globalThis.FixedLengthStream === 'function') {
+    // Workers 只为原生定长流保留 Content-Length；普通 TransformStream 会让长度丢失。
+    // 原生流同时校验实际字节数，pipeTo 的拒绝通过 readable 错误传给缓存/客户端。
+    const fixed = new globalThis.FixedLengthStream(expected);
+    response.body.pipeTo(fixed.writable).catch(() => {});
+    return new Response(fixed.readable,{status:response.status,statusText:response.statusText,headers:response.headers});
+  }
+  // Node 无原生 FixedLengthStream；未知长度也维持流式计数，不伪造已知长度。
   let received = 0;
   const body = response.body.pipeThrough(new TransformStream({
     transform(chunk, controller) {
@@ -141,7 +149,7 @@ export async function handleB2Asset(request, { cache, fetcher = fetch, waitUntil
   } catch { return new Response('Resource mapping unavailable', {status:502,headers:{'Cache-Control':'no-store'}}); }
   if (!metadata) return new Response('Not found', {status:404,headers:{'Cache-Control':'no-store'}});
   const objectURL = new URL(origin + '/' + metadata.sha256 + '.bin');
-  const keyURL = "https://" + host + objectPath + "?wvn-cdn-v=3&sha256=" + metadata.sha256;
+  const keyURL = "https://" + host + objectPath + "?wvn-cdn-v=4&sha256=" + metadata.sha256;
   const headers = new Headers({ "accept-encoding": "identity" });
   for (const name of forwardedHeaders) if (request.headers.has(name)) headers.set(name, request.headers.get(name));
   if (request.method === 'HEAD') { headers.delete('range'); headers.delete('if-range'); }
