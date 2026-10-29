@@ -36,3 +36,13 @@ test('real legacy registry version identity is accepted without changing save id
  const m=manifest();m.versionId='legacy-22f82f586933328e09f8545a';
  assert.equal(client.createCasResolver(m,{id:'test',versionId:m.versionId}).manifest.versionId,'legacy-22f82f586933328e09f8545a');
 });
+test('CSS escaped function and at-keyword names are decoded before resolving resource URLs',async()=>{
+ const m=manifest(),resolver=client.createCasResolver(m,{id:'test',versionId:m.versionId});
+ const css=String.raw`/* u\72l(missing) */ @\69mport "nested.css"; .x{background:u\72l(../game.zip);content:"u\\72l(missing)"}`;
+ const result=await client.rewriteCasCss(css,'style/main.css',resolver,async()=>'.nested { color:red }');
+ assert(result.includes('.nested'));assert(result.includes(origin+'/'+hash+'.bin'));assert(!result.includes('@\\69mport'));assert(result.includes('/* u\\72l(missing) */'));
+});
+test('CSS input normalization preserves escaped identifiers across CRLF',()=>{
+ const resolver=client.createCasResolver(manifest(),{id:'test',versionId:manifest().versionId});
+ assert(client.rewriteCasCssUrls('.x{background:u\\72\r\nl(game.zip)}','index.html',resolver).includes(origin+'/'+hash+'.bin'));
+});

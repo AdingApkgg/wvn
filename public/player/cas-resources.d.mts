@@ -4,5 +4,5 @@ export type CasManifest={schema:1;delivery:'cas';pilot:string;versionId:string;i
 export type CasResolver={manifest:CasManifest;files:Map<string,CasRow>;engines:Map<string,CasRow>;urls:Map<string,CasRow>;base:string;path(value:string,relative?:string):string;row(value:string,relative?:string):CasRow;url(value:string,relative?:string):string};
 export function createCasResolver(manifest:unknown,entry:{id:string;versionId:string},options?:{mainOrigin?:string;sharedEngine?:boolean}):CasResolver;
 export function readCasManifest(response:Response,entry:{id:string;versionId:string},options?:{mainOrigin?:string;sharedEngine?:boolean}):Promise<CasManifest>;
-export function rewriteCasCssUrls(text:string,path:string,resolver:CasResolver):string;
+export function rewriteCasCssUrls(text:string,path:string,resolver:CasResolver,options?:{ignoreImports?:boolean}):string;
 export function rewriteCasCss(text:string,path:string,resolver:CasResolver,read:(path:string)=>Promise<string>,parents?:Set<string>):Promise<string>;

@@ -37,8 +37,13 @@ export async function readCasManifest(response,entry,options){
  const bytes=new Uint8Array(size);let offset=0;for(const part of chunks){bytes.set(part,offset);offset+=part.byteLength}
  const manifest=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));createCasResolver(manifest,entry,options);return manifest;
 }
-const unescapeCss=value=>value.replace(/\\(?:([a-f\d]{1,6})\s?|([^\r\n\f])|\r?\n)/gi,(_,hex,char)=>hex?String.fromCodePoint(parseInt(hex,16)||0xfffd):char??'');
+const unescapeCss=value=>value.replace(/\\(?:([a-f\d]{1,6})\s?|([^\r\n\f])|\r?\n)/gi,(_,hex,char)=>hex?String.fromCodePoint(parseInt(hex,16)>0x10ffff||parseInt(hex,16)>=0xd800&&parseInt(hex,16)<=0xdfff?0xfffd:parseInt(hex,16)||0xfffd):char??'');
 function stringEnd(text,start){const quote=text[start];let i=start+1;for(;i<text.length;i++){if(text[i]==='\\'){i++;continue}if(text[i]===quote)return i+1}throw Error('Unterminated CSS string')}
+function cssName(text,index){
+ const match=/^(?:[-_a-z0-9\u0080-\uffff]|\\(?:[a-f0-9]{1,6}[ \t\r\n\f]?|[^\r\n\f]))+/i.exec(text.slice(index));
+ return match?{name:unescapeCss(match[0]).toLowerCase(),length:match[0].length}:null;
+}
+function cssURL(text,index){const name=cssName(text,index);if(name?.name!=='url')return null;const open=/^\s*\(/.exec(text.slice(index+name.length));return open?{length:name.length+open[0].length}:null;}
 function cssTokens(text){
  const tokens=[];let i=0;
  const space=()=>{for(;;){while(/\s/.test(text[i]??'')&&i<text.length)i++;if(text.slice(i,i+2)!=='/*')break;const end=text.indexOf('*/',i+2);if(end<0)throw Error('Unterminated CSS comment');i=end+2}};
@@ -46,21 +51,23 @@ function cssTokens(text){
  while(i<text.length){
   if(text.slice(i,i+2)==='/*'){const end=text.indexOf('*/',i+2);if(end<0)throw Error('Unterminated CSS comment');i=end+2;continue}
   if(text[i]==='"'||text[i]==="'"){i=stringEnd(text,i);continue}
-  const start=i,imported=/^@import\b/i.exec(text.slice(i)),url=/^url\s*\(/i.exec(text.slice(i));
-  if(imported){i+=imported[0].length;space();let name;
-   const fn=/^url\s*\(/i.exec(text.slice(i));if(fn){i+=fn[0].length;name=value();space();if(text[i++]!==')')throw Error('Invalid CSS URL')}else if(text[i]==='"'||text[i]==="'")name=value();else throw Error('Invalid CSS import');
+  const start=i,name=cssName(text,i),at=text[i]==='@'?cssName(text,i+1):null,imported=at?.name==='import'?{length:at.length+1}:null,url=cssURL(text,i);
+  if(imported){i+=imported.length;space();let name;
+   const fn=cssURL(text,i);if(fn){i+=fn.length;name=value();space();if(text[i++]!==')')throw Error('Invalid CSS URL')}else if(text[i]==='"'||text[i]==="'")name=value();else throw Error('Invalid CSS import');
    const mediaStart=i;let depth=0;for(;i<text.length;i++){if(text[i]==='"'||text[i]==="'"){i=stringEnd(text,i)-1;continue}if(text[i]==='(')depth++;if(text[i]===')')depth--;if(text[i]===';'&&!depth)break}if(i===text.length)throw Error('Unterminated CSS import');
    tokens.push({start,end:++i,value:name,media:text.slice(mediaStart,i-1).trim(),imported:true});continue;
   }
-  if(url){i+=url[0].length;const name=value();space();if(text[i++]!==')')throw Error('Invalid CSS URL');tokens.push({start,end:i,value:name});continue}
-  i++;
+  if(url){i+=url.length;const name=value();space();if(text[i++]!==')')throw Error('Invalid CSS URL');tokens.push({start,end:i,value:name});continue}
+  i+=name?.length??1;
  }
  return tokens;
 }
-export function rewriteCasCssUrls(text,path,resolver){
- let result='',offset=0;for(const token of cssTokens(text)){if(token.imported)throw Error('CSS import requires preparation');result+=text.slice(offset,token.start)+'url('+JSON.stringify(resolver.url(token.value,path))+')';offset=token.end}return result+text.slice(offset);
+export function rewriteCasCssUrls(text,path,resolver,{ignoreImports=false}={}){
+ text=text.replace(/\r\n?|\f/g,'\n').replace(/\0/g,'\ufffd');
+ let result='',offset=0;for(const token of cssTokens(text)){if(token.imported){if(!ignoreImports)throw Error('CSS import requires preparation');result+=text.slice(offset,token.start);offset=token.end;continue;}result+=text.slice(offset,token.start)+'url('+JSON.stringify(resolver.url(token.value,path))+')';offset=token.end}return result+text.slice(offset);
 }
 export async function rewriteCasCss(text,path,resolver,read,parents=new Set()){
+ text=text.replace(/\r\n?|\f/g,'\n').replace(/\0/g,'\ufffd');
  if(parents.has(path))return '';if(parents.size>=32||text.length>8*1024**2)throw Error('CSS dependency limit');
  const chain=new Set([...parents,path]);let result='',offset=0;
  for(const token of cssTokens(text)){
