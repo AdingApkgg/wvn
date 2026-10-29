@@ -1,6 +1,6 @@
 // 真实远程浏览器；只使用本轮隔离预览和新建浏览器上下文，不读取用户存档。
 import fs from 'node:fs';
-import {validateBrowserManifest,validateBrowserResourceURL} from './cas-provenance.mjs';
+import {validateBrowserManifest,validateBrowserResourceURL,finishBrowserCase} from './cas-provenance.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {createRequire} from 'node:module';
@@ -25,7 +25,7 @@ assert(cases.length>0&&requested.every(id=>cases.some(test=>test.id===id)),'Requ
 const opts=previewChromiumOptions(process.env.WVN_QA_CERT);opts.args.push('--enable-unsafe-swiftshader','--autoplay-policy=no-user-gesture-required');if(process.env.WVN_QA_PROXY)opts.proxy={server:process.env.WVN_QA_PROXY,bypass:'localhost,127.0.0.1'};
 const require=createRequire(import.meta.url),{PNG}=require(path.dirname(require.resolve('playwright-core/package.json'))+'/lib/utilsBundle.js');
 const browser=await chromium.launch(opts),results=[];
-for(const test of cases){
+try{for(const test of cases){
  const entry=players.find(p=>p.id===test.id);assert(entry);const label=entry.id+(test.shared?'-shared':'-original'),context=await browser.newContext({viewport:test.mobile?{width:390,height:900}:{width:1280,height:960}}),page=await context.newPage();context.setDefaultTimeout(30000);const errors=[],errorDetails=[],network=[],sources=[],mainObjectResponses=[],finishedRequests=new Set(),logs=[],responseTasks=[],unexpectedRequests=[];let allowedURLs=new Map(),frame,stage='navigate';const record={id:entry.id,label,kind:entry.runtimeKind??'ONS',shared:!!test.shared,deliveryMode:'cas-browser-direct',startedAt:new Date().toISOString()};
  page.on('request',request=>{const u=new URL(request.url());if(u.hostname===cdnHost){try{validateBrowserResourceURL(request.url(),allowedURLs)}catch(e){unexpectedRequests.push({url:request.url(),error:e.message})}}else if(isMainBodyRequest(request)){unexpectedRequests.push({url:request.url(),error:'Main-site object request'});}});
  page.on('requestfinished',r=>finishedRequests.add(r));page.on('dialog',d=>d.accept());page.on('pageerror',e=>{errors.push(e.message);errorDetails.push({stage,stack:e.stack,at:new Date().toISOString()});});page.on('console',m=>{if(['error','warning'].includes(m.type()))logs.push(m.text().slice(0,400));});
@@ -103,6 +103,7 @@ for(const test of cases){
   await assertProvenance();assert.deepEqual(errors,[]);assert.deepEqual(mainObjectResponses,[],'Application server must not transmit object bodies');const realNetwork=network.filter(r=>!(r.status===404&&/favicon/.test(r.url)));assert.deepEqual(realNetwork,[]);
   record.status='passed';record.layoutNoOverflow=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);
  }catch(e){record.status='failed';record.error=e.message;record.stack=e.stack;record.statusText=await page.getByRole('status').allTextContents().catch(()=>[]);await page.screenshot({path:out+'/'+label+'-failed.png',timeout:10000}).catch(()=>{});}
- finally{clearInterval(pulse);await Promise.all(responseTasks);Object.assign(record,{unexpectedRequests,stage,errors,errorDetails,network,sources,mainObjectResponses,console:logs.slice(-35),finishedAt:new Date().toISOString()});results.push(record);fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(record,null,2));fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify({label,status:record.status,stage,error:record.error,resources:sources.length,elapsedSeconds:Math.round((Date.now()-Date.parse(record.startedAt))/1000)}));await context.close();}
+ finally{clearInterval(pulse);Object.assign(record,{unexpectedRequests,stage,errors,errorDetails,network,sources,mainObjectResponses,console:logs.slice(-35),finishedAt:new Date().toISOString()});await finishBrowserCase({record,tasks:responseTasks,write(record){results.push(record);fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(record,null,2));fs.writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify({label,status:record.status,stage,error:record.error,resources:sources.length,elapsedSeconds:Math.round((Date.now()-Date.parse(record.startedAt))/1000)}));},close:()=>context.close()});}
 }
-await browser.close();if(results.some(r=>r.status!=='passed'))process.exitCode=1;
+}finally{await browser.close()}
+if(results.some(r=>r.status!=='passed'))process.exitCode=1;

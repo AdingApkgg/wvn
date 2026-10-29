@@ -54,3 +54,12 @@ export function validateBrowserResourceURL(value,urls){
  assert.match(value,/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/,'Browser resource must use literal root SHA.bin URL');
  const row=urls.get(value);assert(row,'Browser resource absent from independently verified manifest');assert.equal(value,'https://wg-b2.saop.cc/'+row.sha256+'.bin');return row;
 }
+
+export async function finishBrowserCase({record,tasks,write,close}){
+ try{
+  let observed=0;const failures=[];
+  while(observed<tasks.length){const batch=tasks.slice(observed);observed+=batch.length;for(const result of await Promise.allSettled(batch))if(result.status==='rejected')failures.push(String(result.reason?.message??result.reason).slice(0,1000));}
+  if(failures.length){record.status='failed';record.error??=failures[0];record.responseErrors=failures;}
+  await write(record);return record;
+ }finally{await close();}
+}
