@@ -41,7 +41,21 @@ export function installCasBrowser(win,resolver){
    });
   })());task.catch(()=>{});return task;
  }
- function srcset(value){return String(value).split(/,\s*(?![^\s]*,)/).map(part=>{const m=/^(\s*)(\S+)(.*)$/.exec(part);if(!m)return part;return m[1]+resolver.url(m[2])+m[3]}).join(', ')}
+ function srcset(value){
+  const input=String(value),candidates=[];let cursor=0;
+  while(cursor<input.length){
+   while(cursor<input.length&&/[\s,]/.test(input[cursor]))cursor++;if(cursor===input.length)break;
+   const start=cursor,data=input.slice(cursor,cursor+5).toLowerCase()==='data:';
+   while(cursor<input.length&&!/\s/.test(input[cursor])&&(data||input[cursor]!==','))cursor++;
+   let source=input.slice(start,cursor);const separated=source.endsWith(',');source=source.replace(/,+$/,'');
+   if(!source)continue;
+   if(separated){candidates.push(resolver.url(source));continue;}
+   const descriptorStart=cursor;while(cursor<input.length&&input[cursor]!==',')cursor++;
+   const descriptor=input.slice(descriptorStart,cursor).trim();
+   candidates.push(resolver.url(source)+(descriptor?' '+descriptor:''));if(input[cursor]===',')cursor++;
+  }
+  return candidates.join(', ');
+ }
  function attr(node,name,value){
   const tag=node.localName,nameLower=name.toLowerCase();
   if(nameLower==='style')return css(value);
