@@ -30,21 +30,21 @@
 **Files:** Modify `src/resources/http.ts`, `ops/b2/cdn-worker.mjs`; Test `tests/resource-api.test.ts`, `tests/b2-cdn-worker.test.mjs`; docs `docs/resource-api.md`.
 **Interfaces:** Consumes `ResourceRepository.findByOriginalPath(namespace,path)` published-only lookup. Produces `GET /api/resources/by-path?namespace&path` with the unchanged public resource response; `handleB2Asset` keeps injectable cache/fetcher. Diagnostic headers provide physical CAS key plus original key. HTTP exact names must be documented in report for acceptance task.
 
-- [ ] Add failing API tests for published/unpublished/missing paths, duplicate/unknown query values, Unicode paths and DB failure; run remote and inspect expected failures.
-- [ ] Implement route before UUID catch-all; reject malformed query, reuse repository, preserve existing APIs.
-- [ ] Add failing Worker tests proving captured B2 URL ends with literal expected SHA `.bin`, not old name; add cached/uncached mapping errors, MIME, HEAD/Range/If-Range/304 and bounded-stream behavior.
-- [ ] Implement fixed-origin validated metadata lookup and new cache keys; keep relative paths, streaming and isolation. Never silently fall back to old names. Add metadata cache/lookup deadlines and response-size bounds. Validate namespace, resource UUID, 64-hex SHA, URL equality, safe bytes and MIME before using/caching metadata.
-- [ ] Run affected tests, then full TS/MJS suite/typecheck/build remotely; self-review and atomic commit(s). Record exact commands and results; production untouched.
+- [x] Add failing API tests for published/unpublished/missing paths, duplicate/unknown query values, Unicode paths and DB failure; run remote and inspect expected failures.
+- [x] Implement route before UUID catch-all; reject malformed query, reuse repository, preserve existing APIs.
+- [x] Add failing Worker tests proving captured B2 URL ends with literal expected SHA `.bin`, not old name; add cached/uncached mapping errors, MIME, HEAD/Range/If-Range/304 and bounded-stream behavior.
+- [x] Implement fixed-origin validated metadata lookup and new cache keys; keep relative paths, streaming and isolation. Never silently fall back to old names. Add metadata cache/lookup deadlines and response-size bounds. Validate namespace, resource UUID, 64-hex SHA, URL equality, safe bytes and MIME before using/caching metadata.
+- [x] Run affected tests, then full TS/MJS suite/typecheck/build remotely; self-review and atomic commit(s). Record exact commands and results; production untouched.
 
 ### Task 2: 精确版本清理审计与执行器
 
 **Files:** Create `scripts/migration/b2-cas-cleanup.py`, `tests/b2_cas_cleanup_test.py`, `docs/b2-cas-cleanup.md`.
 **Interfaces:** Consumes frozen `/root/wvn-b2-cas-20261028/data/resources.sqlite` and fixed bucket; produces a private immutable plan/receipt with count/bytes/digests, current version identities and CAS verification. Default is dry-run; actual apply additionally requires a verified acceptance receipt bound to Worker/API revisions, same namespace/inventory and plan digest. Exact CLI/report schema must be documented.
 
-- [ ] Read actual source schema and official B2/S3 multi-object delete/version semantics. Inspect current versions read-only; record unknown versions separately, never infer they are disposable.
-- [ ] Write failing tests for rejecting CAS keys, filename/version mismatch, changed/unknown source, missing or mismatched CAS, bad acceptance digest, partial delete responses and ambiguous request failure.
-- [ ] Implement bounded-memory plan construction and version-specific delete batches with resumable checkpoints, safe retries/reconciliation, redacted errors. Do not use bare-key deletion, delete markers, lifecycle changes or erase mapping records.
-- [ ] Test using local fake HTTP boundary plus one actual read-only inventory run; do not delete or publish. Commit and report review-ready plan and execution command.
+- [x] Read actual source schema and official B2/S3 multi-object delete/version semantics. Inspect current versions read-only; record unknown versions separately, never infer they are disposable.
+- [x] Write failing tests for rejecting CAS keys, filename/version mismatch, changed/unknown source, missing or mismatched CAS, bad acceptance digest, partial delete responses and ambiguous request failure.
+- [x] Implement bounded-memory plan construction and version-specific delete batches with resumable checkpoints, safe retries/reconciliation, redacted errors. Do not use bare-key deletion, delete markers, lifecycle changes or erase mapping records.
+- [x] Test using local fake HTTP boundary plus one actual read-only inventory run; do not delete or publish. Commit and report review-ready plan and execution command.
 
 ### Task 3: 部署、真实游戏验收与受控清理
 
@@ -56,3 +56,14 @@
 - [ ] Review evidence and publish a machine-readable acceptance receipt only when all gates pass. Before then no actual deletion is permitted.
 - [ ] With the existing user authorization, perform a small exact-version deletion batch and reconcile; continue resumably only on matched results. Leave unknown/unmapped objects intact and report any blocking case.
 - [ ] Re-list bucket, verify surviving CAS/indices, repeat production browser/HTTP checks, record actual removed/remaining versions and bytes, update runbook. Do not claim completion from a started job.
+
+### Task 4: 修复实网暴露的 RenPy 下载期间误超时
+
+**Files:** Inspect `public/player/runtime.mjs`, `public/player/emscripten.mjs`, `public/player/loading.mjs` and existing loading/driver tests; modify the smallest necessary set, add focused regressions. Update `docs/cas-delivery-acceptance-20261029.md` with measured cause and verification boundary.
+**Interfaces:** Existing `driver.waitReady` defaults remain compatible. RenPy loading may outlast180s while bytes are still progressing; no-progress, failed engine, cancellation and total deadline remain bounded. Root handles production static module deployment after review and restarts only if required by trusted module reader. B2 objects and user saves remain untouched.
+
+- [x] Trace actual transfer/progress and existing callbacks before choosing the smallest fix; do not replace a load-bearing check with an unconditional longer or infinite timeout.
+- [x] Add meaningful deterministic failing tests proving ongoing slow download can cross180s, stalled download/finished download plus hung initialization still fail, cancellation/failure does not reset into success, and total cap remains bounded.
+- [x] Implement progress-aware readiness or separate bounded download/initialization waiting, preserving other engines and existing large-game exceptions. Avoid arbitrary game-ID-specific exceptions for the observed package.
+- [x] Run affected tests and appropriate complete MJS checks remotely in a persistent task; run build if needed for the changed runtime delivery, record final commands/results and review-ready atomic commit. No production changes or B2 deletions by implementer.
+- [x] After independent code review, root saves and deploys exactly the changed public modules and their built copies (respecting actual trusted module reader), then repeats actual RenPy native story and reentry; any remaining failure blocks production CAS cutover and cleanup.
