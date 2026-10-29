@@ -77,3 +77,15 @@ test('B2 直连清单只接受固定 CDN，游戏和引擎正文均由浏览器�
  const plan=await api.createOnsResourcePlan(pilot,direct,origin);assert.equal(plan.resources.get('game:nscript.dat').url,'https://wg-b2.saop.cc/__ons/data/clannad/nscript.dat');assert.equal(plan.resources.get('engine:wasm').url,'https://wg-b2.saop.cc/__ons/engine/'+pilot.engine+'/onsyuri.wasm');
  await assert.rejects(api.createOnsResourcePlan(pilot,{...direct,resourceOrigin:'https://evil.invalid'},origin));const bad=structuredClone(direct);bad.files[0].url='https://wg-b2.saop.cc/__ons/data/other/nscript.dat';await assert.rejects(api.createOnsResourcePlan(pilot,bad,origin));
 });
+
+test('CAS cache consumes supplied game and engine hashes and rejects altered URLs',async()=>{
+ const createOnsResourcePlan=required('createOnsResourcePlan');
+ const p={id:'clannad',versionId:'11111111-1111-4111-8111-111111111111',engine:'a'.repeat(64)},url='https://wg-b2.saop.cc/'+'b'.repeat(64)+'.bin';
+ const manifest={pilot:p.id,versionId:p.versionId,engine:p.engine,resourceOrigin:'https://wg-b2.saop.cc',files:[{path:'nscript.dat',url,lazyload:true}]};
+ const row=(path,sha256)=>({path,key:path,url:'https://wg-b2.saop.cc/'+sha256+'.bin',sha256,bytes:10,contentType:'application/octet-stream'});
+ const cas={schema:1,delivery:'cas',pilot:p.id,versionId:p.versionId,inventorySha256:'c'.repeat(64),resourceOrigin:'https://wg-b2.saop.cc',resources:[row('nscript.dat','b'.repeat(64))],engineResources:{id:p.engine,files:[row('onsyuri.wasm',p.engine),row('onsyuri.js','d'.repeat(64))]},ons:manifest};
+ const plan=await createOnsResourcePlan(p,manifest,'https://main.invalid',undefined,cas);
+ assert.equal(plan.resources.get('game:nscript.dat').url,url);assert.equal(plan.resources.get('game:nscript.dat').sha256,'b'.repeat(64));assert.equal(plan.resources.get('engine:wasm').url,'https://wg-b2.saop.cc/'+'a'.repeat(64)+'.bin');
+ await assert.rejects(createOnsResourcePlan(p,{...manifest,files:[{...manifest.files[0],url:'https://wg-b2.saop.cc/old.dat'}]},'https://main.invalid',undefined,cas));
+ const named='folder/100% #.png',namedManifest={...manifest,files:[{path:named,url,lazyload:true}]};const namedCas={...cas,resources:[row(named,'b'.repeat(64))],ons:namedManifest};assert.equal((await createOnsResourcePlan(p,namedManifest,'https://main.invalid',undefined,namedCas)).resources.get('game:'+named).url,url);
+});

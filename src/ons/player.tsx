@@ -1,3 +1,4 @@
+import {readCasManifest} from '../../public/player/cas-resources.mjs';
 import {LoadingView,ResourceLoadingBar} from "./loading";
 import {validateLoadingProgress,type LoadingProgress} from "../../public/ons/loading.mjs";
 import {validateResourceProgress,type ResourceProgress} from "../../public/ons/resource-loading.mjs";
@@ -22,7 +23,7 @@ import {recordReading,trackPublicEvent} from '../analytics/client';
 import {parseWorkSlug} from '../identity';
 
 type Runtime = {engineReleaseId:string;saveCompatibilityId:string;database:string;stage:string;engineRelease:{id:string;kind:string;files:{path:string;sha256:string}[]}};
-type Pilot = {engineRuntime?:Runtime;engineOption?:Runtime;engineReleaseId?:string;saveCompatibilityId?:string; id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string; engineCandidate?: {releaseId:string;database:string;cloudEnabled:false;compatibility:"unknown";engineRelease?:{id:string;kind:string;files:{path:string;sha256:string}[]}} };
+type Pilot = {resourceDelivery?:'cas';engineRuntime?:Runtime;engineOption?:Runtime;engineReleaseId?:string;saveCompatibilityId?:string; id: string; title: string; versionId: string; engine: string; legacySave: string; runtimeKind?: string; legacyHint?: string; engineCandidate?: {releaseId:string;database:string;cloudEnabled:false;compatibility:"unknown";engineRelease?:{id:string;kind:string;files:{path:string;sha256:string}[]}} };
 type History = Omit<SavedRevision, "snapshot" | "bytesHeld">;
 type StorageModule = typeof import("../../public/ons/storage.mjs");
 type ProtocolModule = typeof import("../../public/ons/protocol.mjs");
@@ -131,11 +132,15 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         }
       }
     };
-    let resourceManifest:unknown;
+    let resourceManifest:unknown,casManifest:any;
+    if(pilot.resourceDelivery==='cas'){
+      const response=await fetch('/api/player/'+encodeURIComponent(pilot.id)+'/resources'+(releaseId?'?engine='+encodeURIComponent(releaseId):''),{credentials:'omit',cache:'no-store',redirect:'error',signal:controller.signal});
+      casManifest=await readCasManifest(response,pilot);resourceManifest=casManifest.ons;
+    }
     if(!pilot.runtimeKind){
-      const response=await fetch('/__ons/manifest/'+encodeURIComponent(pilot.id),{credentials:'omit',cache:'no-cache',redirect:'error',signal:controller.signal});if(!response.ok)throw Error('资源清单不可用');
-      const text=await response.text();if(text.length>32*1024*1024)throw Error('资源清单过大');resourceManifest=JSON.parse(text);
-      const plan=await createOnsResourcePlan(pilot,resourceManifest,location.origin,runtime?.engineRelease);
+      if(!casManifest){const response=await fetch('/__ons/manifest/'+encodeURIComponent(pilot.id),{credentials:'omit',cache:'no-cache',redirect:'error',signal:controller.signal});if(!response.ok)throw Error('资源清单不可用');
+      const text=await response.text();if(text.length>32*1024*1024)throw Error('资源清单过大');resourceManifest=JSON.parse(text);}
+      const plan=await createOnsResourcePlan(pilot,resourceManifest,location.origin,runtime?.engineRelease,casManifest);
       if(controller.signal.aborted)return;
       try{resourceStore=await openResourceCacheStore()}catch{/* 浏览器不支持持久缓存时继续读取网络资源。 */}
       let maxBytes=256*1024*1024;
@@ -145,7 +150,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     }
     // Opaque frames have no serializable target origin. Bind one dedicated port to
     // this exact frame; never broadcast credentials or expose a general fetch API.
-    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(pilot.runtimeKind==='RenPy'&&runtime?.engineRelease?{engineRelease:runtime.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), ...(resourceManifest?{resourceManifest}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
+    frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(casManifest?{casManifest}:{}), ...(pilot.runtimeKind==='RenPy'&&runtime?.engineRelease?{engineRelease:runtime.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), ...(resourceManifest?{resourceManifest}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
   }
   function capture(): Promise<{ snapshot: Snapshot; saved: boolean }> {
     const connection = channel.current;

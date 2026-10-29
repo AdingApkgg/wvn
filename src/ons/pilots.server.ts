@@ -12,7 +12,7 @@ export function pilotForVersion(id: string, releaseId?:string) {
   const candidate=configuredCandidate(),engineCandidate=candidate?candidateSession(candidate,id):null;
   const runtime=configuredCloudRuntime(),option=runtime?runtimeSession(runtime,id):null;
   if(releaseId&&option?.engineReleaseId!==releaseId)throw new Response('引擎版本未登记',{status:404});
-  return {...entry,...(option?{engineOption:option}:{}),...(releaseId&&option?{engineRuntime:option,engineReleaseId:option.engineReleaseId,saveCompatibilityId:option.saveCompatibilityId}:{}),...(engineCandidate?{engineCandidate}:{}),legacyHint:shared.length>1?'旧版有多个版本共用这份存档。请确认它属于当前版本；跨版本进度可能不兼容。':''};
+  return {...entry,...(process.env.WG_B2_CONTROL_FILE?{resourceDelivery:'cas' as const}:{}),...(option?{engineOption:option}:{}),...(releaseId&&option?{engineRuntime:option,engineReleaseId:option.engineReleaseId,saveCompatibilityId:option.saveCompatibilityId}:{}),...(engineCandidate?{engineCandidate}:{}),legacyHint:shared.length>1?'旧版有多个版本共用这份存档。请确认它属于当前版本；跨版本进度可能不兼容。':''};
 }
 // Exact trusted React routes only: never mount legacy HTML/JS on this listener.
 export function trustedOnsPaths() {

@@ -11,7 +11,7 @@ export function isPlayerResourcePath(path:string){
   const match=/^\/__player\/resource\/([^/]+)\//.exec(path);
   return !!match&&otherPlayers.some(player=>player.id===match[1]);
 }
-export function isolateEntry(html:string,id:string,options?:{resourceOrigin:string;bootstrapOrigin:string}){
+export function isolateEntry(html:string,id:string,options?:{resourceOrigin:string;bootstrapOrigin:string;cas?:boolean}){
   // Original executable scripts stay inert until the parent supplies its dedicated
   // storage channel. The original game DOM/CSS remains inside the opaque frame.
   let safe=html.replace(/<base\b[^>]*>/gi,'').replace(/<meta\b[^>]*http-equiv[^>]*>/gi,'');
@@ -24,6 +24,7 @@ export function isolateEntry(html:string,id:string,options?:{resourceOrigin:stri
   });
   if(options&&(options.resourceOrigin!=="https://wg-b2.saop.cc"||new URL(options.bootstrapOrigin).origin!==options.bootstrapOrigin||!options.bootstrapOrigin.startsWith("https://")))throw Error("Untrusted bootstrap origin");
   const bootstrap=`<base href="${options?.resourceOrigin??""}/__player/resource/${id}/"><script type="module" src="${options?.bootstrapOrigin??""}/player/runtime.mjs"></script>`;
+  if(options?.cas){safe=safe.replace(/<body\b([^>]*)>/i,'<div data-cas-body$1>').replace(/<\/body\s*>/i,'</div>');return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+bootstrap+'</head><body><template id="wg-cas-document">'+safe+'</template></body></html>';}
   return safe.replace(/<head\b[^>]*>/i,match=>match+bootstrap);
 }
 export function registerOtherPlayers(app:Hono,root:string,options?:{mediaRoot?:string;mediaManifest?:unknown}){

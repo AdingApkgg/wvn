@@ -36,11 +36,11 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     let seq = 0, pending = null, queued = null, failed = false, started = false;
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
-    let validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter, createOnsResourceClient;
+    let cas, validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter, createOnsResourceClient;
     try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter,readResourceBytes}=await import(origin+"/ons/resource-loading.mjs")); if(init.resourceManifest)({createOnsResourceClient}=await import(origin+"/ons/cache-client.mjs")); }
     catch (e) { send({type:"loading-progress",stage:"failed",message:"播放器组件暂时不可用，请取消后重试"});status("启动失败：存档桥接模块不可用"); return; }
     const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
-    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(url.origin!==origin&&url.origin!=="https://wg-b2.saop.cc")return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
+    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(cas){const row=cas.urls.get(url.href);return row?(cas.engines.has(row.path)?"engine":"game"):null;}if(url.origin!==origin&&url.origin!=="https://wg-b2.saop.cc")return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
     if(createOnsResourceClient)resourceClient=createOnsResourceClient(port,{pilot,nonce,loading,resources});
     function snapshot() {
       const files = captureFilesystem(g_onsyuri_module.FS, [{path:"/save",prefix:""}], limits);
@@ -69,29 +69,32 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       }
     };
     try {
+      if(init.casManifest){const {createCasResolver}=await import(origin+'/player/cas-resources.mjs');cas=createCasResolver(init.casManifest,{id:pilot,versionId:init.casManifest.ons?.versionId},{mainOrigin:origin});}
       const restored = validateSnapshot(init.snapshot, pilot);
       loading.phase("downloading","engine");status("正在载入共享引擎…");
       if(init.resourceManifest)g_onsyuri_index=init.resourceManifest;else {const r=await fetch(`/__ons/manifest/${pilot}`,{credentials:"omit"});if(!r.ok)throw Error("资源清单不可用");g_onsyuri_index=await r.json();}
       if (g_onsyuri_index.pilot !== pilot || g_onsyuri_index.savedir !== "/save") throw Error("资源版本不匹配");
+      if(g_onsyuri_index.resourceOrigin==='https://wg-b2.saop.cc'&&!cas)throw Error('CAS resource manifest required');
+      if(cas){if(g_onsyuri_index!==init.casManifest.ons&&JSON.stringify(g_onsyuri_index)!==JSON.stringify(init.casManifest.ons))throw Error('CAS ONS manifest mismatch');for(const file of g_onsyuri_index.files)if(cas.files.get(file.path)?.url!==file.url)throw Error('CAS ONS URL mismatch');}
       const release=g_onsyuri_index.engineRelease;
       const assetOrigin=g_onsyuri_index.resourceOrigin??origin;if(assetOrigin!==origin&&assetOrigin!=="https://wg-b2.saop.cc")throw Error("Untrusted resource origin");
       if(release&&(!/^ons-[a-f0-9]{64}$/.test(release.id)||!Array.isArray(release.files)))throw Error("候选引擎登记无效");
       const engine = assetOrigin + (release?"/__engines/resource/"+release.id+"/":"/__ons/engine/" + g_onsyuri_index.engine + "/");
-      const scriptHash=release?.files.find(file=>file.path==="onsyuri.js")?.sha256;
+      const scriptHash=cas?.engines.get("onsyuri.js")?.sha256??release?.files.find(file=>file.path==="onsyuri.js")?.sha256;
       if(release&&!/^[a-f0-9]{64}$/.test(scriptHash))throw Error("候选引擎脚本指纹缺失");
       let wasmBytes=resourceClient?await resourceClient.read("engine:wasm"):null;
-      if(!wasmBytes){const wasm=await fetch(engine+"onsyuri.wasm",{credentials:"omit"});if(!wasm.ok)throw Error("共享引擎校验失败");wasmBytes=await readResourceBytes(wasm);}
+      if(!wasmBytes){const wasm=await fetch(cas?cas.url("onsyuri.wasm"):engine+"onsyuri.wasm",{credentials:"omit"});if(!wasm.ok)throw Error("共享引擎校验失败");wasmBytes=await readResourceBytes(wasm);}
       const bootstrap=new Map(),restoredSettings=restored.files.find(file=>file.path.toLowerCase()==="envdata");
       if(resourceClient)await Promise.all(g_onsyuri_index.files.filter(f=>(!f.lazyload||f.path.toLowerCase()==="envdata")&&!(f.path.toLowerCase()==="envdata"&&restoredSettings)).map(async f=>{let bytes=await resourceClient.read("game:"+f.path);if(!bytes){const response=await fetch(new URL(f.url,origin).href,{credentials:"omit"});if(!response.ok)throw Error("资源读取失败");bytes=await readResourceBytes(response)}bootstrap.set(f.path,bytes)}));
       await new Promise((resolve, reject) => {
-        const script = document.createElement("script"); script.src = engine + "onsyuri.js";
+        const script = document.createElement("script"); script.src = cas?cas.url("onsyuri.js"):engine + "onsyuri.js";
         script.crossOrigin = "anonymous"; script.integrity = scriptHash?"sha256-"+btoa(String.fromCharCode(...scriptHash.match(/../g).map(byte=>parseInt(byte,16)))):"sha256-M07jIknc5sjWzffgxraOcEEpxY76lJM2yPrRR0KogsE=";
         script.onload = resolve; script.onerror = () => reject(Error("引擎脚本加载或完整性校验失败")); document.head.append(script);
       });
       function mkdir(FS, path) { if (path) FS.mkdirTree(path); }
       g_onsyuri_module = {
         canvas: document.getElementById("canvas"), noInitialRun: true,
-        wasmBinary: wasmBytes, locateFile: path => engine + path,
+        wasmBinary: wasmBytes, locateFile: path => cas?cas.url(path):engine + path,
         print: line => console.log("ONS", line), printErr: line => console.warn("ONS", line),
         onAbort: () => status("引擎停止；本机历史备份仍保留"),
         preRun() {
