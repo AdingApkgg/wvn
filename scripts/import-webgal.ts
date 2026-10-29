@@ -1,16 +1,26 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
 import {PgDatabase} from '../src/database/postgres.ts';
 import {Store} from '../src/server/store.ts';
 import {ResourceRepository} from '../src/resources/repository.ts';
 import {VersionResources} from '../src/platform/version-resources.server.ts';
 import {webgalPlayers} from '../public/player/webgal-registry.mjs';
-import {webgalImportRun} from '../ops/b2/webgal-import-guard.mjs';
+import {webgalImportRun,webgalImportMetadata} from '../ops/b2/webgal-import-guard.mjs';
+import {metadataDocument} from '../src/metadata.ts';
 
 // 默认预演只读；已授权生产发布必须显式选择并核对冻结计划摘要。
 const planBytes=fs.readFileSync('data/imports/webgal-20261027.json');
 const {apply,production,catalogSchema,resourceSchema}=webgalImportRun(process.argv.slice(2),process.env,planBytes);
 const plan=JSON.parse(planBytes.toString('utf8'));
+const metadata=webgalImportMetadata(plan,metadataDocument.parse(JSON.parse(fs.readFileSync('data/metadata.json','utf8'))));
+if(apply){
+ assert(process.env.WG_MEDIA_ROOT,'Reviewed metadata media root required');
+ for(const row of metadata.works)for(const image of [row.cover,...row.screenshots].filter(Boolean)){
+  const file=fs.statSync(resolve(process.env.WG_MEDIA_ROOT,image!.url.slice('/media/'.length)));
+  assert(file.isFile()&&file.size>0,'Reviewed metadata image is missing');
+ }
+}
 assert.equal(plan.entries.length,15);assert.equal(plan.versions.length,15);
 const catalog=new Store(new PgDatabase(process.env.WG_DATABASE_URL!,{schema:catalogSchema}));
 const db=new PgDatabase(process.env.WG_RESOURCE_DATABASE_URL!,{schema:resourceSchema});
@@ -36,7 +46,11 @@ try{
   entries.push({versionId:input.id,namespace:plan.namespace,inventorySha256:plan.inventorySha256,prefix:source.prefix,resources:Number(count.n),action:old?'unchanged':'add'});
  }
  if(apply){
-  await catalog.seed({snapshotAt:new Date().toISOString(),works:plan.works,versions:plan.versions,pending:[]});
+  await catalog.tx(async()=>{
+   await catalog.seed({snapshotAt:new Date().toISOString(),works:plan.works,versions:plan.versions,pending:[]});
+   const current=await catalog.list(true),missing=metadata.works.filter(row=>!current.find(work=>work.id===row.workId)?.metadata);
+   if(missing.length)await catalog.importMetadata({...metadata,works:missing},true);
+  });
   const bridge=new VersionResources(catalog,new ResourceRepository(db));for(const entry of entries)await bridge.bind(entry);
   const after=await catalog.list(true);
   for(const work of before){const next=after.find(w=>w.id===work.id)!;assert.equal(next.defaultVersionId,work.defaultVersionId);assert.deepEqual(next.versions.filter(v=>existingIds.has(v.id)),work.versions);}

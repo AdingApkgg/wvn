@@ -1,0 +1,175 @@
+{
+  "fetchedAt": "2026-10-29T17:50:18Z",
+  "works": [
+    {
+      "workId": "v22880",
+      "identity": "https://vndb.org/v22880",
+      "coverImageId": "cv78359",
+      "coverSource": "https://t.vndb.org/cv/59/78359.jpg",
+      "coverRelease": {
+        "id": "r112087",
+        "url": "https://vndb.org/r112087",
+        "linkedWorkIds": [
+          "v22880"
+        ]
+      },
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v22880",
+      "screenshotImageIds": [
+        "sf147776",
+        "sf147777",
+        "sf147781",
+        "sf205158",
+        "sf205160",
+        "sf205161"
+      ],
+      "matchingBangumi": null
+    },
+    {
+      "workId": "v23290",
+      "identity": "https://vndb.org/v23290",
+      "coverImageId": "cv91210",
+      "coverSource": "https://t.vndb.org/cv/10/91210.jpg",
+      "coverRelease": {
+        "id": "r120835",
+        "url": "https://vndb.org/r120835",
+        "linkedWorkIds": [
+          "v23290"
+        ]
+      },
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v23290",
+      "screenshotImageIds": [
+        "sf136597",
+        "sf153899",
+        "sf203530",
+        "sf203605",
+        "sf203710"
+      ],
+      "matchingBangumi": null
+    },
+    {
+      "workId": "v23772",
+      "identity": "https://vndb.org/v23772",
+      "coverImageId": "cv86899",
+      "coverSource": "https://t.vndb.org/cv/99/86899.jpg",
+      "coverRelease": {
+        "id": "r124632",
+        "url": "https://vndb.org/r124632",
+        "linkedWorkIds": [
+          "v23772"
+        ]
+      },
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v23772",
+      "screenshotImageIds": [
+        "sf136541",
+        "sf136546",
+        "sf204242",
+        "sf204243",
+        "sf204244",
+        "sf204246"
+      ],
+      "matchingBangumi": null
+    },
+    {
+      "workId": "v53590",
+      "identity": "https://vndb.org/v53590",
+      "coverImageId": "cv101085",
+      "coverSource": "https://t.vndb.org/cv/85/101085.jpg",
+      "coverRelease": null,
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v53590",
+      "screenshotImageIds": [
+        "sf211620",
+        "sf211621",
+        "sf211622",
+        "sf211623",
+        "sf211988",
+        "sf216471"
+      ],
+      "matchingBangumi": null
+    },
+    {
+      "workId": "v47175",
+      "identity": "https://vndb.org/v47175",
+      "coverImageId": "cv96064",
+      "coverSource": "https://t.vndb.org/cv/64/96064.jpg",
+      "coverRelease": null,
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v47175",
+      "screenshotImageIds": [
+        "sf198310",
+        "sf198311",
+        "sf198317",
+        "sf198319",
+        "sf198324",
+        "sf208106"
+      ],
+      "matchingBangumi": {
+        "id": 456680,
+        "method": "unique-exact-title-and-release-date-within-one-day",
+        "vndbTitle": "Select Oblige",
+        "releaseDate": "2024-07-26"
+      }
+    },
+    {
+      "workId": "v37021",
+      "identity": "https://vndb.org/v37021",
+      "coverImageId": "sf177863",
+      "coverSource": "https://t.vndb.org/sf/63/177863.jpg",
+      "coverRelease": null,
+      "coverKind": "screenshot",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v37021",
+      "screenshotImageIds": [
+        "sf177863",
+        "sf177865",
+        "sf177867",
+        "sf177869"
+      ],
+      "matchingBangumi": null
+    },
+    {
+      "workId": "v39197",
+      "identity": "https://vndb.org/v39197",
+      "coverImageId": "cv88873",
+      "coverSource": "https://t.vndb.org/cv/73/88873.jpg",
+      "coverRelease": null,
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v39197",
+      "screenshotImageIds": [
+        "sf178001",
+        "sf178003",
+        "sf178004",
+        "sf178006"
+      ],
+      "matchingBangumi": null
+    },
+    {
+      "workId": "v15708",
+      "identity": "https://vndb.org/v15708",
+      "coverImageId": "cv89937",
+      "coverSource": "https://t.vndb.org/cv/37/89937.jpg",
+      "coverRelease": null,
+      "coverKind": "original",
+      "descriptionAdapted": true,
+      "descriptionSource": "https://vndb.org/v15708",
+      "screenshotImageIds": [
+        "sf94955",
+        "sf94956",
+        "sf94957",
+        "sf94958",
+        "sf98500",
+        "sf169116"
+      ],
+      "matchingBangumi": null
+    }
+  ]
+}

@@ -4,6 +4,24 @@ import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import {createCasResolver} from '../public/player/cas-resources.mjs';
 import {prepareWebgalResolver,installWebgalProbeFallback} from '../public/player/webgal-artemis.mjs';
+import {webgalImportMetadata} from '../ops/b2/webgal-import-guard.mjs';
+test('import requires reviewed metadata and retains existing works outside the new-work plan',()=>{
+ const plan={works:[{id:'v4',evidence:'https://vndb.org/v4'}]};
+ const row={workId:'v4',description:'Reviewed description',descriptionSource:'vndb',cover:{url:'/media/cover.jpg'},sources:[{provider:'vndb',id:'v4',url:'https://vndb.org/v4'}]};
+ const doc={schemaVersion:1,works:[row,{...row,workId:'v5'}]};
+ assert.deepEqual(webgalImportMetadata(plan,doc).works,[row]);assert.equal(doc.works.length,2);
+ for(const works of [[],[row,row],[{...row,cover:null}],[{...row,description:' '}],[{...row,sources:[{provider:'vndb',id:'v5',url:'https://vndb.org/v5'}]}]])assert.throws(()=>webgalImportMetadata(plan,{works}));
+});
+test('newly imported works include reviewed covers, descriptions and source facts',()=>{
+ const plan=JSON.parse(fs.readFileSync('data/imports/webgal-20261027.json','utf8'));
+ const metadata=JSON.parse(fs.readFileSync('data/metadata.json','utf8'));
+ for(const work of plan.works){
+  const row=metadata.works.find(m=>m.workId===work.id);
+  assert(row,`Missing reviewed metadata: ${work.id}`);
+  assert(row.cover&&row.description.trim()&&row.released&&row.developers.length&&row.tags.length,`Incomplete reviewed metadata: ${work.id}`);
+  assert(row.sources.some(s=>s.provider==='vndb'&&s.id===work.id));
+ }
+});
 test('import adds distinct versions without changing the original catalog or save bindings',()=>{
  const read=p=>JSON.parse(fs.readFileSync(p,'utf8')),plan=read('data/imports/webgal-20261027.json'),catalog=read('data/catalog.json'),bindings=read('engines/bindings.json').bindings;
  const ids=new Set(plan.versions.map(v=>v.id)),works=new Set(plan.works.map(w=>w.id));

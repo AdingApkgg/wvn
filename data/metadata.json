@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "fetchedAt": "2026-10-19T04:53:07.500Z",
+  "fetchedAt": "2026-10-29T17:50:18Z",
   "works": [
     {
       "workId": "v27448",
@@ -9667,6 +9667,1190 @@
           "provider": "vndb",
           "id": "v37843",
           "url": "https://vndb.org/v37843"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v22880",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "Destiny Star Girlfriend",
+          "lang": "en",
+          "source": "vndb"
+        },
+        {
+          "title": "宿星のガールフレンド -the destiny star of girlfriend-",
+          "lang": "ja",
+          "source": "vndb"
+        },
+        {
+          "title": "宿星的女朋友",
+          "lang": "zh-Hans",
+          "source": "vndb"
+        },
+        {
+          "title": "Shukusei no Girlfriend -the destiny star of girlfriend-",
+          "lang": "und",
+          "source": "vndb"
+        }
+      ],
+      "description": "平凡的男主角遭到怪物袭击，暗恋的同班女生夕里以魔法少女的身份出手相救，却在保护他时身受重伤。为了保住两人的生命，他们被一条魔法红线连接起来，康复期间必须始终保持在一米之内。两人只得开始同居，并在同学面前扮演恋人；近在咫尺的日常，也让这段原本单向的暗恋出现了新的可能。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/eb0ba97b79afa684f6837d045d66e3368333531639770c8cd6440008a4cfbab9.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/59/78359.jpg",
+        "source": "vndb",
+        "width": 600,
+        "height": 900
+      },
+      "screenshots": [
+        {
+          "url": "/media/b71d141be59dea7a60ff8fb85a4b3111058f5441f3e136dfda81d7eeb9ba7d84.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/76/147776.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/c216abdb03514bb924579e808aaa3019d65f277c4e2781f5f703753150459e39.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/77/147777.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/6eb40e9b44341868993e7c51563be6ac95c224e8652d2ac414ecd710a5352e3e.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/81/147781.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/114a074d68b9f071816e9893d54c2aa708b0e3c2ff994eba6bbf1356214d45b1.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/58/205158.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/448e0e49d61c9be25a6e00af868107fd16c02339803a7cc323e36e545fd24a91.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/60/205160.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/b20cc2ecc4c9eeb5e676e0d6a61692901c2c4e3fbfccd8006e72ba9d8ef09fdc.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/61/205161.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "tags": [
+        {
+          "name": "Romance",
+          "source": "vndb"
+        },
+        {
+          "name": "Slice of Life Comedy",
+          "source": "vndb"
+        },
+        {
+          "name": "Linear Plot",
+          "source": "vndb"
+        },
+        {
+          "name": "Single Ending",
+          "source": "vndb"
+        },
+        {
+          "name": "Only a Single Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Under the Same Roof",
+          "source": "vndb"
+        },
+        {
+          "name": "Love Overcomes All",
+          "source": "vndb"
+        },
+        {
+          "name": "Mahou Shoujo Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Student Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Heroine with Zettai Ryouiki",
+          "source": "vndb"
+        }
+      ],
+      "released": "2018-07-27",
+      "developers": [
+        "mirai"
+      ],
+      "languages": [
+        "en",
+        "ja",
+        "zh-Hans",
+        "zh-Hant"
+      ],
+      "platforms": [
+        "win",
+        "and"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 7.2299999999999995,
+          "votes": 404
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v22880",
+          "url": "https://vndb.org/v22880"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v23290",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "Destiny Star Girlfriend 2",
+          "lang": "en",
+          "source": "vndb"
+        },
+        {
+          "title": "宿星のガールフレンド2 -the destiny star of girlfriend-",
+          "lang": "ja",
+          "source": "vndb"
+        },
+        {
+          "title": "宿星的女朋友 2 -destiny star girlfriend-",
+          "lang": "zh-Hans",
+          "source": "vndb"
+        },
+        {
+          "title": "Shukusei no Girlfriend 2 -The Destiny Star of Girlfriend-",
+          "lang": "und",
+          "source": "vndb"
+        }
+      ],
+      "description": "男主角在附近的公园遇见神秘的魔法少女玛娅，并意外成为她的使魔。获得力量的代价，是两人必须用魔法绳索时刻相连，以维持使魔的生命。突然开始的同居生活，让他逐渐看见少女冷淡外表下毫无防备的一面，也让这段原本出于契约的关系悄然发生变化。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/a2120b383eba7b37b59525eb6a808e07799b9bfc453cc1e024a909aef33e434b.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/10/91210.jpg",
+        "source": "vndb",
+        "width": 600,
+        "height": 900
+      },
+      "screenshots": [
+        {
+          "url": "/media/7db2628f54ba82391aa6f6654a6e0691578192c58d0e3b947af362bb7396f1d4.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/97/136597.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/f6e7e4ad5f79b8bc22791708560feaea80d6ad3f42d42286e5f6f7e6f17e9218.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/99/153899.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/9aa6d62cf49b4d025202dca70bd9fa16bbe8e39a3c4629dc83756c508f104e26.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/30/203530.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/0dd609624c6b15626a4078ad09803654f2cab8fad957dcb38dcaf72ccd9eb1b8.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/05/203605.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/634863e597b6869beaef0c5702c6b96215051aecbcd1d9d3837a2a1c1274e881.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/10/203710.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "tags": [
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Linear Plot",
+          "source": "vndb"
+        },
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "Romance",
+          "source": "vndb"
+        },
+        {
+          "name": "Slice of Life Comedy",
+          "source": "vndb"
+        },
+        {
+          "name": "Single Ending",
+          "source": "vndb"
+        },
+        {
+          "name": "Airhead Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Mahou Shoujo Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Only a Single Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Under the Same Roof",
+          "source": "vndb"
+        },
+        {
+          "name": "Demons",
+          "source": "vndb"
+        },
+        {
+          "name": "Love Overcomes All",
+          "source": "vndb"
+        }
+      ],
+      "released": "2018-12-21",
+      "developers": [
+        "mirai"
+      ],
+      "languages": [
+        "en",
+        "ja",
+        "zh-Hans",
+        "zh-Hant"
+      ],
+      "platforms": [
+        "win"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 6.9,
+          "votes": 211
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v23290",
+          "url": "https://vndb.org/v23290"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v23772",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "Destiny Star Girlfriend 3",
+          "lang": "en",
+          "source": "vndb"
+        },
+        {
+          "title": "宿星のガールフレンド3 -the destiny star of girlfriend-",
+          "lang": "ja",
+          "source": "vndb"
+        },
+        {
+          "title": "宿星的女朋友 3 -destiny star girlfriend-",
+          "lang": "zh-Hans",
+          "source": "vndb"
+        },
+        {
+          "title": "Shukusei no Girlfriend 3 -the destiny star of girlfriend-",
+          "lang": "und",
+          "source": "vndb"
+        }
+      ],
+      "description": "《宿星Girlfriend》系列第三作。男主角在某个夜晚遭到后辈魔法少女袭击，被夺走生命力。为了查明少女身体发生异常的原因，魔法少女组织决定让两人共同生活。相处之中，他逐渐发现这位平日冷静的后辈不为人知的一面，并与她一同面对过去留下的阴影。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/cd5b26c33748372262162253545bdd2cb1e3b6cb6302dfdf0675c2e78df1b2f1.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/99/86899.jpg",
+        "source": "vndb",
+        "width": 600,
+        "height": 900
+      },
+      "screenshots": [
+        {
+          "url": "/media/2633f74226748f7ff439964bc33157e8ef793c3363de5bdf9144dabe1b8982c9.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/41/136541.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/a12c76e596b21f0561656b52fddc1a01dc54031db344446a0d7ac2424dad1dbe.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/46/136546.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/a3afb45c2c2533af190a247829c6e94951b45634c4ae4d0287c086c317042455.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/42/204242.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/76c130ef767e0e93e4cb5cc28dd448202a96dacf666ed9c97bf038af4006761f.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/43/204243.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/688ea8554274a5918295a8ac6a08f34e40a4422ad4503b445482604518114150.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/44/204244.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/0b329250a9119fc80cbd226487777ca47af60b376edc680235ee9e6d74ab090b.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/46/204246.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "tags": [
+        {
+          "name": "Single Ending",
+          "source": "vndb"
+        },
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "Romance",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Mahou Shoujo Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Only a Single Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Demons",
+          "source": "vndb"
+        },
+        {
+          "name": "Love Overcomes All",
+          "source": "vndb"
+        },
+        {
+          "name": "Heroine with Bodystocking",
+          "source": "vndb"
+        },
+        {
+          "name": "Perverted Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "System Time Events",
+          "source": "vndb"
+        },
+        {
+          "name": "Linear Plot",
+          "source": "vndb"
+        }
+      ],
+      "released": "2019-07-26",
+      "developers": [
+        "mirai"
+      ],
+      "languages": [
+        "en",
+        "ja",
+        "zh-Hans",
+        "zh-Hant"
+      ],
+      "platforms": [
+        "win",
+        "and"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 7.25,
+          "votes": 196
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v23772",
+          "url": "https://vndb.org/v23772"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v53590",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "ハミダシクリエイティブRe:Re:call",
+          "lang": "ja",
+          "source": "vndb"
+        },
+        {
+          "title": "常轨脱离Creative Re:Re:call",
+          "lang": "zh-Hans",
+          "source": "vndb"
+        },
+        {
+          "title": "Hamidashi Creative Re:Re:call",
+          "lang": "und",
+          "source": "vndb"
+        }
+      ],
+      "description": "和泉智宏因抽签成为学生会长，起初只想平稳完成工作，却在与伙伴们相处的过程中逐渐投入其中。某天，他被拉去参加同人展，担任个人社团的工作人员。忙完后的一次闲逛，使他在原创作品展区遇见了意想不到的人。本作讲述一位原本没有站在主角位置上的少女，从本篇故事之外展开的新篇章。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/071f3ab1fd8d6b91b636e8ac66adeb3b3352fe36e71420bad0cafbf41abeb06a.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/85/101085.jpg",
+        "source": "vndb",
+        "width": 495,
+        "height": 700
+      },
+      "screenshots": [
+        {
+          "url": "/media/c46d538dc1d4cc3c13a0ef8dd7efce3439655a7fd6b704f01265bdb70f7654e2.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/20/211620.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/47176c4d40d90875f1dadcfb8ea94317394d43fcd114219883dd57d0792a1fbd.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/21/211621.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/466b05e76beefb7cc57d116a7a03f15ea7951246679070fe08bf374be3f38899.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/22/211622.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/d890c9bfe59d740586873d91ced3350feff5c925bef3bab5d2b10cced3563f5d.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/23/211623.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/36a10673416ad7ebf0f727716ae7dcc801d5bb39d7e64d410225aa55952e53e5.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/88/211988.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/78b3a5883a7a37fd9d41361f0b29f1b4e5e873987309ca687d9369227d90d34c.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/71/216471.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "tags": [
+        {
+          "name": "Only a Single Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Ojousama Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "High School Student Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Student Council President Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Protagonist's Sister as a Support Character",
+          "source": "vndb"
+        },
+        {
+          "name": "Single Ending",
+          "source": "vndb"
+        },
+        {
+          "name": "White Haired Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Twin Tail Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Maid Support Character",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Friend",
+          "source": "vndb"
+        }
+      ],
+      "released": "2025-04-25",
+      "developers": [
+        "まどそふと"
+      ],
+      "languages": [
+        "ja",
+        "zh-Hans"
+      ],
+      "platforms": [
+        "win"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 7.0200000000000005,
+          "votes": 158
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v53590",
+          "url": "https://vndb.org/v53590"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v47175",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "Select Oblige",
+          "lang": "en",
+          "source": "vndb"
+        },
+        {
+          "title": "セレクトオブリージュ",
+          "lang": "ja",
+          "source": "vndb"
+        },
+        {
+          "title": "天选庶民的真命之选",
+          "lang": "zh-Hans",
+          "source": "vndb"
+        },
+        {
+          "title": "天選庶民的真命之選",
+          "lang": "zh-Hant",
+          "source": "vndb"
+        }
+      ],
+      "description": "在财富、教育和安全被少数精英垄断的世界里，出身贫民区的布波能凪获得了改变命运的机会：每年仅有一人的特别入学资格，让他踏进精英云集的樱元学园。然而，等待他的还有阶层偏见、阴谋，以及掌握学园权力的学生会成员。凪与从小相伴的少女一同，在陌生的上流社会中为生存与荣光而奋斗。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/7380f3fbadf2b0d376c9d6eca9986f2d171a7b633714d4d9638b85e23e1a4ea1.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/64/96064.jpg",
+        "source": "vndb",
+        "width": 600,
+        "height": 900
+      },
+      "screenshots": [
+        {
+          "url": "/media/b8424b7f5313178c3fe4fd615973824bff21116ca73ad4289ae79b7969ae9565.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/10/198310.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/ded518021374c2b7c14184bd4956e62f0abd196ff9c42fec4970ca7864c54a58.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/11/198311.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/09e0a44f3244d63ac1a8f99554c0ae3c73f188a536fe713a8b5fcaffeeccc610.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/17/198317.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/13acba33455956b2e458249fdc896f57ebe622c0a73ee7e992e3b917294d4697.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/19/198319.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/828d4a4dc2f5f7649adecd54906801179b56e46acc6a35518eccd44d0644f829.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/24/198324.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/3a0e87ee2a628d751c2efa784dfab5ee1c0104082433e3f769abd4914319f2d4.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/06/208106.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "tags": [
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Branching Plot",
+          "source": "vndb"
+        },
+        {
+          "name": "Varying Ending Songs",
+          "source": "vndb"
+        },
+        {
+          "name": "Genius Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Imouto-type Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Ojousama Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Modern Day Japan",
+          "source": "vndb"
+        },
+        {
+          "name": "Only Virgin Heroines",
+          "source": "vndb"
+        },
+        {
+          "name": "Student Council President Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Engineer Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "High School Student Protagonist",
+          "source": "vndb"
+        }
+      ],
+      "released": "2024-07-26",
+      "developers": [
+        "まどそふと",
+        "kuwa games"
+      ],
+      "languages": [
+        "en",
+        "ja",
+        "zh-Hans",
+        "zh-Hant"
+      ],
+      "platforms": [
+        "win",
+        "swi"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 6.81,
+          "votes": 536
+        },
+        {
+          "source": "bgm",
+          "score": 5.1,
+          "votes": 1020
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v47175",
+          "url": "https://vndb.org/v47175"
+        },
+        {
+          "provider": "bgm",
+          "id": "456680",
+          "url": "https://bgm.tv/subject/456680"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v37021",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "FLIP＊FLOP ~INNOCENCE OVERCLOCK~",
+          "lang": "ja",
+          "source": "vndb"
+        }
+      ],
+      "description": "在个人全息 AI 助手“Tink”如同智能手机般普及的近未来，男主角从乡下搬到先进都市，开始新的生活。祖父留下的旧式手机里，竟藏着一个与众不同的等身 AI 少女。与她、开发新技术的神秘学妹、重逢的青梅竹马和自信的企业千金相遇后，他在解决身边难题的日常里，逐渐理解人与人、人与 AI 之间的交流与温度。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/ef45cdefe2ee71fa7152b9e2277401f38f3a6187b65bf1e0bb1412082b81974c.jpg",
+        "sourceUrl": "https://t.vndb.org/sf/63/177863.jpg",
+        "source": "vndb",
+        "width": 1920,
+        "height": 1080,
+        "kind": "screenshot"
+      },
+      "screenshots": [
+        {
+          "url": "/media/ef45cdefe2ee71fa7152b9e2277401f38f3a6187b65bf1e0bb1412082b81974c.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/63/177863.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/d0bce8042aa7df2a38182ae226f2c029337de68c57a0a56e161591aa9409cb63.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/65/177865.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/eb2d7b7b3639a68f1278955813947441a67fabd351c55e6d8379aa84dd4c79c7.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/67/177867.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/d9ecaed40df56b65748f28a6a162261d5e22a93b7761af5b883c797c24c9315e.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/69/177869.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "tags": [
+        {
+          "name": "AI Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Artificial Intelligence",
+          "source": "vndb"
+        },
+        {
+          "name": "Near Future",
+          "source": "vndb"
+        },
+        {
+          "name": "Linear Plot",
+          "source": "vndb"
+        }
+      ],
+      "released": "2022-10-28",
+      "developers": [
+        "DiGination"
+      ],
+      "languages": [
+        "ja",
+        "zh-Hans"
+      ],
+      "platforms": [
+        "win",
+        "and"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 7.31,
+          "votes": 123
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v37021",
+          "url": "https://vndb.org/v37021"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v39197",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "FLIP＊FLOP ~RAMBLING OVERRUN~",
+          "lang": "ja",
+          "source": "vndb"
+        }
+      ],
+      "description": "在前沿科技都市，每天都有新的发现与发明。天才少女兰生活在这里，她拥有出众的头脑，却并不完全理解自己。某天，对前辈萌生的恋爱情感成为她无法轻易解答的新课题。本作围绕这份逐渐觉醒的心意，展开科技都市中的另一段青春恋爱故事。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/e3e3b18639ac4aa9a9d32de71f145ff4f712c3bfc2bd46689bd77bb5ea45bfe5.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/73/88873.jpg",
+        "source": "vndb",
+        "width": 1000,
+        "height": 603
+      },
+      "screenshots": [
+        {
+          "url": "/media/7601ac9a85409f0de083dfb9ede35b17c6b5631a3492b1f9cbc4e1d35e624c02.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/01/178001.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/bc76165b6aac39de88fb70df6ec830a6e25a0c7e987f5352df5f542c8636428e.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/03/178003.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/f299f0276969e7189192da4a990b3dc72c9c6456b20b8abf8f446a574257db91.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/04/178004.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "url": "/media/d26bb0c29ac3b43cc862b5907bb5c689ece9f21f6c033a72867c6e1776751e4d.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/06/178006.jpg",
+          "source": "vndb",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "tags": [
+        {
+          "name": "Inventor Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Only a Single Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "ADV",
+          "source": "vndb"
+        },
+        {
+          "name": "Artificial Intelligence",
+          "source": "vndb"
+        },
+        {
+          "name": "White Haired Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Heroine with Big Breasts",
+          "source": "vndb"
+        },
+        {
+          "name": "High School",
+          "source": "vndb"
+        },
+        {
+          "name": "Kuudere Heroine",
+          "source": "vndb"
+        },
+        {
+          "name": "Male Protagonist",
+          "source": "vndb"
+        },
+        {
+          "name": "Kinetic Novel",
+          "source": "vndb"
+        },
+        {
+          "name": "Only Virgin Heroines",
+          "source": "vndb"
+        },
+        {
+          "name": "Super Deformed CGs",
+          "source": "vndb"
+        }
+      ],
+      "released": "2023-02-24",
+      "developers": [
+        "DiGination"
+      ],
+      "languages": [
+        "ja",
+        "zh-Hans"
+      ],
+      "platforms": [
+        "win",
+        "and"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 7.35,
+          "votes": 97
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v39197",
+          "url": "https://vndb.org/v39197"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "workId": "v15708",
+      "fetchedAt": "2026-10-29T17:50:18Z",
+      "titles": [
+        {
+          "title": "Senmomo: Through Billows of Blades, A Peachbloom Princess",
+          "lang": "en",
+          "source": "vndb"
+        },
+        {
+          "title": "千の刃濤、桃花染の皇姫",
+          "lang": "ja",
+          "source": "vndb"
+        },
+        {
+          "title": "千之刃涛，桃花染之皇姬",
+          "lang": "zh-Hans",
+          "source": "vndb"
+        },
+        {
+          "title": "Sen no Hatou, Tsukisome no Kouki",
+          "lang": "und",
+          "source": "vndb"
+        }
+      ],
+      "description": "延续两千年的帝国被外来势力征服，昔日的安宁化为废墟，生活在其中的人们仍努力寻找明天。皇位最后的继承者为夺回故国而寻求力量；失去过去的武人则希望找到值得效忠的主君。当两人的命运交汇，复国的责任与武士的信念，将共同引向一段动荡时代中的故事。",
+      "descriptionSource": "vndb",
+      "descriptionAdapted": true,
+      "cover": {
+        "url": "/media/d574a80c10dcac0831cdf9dd722b6262b8b7fddd14785df9146c1b9f0d282ac4.jpg",
+        "sourceUrl": "https://t.vndb.org/cv/37/89937.jpg",
+        "source": "vndb",
+        "width": 1411,
+        "height": 1949
+      },
+      "screenshots": [
+        {
+          "url": "/media/146ccf11e864957ce0f375936063152bcaca58e6308c61ed16489035fa86ace3.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/55/94955.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/cd05655542616200766c83034090e85d7fee3c1f3e996a572f55fc3c5ea6d49a.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/56/94956.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/c6b2ff011972fdab5c77f8d9c9b5b7ec3f17e326b20ff6c729d3af0a5335e657.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/57/94957.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/2c16cbb7ae49beaebf74d95d25731a3818e721cf1403b38b8f9f35fd3c3f2397.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/58/94958.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/54bab8e7e2c14f4f75aac785df2ac8f6ae29b5c2338ba162990d764ea3e976fb.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/00/98500.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "url": "/media/a7d17a25daf006238027b0e4b3f06910b6090250fb32bcdb2f628e159def9661.jpg",
+          "sourceUrl": "https://t.vndb.org/sf/16/169116.jpg",
+          "source": "vndb",
+          "width": 1280,
+          "height": 720
+        }
+      ],
+      "tags": [
+        {
+          "name": "Side Portraits",
+          "source": "vndb"
+        },
+        {
+          "name": "Ladder Structure",
+          "source": "vndb"
+        },
+        {
+          "name": "Fictional Japanese-Style Nation",
+          "source": "vndb"
+        },
+        {
+          "name": "Politics",
+          "source": "vndb"
+        },
+        {
+          "name": "Other Perspectives",
+          "source": "vndb"
+        },
+        {
+          "name": "Protagonist with Voice Acting",
+          "source": "vndb"
+        },
+        {
+          "name": "Sword Combat",
+          "source": "vndb"
+        },
+        {
+          "name": "Bloody Scenes",
+          "source": "vndb"
+        },
+        {
+          "name": "Branching Plot",
+          "source": "vndb"
+        },
+        {
+          "name": "Protagonist with a Face",
+          "source": "vndb"
+        },
+        {
+          "name": "Protagonist with a Sprite",
+          "source": "vndb"
+        },
+        {
+          "name": "Varied Title Screens",
+          "source": "vndb"
+        }
+      ],
+      "released": "2016-09-23",
+      "developers": [
+        "オーガスト"
+      ],
+      "languages": [
+        "en",
+        "ja",
+        "zh-Hans"
+      ],
+      "platforms": [
+        "win",
+        "and",
+        "ps4",
+        "psv",
+        "swi"
+      ],
+      "ratings": [
+        {
+          "source": "vndb",
+          "score": 7.85,
+          "votes": 717
+        }
+      ],
+      "sources": [
+        {
+          "provider": "vndb",
+          "id": "v15708",
+          "url": "https://vndb.org/v15708"
         }
       ],
       "warnings": []

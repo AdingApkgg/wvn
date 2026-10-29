@@ -1,1 +1,2 @@
 export function webgalImportRun(args:string[],env:NodeJS.ProcessEnv,planBytes:Uint8Array):{apply:boolean;production:boolean;catalogSchema:string;resourceSchema:string};
+export function webgalImportMetadata<T extends {works:{workId:string;cover:unknown;description:string;descriptionSource:unknown;sources:{provider:string;id:string;url:string}[]}[]}>(plan:{works:{id:string;evidence:string}[]},document:T):T;
