@@ -127,3 +127,26 @@ test('standalone resource service answers real HTTP requests using the isolated 
     assert.equal((await fetch('http://127.0.0.1:' + port + '/health')).status, 200);
   } finally { await service?.close(); await f.close(); }
 });
+
+
+test('原路径 API 仅公开已发布映射，严格检查查询并隔离数据库失败', async () => {
+  const f = await fixture();
+  try {
+    const keys = await seed(f);
+    const app = createResourceApp(new ResourceRepository(f.db));
+    const base = '/api/resources/by-path?namespace=' + encodeURIComponent(namespace) + '&path=';
+    const response = await app.request(base + encodeURIComponent('故事/0.png'));
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).key, keys[0]);
+    assert.equal((await app.request(base + 'missing')).status, 404);
+    for (const suffix of ['', 'x&path=y', 'x&unknown=y', 'x&namespace=other', '%00'])
+      assert.equal((await app.request(base + suffix)).status, 400);
+    assert.equal((await app.request('/api/resources/by-path')).status, 400);
+    await f.db.prepare('UPDATE wvn_resource_snapshots SET published=false WHERE namespace=$1').run(namespace);
+    assert.equal((await app.request(base + encodeURIComponent('故事/0.png'))).status, 404);
+    const broken = createResourceApp({ findByOriginalPath: async () => { throw Error('private database detail'); } } as unknown as ResourceRepository);
+    const failure = await broken.request(base + 'x');
+    assert.equal(failure.status, 503);
+    assert.deepEqual(await failure.json(), { error: 'resource_unavailable' });
+  } finally { await f.close(); }
+});

@@ -2,15 +2,19 @@ import assets from './public-assets.mjs';
 const prefix = "/releases/20261027-01/";
 const host = "wg-b2.saop.cc";
 const origin = "https://f003.backblazeb2.com/file/web-visual-novel";
+const namespace = 'b2/web-visual-novel/snapshot-20261028';
+const metadataLimit = 8192;
+const metadataTimeout = 5000;
 const cacheLimit = 32 * 1024 ** 2;
 const forwardedHeaders = ["range", "if-range", "if-none-match", "if-modified-since"];
 
-function result(response, method, cacheStatus, objectPath) {
+function result(response, method, cacheStatus, objectPath, metadata) {
   const headers = new Headers(response.headers);
   const ext=objectPath.split('.').at(-1).toLowerCase(),mime={js:'text/javascript; charset=utf-8',mjs:'text/javascript; charset=utf-8',wasm:'application/wasm',css:'text/css; charset=utf-8',json:'application/json',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',mp4:'video/mp4',ogg:'audio/ogg',ogv:'video/ogg',mp3:'audio/mpeg',wav:'audio/wav',ttf:'font/ttf',otf:'font/otf',woff:'font/woff',woff2:'font/woff2'};
-  if(mime[ext])headers.set('Content-Type',mime[ext]);
-  headers.set('Access-Control-Expose-Headers','Content-Length, Content-Range, Accept-Ranges, ETag, x-bz-content-sha1, x-wvn-cdn-cache, x-wvn-resource-source, x-wvn-b2-key');
-  headers.set('X-WVN-B2-Key',encodeURIComponent(decodeURIComponent(objectPath.slice(prefix.length))));
+  headers.set('Content-Type',mime[ext] ?? metadata.contentType);
+  headers.set('Access-Control-Expose-Headers','Content-Length, Content-Range, Accept-Ranges, ETag, x-bz-content-sha1, x-wvn-cdn-cache, x-wvn-resource-source, x-wvn-b2-key, x-wvn-original-key');
+  headers.set('X-WVN-B2-Key',metadata.sha256+'.bin');
+  headers.set('X-WVN-Original-Key',encodeURIComponent(decodeURIComponent(objectPath.slice(1))));
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Cross-Origin-Resource-Policy", "cross-origin");
   headers.set("X-Content-Type-Options", "nosniff");
@@ -28,6 +32,33 @@ function result(response, method, cacheStatus, objectPath) {
     headers.set("Cache-Control", "no-store");
   }
   return new Response(method === "HEAD" ? null : response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+async function deadline(promise, milliseconds) {
+  let timer;
+  try { return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Read timed out')), milliseconds); })]); }
+  finally { clearTimeout(timer); }
+}
+
+async function readMetadata(response) {
+  const reader = response.body?.getReader();
+  if (!reader) throw Error('Missing metadata');
+  let bytes = 0; const chunks = [];
+  try {
+    for (;;) {
+      const chunk = await reader.read(); if (chunk.done) break;
+      bytes += chunk.value.byteLength;
+      if (bytes > metadataLimit) { await reader.cancel(); throw Error('Metadata too large'); }
+      chunks.push(chunk.value);
+    }
+  } finally { reader.releaseLock(); }
+  const combined = new Uint8Array(bytes); let offset = 0;
+  for (const chunk of chunks) { combined.set(chunk, offset); offset += chunk.byteLength; }
+  const value = JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(combined));
+  if (!value || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value.key) || !/^[0-9a-f]{64}$/.test(value.sha256)
+    || value.url !== 'https://wg-b2.saop.cc/' + value.sha256 + '.bin' || !Number.isSafeInteger(value.bytes) || value.bytes < 0
+    || typeof value.contentType !== 'string' || value.contentType.length > 512 || !/^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+(?:;[ \x21-\x7e]*)?$/.test(value.contentType)) throw Error('Invalid metadata');
+  return value;
 }
 
 // 固定公开资源版本；不转发浏览器凭据，不写 B2，不代理账号或存档接口。
@@ -52,19 +83,61 @@ export async function handleB2Asset(request, { cache, fetcher = fetch, waitUntil
   if (url.hostname !== host || !objectPath.startsWith(prefix) || objectPath.length <= prefix.length) return new Response("Not found", { status: 404 });
   if (!["GET", "HEAD"].includes(request.method)) return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
   try{decodeURIComponent(objectPath);}catch{return new Response("Not found",{status:404});}
-  const objectURL = new URL(origin + objectPath);
-  const keyURL = "https://" + host + objectPath + "?wvn-cdn-v=2";
+  const originalPath = decodeURIComponent(objectPath.slice(1));
+  if (originalPath.length > 16384 || /[\\\u0000-\u001f\u007f]/.test(originalPath) || originalPath.split('/').some(p => !p || p === '.' || p === '..')) return new Response('Not found', {status:404});
+  const metadataURL = new URL('https://wg.saop.cc/api/resources/by-path');
+  metadataURL.searchParams.set('namespace', namespace);
+  metadataURL.searchParams.set('path', originalPath);
+  const metadataKey = new Request(metadataURL + '&wvn-metadata-v=1');
+  let metadata;
+  try {
+    const cachedMetadata = await cache.match(metadataKey);
+    if (cachedMetadata) metadata = await deadline(readMetadata(cachedMetadata), metadataTimeout);
+    else {
+      const controller = new AbortController();
+      let timer;
+      try {
+        metadata = await Promise.race([
+          (async () => {
+            const response = await fetcher(metadataURL, {method:'GET', headers:{accept:'application/json'}, redirect:'manual', signal:controller.signal});
+            if (response.status === 404) { await response.body?.cancel(); return null; }
+            if (response.status !== 200) { await response.body?.cancel(); throw Error('Metadata unavailable'); }
+            return readMetadata(response);
+          })(),
+          new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(Error('Metadata timeout')); }, metadataTimeout); }),
+        ]);
+      } finally { clearTimeout(timer); }
+      if (metadata) await cache.put(metadataKey, Response.json(metadata, {headers:{'Cache-Control':'public, max-age=86400'}}));
+    }
+  } catch { return new Response('Resource mapping unavailable', {status:502,headers:{'Cache-Control':'no-store'}}); }
+  if (!metadata) return new Response('Not found', {status:404,headers:{'Cache-Control':'no-store'}});
+  const objectURL = new URL(origin + '/' + metadata.sha256 + '.bin');
+  const keyURL = "https://" + host + objectPath + "?wvn-cdn-v=3&sha256=" + metadata.sha256;
   const headers = new Headers({ "accept-encoding": "identity" });
   for (const name of forwardedHeaders) if (request.headers.has(name)) headers.set(name, request.headers.get(name));
-  const lookup = new Request(keyURL, { headers });
-  let cached = await cache.match(lookup);
-  if (cached) {
-    const ifRange = headers.get("if-range");
-    if (ifRange && headers.has("range")) {
-      const date = Date.parse(ifRange), modified = Date.parse(cached.headers.get("last-modified"));
-      if (ifRange !== cached.headers.get("etag") && !(Number.isFinite(date) && Number.isFinite(modified) && date >= modified)) cached = await cache.match(new Request(keyURL));
+  // Cache API 不处理 If-Range；先核验完整对象验证器，再交给它处理 Range/条件请求。
+  const complete = await cache.match(new Request(keyURL));
+  if (complete) {
+    const ifRange = headers.get('if-range');
+    let useRange = headers.has('range');
+    if (ifRange && useRange) {
+      const date = Date.parse(ifRange), modified = Date.parse(complete.headers.get('last-modified'));
+      useRange = !ifRange.startsWith('W/') && (ifRange === complete.headers.get('etag') || (!ifRange.startsWith('"') && Number.isFinite(date) && Number.isFinite(modified) && date >= modified));
+      if (!useRange) headers.delete('range');
     }
-    if (cached) return result(cached, request.method, "HIT", objectPath);
+    const etag = complete.headers.get('etag');
+    const inm = headers.get('if-none-match');
+    const modified = Date.parse(complete.headers.get('last-modified'));
+    const ims = Date.parse(headers.get('if-modified-since'));
+    if ((inm && (inm.trim() === '*' || inm.split(',').some(v => v.trim().replace(/^W\//,'') === etag?.replace(/^W\//,'')))) || (!inm && Number.isFinite(ims) && Number.isFinite(modified) && modified <= ims)) {
+      const conditionalHeaders = new Headers(complete.headers);
+      conditionalHeaders.delete('content-length'); conditionalHeaders.delete('content-range');
+      return result(new Response(null,{status:304,headers:conditionalHeaders}),request.method,'HIT',objectPath,metadata);
+    }
+    if (!useRange) return result(complete,request.method,'HIT',objectPath,metadata);
+    const ranged = await cache.match(new Request(keyURL,{headers:{range:headers.get('range')}}));
+    if (ranged?.status === 206 || ranged?.status === 416) return result(ranged,request.method,'HIT',objectPath,metadata);
+    // 某些 Cache 实现忽略 Range 并返回 200，此时由 B2 执行 Range。
   }
   for(let attempt=1;attempt<=3;attempt++){
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('B2 cache fill timed out','TimeoutError')),30000);
@@ -73,13 +146,22 @@ export async function handleB2Asset(request, { cache, fetcher = fetch, waitUntil
       const upstream=await fetcher(objectURL,{method:request.method,headers,redirect:'manual',signal:controller.signal});
       if(upstream.status>=300&&upstream.status<400&&upstream.status!==304){await upstream.body?.cancel();return new Response('B2 redirect refused',{status:502,headers:{'Cache-Control':'no-store','X-WVN-CDN-Cache':'ERROR'}});}
       if(upstream.status>=500){await upstream.body?.cancel();throw Error('B2 returned '+upstream.status);}
-      const response=result(upstream,request.method,'MISS',objectPath),size=Number(response.headers.get('content-length'));
+      const response=result(upstream,request.method,'MISS',objectPath,metadata),size=Number(response.headers.get('content-length'));
       if(request.method==='GET'&&response.status===200&&Number.isSafeInteger(size)&&size>0&&size<=cacheLimit){
         // 在边缘流式收齐小对象后才发响应头，断流可重试；不在应用服务器中转或整包缓冲。
-        await cache.put(new Request(keyURL),response);
+        let received = 0;
+        const bounded = response.body.pipeThrough(new TransformStream({
+          transform(chunk, controller) {
+            received += chunk.byteLength;
+            if (received > size || received > cacheLimit) throw Error('B2 body exceeds declared length');
+            controller.enqueue(chunk);
+          },
+          flush() { if (received !== size) throw Error('B2 body length mismatch'); },
+        }));
+        await deadline(cache.put(new Request(keyURL),new Response(bounded,{status:response.status,headers:response.headers})),30000);
         const complete=await cache.match(new Request(keyURL));
         if(!complete)throw Error('B2 edge cache fill was not retained');
-        return result(complete,request.method,'MISS',objectPath);
+        return result(complete,request.method,'MISS',objectPath,metadata);
       }
       // 大游戏包与 Range 直接由 CDN 流式传输，收到响应头后不设总下载期限。
       return response;

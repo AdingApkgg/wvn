@@ -36,6 +36,13 @@ export function createResourceApp(repository: ResourceRepository) {
     if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length !== 1 || !('keys' in body)) throw new ResourceRequestError();
     return c.json(await repository.resolve((body as { keys: string[] }).keys));
   });
+  app.get('/api/resources/by-path', async c => {
+    const query = new URL(c.req.url).searchParams;
+    if ([...query.keys()].some(key => !['namespace', 'path'].includes(key) || query.getAll(key).length !== 1))
+      throw new ResourceRequestError();
+    const resource = await repository.findByOriginalPath(query.get('namespace') ?? '', query.get('path') ?? '');
+    return resource ? c.json(resource) : c.json({ error: 'not_found' }, 404);
+  });
   app.get('/api/resources/:key', async c => {
     const resource = await repository.findByKey(c.req.param('key'));
     return resource ? c.json(resource) : c.json({ error: 'not_found' }, 404);

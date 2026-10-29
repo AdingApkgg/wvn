@@ -129,3 +129,15 @@ node_modules/.bin/tsx --test --test-concurrency=1 \
 ```
 
 PG 测试使用 `WVN_TEST_DATABASE_URL`，仅允许专用 `wvn_qa` 数据库和角色，并为每项测试创建随机 schema。Redis 测试只删除各自随机前缀的键，不执行清库。覆盖固定 URL、MIME、未知和非法 key、批量缺失、清单分页、部分导入隔离、只读源、重跑 UUID、冲突恢复、错误回执、WAL 拒绝、独立全量元数据校验、真实 HTTP 服务、真实缓存命中与超时回源。
+
+## 游戏 CDN 的 CAS 读取
+
+`GET /api/resources/by-path?namespace=...&path=...` 使用完整原路径查询已发布 PG 映射，返回与 UUID 查询相同的 `{ key, url, sha256, bytes, contentType }`。namespace/path 必填、各出现一次；重复或未知参数、非法输入返回 400，未知/未发布映射返回 404，数据库失败返回 503。
+
+Worker 保留 `/releases/20261027-01/` 以及游戏/引擎虚拟路径；先归一到完整原路径，再只查询固定 `https://wg.saop.cc/api/resources/by-path`、命名空间 `b2/web-visual-novel/snapshot-20261028`。元数据最长 8192 字节、查询及正文读取 5 秒超时；只有有效 UUID v4、64 位小写 SHA、与 SHA 完全相同的公开 URL、安全整数大小及合法 MIME 才能使用。边缘元数据缓存版本为 `wvn-metadata-v=1`，有效期一天；缓存命中也重新验证。缺失、非法或失败均不读取旧 B2 对象。
+
+实际正文只请求 `https://f003.backblazeb2.com/file/web-visual-novel/{sha256}.bin`，不转发 Cookie/Authorization，拒绝重定向。正文缓存键包含 `wvn-cdn-v=3` 和摘要，隔离旧缓存。小于等于 32 MiB 且有明确正整数 Content-Length 的成功 GET 会完整填入 Cache API 后响应，长度不一致/断流重试，最多三次，每次 30 秒。大对象、未知长度、Range 直接流式返回，不设置总下载期限。HEAD 不传正文；206/304 不写完整对象缓存。缓存命中按验证器处理 If-None-Match/If-Modified-Since，If-Range 失配忽略 Range 并返回完整对象；匹配后使用 Cache API 的 Range，若缓存实现不能返回部分内容则请求 B2。
+
+诊断头 `X-WVN-B2-Key` 为实际物理 `{sha256}.bin`；`X-WVN-Original-Key` 为 `encodeURIComponent` 编码的完整原路径（含 `releases/20261027-01/`）；`X-WVN-Resource-Source: b2`；`X-WVN-CDN-Cache: HIT|MISS`。四者均通过 CORS 暴露。脚本/WASM 继续使用扩展名对应 MIME，其余使用映射 MIME；HTML 保持 `application/octet-stream`、`no-transform`，供主站网关隔离。CORS `*`、CORP `cross-origin` 与 `nosniff` 保持不变。
+
+以上为实现合同；生产切换、Cloudflare/B2 配置和真实浏览器验收须单独记录。
