@@ -58,3 +58,28 @@ test('Text insertion, constructed stylesheet replacement and escaped CSS request
 test('empty fetch and XHR URLs fail before any old-base network request',{timeout:10000},async t=>{
  const {page,requests}=await setup(t);const result=await page.evaluate(async()=>{let fetchFailed=false,xhrFailed=false;try{await fetch('')}catch{fetchFailed=true}try{new XMLHttpRequest().open('GET','')}catch{xhrFailed=true}return {fetchFailed,xhrFailed}});assert.deepEqual(result,{fetchFailed:true,xhrFailed:true});assert.deepEqual(requests,[]);
 });
+test('each inserted Text keeps its own CSS and removing or replacing it changes only that rule',{timeout:10000},async t=>{
+ const {page}=await setup(t);const result=await page.evaluate(()=>{
+  const style=document.createElement('style');document.head.append(style);const target=document.querySelector('.target');
+  const first=document.createTextNode('.target{color:rgb(10,20,30)}'),second=document.createTextNode('.target{background-color:rgb(40,50,60)}');
+  const returned=style.appendChild(first);style.appendChild(second);
+  const read=()=>({color:getComputedStyle(target).color,background:getComputedStyle(target).backgroundColor});
+  const before={...read(),first:first.textContent,second:second.textContent,count:style.childNodes.length,returned:returned===first};
+  style.removeChild(first);const removed=read();style.appendChild(first);
+  const replacement=document.createTextNode('.target{background-color:rgb(70,80,90)}');const replaced=style.replaceChild(replacement,second);const after={...read(),text:replacement.textContent,returned:replaced===second,oldDetached:!second.parentNode};
+  style.removeChild(first);style.removeChild(replacement);return {before,removed,after,empty:read(),count:style.childNodes.length};
+ });
+ assert.deepEqual(result.before,{color:'rgb(10, 20, 30)',background:'rgb(40, 50, 60)',first:'.target{color:rgb(10,20,30)}',second:'.target{background-color:rgb(40,50,60)}',count:2,returned:true});
+ assert.deepEqual(result.removed,{color:'rgb(0, 0, 0)',background:'rgb(40, 50, 60)'});assert.deepEqual(result.after,{color:'rgb(10, 20, 30)',background:'rgb(70, 80, 90)',text:'.target{background-color:rgb(70,80,90)}',returned:true,oldDetached:true});assert.deepEqual(result.empty,{color:'rgb(0, 0, 0)',background:'rgba(0, 0, 0, 0)'});assert.equal(result.count,0);
+});
+test('loaded link can be detached and the same node reattached',{timeout:10000},async t=>{
+ const {page,requests}=await setup(t);await page.evaluate(()=>{document.querySelector('.target').classList.add('slow');window.link=document.createElement('link');link.rel='stylesheet';link.onload=()=>events.load++;link.onerror=()=>events.error++;link.href='fast.css';document.head.append(link)});await page.evaluate(()=>api.ready());
+ const before=await page.evaluate(()=>getComputedStyle(document.querySelector('.target')).color);await page.evaluate(()=>link.remove());const detached=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,blobs:liveBlobs.size}));
+ await page.evaluate(()=>document.head.append(link));await page.evaluate(()=>api.ready());const after=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,sheet:!!link.sheet,events,blobs:liveBlobs.size}));
+ assert.equal(before,'rgb(1, 2, 3)');assert.deepEqual(detached,{color:'rgb(0, 0, 0)',blobs:0});assert.deepEqual(after,{color:'rgb(1, 2, 3)',sheet:true,events:{load:2,error:0},blobs:1});assert(requests.every(url=>/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)));
+});
+for(const kind of ['link','style'])test('pending '+kind+' resumes its logical source after remove and reappend',{timeout:10000},async t=>{
+ const {page,requests,slow,unlock}=await setup(t);await page.evaluate(kind=>{document.querySelector('.target').classList.add('slow');window.pendingStyle=document.createElement(kind);pendingStyle.onerror=()=>events.error++;if(kind==='link'){pendingStyle.rel='stylesheet';pendingStyle.onload=()=>events.load++;pendingStyle.href='slow.css'}else pendingStyle.textContent='@import "slow.css";';document.head.append(pendingStyle)},kind);await slow;
+ await page.evaluate(()=>pendingStyle.remove());await page.evaluate(()=>api.ready());await page.evaluate(kind=>{if(kind==='link'){pendingStyle.removeAttribute('rel');pendingStyle.rel='stylesheet';}document.head.append(pendingStyle)},kind);unlock();await page.evaluate(()=>api.ready());
+ const result=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,sheet:!!pendingStyle.sheet,rules:pendingStyle.sheet?.cssRules.length,events}));assert.equal(result.color,'rgb(1, 2, 3)');assert(result.sheet);assert(result.rules>0);assert.equal(result.events.error,0);if(kind==='link')assert.equal(result.events.load,1);assert.equal(requests.filter(url=>url===rows[0].url).length,2);assert(requests.every(url=>/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)));
+});

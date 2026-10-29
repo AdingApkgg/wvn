@@ -1,4 +1,4 @@
-import {rewriteCasCss,rewriteCasCssUrls} from './cas-resources.mjs';
+import {rewriteCasCss,rewriteCasCssUrls,rewriteCasCssParts,rewriteCasCssPartsAsync} from './cas-resources.mjs';
 // 在浏览器原生请求开始之前同步映射；不使用 MutationObserver 补救已发出的请求。
 export function installCasBrowser(win,resolver){
  const doc=win.document,EP=win.Element.prototype,NP=win.Node.prototype;
@@ -6,7 +6,7 @@ export function installCasBrowser(win,resolver){
  const fragmentMethods=Object.fromEntries(['append','prepend','replaceChildren'].map(name=>[name,win.DocumentFragment.prototype[name]]));
  const inner=Object.getOwnPropertyDescriptor(EP,'innerHTML'),text=Object.getOwnPropertyDescriptor(NP,'textContent');
  const nativeFetch=win.fetch.bind(win),open=win.XMLHttpRequest.prototype.open;
- const pending=new Set(),failures=[],preparedStyles=new WeakSet(),styles=new WeakMap(),links=new WeakMap(),active=new Set();let preparing=0;
+ const pending=new Set(),failures=[],preparedStyles=new WeakSet(),styles=new WeakMap(),links=new WeakMap(),paused=new WeakMap(),textSources=new WeakMap(),active=new Set();let preparing=0;
  const css=value=>rewriteCasCssUrls(String(value),'index.html',resolver);
  function fetchURL(input){const url=resolver.url(input instanceof win.Request?input.url:input);if(!url)throw Error('Empty network resource URL');return url}
  win.fetch=function(input,options){
@@ -18,11 +18,12 @@ export function installCasBrowser(win,resolver){
  const stateMap=kind=>kind==='style'?styles:links;
  function current(state){return stateMap(state.kind).get(state.node)===state&&!state.controller.signal.aborted;}
  function cancel(node,kind){
-  const map=stateMap(kind),state=map.get(node);if(!state)return;map.delete(node);active.delete(state);state.controller.abort();state.cancelLoad?.();
+  paused.delete(node);const map=stateMap(kind),state=map.get(node);if(!state)return;map.delete(node);active.delete(state);state.controller.abort();state.cancelLoad?.();
   if(state.blob){win.URL.revokeObjectURL(state.blob);if(node.getAttribute('href')===state.blob)remove.call(node,'href');}
  }
+ function pause(state){const saved={kind:state.kind,href:state.href};cancel(state.node,state.kind);paused.set(state.node,saved);if(state.kind==='style')preparedStyles.delete(state.node);}
  function begin(node,kind){cancel(node,kind);const state={node,kind,controller:new win.AbortController(),connected:node.isConnected};stateMap(kind).set(node,state);active.add(state);return state;}
- function reconcile(){for(const state of [...active]){if(!current(state)){active.delete(state);continue}if(state.node.isConnected){state.connected=true;state.start?.();}else if(state.connected)cancel(state.node,state.kind);}}
+ function reconcile(){for(const state of [...active]){if(!current(state)){active.delete(state);continue}if(state.node.isConnected){state.connected=true;state.start?.();}else if(state.connected)pause(state);}}
  function schedule(state,run){
   state.start=()=>{if(state.started)return;state.started=true;
    const task=Promise.resolve().then(run).catch(error=>{if(current(state)&&error.name!=='AbortError'){failures.push({state,error});if(!error.nativeEvent)state.node.dispatchEvent(new win.Event('error'));}}).finally(()=>{pending.delete(task);if(state.kind==='style')active.delete(state);});pending.add(task);
@@ -35,10 +36,16 @@ export function installCasBrowser(win,resolver){
   const row=resolver.files.get(path)??resolver.engines.get(path);if(!row)throw Error('Unregistered stylesheet');if(row.bytes>8*1024**2)throw Error('Stylesheet exceeds limit');
   const response=await nativeFetch(row.url,{credentials:'omit',redirect:'error',signal});if(!response.ok)throw Error('Stylesheet download failed');const value=await response.text();signal.throwIfAborted();if(value.length>8*1024**2)throw Error('Stylesheet exceeds limit');cssCache.set(path,value);return value;
  }
- function inlineStyle(node,value,render=result=>text.set.call(node,result)){
-  const state=begin(node,'style');state.source=String(value);preparedStyles.add(node);
-  try{const result=css(state.source);render(result);active.delete(state);return;}catch(error){if(error.message!=='CSS import requires preparation'){active.delete(state);throw error;}}
-  render('');schedule(state,async()=>{const result=await rewriteCasCss(state.source,'index.html',resolver,path=>readCSS(path,state.controller.signal));if(current(state)&&node.isConnected)render(result);});
+ function sourceText(node){const value=text.get.call(node),saved=textSources.get(node);return saved?.rendered===value?saved.source:value;}
+ function prepareStyle(node,nodes=[...node.childNodes]){
+  const state=begin(node,'style'),parts=nodes.map(sourceText);state.source=parts.join('');preparedStyles.add(node);
+  const render=values=>nodes.forEach((child,index)=>{textSources.set(child,{source:parts[index],rendered:values[index]});text.set.call(child,values[index]);});
+  try{render(rewriteCasCssParts(parts,'index.html',resolver));active.delete(state);return;}catch(error){if(error.message!=='CSS import requires preparation'){active.delete(state);throw error;}}
+  render(parts.map(()=>''));schedule(state,async()=>{const result=await rewriteCasCssPartsAsync(parts,'index.html',resolver,path=>readCSS(path,state.controller.signal));if(current(state)&&node.isConnected)render(result);});
+ }
+ function inlineStyle(node,value){
+  const source=String(value??''),children=source?[doc.createTextNode(source)]:[];
+  prepareStyle(node,children);text.set.call(node,'');for(const child of children)append.call(node,child);reconcile();
  }
  function stylesheet(node,href){
   const state=begin(node,'link');state.href=String(href);remove.call(node,'href');set.call(node,'data-cas-href',state.href);
@@ -83,6 +90,7 @@ export function installCasBrowser(win,resolver){
   if(!node||typeof node==='string')return node;
   if(node.nodeType===1){
    if(node.localName==='base')return node;
+   const suspended=paused.get(node);if(suspended?.kind==='link')stylesheet(node,suspended.href);
    if(node.localName==='link'){
     const rel=node.getAttribute('rel')?.toLowerCase()??'';
     if(rel==='manifest'||rel==='preload'||rel==='prefetch'||rel==='modulepreload'){remove.call(node,'href');return node;}
@@ -90,7 +98,7 @@ export function installCasBrowser(win,resolver){
    }
    for(const {name,value} of [...node.attributes]){const mapped=attr(node,name,value);if(mapped!==value)set.call(node,name,mapped);}
    if(['img','script','video','audio','link'].includes(node.localName))set.call(node,'crossorigin','anonymous');
-   if(node.localName==='style'&&!preparedStyles.has(node)){inlineStyle(node,text.get.call(node));}
+   if(node.localName==='style'&&!preparedStyles.has(node)){prepareStyle(node);}
   }
   for(const child of [...node.childNodes??[]])prepare(child);return node;
  }
@@ -98,7 +106,7 @@ export function installCasBrowser(win,resolver){
   if(node.localName!=='link')return false;const key=name.toLowerCase();
   if(key==='href'&&node.rel.toLowerCase().split(/\s+/).includes('stylesheet')){stylesheet(node,String(value));return true;}
   if(key==='rel'){
-   const saved=links.get(node)?.href??node.getAttribute('href');cancel(node,'link');
+   const saved=links.get(node)?.href??node.getAttribute('href')??node.getAttribute('data-cas-href');cancel(node,'link');
    set.call(node,name,value);
    if(String(value).toLowerCase().split(/\s+/).includes('stylesheet')&&saved)stylesheet(node,saved);
    else if(saved)set.call(node,'href',resolver.url(saved));return true;
@@ -116,13 +124,10 @@ export function installCasBrowser(win,resolver){
   }});}
  }
  function styleMutation(node,method,args){
-  const state=styles.get(node),source=state?.source??text.get.call(node),container=doc.createDocumentFragment();cancel(node,'style');
+  const container=doc.createDocumentFragment();cancel(node,'style');
   while(node.firstChild)append.call(container,node.firstChild);
-  const write=value=>{let first=[...container.childNodes].find(child=>child.nodeType===3);if(!first){first=doc.createTextNode('');append.call(container,first);}for(const child of container.childNodes)text.set.call(child,child===first?value:'');return first;};
-  write(source);
-  const original=method==='appendChild'?append:method==='insertBefore'?insert:method==='replaceChild'?replace:fragmentMethods[method];
-  const result=original.apply(container,args),next=text.get.call(container);let first;
-  inlineStyle(node,next,value=>{if(!first)first=write(value);else text.set.call(first,value)});
+  const original=method==='appendChild'?append:method==='insertBefore'?insert:method==='replaceChild'?replace:method==='removeChild'?removeChild:fragmentMethods[method];
+  const result=original.apply(container,args);prepareStyle(node,[...container.childNodes]);
   append.call(node,container);reconcile();return result;
  }
  function fragment(html){const template=doc.createElement('template');inner.set.call(template,String(html));prepare(template.content);return template.content}
@@ -131,7 +136,8 @@ export function installCasBrowser(win,resolver){
  EP.insertAdjacentHTML=function(position,html){const content=fragment(html);switch(position.toLowerCase()){case 'beforebegin':insert.call(this.parentNode,content,this);break;case 'afterbegin':insert.call(this,content,this.firstChild);break;case 'beforeend':append.call(this,content);break;case 'afterend':insert.call(this.parentNode,content,this.nextSibling);break;default:throw Error('Invalid insertion position')}reconcile();};
  for(const method of ['appendChild','insertBefore','replaceChild']){const original=NP[method];NP[method]=function(node,...args){if(this.nodeType===1&&this.localName==='style')return styleMutation(this,method,[node,...args]);const result=original.call(this,prepare(node),...args);reconcile();return result;};}
  for(const proto of [EP,win.DocumentFragment.prototype,win.Document.prototype])for(const method of ['append','prepend','replaceChildren','before','after','replaceWith']){const original=proto[method];if(original)proto[method]=function(...nodes){if(this.nodeType===1&&this.localName==='style'&&fragmentMethods[method])return styleMutation(this,method,nodes);const result=original.apply(this,nodes.map(prepare));reconcile();return result;};}
- const removeChild=NP.removeChild;NP.removeChild=function(node){const result=removeChild.call(this,node);reconcile();return result;};
+ const removeChild=NP.removeChild;NP.removeChild=function(node){if(this.nodeType===1&&this.localName==='style')return styleMutation(this,'removeChild',[node]);const result=removeChild.call(this,node);reconcile();return result;};
+ const removeText=win.CharacterData.prototype.remove;win.CharacterData.prototype.remove=function(){if(this.parentNode?.localName==='style'){styleMutation(this.parentNode,'removeChild',[this]);return;}return removeText.call(this)};
  const removeElement=EP.remove;EP.remove=function(){const result=removeElement.call(this);reconcile();return result;};
  Object.defineProperty(NP,'textContent',{...text,set(value){if(this.nodeType===1&&this.localName==='style')return inlineStyle(this,String(value));return text.set.call(this,value)}});
  const CSP=win.CSSStyleDeclaration.prototype,property=CSP.setProperty;
