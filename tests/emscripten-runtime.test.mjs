@@ -103,3 +103,35 @@ test('direct CDN engines reuse already verified WASM and package bytes without a
  assert.equal(win.Module.getPreloadedPackage('game.zip',77),'original-fallback');
  assert.throws(()=>win.Module.getPreloadedPackage('renpy.data',9),/size/);
 });
+
+// 虚拟时钟仅在单例内替换，每次等待推进一分钟，不经过真实等待。
+async function readinessClock(run){
+ const originalNow=Date.now,originalTimer=globalThis.setTimeout;let now=0,onTick=()=>{};
+ Date.now=()=>now;globalThis.setTimeout=fn=>{now+=60000;onTick(now);queueMicrotask(fn)};
+ try{await run({now:()=>now,tick:fn=>{onTick=fn}})}finally{Date.now=originalNow;globalThis.setTimeout=originalTimer}
+}
+test('readiness accepts slow advancing transfers beyond 180 seconds, then native readiness',()=>readinessClock(async clock=>{
+ const driver=createEmscriptenDriver({kind:'RenPy'});let progressAt=0;
+ clock.tick(time=>{if(time<=300000)progressAt=time});
+ await driver.waitReady(()=>clock.now()>=360000,{progressAt:()=>progressAt,totalTimeout:1800000});assert.equal(driver.state,'running');
+}));
+test('readiness bounds stalled transfers and post-download hung initialization',()=>readinessClock(async clock=>{
+ const driver=createEmscriptenDriver({kind:'RenPy'});let progressAt=0;
+ clock.tick(time=>{if(time<=240000)progressAt=time});
+ await assert.rejects(driver.waitReady(()=>false,{progressAt:()=>progressAt,totalTimeout:1800000}),/timed out/);
+ assert(clock.now()<=480000);assert.equal(driver.state,'failed');
+}));
+test('continuous transfer progress cannot exceed the finite total startup cap',()=>readinessClock(async clock=>{
+ const driver=createEmscriptenDriver({kind:'RenPy'});
+ await assert.rejects(driver.waitReady(()=>false,{progressAt:clock.now,totalTimeout:1800000}),/timed out/);assert(clock.now()>=1800000&&clock.now()<=1860000);
+}));
+test('cancelled or failed readiness never becomes running even if the predicate turns true',()=>readinessClock(async clock=>{
+ for(const reason of ['cancel','engine']){
+  const driver=createEmscriptenDriver({kind:'RenPy'}),win={},controller=new AbortController();driver.installGlobal(win);const start=clock.now();
+  clock.tick(()=>{if(reason==='cancel')controller.abort();else win.Module.onAbort('failed')});
+  await assert.rejects(driver.waitReady(()=>clock.now()>start,{signal:controller.signal,progressAt:clock.now,totalTimeout:1800000}),/cancelled|failed/);assert.equal(driver.state,'failed');
+ }
+}));
+test('legacy readiness without progress still uses its original absolute timeout',()=>readinessClock(async clock=>{
+ const driver=createEmscriptenDriver({kind:'Artemis'});await assert.rejects(driver.waitReady(()=>false),/timed out/);assert(clock.now()>=180000&&clock.now()<=240000);
+}));

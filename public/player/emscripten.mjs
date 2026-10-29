@@ -80,6 +80,17 @@ export function createEmscriptenDriver({kind,status=()=>{},prepareFilesystem,pre
   beforeScript(){if(kind==='ONS')return;const runs=typeof module.preRun==='function'?[module.preRun]:module.preRun??[];module.preRun=[...runs.filter(fn=>fn!==prepare),prepare];},
   async startFactory(factory,options){if(kind!=='ONS'||typeof factory!=='function')throw Error('Invalid factory');change('loading');try{const result=await factory(configure(options,true));module=result??options;if(state!=='failed')change('initialized');else throw Error('Emscripten driver failed');return module;}catch(error){fail();throw error;}},
   running(){change('running');},
-  async waitReady(predicate,{timeout=180000,poll=100}={}){const deadline=Date.now()+timeout;while(!predicate()){if(state==='failed')throw Error('Engine initialization failed');if(Date.now()>deadline){fail();throw Error('Engine initialization timed out');}await new Promise(r=>setTimeout(r,poll));}change('running');},
+  async waitReady(predicate,{timeout=180000,poll=100,progressAt,totalTimeout=timeout,signal}={}){
+   const started=Date.now(),deadline=started+totalTimeout;
+   for(;;){
+    // 必须先检查终止状态，避免 onAbort/取消与原生就绪同时发生时被恢复为 running。
+    if(state==='failed')throw Error('Engine initialization failed');
+    if(signal?.aborted){fail();throw Error('Engine initialization cancelled');}
+    const time=Date.now(),observed=progressAt?.(),last=Number.isFinite(observed)?Math.max(started,Math.min(time,observed)):started;
+    if(time>=deadline||time>last+timeout){fail();throw Error('Engine initialization timed out');}
+    if(predicate()){change('running');return;}
+    await new Promise(r=>setTimeout(r,poll));
+   }
+  },
  };
 }

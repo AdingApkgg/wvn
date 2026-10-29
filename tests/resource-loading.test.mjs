@@ -43,3 +43,20 @@ test('media with preload none shows progress only when loading actually starts',
  class Media extends EventTarget{preload='none';get src(){return this.url}set src(value){this.url=value}setAttribute(name,value){this[name]=value}}
  const events=[],r=required('createResourceReporter')(e=>events.push(e));r.activate();const win={HTMLMediaElement:Media},stop=required('observeResourceRequests')(win,{phase(){}},url=>url?.startsWith('/game/')?'game':null,r),audio=new Media();audio.src='/game/voice.ogg';assert.equal(events.at(-1).active,0);audio.dispatchEvent(new Event('loadstart'));assert.equal(events.at(-1).active,1);audio.dispatchEvent(new Event('loadeddata'));assert.equal(events.at(-1).active,0);stop();
 });
+
+test('startup activity only counts strictly advancing native bytes and preserves terminal failures',()=>{
+ class XHR extends EventTarget{open(){}send(){}}
+ const events=[],win={XMLHttpRequest:XHR},stop=required('observeResourceRequests')(win,{phase(){},download(){}},()=> 'game',undefined,event=>events.push(event));
+ const request=new XHR();request.open('GET','/game.zip');request.send();
+ const progress=loaded=>request.dispatchEvent(Object.assign(new Event('progress'),{loaded,total:100,lengthComputable:true}));
+ for(const loaded of [0,10,10,9,NaN,20])progress(loaded);
+ assert.deepEqual(events,[{kind:'game',progress:true},{kind:'game',progress:true}]);
+ request.dispatchEvent(new Event('abort'));request.dispatchEvent(new Event('loadend'));progress(40);
+ assert.deepEqual(events.at(-1),{kind:'game',failed:true});assert.equal(events.length,3);stop();
+});
+test('native stream cancellation terminates startup instead of refreshing progress',async()=>{
+ const events=[],response=new Response(new ReadableStream({start(c){c.enqueue(new Uint8Array([1]))}})),win={fetch:()=>Promise.resolve(response)};
+ const stop=required('observeResourceRequests')(win,{phase(){}},()=> 'game',undefined,event=>events.push(event));
+ await win.fetch('/game.zip');const reader=response.body.getReader();await reader.read();await reader.cancel();
+ assert.deepEqual(events,[{kind:'game',progress:true},{kind:'game',failed:true}]);stop();
+});

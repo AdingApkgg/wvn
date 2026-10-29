@@ -66,15 +66,15 @@ export function createResourceReporter(send,{now=()=>Date.now()}={}){
   },
  };
 }
-export function observeResourceRequests(win,startup,classify,resources){
+export function observeResourceRequests(win,startup,classify,resources,activity=()=>{}){
  const cleanups=new Set(),requests=new WeakMap(),pending=new Set();let closed=false;
  const kindOf=resource=>safe(()=>classify(resource));
  function begin(resource){
   const kind=resource==null?null:kindOf(resource);if(!kind||closed)return null;
   safe(()=>startup.phase('downloading',kind));const report=resources?.begin(),meter=createTransferMeter();
-  const item={url:safe(()=>new URL(typeof resource==='string'?resource:resource?.url??resource?.href,win.document?.baseURI).href),at:win.performance?.now?.()??0,done:false,cleanups:new Set(),
-   progress(loaded,total){safe(()=>{startup.download?.(kind,loaded,total,meter.sample(loaded,total));report?.progress(loaded,total)})},
-   end(failed=false){if(item.done)return;item.done=true;pending.delete(item);for(const cleanup of [...item.cleanups]){safe(cleanup);cleanups.delete(cleanup)}item.cleanups.clear();safe(()=>report?.end(failed))}};
+  const item={url:safe(()=>new URL(typeof resource==='string'?resource:resource?.url??resource?.href,win.document?.baseURI).href),at:win.performance?.now?.()??0,done:false,loaded:0,cleanups:new Set(),
+   progress(loaded,total){if(item.done||closed)return;if(Number.isFinite(loaded)&&loaded>item.loaded){item.loaded=loaded;safe(()=>activity({kind,progress:true}))}safe(()=>{startup.download?.(kind,loaded,total,meter.sample(loaded,total));report?.progress(loaded,total)})},
+   end(failed=false){if(item.done)return;item.done=true;if(failed)safe(()=>activity({kind,failed:true}));pending.delete(item);for(const cleanup of [...item.cleanups]){safe(cleanup);cleanups.delete(cleanup)}item.cleanups.clear();safe(()=>report?.end(failed))}};
   pending.add(item);return item;
  }
  function wrapMethod(object,key,wrap,scope){
@@ -97,7 +97,7 @@ export function observeResourceRequests(win,startup,classify,resources){
   wrapMethod(response.body,'getReader',original=>function(...args){
    const reader=original.apply(this,args);
    wrapMethod(reader,'read',read=>function(...values){try{return observePromise(read.apply(this,values),chunk=>{if(chunk.done)item.end();else {loaded+=chunk.value?.byteLength??0;item.progress(loaded,total||undefined)}},()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
-   wrapMethod(reader,'cancel',cancel=>function(...values){try{return observePromise(cancel.apply(this,values),()=>item.end(),()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
+   wrapMethod(reader,'cancel',cancel=>function(...values){try{return observePromise(cancel.apply(this,values),()=>item.end(true),()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
    return reader;
   },item.cleanups);
  }
