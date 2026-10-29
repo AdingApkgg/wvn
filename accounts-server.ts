@@ -1,3 +1,4 @@
+import {CasManifestService,createCasManifestApp,RENPY_RELEASE} from './src/player/cas-manifest.server.ts';
 import { mountPublicPlatform } from './src/platform/public.server.ts';
 import { mountAccountRooms } from './src/platform/rooms.server.ts';
 import {registerDirectB2Resources} from './src/player/b2.server.ts';
@@ -86,7 +87,9 @@ if (process.env.WG_ACCOUNT_UI === "1") {
     if(process.env.WG_ONS_PILOT!=='1')throw new Error('Cloud player requires the sandbox pilot');
     if(process.env.WG_B2_CONTROL_FILE){
       registerOnsModules(service.app);
-      registerDirectB2Resources(service.app,{document:JSON.parse(readFileSync(process.env.WG_B2_CONTROL_FILE,'utf8')),origin,engineReleaseId:engineRuntime?.release.id??engineCandidate?.release.id});
+      const document=JSON.parse(readFileSync(process.env.WG_B2_CONTROL_FILE,'utf8'));
+      service.app.route('/',createCasManifestApp(new CasManifestService(platform.versions,platform.repository,{document,namespace:'b2/web-visual-novel/snapshot-20261028',inventorySha256:'fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01',engineReleaseId:RENPY_RELEASE})));
+      registerDirectB2Resources(service.app,{document,origin,engineReleaseId:engineRuntime?.release.id??engineCandidate?.release.id,cas:true});
     } else if (process.env.WG_RESOURCE_UPSTREAM) {
       registerOnsModules(service.app);
       registerRemotePlayerResources(service.app, { upstream: process.env.WG_RESOURCE_UPSTREAM,projections:process.env.WG_PREVIEW_RESOURCE_PROJECTIONS?previewResourceProjections(JSON.parse(readFileSync(process.env.WG_PREVIEW_RESOURCE_PROJECTIONS,'utf8')),process.env.WG_DEPLOYMENT_MODE??'preview'):undefined });

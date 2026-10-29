@@ -29,8 +29,72 @@ class CleanupTest(unittest.TestCase):
         c=sqlite3.connect(self.i);c.execute(sql);c.commit();c.close()
     def receipt(self):
         p=m.ro(self.p);meta=dict(p.execute('SELECT key,value FROM meta'));p.close()
-        r={k:meta[k] for k in ('namespace','bucket','frozen_sha256','inventory_sha256')};r.update(plan_sha256=m.digest(self.p),accepted=True,worker_revision='worker',api_revision='api',issued_by='root',gates={k:True for k in ('api','worker','browser','cas_uncached','range','reentry')})
+        r={k:meta[k] for k in ('namespace','bucket','frozen_sha256','inventory_sha256','enrichment_sha256')};r.update(plan_sha256=m.digest(self.p),accepted=True,delivery_mode='browser-direct-cas',worker_free=True,api_revision='api',client_revision='client',cf_config_sha256='c'*64,issued_by='test-only',gates={k:True for k in ('api','no_worker','browser','cas_uncached','range','reentry','mime','cors')})
         file=self.root/'receipt.json';file.write_text(json.dumps(r));return file
+    def duplicate(self):
+        self.mutate("INSERT INTO versions SELECT 'duplicate',name,action,bytes,sha1,metadata_sha256,0,is_cas,sse_c,retention,legal_hold FROM versions WHERE file_id='target'")
+        return {'fileId':'duplicate','name':self.sha+'.bin','bytes':3,'sha256':self.sha,'sha1':'b'*40,'target':{'file_id':'target','bytes':3,'content_sha1':'b'*40}}
+    def enrich_duplicate(self, proofs):
+        d=json.loads(self.e.read_text());d['preservedCasDuplicates']=proofs;self.e.write_text(json.dumps(d))
+    def test_no_worker_receipt(self):
+        self.build();r=self.receipt();self.assertEqual(m.receipt_check(self.p,r,m.digest(r))['count'],'1')
+    def test_invalid_receipts_before_client(self):
+        self.build();r=self.receipt();base=json.loads(r.read_text());calls=[]
+        invalid=[]
+        old=dict(base);old.update(worker_revision='legacy',worker_free=False);invalid.append(old)
+        for key in ('delivery_mode','worker_free','api_revision','client_revision','issued_by','cf_config_sha256','enrichment_sha256','plan_sha256','inventory_sha256','frozen_sha256'):
+            d=json.loads(json.dumps(base));d.pop(key);invalid.append(d)
+        for key in base['gates']:
+            d=json.loads(json.dumps(base));d['gates'][key]=False;invalid.append(d)
+        for value in ('C'*64,'bad',''):
+            d=dict(base);d['cf_config_sha256']=value;invalid.append(d)
+        for d in invalid:
+            with self.subTest(receipt=d):
+                r.write_text(json.dumps(d))
+                with self.assertRaises(ValueError):m.execute(self.p,self.root/'invalid.db',r,m.digest(r),lambda:calls.append('client'))
+        self.assertEqual(calls,[]);self.assertFalse((self.root/'invalid.db').exists())
+    def test_duplicate_preserved(self):
+        self.enrich_duplicate([self.duplicate()]);result=self.build()
+        self.assertEqual(result['count'],'1');self.assertEqual(result['blockers'],'0');self.assertEqual(result['preserved_cas_duplicates'],'1')
+        with m.ro(self.p) as c:
+            self.assertEqual(c.execute('SELECT file_id FROM preserved_cas_duplicates').fetchone()[0],'duplicate')
+            self.assertEqual(c.execute('SELECT count(*) FROM candidates WHERE name LIKE "%.bin"').fetchone()[0],0)
+    def test_duplicate_without_proof(self):
+        self.duplicate();self.assertEqual(self.build()['blockers'],'1')
+    def test_duplicate_bad_proofs(self):
+        proof=self.duplicate();variants=[]
+        for key in proof:
+            d=json.loads(json.dumps(proof));d.pop(key);variants.append([d])
+        for key,value in [('fileId','missing'),('name','other'),('bytes',4),('sha256','d'*64),('sha1','d'*40)]:
+            d=json.loads(json.dumps(proof));d[key]=value;variants.append([d])
+        for key,value in [('file_id','wrong'),('bytes',4),('content_sha1','d'*40)]:
+            d=json.loads(json.dumps(proof));d['target'][key]=value;variants.append([d])
+        variants.append([proof,proof])
+        for proofs in variants:
+            with self.subTest(proofs=proofs):
+                self.enrich_duplicate(proofs)
+                with self.assertRaises(ValueError):self.build()
+                self.assertFalse(self.p.exists())
+    def test_duplicate_newer_still_rejected(self):
+        self.enrich_duplicate([self.duplicate()]);self.mutate("UPDATE versions SET uploaded_ms=2 WHERE file_id='duplicate'")
+        with self.assertRaises(ValueError):self.build()
+    def test_duplicate_inventory_identity_changed(self):
+        self.enrich_duplicate([self.duplicate()])
+        for column,value in [('name','other'),('bytes',4),('sha1','d'*40),('action','hide')]:
+            with self.subTest(column=column):
+                c=sqlite3.connect(self.i);old=c.execute('SELECT '+column+' FROM versions WHERE file_id=?',('duplicate',)).fetchone()[0]
+                c.execute('UPDATE versions SET '+column+'=? WHERE file_id=?',(value,'duplicate'));c.commit();c.close()
+                with self.assertRaises(ValueError):self.build()
+                c=sqlite3.connect(self.i);c.execute('UPDATE versions SET '+column+'=? WHERE file_id=?',(old,'duplicate'));c.commit();c.close()
+    def test_receipt_binding_tamper(self):
+        self.build();r=self.receipt();base=json.loads(r.read_text())
+        for key in ('enrichment_sha256','plan_sha256','inventory_sha256','frozen_sha256','namespace','bucket'):
+            with self.subTest(key=key):
+                d=dict(base);d[key]='forged';r.write_text(json.dumps(d))
+                with self.assertRaises(ValueError):m.receipt_check(self.p,r,m.digest(r))
+    def test_duplicate_target_proof_unused(self):
+        d=self.duplicate();d['fileId']='target';self.enrich_duplicate([d])
+        with self.assertRaises(ValueError):self.build()
     def test_good(self):
         self.assertEqual(self.build()['count'],'1')
     def test_mismatch(self):

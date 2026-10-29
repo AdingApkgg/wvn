@@ -74,7 +74,7 @@ def build(frozen, inventory, enrichment, output, allow_server_enforced_lock_chec
     os.umask(0o077)
     c = sqlite3.connect(output)
     c.row_factory = sqlite3.Row
-    c.executescript('CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE candidates(seq INTEGER PRIMARY KEY,file_id TEXT UNIQUE,name TEXT,bytes INTEGER,sha256 TEXT,target_id TEXT,target_sha1 TEXT); CREATE TABLE blockers(file_id TEXT,name TEXT,reason TEXT); CREATE TABLE targets(sha256 TEXT PRIMARY KEY,file_id TEXT UNIQUE,name TEXT,bytes INTEGER,sha1 TEXT);')
+    c.executescript('CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE candidates(seq INTEGER PRIMARY KEY,file_id TEXT UNIQUE,name TEXT,bytes INTEGER,sha256 TEXT,target_id TEXT,target_sha1 TEXT); CREATE TABLE blockers(file_id TEXT,name TEXT,reason TEXT); CREATE TABLE targets(sha256 TEXT PRIMARY KEY,file_id TEXT UNIQUE,name TEXT,bytes INTEGER,sha1 TEXT); CREATE TABLE preserved_cas_duplicates(file_id TEXT PRIMARY KEY,name TEXT,bytes INTEGER,sha256 TEXT,sha1 TEXT,target_id TEXT);')
     def block(row, reason):
         c.execute('INSERT INTO blockers VALUES(?,?,?)', (row['file_id'], row['name'], reason))
     try:
@@ -87,10 +87,36 @@ def build(frozen, inventory, enrichment, output, allow_server_enforced_lock_chec
             if latest['file_id'] != v['file_id']:
                 raise ValueError('CAS 当前版本不是冻结目标')
             c.execute('INSERT INTO targets VALUES(?,?,?,?,?)', (t['sha256'], t['file_id'], v['name'], t['bytes'], t['content_sha1']))
+        # 证明只能登记精确的历史重复版本，既不提升当前目标，也不成为删除候选。
+        duplicate_proofs = extra.get('preservedCasDuplicates', [])
+        if not isinstance(duplicate_proofs, list):
+            raise ValueError('CAS 重复证明必须为数组')
+        seen = set()
+        for proof in duplicate_proofs:
+            try:
+                fid = proof['fileId']
+                if not isinstance(fid, str) or not fid or fid in seen:
+                    raise ValueError('重复 CAS 证明身份重复')
+                seen.add(fid)
+                v = inv.execute('SELECT * FROM versions WHERE file_id=?', (fid,)).fetchone()
+                target = proof['target']
+                t = c.execute('SELECT * FROM targets WHERE sha256=?', (proof['sha256'],)).fetchone()
+                if not (v and t and fid != t['file_id'] and v['action'] == 'upload'
+                        and CAS.fullmatch(v['name']) and proof['name'] == v['name'] == proof['sha256'] + '.bin'
+                        and type(proof['bytes']) is int and proof['bytes'] == v['bytes'] == t['bytes']
+                        and re.fullmatch('[0-9a-f]{40}', proof['sha1'])
+                        and proof['sha1'] == v['sha1'] == t['sha1']
+                        and target['file_id'] == t['file_id'] and type(target['bytes']) is int
+                        and target['bytes'] == t['bytes'] and target['content_sha1'] == t['sha1']):
+                    raise ValueError('CAS 重复证明身份不符或未使用')
+                c.execute('INSERT INTO preserved_cas_duplicates VALUES(?,?,?,?,?,?)',
+                          (fid, v['name'], v['bytes'], proof['sha256'], proof['sha1'], t['file_id']))
+            except (KeyError, TypeError):
+                raise ValueError('CAS 重复证明缺字段或类型错误') from None
         unknown_lock_versions = 0
         for v in inv.execute('SELECT * FROM versions ORDER BY file_id'):
             if CAS.fullmatch(v['name']):
-                if not c.execute('SELECT 1 FROM targets WHERE file_id=?', (v['file_id'],)).fetchone():
+                if not c.execute('SELECT 1 FROM targets WHERE file_id=? UNION ALL SELECT 1 FROM preserved_cas_duplicates WHERE file_id=?', (v['file_id'], v['file_id'])).fetchone():
                     block(v, '未知 CAS 版本')
                 continue
             if not unlocked(v, False if lock_disabled else None):
@@ -115,7 +141,7 @@ def build(frozen, inventory, enrichment, output, allow_server_enforced_lock_chec
         if missing:
             raise ValueError('冻结源版本缺失')
         snapshot = inv.execute('SELECT inventory_sha256 FROM src.b2_cas_snapshots WHERE namespace=?', (NAMESPACE,)).fetchone()
-        meta = {'schema': '1', 'allow_server_enforced_lock_check': str(bool(allow_server_enforced_lock_check)).lower(), 'unknown_lock_versions': str(unknown_lock_versions), 'bucket': BUCKET, 'namespace': NAMESPACE, 'frozen_sha256': digest(frozen), 'inventory_sha256': digest(inventory), 'enrichment_sha256': digest(enrichment), 'snapshot_inventory_sha256': snapshot[0], 'count': str(c.execute('SELECT count(*) FROM candidates').fetchone()[0]), 'bytes': str(c.execute('SELECT coalesce(sum(bytes),0) FROM candidates').fetchone()[0]), 'blockers': str(c.execute('SELECT count(*) FROM blockers').fetchone()[0])}
+        meta = {'schema': '2', 'preserved_cas_duplicates': str(c.execute('SELECT count(*) FROM preserved_cas_duplicates').fetchone()[0]), 'allow_server_enforced_lock_check': str(bool(allow_server_enforced_lock_check)).lower(), 'unknown_lock_versions': str(unknown_lock_versions), 'bucket': BUCKET, 'namespace': NAMESPACE, 'frozen_sha256': digest(frozen), 'inventory_sha256': digest(inventory), 'enrichment_sha256': digest(enrichment), 'snapshot_inventory_sha256': snapshot[0], 'count': str(c.execute('SELECT count(*) FROM candidates').fetchone()[0]), 'bytes': str(c.execute('SELECT coalesce(sum(bytes),0) FROM candidates').fetchone()[0]), 'blockers': str(c.execute('SELECT count(*) FROM blockers').fetchone()[0])}
         c.executemany('INSERT INTO meta VALUES(?,?)', meta.items()); c.commit(); c.close()
         os.chmod(output, 0o400)
         return {**meta, 'plan_sha256': digest(output), 'deleteCalls': 0}
@@ -130,11 +156,19 @@ def receipt_check(plan, receipt, expected_receipt_sha256):
         raise ValueError('验收凭据摘要不符')
     p = ro(plan); meta = dict(p.execute('SELECT key,value FROM meta')); p.close()
     r = json.loads(Path(receipt).read_text())
-    expected = {k: meta[k] for k in ('namespace', 'bucket', 'frozen_sha256', 'inventory_sha256')}
+    expected = {k: meta[k] for k in ('namespace', 'bucket', 'frozen_sha256', 'inventory_sha256', 'enrichment_sha256')}
     expected['plan_sha256'] = digest(plan)
     if any(r.get(k) != v for k, v in expected.items()) or meta['blockers'] != '0':
         raise ValueError('验收凭据与计划不符或仍有阻断项')
-    if r.get('accepted') is not True or not r.get('worker_revision') or not r.get('api_revision') or not r.get('issued_by') or not all(r.get('gates', {}).get(g) is True for g in ('api', 'worker', 'browser', 'cas_uncached', 'range', 'reentry')):
+    revisions = ('api_revision', 'client_revision', 'issued_by')
+    if (r.get('accepted') is not True or r.get('delivery_mode') != 'browser-direct-cas'
+            or r.get('worker_free') is not True or 'worker_revision' in r
+            or not all(isinstance(r.get(k), str) and r[k].strip() for k in revisions)
+            or not isinstance(r.get('cf_config_sha256'), str)
+            or not re.fullmatch('[0-9a-f]{64}', r['cf_config_sha256'])
+            or not isinstance(r.get('gates'), dict)
+            or not all(r['gates'].get(g) is True for g in
+                       ('api', 'no_worker', 'browser', 'cas_uncached', 'range', 'reentry', 'mime', 'cors'))):
         raise ValueError('验收门槛未完成')
     return meta
 

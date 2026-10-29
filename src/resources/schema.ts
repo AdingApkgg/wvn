@@ -51,4 +51,16 @@ CREATE TABLE wvn_resource_import_runs(
   finished_at timestamptz
 );
 CREATE INDEX wvn_resource_import_runs_namespace ON wvn_resource_import_runs(namespace,started_at DESC);
+` }, { id: '007-resource-http-metadata', sql: `
+ALTER TABLE wvn_resource_objects
+  ADD COLUMN http_content_type text,
+  ADD COLUMN http_metadata_proof_sha256 text,
+  ADD CONSTRAINT wvn_resource_objects_http_metadata CHECK (
+    (http_content_type IS NULL AND http_metadata_proof_sha256 IS NULL) OR
+    (http_content_type IS NOT NULL AND http_metadata_proof_sha256 IS NOT NULL
+      AND length(http_content_type) BETWEEN 3 AND 512
+      AND http_content_type !~ '[^ -~]'
+      AND http_content_type ~ $mime$^[A-Za-z0-9!#$%&'*+.^_\`|~-]+/[A-Za-z0-9!#$%&'*+.^_\`|~-]+(; *[A-Za-z0-9!#$%&'*+.^_\`|~-]+=([A-Za-z0-9!#$%&'*+.^_\`|~-]+|"[^"\\\\]*"))*$$mime$
+      AND http_metadata_proof_sha256 ~ '^[0-9a-f]{64}$')
+  );
 ` }];

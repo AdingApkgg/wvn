@@ -1,15 +1,16 @@
-import {resourceOriginForManifest} from '../player/resource-location.mjs';
+import {createCasResolver,resourceOriginForManifest} from '../player/resource-location.mjs';
 import {createResilientFetch} from '../player/resource-download.mjs';
 // 资源缓存独立于账号与存档数据库。仅允许可信页面核准的本作资源清单和固定 WASM。
 const MiB=1024*1024,DB='wvn-public-resource-cache-v1';
 const digest=async data=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',data))].map(x=>x.toString(16).padStart(2,'0')).join('');
 function resourcePath(path){return typeof path==='string'&&path.length>0&&path.length<=240&&!/[\\%:?\u0000-\u001f\u007f]/u.test(path)&&path.split('/').every((part,index,all)=>part&&part!=='.'&&part!=='..'&&(!part.startsWith('.')||index===all.length-1&&/^\.[^.]+\.ogg$/i.test(part)))&&(!path.includes('#')||/\.(ogg|mp3|wav)$/i.test(path))&&!/\.(html?|[cm]?js|wasm|svg|exe|ps1|py)$/i.test(path)}
-export async function createOnsResourcePlan(pilot,manifest,origin,release){
+export async function createOnsResourcePlan(pilot,manifest,origin,release,casManifest){
  if(!pilot||!/^[a-z0-9-]{1,100}$/.test(pilot.id)||!/^https?:$/.test(new URL(origin).protocol)||new URL(origin).origin!==origin||manifest?.pilot!==pilot.id||manifest.versionId!==pilot.versionId||manifest.engine!==pilot.engine||!/^[a-f0-9]{64}$/.test(manifest.engine)||!Array.isArray(manifest.files)||manifest.files.length>60000)throw Error('资源缓存清单不匹配');
  const assetOrigin=resourceOriginForManifest(manifest.resourceOrigin,origin),direct=assetOrigin!==origin;
+ const cas=casManifest?createCasResolver(casManifest,pilot):null;
  const files=[],names=new Set();
  for(const row of manifest.files){
-  if(!resourcePath(row?.path)||names.has(row.path.toLowerCase())||typeof row.lazyload!=='boolean'||row.url!==(direct?assetOrigin:"")+`/__ons/data/${pilot.id}/`+row.path.split('/').map(encodeURIComponent).join('/'))throw Error('资源缓存路径无效');
+  if((cas?!cas.files.has(row?.path):!resourcePath(row?.path))||names.has(row.path.toLowerCase())||typeof row.lazyload!=='boolean'||row.url!==(cas?cas.files.get(row.path)?.url:(direct?assetOrigin:"")+`/__ons/data/${pilot.id}/`+row.path.split('/').map(encodeURIComponent).join('/')))throw Error('资源缓存路径无效');
   names.add(row.path.toLowerCase());files.push({path:row.path,url:row.url,lazyload:row.lazyload});
  }
  let wasmHash=pilot.engine,engine=`/__ons/engine/${pilot.engine}/`;
@@ -18,8 +19,8 @@ export async function createOnsResourcePlan(pilot,manifest,origin,release){
   const wasm=release.files?.find(f=>f.path==='onsyuri.wasm');if(!/^[a-f0-9]{64}$/.test(wasm?.sha256))throw Error('资源缓存引擎校验缺失');wasmHash=wasm.sha256;engine=`/__engines/resource/${release.id}/`;
  }
  const revision=await digest(new TextEncoder().encode(JSON.stringify([pilot.id,pilot.versionId,files]))),namespace=`game/${pilot.id}/${pilot.versionId}/${revision}`,resources=new Map();
- for(const file of files)resources.set('game:'+file.path,{key:namespace+'/'+file.path,namespace,url:new URL(file.url,origin).href,path:file.path,kind:'game',lazy:file.lazyload});
- resources.set('engine:wasm',{key:`engine/${wasmHash}/onsyuri.wasm`,namespace:'engine/'+wasmHash,url:assetOrigin+engine+'onsyuri.wasm',kind:'engine',sha256:wasmHash});
+ for(const file of files)resources.set('game:'+file.path,{key:namespace+'/'+file.path,namespace,url:new URL(file.url,origin).href,path:file.path,kind:'game',lazy:file.lazyload,...(cas?{sha256:cas.files.get(file.path).sha256}:{})});
+ resources.set('engine:wasm',{key:`engine/${wasmHash}/onsyuri.wasm`,namespace:'engine/'+wasmHash,url:cas?cas.url('onsyuri.wasm'):assetOrigin+engine+'onsyuri.wasm',kind:'engine',sha256:wasmHash});
  const candidates=files.filter(f=>f.lazyload&&/\.(png|jpe?g|webp|ogg|mp3|wav)$/i.test(f.path)).map(f=>'game:'+f.path);
  return {pilot:pilot.id,versionId:pilot.versionId,revision,namespace,resources,candidates,manifest};
 }

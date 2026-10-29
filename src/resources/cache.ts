@@ -56,7 +56,7 @@ export class RedisResourceCache implements ResourceCache {
       if (!encoded || encoded.length > 2048) return;
       try {
         const value = JSON.parse(encoded);
-        if (validMetadata(value, keys[i])) found.set(keys[i], { key: value.key, sha256: value.sha256, bytes: value.bytes, contentType: value.contentType });
+        if (value.schema === 2 && validMetadata(value, keys[i])) found.set(keys[i], { key: value.key, sha256: value.sha256, bytes: value.bytes, contentType: value.contentType });
       } catch { /* 损坏的缓存视为未命中。 */ }
     });
     return found;
@@ -68,7 +68,7 @@ export class RedisResourceCache implements ResourceCache {
       const transaction = client.multi();
       for (const value of values) {
         if (!validMetadata(value, value.key)) continue;
-        transaction.set(this.prefix + value.key, JSON.stringify({ key: value.key, sha256: value.sha256, bytes: value.bytes, contentType: value.contentType }), { EX: this.ttl });
+        transaction.set(this.prefix + value.key, JSON.stringify({ schema: 2, key: value.key, sha256: value.sha256, bytes: value.bytes, contentType: value.contentType }), { EX: this.ttl });
       }
       await transaction.exec();
     });

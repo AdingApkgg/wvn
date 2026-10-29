@@ -1,3 +1,5 @@
+import {createCasResolver} from './cas-resources.mjs';
+import {installCasBrowser} from './cas-dom.mjs';
 import {runtimeResourceOrigin,verifyDirectEngine} from './resource-location.mjs';
 import {createResilientFetch,installResilientXHR} from './resource-download.mjs';
 import {createResourceReporter} from '../ons/resource-loading.mjs';
@@ -44,8 +46,12 @@ addEventListener('message',async function initialize(event){
     const snapshot=validateSnapshot(init.snapshot,id);
     loading.phase('restoring');
     installNativeInput(window,id,init.nativeInput);
-    installAnonymousMedia(window);
+    if(!init.casManifest)installAnonymousMedia(window);
     const assetOrigin=runtimeResourceOrigin(document.baseURI,entry,origin);
+    if(assetOrigin==='https://wg-b2.saop.cc'&&!init.casManifest)throw Error('CAS resource manifest required');
+    const cas=init.casManifest?createCasResolver(init.casManifest,entry,{mainOrigin:origin,sharedEngine:entry.runtimeKind!=='RenPy'||!!init.engineRelease}):null;
+    const browser=cas?installCasBrowser(window,cas):null;
+    if(browser)await browser.restoreDocument();
     const memory=createMemoryStorage(()=>{if(entry.runtimeKind==='Tyrano')queueMicrotask(()=>{if(!failed)void persist(storageSnapshot(memory)).catch(()=>{})})});
     if(entry.runtimeKind==='Tyrano'){restoreStorage(memory,snapshot.files);capture=()=>storageSnapshot(memory)}
     Object.defineProperty(window,'localStorage',{value:memory});Object.defineProperty(window,'sessionStorage',{value:createMemoryStorage()});
@@ -57,6 +63,7 @@ addEventListener('message',async function initialize(event){
     installResilientXHR(window,publicResource);
     stopObserving=observeStartupRequests(window,loading,resource=>{
       const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href??'',document.baseURI);
+      if(cas){try{const row=cas.row(url.href);return (init.engineRelease?.files.some(file=>file.path===row.path)||Object.hasOwn(entry.engineFiles,row.path))?'engine':'game'}catch{return null}}
       if(url.origin!==assetOrigin)return null;
       if(url.pathname.startsWith('/__engines/resource/'))return 'engine';
       if(!url.pathname.startsWith('/__player/resource/'+id+'/'))return null;
@@ -64,8 +71,8 @@ addEventListener('message',async function initialize(event){
     },resources,event=>{
       if(entry.runtimeKind==='RenPy'&&event.kind==='game'&&event.progress)transferAt=Date.now();
     });
-    let driver;const engineResources=engineResourcesForSession(init.engineRelease,entry.runtimeKind,assetOrigin);
-    const engineBytes=await verifyDirectEngine(entry,init.engineRelease,assetOrigin);
+    let driver;const engineResources=cas?{resolve:path=>cas.url(path)}:engineResourcesForSession(init.engineRelease,entry.runtimeKind,assetOrigin);
+    const engineBytes=await verifyDirectEngine(entry,init.engineRelease,assetOrigin,{resolver:cas});
     function instrument(){
       const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;
       if(!FS||!IDBFS||!MEMFS)throw Error('引擎文件系统尚未初始化');
@@ -84,15 +91,15 @@ addEventListener('message',async function initialize(event){
       const config=JSON.parse(placeholder.textContent),script=document.createElement('script');
       if(config.src){
         const url=new URL(config.src,document.baseURI),prefix=`${assetOrigin}/__player/resource/${id}/`;
-        if(!url.href.startsWith(prefix))throw Error('脚本路径不属于当前游戏');
+        if(!cas&&!url.href.startsWith(prefix))throw Error('脚本路径不属于当前游戏');
         if(entry.runtimeKind!=='Tyrano'&&/\/(?:artemis|renpy)\.js$/.test(url.pathname)){
           // These audited Emscripten builds unshift preRun callbacks internally,
           // so the final array callback must install persistence first.
           driver.beforeScript();
         }
-        const engineFile=url.pathname.slice(`/__player/resource/${id}/`.length);
+        const engineFile=cas?cas.path(config.src):url.pathname.slice(`/__player/resource/${id}/`.length);
         loading.phase('downloading','engine');
-        script.src=engineResources?.files.includes(engineFile)?resolveEngineResource(engineFile,engineResources):url.href;script.crossOrigin='anonymous';
+        script.src=cas?cas.url(config.src):engineResources?.files.includes(engineFile)?resolveEngineResource(engineFile,engineResources):url.href;script.crossOrigin='anonymous';
         const digest=init.engineRelease?.files.find(f=>f.path===engineFile)?.sha256??entry.engineFiles[engineFile];if(digest)script.integrity='sha256-'+btoa(String.fromCharCode(...digest.match(/../g).map(h=>parseInt(h,16))));
         await new Promise((resolve,reject)=>{script.onload=()=>{
           if(entry.runtimeKind==='Tyrano'&&/\/html2canvas(?:\.min)?\.js$/i.test(url.pathname))window.html2canvas=sandboxThumbnail(()=>document.createElement('canvas'),()=>({title:entry.title,text:window.TYRANO?.kag?.stat?.current_save_str||window.TYRANO?.kag?.stat?.current_message_str||''}));

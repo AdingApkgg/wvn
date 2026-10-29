@@ -7,7 +7,8 @@ export function engineResourcesForSession(release,kind,origin){
  if(kind!=='RenPy'||release?.kind!=='RenPy'||!/^renpy-[a-f0-9]{64}$/.test(release.id)||base.origin!==origin||base.protocol!=='https:'||!Array.isArray(release.files)||release.files.length!==4||new Set(release.files.map(f=>f.path)).size!==4||release.files.some(f=>!names.includes(f.path)||!/^[a-f0-9]{64}$/.test(f.sha256)))throw Error('Invalid session engine release');
  return {baseURL:origin+'/__engines/resource/'+release.id+'/',files:[...names]};
 }
-export function resolveEngineResource(path,{baseURL,files}){
+export function resolveEngineResource(path,{baseURL,files,resolve}){
+ if(resolve)return resolve(path);
  if(typeof path!=='string'||!files.includes(path)||path.startsWith('/')||path.split('/').some(p=>!p||p==='.'||p==='..')||/[\\%?#:]/.test(path))throw Error('Unregistered engine resource path');
  const base=new URL(baseURL);if(base.protocol!=='https:'||base.username||base.password||base.search||base.hash||!base.pathname.endsWith('/'))throw Error('Invalid engine resource base');
  const url=new URL(path,base);if(url.origin!==base.origin||!url.href.startsWith(base.href))throw Error('Engine resource escapes release');return url.href;
