@@ -1,5 +1,6 @@
 // 真实远程浏览器；只使用本轮隔离预览和新建浏览器上下文，不读取用户存档。
 import fs from 'node:fs';
+import {validateCasSources} from './cas-provenance.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {createRequire} from 'node:module';
@@ -31,7 +32,7 @@ for(const test of cases){
   if(parsed.origin===origin&&[200,206].includes(r.status())&&(resourcePath.startsWith('/__engines/resource/')||/^\/__ons\/(data|engine)\//.test(resourcePath)||resourcePath.startsWith('/__player/resource/')&&!resourcePath.endsWith('/index.html')))mainObjectResponses.push({url:r.url(),status:r.status()});
   const h=await r.allHeaders().catch(()=>({}));if(h['x-wvn-resource-source']==='b2'||parsed.hostname===cdnHost&&[200,206,304].includes(r.status())){const key=h['x-wvn-b2-key'];let originalKey;try{originalKey=h['x-wvn-original-key']?decodeURIComponent(h['x-wvn-original-key']):undefined;}catch{originalKey=null;}sources.push({url:r.url(),source:h['x-wvn-resource-source'],key,sha256:physicalKeyPattern.test(key??'')?key.slice(0,64):undefined,originalKey,cache:h['x-wvn-cdn-cache'],status:r.status(),bytes:h['content-length'],encoding:h['content-encoding'],method:r.request().method(),finishedAtHeaders:finishedRequests.has(r.request())});}if(r.status()>=400)network.push({url:r.url(),status:r.status()});})();responseTasks.push(task);});
  page.on('requestfailed',r=>{if(!r.failure()?.errorText?.includes('ERR_ABORTED'))network.push({url:r.url(),error:r.failure()?.errorText});});
- async function assertProvenance(){await Promise.all(responseTasks);assert(sources.length>0,'No actual B2 resource responses');for(const source of sources){assert.equal(source.source,'b2','Resource source must be B2');assert.match(source.key??'',physicalKeyPattern,'B2 physical key must be a lowercase SHA-256 .bin');assert(source.originalKey?.startsWith('releases/'),'Full release original key is required');assert(['HIT','MISS'].includes(source.cache),'CDN cache provenance is required');}if(canaryPrefix)assert(rewrittenRequests.length>0,'Canary mode must rewrite actual browser resource requests');}
+ async function assertProvenance(){await Promise.all(responseTasks);validateCasSources(sources);if(canaryPrefix)assert(rewrittenRequests.length>0,'Canary mode must rewrite actual browser resource requests');}
  const pulse=setInterval(async()=>console.log(JSON.stringify({label,stage,resources:sources.length,lastSources:sources.slice(-3),ui:await page.locator('[data-testid=reader-loading]').innerText().catch(()=>''),cache:await page.getByRole('status').allTextContents().catch(()=>[]),at:new Date().toISOString()})),30000);pulse.unref();
  const command=async script=>{const r=await frame.evaluate(async s=>await Promise.race([renpy_exec(s).then(value=>({value})),new Promise(resolve=>setTimeout(()=>resolve({timeout:true}),20000))]),script);assert(!r.timeout,'Native RenPy VM timed out');return r.value;};
  async function start(){
