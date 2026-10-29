@@ -52,11 +52,11 @@ NODE_ENV=production npm run build
 
 ## 功能与部署说明
 
-- [PostgreSQL 平台、迁移与回滚](docs/platform-postgres.md)、[资源 key API](docs/resource-api.md)
+- [PostgreSQL 平台、迁移与回滚](docs/platform-postgres.md)、[生产切换记录](docs/production-platform-20261029.md)、[资源 key API](docs/resource-api.md)
 - [Meilisearch 搜索](docs/search.md)、[PG 备份恢复](docs/pg-backups.md)、[房间与联机基础](docs/rooms.md)
 
 - [公开仓库与私有配置边界](docs/public-repository.md)
-- [Compose 部署与隔离验收](docs/compose-deployment.md)
+- [SQLite 阶段 Compose 历史参考](docs/compose-deployment.md)；当前 PG 基础服务使用 `ops/platform/compose.yaml`
 - [账号与云存档](docs/accounts-preview.md)、[存档分享](docs/save-sharing-preview.md)
 - [Emscripten 统一管理](docs/emscripten-management.md)、[Ren’Py 云存档兼容](docs/renpy-cloud-saves.md)
 - [启动加载反馈](docs/player-loading.md)、[ONS 资源缓存](docs/ons-resource-cache.md)

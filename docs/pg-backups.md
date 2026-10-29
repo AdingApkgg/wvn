@@ -1,5 +1,7 @@
 # PostgreSQL 账号、私有存档备份与恢复
 
+2026-10-29 生产切换前的原生账号归档已实际恢复到独立空库，38 张表的计数与全部行摘要一致；上线后另有三 schema 原生 PG 归档。详情见 [生产切换记录](production-platform-20261029.md)。
+
 运行时只接受 PostgreSQL URL。私有存档正文仍保留在 BlobStore，按 `ownerHash/hash.bin` 保存，不能上传到公共资源域或 B2 公共对象。原 SQLite 源文件、旧归档和原 B2 对象均保留。
 
 ## 备份格式与一致性

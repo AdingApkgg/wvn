@@ -1,6 +1,6 @@
 # PostgreSQL 平台与资源 API
 
-本轮保持公开目录、账号 HTTPS、私有目录管理、分享审核及私有 BlobStore 的服务边界。PostgreSQL 是业务数据来源；Redis 保存短期缓存、票据、限流及通知；Meilisearch 只保存可重建的公开作品投影。原 SQLite 和 B2 对象保留，生产切换需单独授权。
+本轮保持公开目录、账号 HTTPS、私有目录管理、分享审核及私有 BlobStore 的服务边界。PostgreSQL 是业务数据来源；Redis 保存短期缓存、票据、限流及通知；Meilisearch 只保存可重建的公开作品投影。原 SQLite 和 B2 对象保留。2026-10-29 已按用户授权迁移生产并上线，数据核对、CORS、备份与回滚记录见 [生产切换记录](production-platform-20261029.md)。
 
 ## 数据与服务
 
@@ -91,7 +91,7 @@ node --import tsx scripts/migration/import-resources.ts --source /私有路径/r
 node --import tsx scripts/bind-version-resources.ts --version 原versionId --namespace b2/web-visual-novel/snapshot-20261028 --inventory 清单SHA256 --prefix 完整游戏目录/ --catalog-schema catalog --resource-schema resources
 ```
 
-清单只遍历该游戏的前缀，保留中文、空格、大小写和相对文件名，游标绑定版本和清单。已隐藏目录版本不提供清单。尚未自动替换现有游戏的资源加载地址；生产 CORS 与逐引擎兼容验收通过后再切换，避免一次加载 142 万路径或每文件一次 API 查询。
+清单只遍历该游戏的前缀，保留中文、空格、大小写和相对文件名，游标绑定版本和清单。已隐藏目录版本不提供清单。生产已为全部 79 个版本绑定实际发布目录。现有游戏沿用 B2 CDN 直读与 ONS gzip 清单；本 API 提供 UUID 和版本映射，后续逐引擎切换哈希 URL 时仍需核验 MIME 与相对引用，避免一次加载 142 万路径或每文件一次 API 查询。
 
 ## 搜索与联机
 
@@ -108,16 +108,16 @@ npm run start:accounts
 
 WT 是独立 Go HTTP/3/QUIC 网关，路径为 `/rooms`；WS/WT 使用同一协议。coturn 使用短期 HMAC 凭据，长期 secret 不进入浏览器。未配置 TURN/WT 时相应能力不可用，WS 仍可独立工作。本轮提供联机基础与 SDK，实际游戏剧情同步、投票等产品玩法另行实现。[接口和真实浏览器连通证据](rooms.md)。
 
-## CDN 跨域待应用变更
+## CDN 跨域生产配置
 
-当前 `wg-b2.saop.cc` 样本返回 PNG 正文但缺少跨域允许头。已准备以下两份配置，**尚未应用到 B2 / Cloudflare**：
+2026-10-29 已按授权在 B2 和 Cloudflare 合并以下公共读规则，固定哈希 URL 的真实主站及 opaque sandbox 跨域读取已通过：
 
 - `ops/platform/b2-public-cors.json`：仅公共读操作，允许 Range / If-Range / X-Requested-With 预检，公开必要响应头。
 - `ops/platform/cdn-response-headers.json`：Cloudflare `http_response_headers_transform` 阶段的单条规则，只匹配该域名的 GET/HEAD，设 `Access-Control-Allow-Origin: *`、Expose-Headers 和 `Cross-Origin-Resource-Policy: cross-origin`。这是规则对象，不是替换整份 ruleset 的请求体。
 
 公共资源浏览器请求使用 `credentials: 'omit'`；这些规则不应用到账号/私人存档。应用前读取并保留既有 B2 CORS 与 CF ruleset，将本规则合并，不能整份覆盖；按 B2 首匹配规则的语义安排顺序。B2 负责 OPTIONS 的真实批准；仅添加 CF 响应头不能替代预检。源端 CORS 改变后还需按 CF 官方缓存说明验证已有缓存响应。
 
-授权应用后复测：实际账号/沙箱 COEP 页面读取 CDN、Range 206 和 Content-Range、MIME（包括 WASM/脚本）、相对引用、正文 SHA-256。相同字节可能来自不同原 MIME，PG 元数据不等于 CDN 对每个路径都能提供独立 Content-Type，不能据此直接宣称全部引擎兼容。
+已验证实际账号 COEP 页面读取 CDN、opaque sandbox 的 Range 206 / Content-Range、PNG MIME 与正文 SHA-256。其他格式（包括 WASM/脚本）及逐引擎相对引用仍按实际加载改造分别验收。相同字节可能来自不同原 MIME，PG 元数据不等于 CDN 对每个路径都能提供独立 Content-Type，不能据此直接宣称全部引擎兼容。
 
 参考：[B2 CORS 规则](https://www.backblaze.com/docs/cloud-storage-cross-origin-resource-sharing-rules)、[CF 通配 CORS 响应规则](https://developers.cloudflare.com/rules/transform/examples/add-cors-header/)、[CF CORS 与缓存](https://developers.cloudflare.com/cache/cache-security/cors/)。
 
@@ -129,8 +129,8 @@ WT 是独立 Go HTTP/3/QUIC 网关，路径为 `/rooms`；WS/WT 使用同一协�
 
 ## 上线与回滚边界
 
-本次只修改代码、创建隔离数据和验证。账号/目录生产历史数据尚未切换，未推送远程、未改生产服务、CF/DNS 或防火墙；TURN/WT 的真实浏览器证据限隔离环境，不等于公网 NAT / 跨设备验收。
+2026-10-29 生产目录、账号和公共索引已切到 PostgreSQL；Redis、Meili、搜索 worker 和房间 WS 已启用，公共 CDN CORS 已应用。Git 远端未推送。完整回执见 [生产切换记录](production-platform-20261029.md)。TURN/WT 的浏览器证据仍限隔离环境，公网 NAT / 跨设备与实际游戏联机尚未验收。
 
-正式切换需要：核对冻结源和最新独立账本、完成 PG 逐表摘要与账号/存档浏览器验收、确认资源版本绑定与 CORS、保存原配置和快照，再取得切换授权。保持原 origin/RP ID/secret/cookie 及私有正文配置。
+后续再次切换仍需要：核对冻结源和最新独立账本、完成 PG 逐表摘要与账号/存档验收、确认资源版本绑定与 CORS、保存原配置和快照，并取得相应授权。保持原 origin/RP ID/secret/cookie 及私有正文配置。
 
 回滚前先停止新写入并保存新的 PG/正文/账本快照。只有确认 PG 上没有新增业务写入时，才能直接恢复原 SQLite 服务配置；已有新写入必须先对账处理，不能直接切回丢弃新数据。旧 Windows SQLite 复制发布脚本已提前停止，不能用于 PG 生产发布。

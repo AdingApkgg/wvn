@@ -1,5 +1,7 @@
 # PostgreSQL 与 Meilisearch 公开搜索
 
+2026-10-29 已部署生产 Meilisearch 和常驻 outbox worker，实际 64 份公开作品文档及中英文查询已核对。详情见 [生产切换记录](production-platform-20261029.md)。
+
 Meilisearch 是可重建的公开目录投影，PostgreSQL 是事实来源。账号、私人存档、房间、资源存储地址、磁盘路径、报告明细不进入搜索文档。浏览器只访问 WVN 后端，不能接触 Meili master/write key。
 
 ## 接线

@@ -1,4 +1,6 @@
-# WVN Compose 部署
+# WVN Compose 部署（SQLite 阶段历史参考）
+
+2026-10-29 主应用已迁到 PostgreSQL。本文和仓库根 `compose.yaml` 的账号/目录 SQLite 编排属于迁移前方案，不能直接用于当前主应用；现行基础服务配置为 `ops/platform/compose.yaml`，部署及回滚以 [平台指南](platform-postgres.md) 和 [生产切换记录](production-platform-20261029.md) 为准。独立 Umami 和原私有正文服务继续保留。
 
 本轮目标是覆盖主站、私有后台、B2 预览、资源与存档存储服务、统计服务和验收浏览器。先在 Linux 专用远程主机的新项目中验证，现有生产进程、数据和资源保持原状。
 
