@@ -15,7 +15,7 @@ const service = new CasManifestService(versionResources, resourceRepository, {
 app.route('/', createCasManifestApp(service));
 ```
 
-`ControlBundle` 是现有控制源 `{schema:1,entries:{[pilot]:{source,sha1,bytes}}}`，每次请求校验所选 source 的 SHA1 和 UTF-8 大小。此步骤不修改数据库或运行迁移；传入现有 `VersionResources` 和 `ResourceRepository` 实例。此次实现不挂载主服务，供后续播放器集成使用。
+`ControlBundle` 是现有控制源 `{schema:1,entries:{[pilot]:{source,sha1,bytes}}}`，每次请求校验所选 source 的 SHA1 和 UTF-8 大小。此步骤不修改数据库或运行迁移；传入现有 `VersionResources` 和 `ResourceRepository` 实例。`accounts-server.ts` 在 B2 控制模式挂载该服务并接入播放器。
 
 GET / HEAD `/api/player/:id/resources`：id 必须是现有 `players` 注册的 pilot，不能传任意版本 ID。唯一可选查询 `engine` 必须等于该作品登记引擎（RenPy 为配置的 `RENPY_RELEASE`）。重复、未知参数或不合法 engine 返回 400；未知作品、未发布/撤销版本或未发布依赖快照返回 404；数据库、映射完整性或配置异常返回通用 503，不包含数据库信息。
 
@@ -31,3 +31,31 @@ GET / HEAD `/api/player/:id/resources`：id 必须是现有 `players` 注册的 
 ONS 额外返回与旧控制清单同结构的 `ons`（pilot/title/versionId/engine/gamedir/savedir/args/resourceOrigin/files）。每个 file 保留原始 path、lazyload（默认 true），url 替换为所选游戏 PG 资源的根级 SHA URL；过滤 `.nomedia`，校验所有路径存在，禁止重复及跨路径控制 URL。旧资源端点不作修改。
 
 `Accept-Encoding` 支持 gzip（含 q=0 禁用），设置 Vary 与精确 Content-Length。HEAD 仍执行全部发布和完整性校验，但不带正文，不支持条件请求复用已撤销清单。
+
+## 播放器与同产物验收
+
+`WG_B2_CONTROL_FILE` 模式现在挂载上述 API，并向播放器 loader 标记 `resourceDelivery: 'cas'`。父页面使用 omit credentials、no-store、redirect error 有界读取清单；经现有 nonce/专用 MessagePort 初始化 opaque iframe。旧 ONS manifest/data/engine、游戏正文和共享引擎端点在 CAS 模式返回 404，不跳转或回退。
+
+非 ONS 原始入口放在惰性 template，直到清单验证完成才恢复 DOM、样式和按序脚本。同步映射覆盖 fetch/Request、原生同步/异步 XHR、Emscripten locateFile、属性赋值与 setAttribute、HTML 插入、内联样式及 CSSOM。外链 CSS 在浏览器按清单 URL 取得，解析 url()/@import 并处理循环后交回原生 link 的 Blob stylesheet；保留 link.sheet、media、disabled 和原生加载事件。原始远程对象从不改写或重新上传。CSS import 的 layer/supports 条件当前明确失败（实际外链样本仍须验收覆盖）；不以旧路径或网络代理掩盖不支持的语法。
+
+未选择共享引擎时，RenPy 四文件取游戏 resources，保留原引擎及 legacy 存档身份；明确选择已登记共享 release 才使用 engineResources.files 和现有独立存档身份。本次只更换下载地址，不暗中更换引擎。ONS 虚拟文件名不变，缓存 URL 与 SHA 来自 CAS 清单，支持逻辑路径中的 Unicode、空格、#、%。现有 Range、原生事件、取消、readiness progress 和持久存档消息协议继续使用。
+
+新增静态运行模块 `/player/cas-resources.mjs`、`/player/cas-dom.mjs` 已加入服务器 allowlist；React Router/Vite public 目录复制到 `build/client/player/`。部署必须使用同一次构建的 `build/client`、`build/server`，以及对应 `accounts-server.ts`、`src`、`public`、`ops/b2/public-assets.mjs` 和既有公开控制 JSON/引擎凭证。无需新增 Worker/SW/正文服务或存储 namespace。
+
+严格验收驱动 `ops/b2/verify-browser.mjs` 要求 `WVN_CAS_EXPECTED_MANIFESTS`（独立 SQL 导出 `{ [pilot]: manifest }`），逐项核对 schema、版本、inventory 与 path/key/url/SHA/bytes/MIME。任何真实 CDN 请求不为已登记根级 SHA.bin，或游戏 iframe 向主站请求正文，都失败；禁用 canary 改写且不拦截/重写游戏流量。原生画面/正文、保存退出、重入的原有验收保留。合成 `tests/cas-dom.browser.mjs` 只用于单元夹具验证，不算真实游戏验收。
+
+构建机同产物命令（由主流程在持久任务中加载隔离环境，证书路径按 QA 环境设置）：
+
+```sh
+cd /home/i/wvn-browser-direct-20261029/source
+WVN_VERIFY_ORIGIN=https://localhost:28981 \
+WVN_QA_CERT=/home/i/wvn-browser-direct-20261029/private/tls.crt \
+WVN_CAS_EXPECTED_MANIFESTS=/home/i/wvn-browser-direct-20261029/reports/expected-browser-manifests.json \
+WVN_B2_RELEASE_FILE=/home/i/wvn-browser-direct-20261029/private/runtime.json \
+WVN_QA_OUTPUT_ROOT=/home/i/wvn-browser-direct-20261029/reports \
+WVN_QA_PROXY=http://127.0.0.1:11090 \
+WG_B2_BROWSER_RUN=browser-cas-direct \
+node ops/b2/verify-browser.mjs
+```
+
+命令默认覆盖 ONS 两例、Artemis、Tyrano 和显式共享 RenPy；可追加这五个登记 ID 的子集进行失败诊断。完整79版本元数据对齐、无 Worker 的 CF 配置与 HTTP/MIME/Range/CORS验收仍由隔离 QA 主流程完成。启动命令或通过合成夹具不等于真实游戏通过。
