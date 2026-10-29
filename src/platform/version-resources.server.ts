@@ -15,7 +15,7 @@ CREATE TABLE wvn_version_resources(
 ` }];
 
 type Binding = { versionId: string; namespace: string; inventorySha256: string; prefix: string };
-const fields = `r.key::text AS key,r.sha256,o.bytes,r.content_type AS "contentType",r.original_path AS "originalPath"`;
+const fields = `r.key::text AS key,r.sha256,o.bytes,COALESCE(o.http_content_type,r.content_type) AS "contentType",r.original_path AS "originalPath"`;
 export class VersionResources {
   readonly ready: Promise<void>;
   constructor(private readonly catalog: Store, private readonly resources: ResourceRepository) {

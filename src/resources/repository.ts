@@ -1,7 +1,7 @@
 import type { PgDatabase } from '../database/postgres.ts';
 import { publicResource, RESOURCE_KEY, ResourceRequestError, SHA256, validNamespace, type ResourceCache, type ResourceMetadata } from './types.ts';
 
-const metadata = `r.key::text AS key,r.sha256,o.bytes,r.content_type AS "contentType"`;
+const metadata = `r.key::text AS key,r.sha256,o.bytes,COALESCE(o.http_content_type,r.content_type) AS "contentType"`;
 const joined = `FROM wvn_resources r JOIN wvn_resource_objects o ON o.sha256=r.sha256
   JOIN wvn_resource_snapshots s ON s.namespace=r.namespace AND s.published=true`;
 

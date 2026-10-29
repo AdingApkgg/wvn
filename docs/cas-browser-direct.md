@@ -59,3 +59,26 @@ node ops/b2/verify-browser.mjs
 ```
 
 命令默认覆盖 ONS 两例、Artemis、Tyrano 和显式共享 RenPy；可追加这五个登记 ID 的子集进行失败诊断。完整79版本元数据对齐、无 Worker 的 CF 配置与 HTTP/MIME/Range/CORS验收仍由隔离 QA 主流程完成。启动命令或通过合成夹具不等于真实游戏通过。
+
+## 实际 HTTP MIME 证明导入
+
+公开 `contentType` 优先取物理对象的 `wvn_resource_objects.http_content_type`；未知时仍取各逻辑路径原有 `wvn_resources.content_type`。按 UUID、原路径、namespace、版本以及播放器依赖的查询采用同一规则。原始记录的 MIME、UUID、源/目标版本ID、路径、摘要、大小与创建时间均不改，根级 SHA URL 也不变。Redis 使用 schema=2 的负载信封；旧格式即使配置了自定义 prefix 也视为未命中。
+
+证明文件为 UTF-8 JSON，摘要必须针对完整文件原始字节计算：
+
+```json
+{"schema":1,"bucket":"web-visual-novel","namespace":"b2/web-visual-novel/snapshot-20261028","inventorySha256":"fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01","objects":[{"sha256":"<64位小写hex>","bytes":123,"contentType":"application/octet-stream","versionId":"<冻结B2精确版本ID>"}]}
+```
+
+每个 SHA 只能一行，必须完整覆盖该 namespace 已发布匹配清单的所有被引用对象；每一条原记录的目标版本ID及大小均需吻合。文件由独立流程读取冻结精确 B2 版本的 HTTP 元数据产生；CLI 本身不请求 B2。只接受上述固定桶、namespace 和 inventory；证明中未知、多余、重复、缺失对象、版本/大小冲突、未发布快照或既有不同证明均拒绝。
+
+```sh
+npx tsx scripts/import-resource-http-metadata.ts \
+  --proof /absolute/path/http-metadata-proof.json \
+  --expected-proof-sha256 <完整文件SHA256> \
+  --schema <明确PG_schema> \
+  --namespace b2/web-visual-novel/snapshot-20261028 \
+  --inventory fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01
+```
+
+连接从 `WG_RESOURCE_DATABASE_URL`（兜底 `WG_DATABASE_URL`、`DATABASE_URL`）读取；不写进命令或输出。默认 dry-run，旧 schema 也不执行迁移、不写数据库。审阅差异后显式追加 `--apply`：在同一事务内锁定成员表、对象表及快照，重新完整验证后应用新增007迁移并只写两个对象 HTTP 元数据字段；同一文件重复 apply 为零更新，冲突整笔回滚。003迁移保持原文。输出包括 status、namespace、inventorySha256、proofSha256、objects、resources、changed，失败只输出固定通用信息。生产写入须先完成隔离演练和差异审阅。
