@@ -1,6 +1,6 @@
 // 真实远程浏览器；只使用本轮隔离预览和新建浏览器上下文，不读取用户存档。
 import fs from 'node:fs';
-import {observeBrowserManifest} from './cas-manifest-observer.mjs';
+import {observePlayerManifestInput,readPlayerManifestInput} from './cas-manifest-observer.mjs';
 import {validateBrowserManifest,validateBrowserResourceURL,finishBrowserCase} from './cas-provenance.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -50,11 +50,12 @@ try{for(const test of cases){
   const failed=page.waitForFunction(()=>document.querySelector('[data-testid=reader-loading][data-stage=failed]')?.textContent||false,null,{timeout:480000}).then(async value=>{throw Error('Player reported startup failure: '+await value.jsonValue());});failed.catch(()=>{});
   const r=await Promise.race([pending,failed]);assert.equal(r.status(),200);frame=page.frames().find(f=>/\/__(ons\/runtime|player\/resource)\//.test(f.url()));assert(frame,'Runtime frame missing');
   await frame.waitForFunction(kind=>kind==='ONS'?!!globalThis.g_onsyuri_module?.FS:kind==='Tyrano'?!!globalThis.TYRANO?.kag?.ftag?.array_tag?.length:!!globalThis.Module?.calledRun&&!!(Module.FS??globalThis.FS),entry.runtimeKind??'ONS',{timeout:90000});
+  const observed=await readPlayerManifestInput(frame);validateBrowserManifest(expectedManifests[entry.id],observed.manifest);record.browserManifests.push({...observed.evidence,pilot:observed.manifest.pilot,resources:observed.manifest.resources.length});
  }
  async function stop(){await page.getByRole('button',{name:'保存并退出',exact:true}).click();await page.getByRole('button',{name:/^(开始阅读|继续阅读)$/}).waitFor({timeout:45000});assert.equal(await page.locator(gameFrameSelector).count(),0);}
  try{
   record.browserManifests=[];
-  await observeBrowserManifest({session:await context.newCDPSession(page),url:origin+'/api/player/'+entry.id+'/resources',tasks:responseTasks,onManifest(actual,evidence){validateBrowserManifest(expectedManifests[entry.id],actual);record.browserManifests.push({...evidence,pilot:actual.pilot,resources:actual.resources.length});}});
+  await observePlayerManifestInput(context);
   assert.equal((await page.goto(origin+entry.route+(test.shared?'?engine='+shared:''),{waitUntil:'domcontentloaded'})).status(),200);
   await page.getByRole('button',{name:/^(开始阅读|继续阅读)$/}).waitFor();
   record.driverHashes=await page.evaluate(async()=>{const result={};for(const name of ['runtime.mjs','emscripten.mjs','resource-location.mjs','cas-resources.mjs','cas-dom.mjs']){const response=await fetch('/player/'+name,{credentials:'omit',cache:'no-store'});if(!response.ok)throw Error('Trusted driver unavailable');result[name]=[...new Uint8Array(await crypto.subtle.digest('SHA-256',await response.arrayBuffer()))].map(n=>n.toString(16).padStart(2,'0')).join('');}return result;});

@@ -1,4 +1,23 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+// 只旁听父页送入沙箱的真实初始化输入，不拦截 fetch、消息或游戏逻辑。
+export async function observePlayerManifestInput(context){
+ await context.addInitScript(()=>{
+  if(self===parent)return;
+  const inputs=[];Object.defineProperty(globalThis,'__wvnAcceptanceInputs',{value:inputs});
+  addEventListener('message',event=>{
+   if(event.source!==parent||event.data?.type!=='WG_ONS_INIT'||!event.data.casManifest)return;
+   inputs.push({pilot:event.data.pilot,body:JSON.stringify(event.data.casManifest)});
+  },true);
+ });
+}
+export async function readPlayerManifestInput(frame){
+ const inputs=await frame.evaluate(()=>globalThis.__wvnAcceptanceInputs??[]);
+ assert.equal(inputs.length,1,'Runtime must receive exactly one manifest initialization');
+ const input=inputs[0];assert.equal(typeof input.body,'string');const bytes=Buffer.byteLength(input.body);assert(bytes<=32*1024**2,'Engine manifest input exceeds limit');
+ const manifest=JSON.parse(input.body);assert.equal(input.pilot,manifest.pilot,'Engine input pilot differs');
+ return {manifest,evidence:{source:'engine-init-message',bytes,sha256:createHash('sha256').update(input.body).digest('hex')}};
+}
 // 页面ReadableStream消费后CDP后取正文可能失效；这里只订阅同一真实请求的字节流，不拦截或重发。
 export async function observeBrowserManifest({session,url,tasks,onManifest,limit=32*1024**2,timeout=60000}){
  const states=new Map();
