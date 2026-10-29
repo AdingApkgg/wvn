@@ -29,3 +29,19 @@ test('CDP observer rejects failed, malformed and stalled actual responses',async
   const keepAlive=setTimeout(()=>{},100);try{await assert.rejects(tasks[0],mode==='failed'?/ERR_ABORTED/:mode==='stalled'?/timed out/:/JSON|property name/)}finally{clearTimeout(keepAlive)}
  }
 });
+test('CDP observer validates the same completed response when stream subscription loses the race',async()=>{
+ const {EventEmitter}=await import('node:events'),{observeBrowserManifest}=await import('../ops/b2/cas-manifest-observer.mjs');
+ for(const base64Encoded of [false,true]){
+  const session=new EventEmitter(),tasks=[],body=JSON.stringify({pilot:'small',resources:[]});let observed;
+  session.send=async(name,{requestId}={})=>{
+   if(name==='Network.enable')return {};
+   assert.equal(requestId,'fast');
+   if(name==='Network.streamResourceContent')throw Error('Protocol error (Network.streamResourceContent): Request with the provided ID has already finished loading');
+   assert.equal(name,'Network.getResponseBody');return {body:base64Encoded?Buffer.from(body).toString('base64'):body,base64Encoded};
+  };
+  await observeBrowserManifest({session,url:'https://localhost/api/resources',tasks,onManifest:actual=>{observed=actual}});
+  session.emit('Network.responseReceived',{requestId:'fast',response:{url:'https://localhost/api/resources',status:200}});
+  session.emit('Network.loadingFinished',{requestId:'fast'});
+  await tasks[0];assert.deepEqual(observed,{pilot:'small',resources:[]});
+ }
+});
