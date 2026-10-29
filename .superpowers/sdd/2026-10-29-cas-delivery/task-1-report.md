@@ -39,3 +39,25 @@ Worker 固定命名空间 `b2/web-visual-novel/snapshot-20261028`，固定元数
 本轮未将 PG bytes 与 B2 200/HEAD Content-Length 或 206 Content-Range 总长做额外一致性门禁；只校验元数据 bytes 的安全范围与小对象填充实际长度/声明长度一致。后续只读 HTTP 验收仍须对齐冻结 PG 长度。
 
 实现提交：`12dd875`（`feat(resources): serve game assets through published CAS mappings`），基于 `34c4964`。本报告另作独立文档提交；未推送远程。
+
+## 复审修复第 1 轮
+
+已逐字读取 `task-1-review.md`，接受其中 2项P1、2项P2；以下记录取代前文“未将 PG bytes 与 B2 长度对齐”的实现边界。
+
+- HTML/脚本扩展名和 HTML 隔离统一使用经过验证、解码后的规范原路径。`index%2Ehtml`、`index.%68tml`、`index.ht%6Dl` 的 `text/html` 映射仍返回 `application/octet-stream`，保持 nosniff/no-transform。诊断原路径直接编码规范路径，避免二次解码。
+- 200/HEAD 的 Content-Length 必须与已发布 PG bytes 一致；完整缓存命中也必须拥有匹配的长度。206 必须有可解析的单范围，起止/总长都是安全整数，起止合法、末尾小于总长、总长等于 PG bytes，Content-Length（如有）必须等于范围长度。矛盾不写成功缓存，返回502；HEAD 缺失完整长度也拒绝。
+- GET 的完整/部分/缓存正文均使用 TransformStream 累计实际字节，超过预期立即终止，结束短流报错。未知长度和大对象不完整缓冲，不以 PG bytes 为借口强行进入小对象填充；已经发送流式头后才发现长度错误时，终止流而不声称可以撤回200头。同长度损坏仍需 SHA/已有对象完整性验收，长度门禁不替代摘要验证。继续使用 Accept-Encoding identity，未改变原有下载压缩协商。
+- 元数据完整阶段由一个5秒期限包围：Cache match、命中正文读取、网络/JSON、Cache put 共用该期限；超时中止网络信号并返回502，缓存写失败同样失败关闭，不在写入挂起时继续交付。
+- HEAD 在任何缓存/上游路径均删除 Range 和 If-Range；返回完整表示的状态/长度，不产生部分206。
+
+所有验证继续使用同一专用构建机 `localhost`、已有持久执行器和独立任务目录 `/home/i/.local/state/ai-jobs/<ID>/`，没有生产/CF/B2操作或删除。
+
+| 阶段 | 持久任务 ID | UTC 开始–结束 | 命令 | 结果 |
+| --- | --- | --- | --- | --- |
+| RED | `wvn-platform-20261029-cas-task1-fix1-red` | 02:46:07–02:46:19 | `node --test tests/b2-cdn-worker.test.mjs` | exit 1；`tests 22 / pass 17 / fail 5` |
+| GREEN | `wvn-platform-20261029-cas-task1-fix1-green` | 02:47:33–02:47:46 | `./node_modules/.bin/tsx --test --test-concurrency=1 tests/resource-api.test.ts && node --test tests/b2-cdn-worker.test.mjs` | exit 0；API 7/7；Worker 22/22 |
+| 最终补充计数正反例 | `wvn-platform-20261029-cas-task1-fix1-final` | 02:48:46–02:49:00 | 同 GREEN | exit 0；API `tests 7 / pass 7 / fail 0`；Worker `tests 23 / pass 23 / fail 0` |
+
+RED 输出明确包含：编码HTML `actual text/html` / `expected application/octet-stream`；错误长度 `200 !== 502`；未知长度流 `Missing expected rejection`；HEAD 上游仍有 `bytes=0-0`；缓存挂起 `metadata stage must finish`。五个具名回归均先失败再修实现。GREEN 期限回归同时注入挂起 match/put，约5002ms结束；末次新增覆盖缓存实际短流、合法206正例、206长度矛盾及大对象收到头即返回、结束短流失败。
+
+已有合成 fixture 的元数据 bytes 已同步为对应HTML/HEAD/虚拟路径正文的真实长度，不再让合法行为测试依赖不一致的PG元数据。`git diff --check` 通过。遵照本轮要求，仅运行 API/Worker 专项，未重跑先前已通过的全套/类型检查/构建。修复、专项测试、接口文档与本追加报告采用同一个原子提交（标题 `fix(cdn): enforce CAS isolation and delivery bounds`），提交哈希由主代理读取该提交确认。

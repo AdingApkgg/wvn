@@ -6,14 +6,14 @@ const sha = 'a'.repeat(64);
 const metadata = { key: '12345678-1234-4234-8234-123456789abc', sha256: sha, bytes: 4, contentType: 'application/wasm', url: 'https://wg-b2.saop.cc/' + sha + '.bin' };
 function handleB2Asset(request, options) {
  const fetcher = options.fetcher;
- return rawHandle(request, {...options, fetcher: (url, opts) => String(url).startsWith('https://wg.saop.cc/api/resources/by-path?') ? Promise.resolve(Response.json(metadata)) : fetcher(url,opts)});
+ return rawHandle(request, {...options, fetcher: (url, opts) => String(url).startsWith('https://wg.saop.cc/api/resources/by-path?') ? Promise.resolve(Response.json({...metadata,bytes:options.metadataBytes ?? 4})) : fetcher(url,opts)});
 }
 const origin = "https://wg-b2.saop.cc";
 const path = "/releases/20261027-01/engines/shared/engine.wasm";
 test("HTML 以原始对象传输并禁止中间层变换，供网关核验后隔离", async () => {
   const html = "<!doctype html><script src=engine.js></script>";
   const got = await handleB2Asset(new Request(origin + "/releases/20261027-01/games/atri/index.html"), {
-    cache: cache(),
+    cache: cache(), metadataBytes:html.length,
     fetcher: async () => new Response(html, { headers: { "content-type": "text/html", "content-length": String(html.length) } }),
     waitUntil: () => {},
   });
@@ -75,7 +75,7 @@ test("Worker 使用支持的 manual 重定向模式，拒绝上游重定向", as
 test("已有 Cloudflare 桶路径重写不重复加前缀，仍限定同一版本", async () => {
   const store = cache();
   const got = await handleB2Asset(new Request(origin + "/file/web-visual-novel" + path), {
-    cache: store,
+    cache: store, metadataBytes:2,
     fetcher: async url => {
       assert.equal(String(url), "https://f003.backblazeb2.com/file/web-visual-novel/" + sha + ".bin");
       return new Response("ok", { headers: { "content-length": "2" } });
@@ -113,7 +113,7 @@ test("Range 和条件请求保留给上游，部分响应不写完整对象缓�
 test("HEAD 不传响应体，大游戏包保持流式且不写小对象缓存", async () => {
   const store = cache(), pending = [];
   const got = await handleB2Asset(new Request(origin + path, { method: "HEAD" }), {
-    cache: store,
+    cache: store, metadataBytes:64*1024**2,
     fetcher: async (_url, options) => { assert.equal(options.method, "HEAD"); return new Response(null, { headers: { "content-length": String(64 * 1024 ** 2) } }); },
     waitUntil: p => pending.push(p),
   });
@@ -124,7 +124,7 @@ test("HEAD 不传响应体，大游戏包保持流式且不写小对象缓存", 
 });
 
 test('CDN 虚拟路径经固定映射查询后读取 CAS，保留游戏目录与固定引擎身份',async()=>{
- const seen=[];const options={cache:cache(),fetcher:async url=>{seen.push(String(url));return new Response('bytes',{headers:{'content-length':'5'}})},waitUntil:()=>{}};
+ const seen=[];const options={cache:cache(),metadataBytes:5,fetcher:async url=>{seen.push(String(url));return new Response('bytes',{headers:{'content-length':'5'}})},waitUntil:()=>{}};
  const r=await handleB2Asset(new Request(origin+'/file/web-visual-novel/__player/resource/artemis-v27448-1/artemis.wasm'),options);
  assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'application/wasm');assert(seen[0].endsWith('/'+sha+'.bin'));
  const shared='renpy-5b572ebfa6248cac249cab61f698c967cac82b7d225da7515971b383d0f0a3cf';
@@ -180,7 +180,7 @@ test('缓存条件请求返回无正文 304，If-Range 失配返回完整对象�
 
 test('未知长度与大对象收到头即流式返回，诊断标明物理 SHA 与原路径', async () => {
  let finish;
- const response=await handleB2Asset(new Request(origin+path),{cache:cache(),fetcher:async()=>new Response(new ReadableStream({start(c){finish=()=>{c.enqueue(new Uint8Array([1]));c.close()}}}))});
+ const response=await handleB2Asset(new Request(origin+path),{cache:cache(),metadataBytes:1,fetcher:async()=>new Response(new ReadableStream({start(c){finish=()=>{c.enqueue(new Uint8Array([1]));c.close()}}}))});
  assert.equal(response.status,200);assert.equal(response.headers.get('x-wvn-b2-key'),sha+'.bin');
  assert.equal(decodeURIComponent(response.headers.get('x-wvn-original-key')),path.slice(1));finish();assert.equal((await response.arrayBuffer()).byteLength,1);
 });
@@ -205,4 +205,65 @@ test('小对象正文超过声明长度会停止缓存并重试，未知长度�
  const store={async match(r){return entries.get(r.url)?.clone()},async put(r,res){const bytes=await res.arrayBuffer();entries.set(r.url,new Response(bytes,{headers:res.headers}))}};
  const response=await handleB2Asset(new Request(origin+path),{cache:store,fetcher:async()=>{reads++;return new Response(reads===1?'too long':'abcd',{headers:{'content-length':'4'}})}});
  assert.equal(response.status,200);assert.equal(await response.text(),'abcd');assert.equal(reads,2);
+});
+
+function rawFixture(bytes, responder, store=cache()) {
+ return {cache:store,fetcher:async(url,opts)=>String(url).startsWith('https://wg.saop.cc/')?Response.json({...metadata,bytes,contentType:'text/html'}):responder(url,opts)};
+}
+test('复审：编码 HTML 路径必须统一隔离 MIME',async()=>{
+ for(const ending of ['index%2Ehtml','index.%68tml','index.ht%6Dl']){
+  const r=await rawHandle(new Request(origin+'/releases/20261027-01/games/atri/'+ending),rawFixture(4,async()=>new Response('html',{headers:{'content-length':'4','content-type':'application/octet-stream'}})));
+  assert.equal(r.headers.get('content-type'),'application/octet-stream');
+ }
+});
+test('复审：完整响应、HEAD、206 与缓存长度必须符合 PG',async()=>{
+ for(const method of ['GET','HEAD']){
+  const store=cache();
+  const r=await rawHandle(new Request(origin+path,{method}),rawFixture(4,async()=>new Response(method==='HEAD'?null:'bad',{headers:{'content-length':'3'}}),store));
+  assert.equal(r.status,502);assert.equal([...store.entries.keys()].filter(k=>k.includes('wvn-cdn-v=')).length,0);
+ }
+ for(const range of ['bytes 0-1/5','bytes 1-0/4','bytes 0-4/4','bytes 0-1/*','nonsense']){
+  const r=await rawHandle(new Request(origin+path,{headers:{range:'bytes=0-1'}}),rawFixture(4,async()=>new Response('ab',{status:206,headers:{'content-length':'2','content-range':range}})));
+  assert.equal(r.status,502);
+ }
+ const store=cache();const match=store.match;
+ store.match=async r=>r.url.includes('wvn-cdn-v=')?new Response('bad',{headers:{'content-length':'3'}}):match(r);
+ const r=await rawHandle(new Request(origin+path),rawFixture(4,async()=>new Response('abcd',{headers:{'content-length':'4'}}),store));
+ assert.equal(r.status,502);
+});
+test('复审：未知长度流不缓冲且按 PG 大小截断或报短流',async()=>{
+ for(const body of ['bad','longer']){
+  const r=await rawHandle(new Request(origin+path),rawFixture(4,async()=>new Response(body)));
+  await assert.rejects(r.arrayBuffer());
+ }
+});
+test('复审：HEAD 在缓存与上游均忽略 Range',async()=>{
+ const store=cache();let reads=0;
+ const opts=rawFixture(4,async(_url,options)=>{reads++;assert.equal(options.headers.get('range'),null);assert.equal(options.headers.get('if-range'),null);return new Response(null,{headers:{'content-length':'4'}})},store);
+ const request=()=>new Request(origin+path,{method:'HEAD',headers:{range:'bytes=0-0','if-range':'"v1"'}});
+ const cold=await rawHandle(request(),opts);assert.equal(cold.status,200);assert.equal(cold.headers.get('content-length'),'4');
+ const match=store.match;store.match=async r=>r.url.includes('wvn-cdn-v=')?(r.headers.has('range')?new Response('a',{status:206,headers:{'content-length':'1','content-range':'bytes 0-0/4'}}):new Response('abcd',{headers:{'content-length':'4'}})):match(r);
+ const warm=await rawHandle(request(),opts);assert.equal(warm.status,200);assert.equal(warm.headers.get('content-length'),'4');assert.equal(warm.headers.get('content-range'),null);assert.equal(reads,1);
+});
+test('复审：元数据 Cache match/put 均受完整五秒阶段期限约束',{timeout:8000},async()=>{
+ await Promise.all(['match','put'].map(async name=>{
+  const store=cache();store[name]=async()=>new Promise(()=>{});
+  const r=await Promise.race([rawHandle(new Request(origin+path),rawFixture(4,async()=>{throw Error('must not read B2')},store)),new Promise(resolve=>setTimeout(()=>resolve(null),6500))]);
+  assert(r,'metadata stage must finish');assert.equal(r.status,502);
+ }));
+});
+
+
+test('复审：缓存正文与合法206也按预期长度流式计数，正确大对象不缓冲',async()=>{
+ const store=cache();const match=store.match;
+ store.match=async r=>r.url.includes('wvn-cdn-v=')?new Response('bad',{headers:{'content-length':'4'}}):match(r);
+ const cached=await rawHandle(new Request(origin+path),rawFixture(4,async()=>{throw Error('no B2')},store));
+ await assert.rejects(cached.arrayBuffer());
+ const partial=await rawHandle(new Request(origin+path,{headers:{range:'bytes=0-1'}}),rawFixture(4,async()=>new Response('ab',{status:206,headers:{'content-range':'bytes 0-1/4','content-length':'2'}})));
+ assert.equal(partial.status,206);assert.equal(await partial.text(),'ab');
+ const mismatch=await rawHandle(new Request(origin+path,{headers:{range:'bytes=0-1'}}),rawFixture(4,async()=>new Response('a',{status:206,headers:{'content-range':'bytes 0-1/4','content-length':'1'}})));
+ assert.equal(mismatch.status,502);
+ let end;
+ const large=await rawHandle(new Request(origin+path),rawFixture(40*1024**2,async()=>new Response(new ReadableStream({start(c){end=()=>c.close()}}),{headers:{'content-length':String(40*1024**2)}})));
+ assert.equal(large.status,200);end();await assert.rejects(large.arrayBuffer());
 });

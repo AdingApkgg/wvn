@@ -14,7 +14,7 @@ function result(response, method, cacheStatus, objectPath, metadata) {
   headers.set('Content-Type',mime[ext] ?? metadata.contentType);
   headers.set('Access-Control-Expose-Headers','Content-Length, Content-Range, Accept-Ranges, ETag, x-bz-content-sha1, x-wvn-cdn-cache, x-wvn-resource-source, x-wvn-b2-key, x-wvn-original-key');
   headers.set('X-WVN-B2-Key',metadata.sha256+'.bin');
-  headers.set('X-WVN-Original-Key',encodeURIComponent(decodeURIComponent(objectPath.slice(1))));
+  headers.set('X-WVN-Original-Key',encodeURIComponent(objectPath.slice(1)));
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Cross-Origin-Resource-Policy", "cross-origin");
   headers.set("X-Content-Type-Options", "nosniff");
@@ -34,9 +34,45 @@ function result(response, method, cacheStatus, objectPath, metadata) {
   return new Response(method === "HEAD" ? null : response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
-async function deadline(promise, milliseconds) {
+// PG 大小约束完整表示；范围只允许合法的单范围，流以计数验证而不整包缓冲。
+function validateLength(response, metadata, method, cached = false) {
+  if (![200,206].includes(response.status)) return null;
+  const raw = response.headers.get('content-length');
+  const length = raw !== null && /^(0|[1-9][0-9]*)$/.test(raw) ? Number(raw) : null;
+  if (raw !== null && !Number.isSafeInteger(length)) throw Error('Invalid B2 length');
+  let expected = metadata.bytes;
+  if (response.status === 206) {
+    if (method !== 'GET') throw Error('Unexpected partial HEAD');
+    const match = /^bytes ([0-9]+)-([0-9]+)\/([0-9]+)$/.exec(response.headers.get('content-range') ?? '');
+    if (!match) throw Error('Invalid B2 range');
+    const [start,end,total] = match.slice(1).map(Number);
+    if (![start,end,total].every(Number.isSafeInteger) || start > end || end >= total || total !== metadata.bytes) throw Error('B2 range total mismatch');
+    expected = end - start + 1;
+  } else if (response.headers.has('content-range')) throw Error('Unexpected B2 range');
+  if ((length !== null && length !== expected) || ((method === 'HEAD' || cached) && length === null)) throw Error('B2 length differs from published mapping');
+  return expected;
+}
+function boundResponse(response, metadata, method) {
+  let expected;
+  try { expected = validateLength(response,metadata,method); }
+  catch (error) { response.body?.cancel().catch(() => {}); throw error; }
+  if (expected === null || method === 'HEAD') return response;
+  if (!response.body) { if (expected !== 0) throw Error('Missing B2 body'); return response; }
+  let received = 0;
+  const body = response.body.pipeThrough(new TransformStream({
+    transform(chunk, controller) {
+      received += chunk.byteLength;
+      if (received > expected) throw Error('B2 body exceeds published size');
+      controller.enqueue(chunk);
+    },
+    flush() { if (received !== expected) throw Error('B2 body shorter than published size'); },
+  }));
+  return new Response(body,{status:response.status,statusText:response.statusText,headers:response.headers});
+}
+
+async function deadline(promise, milliseconds, onTimeout = () => {}) {
   let timer;
-  try { return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Read timed out')), milliseconds); })]); }
+  try { return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => { onTimeout(); reject(Error('Read timed out')); }, milliseconds); })]); }
   finally { clearTimeout(timer); }
 }
 
@@ -90,34 +126,30 @@ export async function handleB2Asset(request, { cache, fetcher = fetch, waitUntil
   metadataURL.searchParams.set('path', originalPath);
   const metadataKey = new Request(metadataURL + '&wvn-metadata-v=1');
   let metadata;
+  const metadataController = new AbortController();
   try {
-    const cachedMetadata = await cache.match(metadataKey);
-    if (cachedMetadata) metadata = await deadline(readMetadata(cachedMetadata), metadataTimeout);
-    else {
-      const controller = new AbortController();
-      let timer;
-      try {
-        metadata = await Promise.race([
-          (async () => {
-            const response = await fetcher(metadataURL, {method:'GET', headers:{accept:'application/json'}, redirect:'manual', signal:controller.signal});
-            if (response.status === 404) { await response.body?.cancel(); return null; }
-            if (response.status !== 200) { await response.body?.cancel(); throw Error('Metadata unavailable'); }
-            return readMetadata(response);
-          })(),
-          new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(Error('Metadata timeout')); }, metadataTimeout); }),
-        ]);
-      } finally { clearTimeout(timer); }
-      if (metadata) await cache.put(metadataKey, Response.json(metadata, {headers:{'Cache-Control':'public, max-age=86400'}}));
-    }
+    metadata = await deadline((async () => {
+      const cachedMetadata = await cache.match(metadataKey);
+      if (cachedMetadata) return readMetadata(cachedMetadata);
+      const response = await fetcher(metadataURL, {method:'GET', headers:{accept:'application/json'}, redirect:'manual', signal:metadataController.signal});
+      if (response.status === 404) { await response.body?.cancel(); return null; }
+      if (response.status !== 200) { await response.body?.cancel(); throw Error('Metadata unavailable'); }
+      const validated = await readMetadata(response);
+      await cache.put(metadataKey, Response.json(validated, {headers:{'Cache-Control':'public, max-age=86400'}}));
+      return validated;
+    })(), metadataTimeout, () => metadataController.abort());
   } catch { return new Response('Resource mapping unavailable', {status:502,headers:{'Cache-Control':'no-store'}}); }
   if (!metadata) return new Response('Not found', {status:404,headers:{'Cache-Control':'no-store'}});
   const objectURL = new URL(origin + '/' + metadata.sha256 + '.bin');
   const keyURL = "https://" + host + objectPath + "?wvn-cdn-v=3&sha256=" + metadata.sha256;
   const headers = new Headers({ "accept-encoding": "identity" });
   for (const name of forwardedHeaders) if (request.headers.has(name)) headers.set(name, request.headers.get(name));
+  if (request.method === 'HEAD') { headers.delete('range'); headers.delete('if-range'); }
   // Cache API 不处理 If-Range；先核验完整对象验证器，再交给它处理 Range/条件请求。
   const complete = await cache.match(new Request(keyURL));
   if (complete) {
+    try { validateLength(complete, metadata, 'HEAD', true); }
+    catch { await complete.body?.cancel(); return new Response('Cached resource length mismatch',{status:502,headers:{'Cache-Control':'no-store'}}); }
     const ifRange = headers.get('if-range');
     let useRange = headers.has('range');
     if (ifRange && useRange) {
@@ -132,11 +164,14 @@ export async function handleB2Asset(request, { cache, fetcher = fetch, waitUntil
     if ((inm && (inm.trim() === '*' || inm.split(',').some(v => v.trim().replace(/^W\//,'') === etag?.replace(/^W\//,'')))) || (!inm && Number.isFinite(ims) && Number.isFinite(modified) && modified <= ims)) {
       const conditionalHeaders = new Headers(complete.headers);
       conditionalHeaders.delete('content-length'); conditionalHeaders.delete('content-range');
-      return result(new Response(null,{status:304,headers:conditionalHeaders}),request.method,'HIT',objectPath,metadata);
+      return result(new Response(null,{status:304,headers:conditionalHeaders}),request.method,'HIT','/'+originalPath,metadata);
     }
-    if (!useRange) return result(complete,request.method,'HIT',objectPath,metadata);
+    if (!useRange) return result(boundResponse(complete,metadata,request.method),request.method,'HIT','/'+originalPath,metadata);
     const ranged = await cache.match(new Request(keyURL,{headers:{range:headers.get('range')}}));
-    if (ranged?.status === 206 || ranged?.status === 416) return result(ranged,request.method,'HIT',objectPath,metadata);
+    if (ranged?.status === 206 || ranged?.status === 416) {
+      try { return result(boundResponse(ranged, metadata, request.method),request.method,'HIT','/'+originalPath,metadata); }
+      catch { await ranged.body?.cancel(); return new Response('Cached range mismatch',{status:502,headers:{'Cache-Control':'no-store'}}); }
+    }
     // 某些 Cache 实现忽略 Range 并返回 200，此时由 B2 执行 Range。
   }
   for(let attempt=1;attempt<=3;attempt++){
@@ -146,22 +181,14 @@ export async function handleB2Asset(request, { cache, fetcher = fetch, waitUntil
       const upstream=await fetcher(objectURL,{method:request.method,headers,redirect:'manual',signal:controller.signal});
       if(upstream.status>=300&&upstream.status<400&&upstream.status!==304){await upstream.body?.cancel();return new Response('B2 redirect refused',{status:502,headers:{'Cache-Control':'no-store','X-WVN-CDN-Cache':'ERROR'}});}
       if(upstream.status>=500){await upstream.body?.cancel();throw Error('B2 returned '+upstream.status);}
-      const response=result(upstream,request.method,'MISS',objectPath,metadata),size=Number(response.headers.get('content-length'));
+      const response=result(boundResponse(upstream,metadata,request.method),request.method,'MISS','/'+originalPath,metadata),size=Number(response.headers.get('content-length'));
       if(request.method==='GET'&&response.status===200&&Number.isSafeInteger(size)&&size>0&&size<=cacheLimit){
         // 在边缘流式收齐小对象后才发响应头，断流可重试；不在应用服务器中转或整包缓冲。
-        let received = 0;
-        const bounded = response.body.pipeThrough(new TransformStream({
-          transform(chunk, controller) {
-            received += chunk.byteLength;
-            if (received > size || received > cacheLimit) throw Error('B2 body exceeds declared length');
-            controller.enqueue(chunk);
-          },
-          flush() { if (received !== size) throw Error('B2 body length mismatch'); },
-        }));
-        await deadline(cache.put(new Request(keyURL),new Response(bounded,{status:response.status,headers:response.headers})),30000);
+        await deadline(cache.put(new Request(keyURL),response),30000);
         const complete=await cache.match(new Request(keyURL));
         if(!complete)throw Error('B2 edge cache fill was not retained');
-        return result(complete,request.method,'MISS',objectPath,metadata);
+        validateLength(complete,metadata,'HEAD',true);
+        return result(boundResponse(complete,metadata,request.method),request.method,'MISS','/'+originalPath,metadata);
       }
       // 大游戏包与 Range 直接由 CDN 流式传输，收到响应头后不设总下载期限。
       return response;
