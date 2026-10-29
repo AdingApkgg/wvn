@@ -37,7 +37,7 @@ node --import tsx scripts/import-webgal.ts
 node --import tsx scripts/import-webgal.ts --apply
 ```
 
-该命令目前拒绝生产模式。既有版本、默认入口和资源前缀均逐项比对；从原 79 版目录追加、再重复执行的远程演练已通过。没有读取、复制、修改用户账号或云存档。
+默认入口拒绝生产模式。已授权生产发布须显式添加 `--production --plan-sha256 <冻结计划文件的 SHA-256>`，且只接受 `catalog` / `resources` 正式 schema；未加 `--apply` 时仍仅预演。既有版本、默认入口和资源前缀均逐项比对；从原 79 版目录追加、再重复执行的远程演练已通过。没有读取、复制、修改用户账号或云存档。
 
 可信启动控制包可单独生成，输出文件必须不存在：
 

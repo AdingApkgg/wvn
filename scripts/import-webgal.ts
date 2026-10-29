@@ -5,14 +5,12 @@ import {Store} from '../src/server/store.ts';
 import {ResourceRepository} from '../src/resources/repository.ts';
 import {VersionResources} from '../src/platform/version-resources.server.ts';
 import {webgalPlayers} from '../public/player/webgal-registry.mjs';
+import {webgalImportRun} from '../ops/b2/webgal-import-guard.mjs';
 
-// 预演默认只读；当前命令只允许隔离预览。生产应用需要单独审批与执行入口。
-const args=process.argv.slice(2),apply=args.includes('--apply');
-assert(args.every(x=>x==='--apply')&&args.length<=1,'Usage: import-webgal.ts [--apply]');
-assert.equal(process.env.WG_DEPLOYMENT_MODE,'preview');
-const catalogSchema=process.env.WG_DATABASE_SCHEMA,resourceSchema=process.env.WG_RESOURCE_DATABASE_SCHEMA;
-assert(catalogSchema&&resourceSchema&&catalogSchema.startsWith('webgal_')&&resourceSchema.startsWith('webgal_'),'Explicit isolated WebGAL schemas required');
-const plan=JSON.parse(fs.readFileSync('data/imports/webgal-20261027.json','utf8'));
+// 默认预演只读；已授权生产发布必须显式选择并核对冻结计划摘要。
+const planBytes=fs.readFileSync('data/imports/webgal-20261027.json');
+const {apply,production,catalogSchema,resourceSchema}=webgalImportRun(process.argv.slice(2),process.env,planBytes);
+const plan=JSON.parse(planBytes.toString('utf8'));
 assert.equal(plan.entries.length,15);assert.equal(plan.versions.length,15);
 const catalog=new Store(new PgDatabase(process.env.WG_DATABASE_URL!,{schema:catalogSchema}));
 const db=new PgDatabase(process.env.WG_RESOURCE_DATABASE_URL!,{schema:resourceSchema});
@@ -33,6 +31,8 @@ try{
   for(const [path,sha]of Object.entries({...player.engineFiles,...player.packageFiles})){
    const row=await db.prepare('SELECT sha256 FROM wvn_resources WHERE namespace=$1 AND original_path=$2').get(plan.namespace,source.prefix+path);assert.equal(row?.sha256,sha,'Registered core resource differs');
   }
+  const binding=await db.prepare('SELECT namespace,inventory_sha256,path_prefix FROM wvn_version_resources WHERE version_id=$1').get(input.id);
+  if(binding){assert.equal(binding.namespace,plan.namespace);assert.equal(binding.inventory_sha256,plan.inventorySha256);assert.equal(binding.path_prefix,source.prefix,'Existing resource binding differs');}
   entries.push({versionId:input.id,namespace:plan.namespace,inventorySha256:plan.inventorySha256,prefix:source.prefix,resources:Number(count.n),action:old?'unchanged':'add'});
  }
  if(apply){
@@ -41,5 +41,5 @@ try{
   const after=await catalog.list(true);
   for(const work of before){const next=after.find(w=>w.id===work.id)!;assert.equal(next.defaultVersionId,work.defaultVersionId);assert.deepEqual(next.versions.filter(v=>existingIds.has(v.id)),work.versions);}
  }
- console.log(JSON.stringify({status:apply?'complete':'dry-run',worksAdded:plan.works.filter((w:any)=>!before.some(v=>v.id===w.id)).length,entries,unavailable:plan.unavailable,existingVersionsPreserved:existingIds.size,productionChanged:false}));
+ console.log(JSON.stringify({status:apply?'complete':'dry-run',worksAdded:plan.works.filter((w:any)=>!before.some(v=>v.id===w.id)).length,entries,unavailable:plan.unavailable,existingVersionsPreserved:existingIds.size,productionChanged:production&&apply}));
 }finally{await catalog.close();await db.close();}
