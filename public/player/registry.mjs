@@ -1,4 +1,5 @@
 // Audited existing package identities. ONS identities and databases remain unchanged.
+import {webgalPlayers} from './webgal-registry.mjs';
 import {pilots} from "../ons/registry.mjs";
 export const otherPlayers=Object.freeze([
   {
@@ -1086,6 +1087,7 @@ export const otherPlayers=Object.freeze([
       "artemis.wasm": "bb6ced7ec182b7cfca8f5b735cc8b1291e5ae995bc086a35c3da3501b203726b"
     }
   }
+,...webgalPlayers
 ].map(Object.freeze));
 export const players=Object.freeze([...pilots,...otherPlayers]);
 export function findPlayer(id){return players.find(p=>p.id===id)}

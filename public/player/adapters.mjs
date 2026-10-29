@@ -66,7 +66,7 @@ export function installMemoryPersistence({FS,IDBFS,MEMFS,mount,extraMount,files,
   FS.mount=(type,opts,path)=>{
     if(type!==IDBFS)return originalMount(type,opts,path);
     if(extraMount&&path===extraMount){if(extraMounted)throw Error('Repeated extra persistence mount');const result=originalMount(MEMFS,opts,path);extraMounted=true;restore(extraMount,extraFiles);return result}
-    if(path!==mount||mounted)throw Error('Unexpected persistence mount');
+    if(path!==mount||mounted)throw Error('Unexpected persistence mount: '+path+' (expected '+mount+')');
     const result=originalMount(MEMFS,opts,path);mounted=true;
     restore(mount,extraMount?files.filter(f=>!f.path.startsWith(extraPrefix)):files);
     return result;

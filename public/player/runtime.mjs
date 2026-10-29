@@ -1,5 +1,7 @@
 import {createCasResolver} from './cas-resources.mjs';
 import {installCasBrowser} from './cas-dom.mjs';
+import {prepareWebgalResolver,installWebgalProbeFallback} from './webgal-artemis.mjs';
+import {installWebgalShaderCompatibility} from './webgal-shaders.mjs';
 import {runtimeResourceOrigin,verifyDirectEngine} from './resource-location.mjs';
 import {createResilientFetch,installResilientXHR} from './resource-download.mjs';
 import {createResourceReporter} from '../ons/resource-loading.mjs';
@@ -49,7 +51,13 @@ addEventListener('message',async function initialize(event){
     if(!init.casManifest)installAnonymousMedia(window);
     const assetOrigin=runtimeResourceOrigin(document.baseURI,entry,origin);
     if(assetOrigin==='https://wg-b2.saop.cc'&&!init.casManifest)throw Error('CAS resource manifest required');
-    const cas=init.casManifest?createCasResolver(init.casManifest,entry,{mainOrigin:origin,sharedEngine:entry.runtimeKind!=='RenPy'||!!init.engineRelease}):null;
+    let cas=init.casManifest?createCasResolver(init.casManifest,entry,{mainOrigin:origin,sharedEngine:entry.runtimeKind!=='RenPy'||!!init.engineRelease}):null;
+    if(entry.sourceImport==='webgal-20261027'){
+      if(!cas)throw Error('WebGAL import requires CAS resources');
+      installWebgalShaderCompatibility(window,entry);
+      const manifestResolver=cas;
+      cas=await prepareWebgalResolver(cas,{fetcher:createResilientFetch({fetcher:fetch.bind(window),allowed:value=>{try{return !!manifestResolver.row(String(value))}catch{return false}}})});
+    }
     const browser=cas?installCasBrowser(window,cas):null;
     if(browser)await browser.restoreDocument();
     const memory=createMemoryStorage(()=>{if(entry.runtimeKind==='Tyrano')queueMicrotask(()=>{if(!failed)void persist(storageSnapshot(memory)).catch(()=>{})})});
@@ -58,9 +66,10 @@ addEventListener('message',async function initialize(event){
     // Optional upstream PWA caching is disabled; never register a worker on the
     // credentialed site. Resources are served by the scoped read-only projection.
     Object.defineProperty(navigator,'serviceWorker',{value:undefined});
-    const publicResource=resource=>{const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href,document.baseURI);return url.origin===assetOrigin&&(url.pathname.startsWith('/__player/resource/'+id+'/')||url.pathname.startsWith('/__engines/resource/'))};
+    const publicResource=resource=>{const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href,document.baseURI);if(cas){try{return !!cas.row(url.href)}catch{return false}}return url.origin===assetOrigin&&(url.pathname.startsWith('/__player/resource/'+id+'/')||url.pathname.startsWith('/__engines/resource/'))};
     const nativeFetch=fetch.bind(window),resilientFetch=createResilientFetch({fetcher:nativeFetch,allowed:publicResource});window.fetch=(resource,options)=>resilientFetch(resource,{...options,credentials:'omit'});
     installResilientXHR(window,publicResource);
+    if(entry.sourceImport==='webgal-20261027')installWebgalProbeFallback(window,cas);
     stopObserving=observeStartupRequests(window,loading,resource=>{
       const url=new URL(typeof resource==='string'?resource:resource?.url??resource?.href??'',document.baseURI);
       if(cas){try{const row=cas.row(url.href);return (init.engineRelease?.files.some(file=>file.path===row.path)||Object.hasOwn(entry.engineFiles,row.path))?'engine':'game'}catch{return null}}
@@ -71,7 +80,7 @@ addEventListener('message',async function initialize(event){
     },resources,event=>{
       if(entry.runtimeKind==='RenPy'&&event.kind==='game'&&event.progress)transferAt=Date.now();
     });
-    let driver;const engineResources=cas?{resolve:path=>cas.url(path)}:engineResourcesForSession(init.engineRelease,entry.runtimeKind,assetOrigin);
+    let driver;const engineResources=cas?{resolve:path=>cas.url(path),path:value=>cas.path(value)}:engineResourcesForSession(init.engineRelease,entry.runtimeKind,assetOrigin);
     const engineBytes=await verifyDirectEngine(entry,init.engineRelease,assetOrigin,{resolver:cas});
     function instrument(){
       const FS=window.FS??driver.module.FS,IDBFS=window.IDBFS??driver.module.IDBFS,MEMFS=window.MEMFS??driver.module.MEMFS;

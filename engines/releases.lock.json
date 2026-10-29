@@ -922,6 +922,276 @@
       "sourceCapability": "imported-prebuilt",
       "sourceCommit": null,
       "sdk": null
+    },
+    {
+      "id": "artemis-f1c1217d1a7512012493d33f18a33470d0ed08b1c9b5fbb79e773c66e7258e22",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "e31325adc78e44dde8cb65de3e74f691804b5bdb272a08733414c1e592b39901"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-a5a192c6cc742cf2335484611f5931391e122677fc7ff18552349395203d9941",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "1a77c3fc2c3cf4ea581b98e1df84a66d64460c7cd7d1cdd06c4f4db63c174688"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-7033037c32ccbf892b17df59d5e602a82787efd3628fac74bb17c93244f0ae34",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "9b3ac4dc82190dd766c182e5b562196b154c3c980b42d4d23cddaae77dcd0f09"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-75d00fea2d2e49a0656a68a85262f8dc5c055eb92cbe3da2d6058fbf827f5639",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "e92c05257ea599bc2a60af1b7a86ccbf302ec8fbca033d5583d154c78cb4c06b"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-a02111e0de204c18ed31574c68c3c136ba7fd31d30c3d6dd374a2dac520f03a4",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "39acd4348be25e702845008c28b8ab93eece48eaf16a10672c6debd41d52cd8a"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-170e134cc50a0dd7ea0a982dc4ae8b588070bc09cffd8a31d4ad92199ba37b9c",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "0e752f91af89ee5635c92a7b04ea35f66a19e99d1e5f3c2ed1c434c0e69824e5"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-c0db93d7fe499409a448679dea8d09e2a0dea158c95c01cb20670ac5ff60f342",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "ab631913d91f87954900dadac752bd84dd6a0cce13af024ba637da6f22b9f90c"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-78e8b43c4c9bdb83579fa907151dd4434e8cbb5689cdc710980dea804f31eddc",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "38c8333e90198e086783432cb39b612c82151678a6a64ac8544555bd9c800321"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-ad81190deb0c5dca60e3bdb56fdff0c58044e40f5f711dbfa6c3f182a20e4dbf",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "a66392563bf26fa0c7aa4db99efb13f50e8101451238015decc82e61017c92d7"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-d13c8680532641372eb08f0c491c42d2464937d10e52f9352424195a2f372cba",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "0a10bda0797e106a7e9dac455c48d9b61f5c098c91b2d4134cbe9dfe87c2eaec"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-c0c763baeb25f2d4f0e84311bd83057e89997f02ac66fafe7584ae278113a059",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "3cf213317631aa2460a0721f1b0de431ece208b64a29fc2ebe740c1b1d30123e"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-618da682728945c9f2269d3471f734d14408851eddac31d2d552604e56b374b4",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "85b4836e0ecc85e83e9cde743ba15da036ada7da48fe8225c2ea934cb6576682"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-f95670da1c3753f0d24024f6124f950c8059f03004e7072af50ec16b129da328",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "e685684b85fae1440887e9e530b6ba8b3efb936401b5a15273c4918f2e126fa5"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-1e08460cd9b8d9dab35fff69dd33f417f3479dba5dd301c369efd659ae01743f",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "801d8cb249e19a69df36f606c6a0064ddbcbb7e51dcad8910033eb99a6750001"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
+    },
+    {
+      "id": "artemis-10a2b01996918420368bfb78279b7bdd9b1867dc79675af388565c3fafc7494f",
+      "kind": "Artemis",
+      "mode": "global",
+      "files": [
+        {
+          "path": "artemis.js",
+          "sha256": "3bea70037426ed70c72dfaf902537932a0ae8355556de3068233bcdc1e5c55d6"
+        },
+        {
+          "path": "artemis.wasm",
+          "sha256": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+        }
+      ],
+      "sourceCapability": "imported-prebuilt",
+      "sourceCommit": null,
+      "sdk": null
     }
   ]
 }

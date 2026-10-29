@@ -1,0 +1,495 @@
+{
+  "schema": 1,
+  "source": "https://webgal.moe/",
+  "snapshot": "2026-10-27",
+  "namespace": "b2/web-visual-novel/snapshot-20261028",
+  "inventorySha256": "fbdfcc49da7b16325482f82657cf7720454c43a03e67fed462386ba824daca01",
+  "transfer": {
+    "objects": 290665,
+    "bytes": 58961797257,
+    "sha1Differences": 0
+  },
+  "unavailable": [
+    {
+      "slug": "Saint-Necromancer",
+      "reason": "源站核心 JS/WASM/数据包缺失；不发布为可玩版本"
+    }
+  ],
+  "works": [
+    {
+      "id": "v22880",
+      "title": "宿星Girlfriend",
+      "originalTitle": "宿星のガールフレンド -the destiny star of girlfriend-",
+      "aliases": [
+        "Shukusei no Girlfriend -the destiny star of girlfriend-",
+        "Destiny Star Girlfriend",
+        "宿星のガールフレンド -the destiny star of girlfriend-",
+        "宿星的女朋友"
+      ],
+      "evidence": "https://vndb.org/v22880"
+    },
+    {
+      "id": "v23290",
+      "title": "宿星Girlfriend2",
+      "originalTitle": "宿星のガールフレンド2 -the destiny star of girlfriend-",
+      "aliases": [
+        "Shukusei no Girlfriend 2 -The Destiny Star of Girlfriend-",
+        "Destiny Star Girlfriend 2",
+        "宿星のガールフレンド2 -the destiny star of girlfriend-",
+        "宿星的女朋友 2 -destiny star girlfriend-"
+      ],
+      "evidence": "https://vndb.org/v23290"
+    },
+    {
+      "id": "v23772",
+      "title": "宿星Girlfriend3",
+      "originalTitle": "宿星のガールフレンド3 -the destiny star of girlfriend-",
+      "aliases": [
+        "Shukusei no Girlfriend 3 -the destiny star of girlfriend-",
+        "Destiny Star Girlfriend 3",
+        "宿星のガールフレンド3 -the destiny star of girlfriend-",
+        "宿星的女朋友 3 -destiny star girlfriend-"
+      ],
+      "evidence": "https://vndb.org/v23772"
+    },
+    {
+      "id": "v53590",
+      "title": "常轨脱离Creative Re:Re:call",
+      "originalTitle": "ハミダシクリエイティブRe:Re:call",
+      "aliases": [
+        "Hamidashi Creative Re:Re:call",
+        "ハミダシクリエイティブRe:Re:call",
+        "常轨脱离Creative Re:Re:call"
+      ],
+      "evidence": "https://vndb.org/v53590"
+    },
+    {
+      "id": "v47175",
+      "title": "SELECT OBLIGE",
+      "originalTitle": "セレクトオブリージュ",
+      "aliases": [
+        "Select Oblige",
+        "セレクトオブリージュ",
+        "天选庶民的真命之选",
+        "天選庶民的真命之選"
+      ],
+      "evidence": "https://vndb.org/v47175"
+    },
+    {
+      "id": "v37021",
+      "title": "FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜",
+      "originalTitle": "FLIP＊FLOP ~INNOCENCE OVERCLOCK~",
+      "aliases": [
+        "FLIP＊FLOP ~INNOCENCE OVERCLOCK~"
+      ],
+      "evidence": "https://vndb.org/v37021"
+    },
+    {
+      "id": "v39197",
+      "title": "FLIP＊FLOP ～RAMBLING OVERRUN～",
+      "originalTitle": "FLIP＊FLOP ~RAMBLING OVERRUN~",
+      "aliases": [
+        "FLIP＊FLOP ~RAMBLING OVERRUN~"
+      ],
+      "evidence": "https://vndb.org/v39197"
+    },
+    {
+      "id": "v15708",
+      "title": "千之刃涛，桃花染之皇姬",
+      "originalTitle": "千の刃濤、桃花染の皇姫",
+      "aliases": [
+        "Sen no Hatou, Tsukisome no Kouki",
+        "Senmomo: Through Billows of Blades, A Peachbloom Princess",
+        "千の刃濤、桃花染の皇姫",
+        "千之刃涛，桃花染之皇姬"
+      ],
+      "evidence": "https://vndb.org/v15708"
+    }
+  ],
+  "versions": [
+    {
+      "id": "ef49dd01-c904-518f-aba7-50a36d46c596",
+      "workId": "v22880",
+      "number": 1,
+      "title": "宿星Girlfriend · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Shukusei-no-Girlfriend/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "2db31864-3a96-519e-be67-b75cac750691",
+      "workId": "v23290",
+      "number": 1,
+      "title": "宿星Girlfriend2 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Shukusei-no-Girlfriend-2/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "8949d767-3c75-5d50-ac5d-1e0693108a6a",
+      "workId": "v23772",
+      "number": 1,
+      "title": "宿星Girlfriend3 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Shukusei-no-Girlfriend-3/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+      "workId": "v27449",
+      "number": 2,
+      "title": "常轨脱离Creative · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/hamidashi/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+      "workId": "v33205",
+      "number": 2,
+      "title": "常轨脱离 Creative 凸 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/hamidashi-totsu/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
+      "workId": "v53590",
+      "number": 1,
+      "title": "常轨脱离Creative Re:Re:call · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/hamidashi-ReRecall/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "cbc04bd1-9eaa-51db-906e-d434742211f8",
+      "workId": "v22847",
+      "number": 2,
+      "title": "树莓立方体 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Raspberry-Cube/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "d872fbdb-a9a4-550e-8699-928cacc9750e",
+      "workId": "v47175",
+      "number": 1,
+      "title": "SELECT OBLIGE · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/SELECT-OBLIGE/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "0b9089be-6d34-5e21-85c4-c2020ac2a913",
+      "workId": "v37021",
+      "number": 1,
+      "title": "FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/FlipxFlop-InnocenceOverclock/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
+      "workId": "v39197",
+      "number": 1,
+      "title": "FLIP＊FLOP ～RAMBLING OVERRUN～ · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/FlipxFlop-RamblingOverrun/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "933436a8-85f5-5a76-9568-5f29faff9785",
+      "workId": "v1115",
+      "number": 2,
+      "title": "繁花落舞恋如樱 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Cherry-Petals-Fall-Like-Teardrops/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "33224257-9a7b-5d77-b690-2c0fd9643a48",
+      "workId": "v562",
+      "number": 3,
+      "title": "樱之诗 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Sakura-no-Uta/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "d6b4fc84-a347-5a28-9184-579085dadfa1",
+      "workId": "v20431",
+      "number": 2,
+      "title": "樱之刻 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Sakura-no-Toki/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "6016ffaf-4448-53d8-a129-b907b13b2d77",
+      "workId": "v27448",
+      "number": 2,
+      "title": "ATRI · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/atri/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "476a1807-cfd5-5e67-8772-5ca53e9b616c",
+      "workId": "v15708",
+      "number": 1,
+      "title": "千之刃涛，桃花染之皇姬 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Sen-no-Hatou/",
+      "engine": "Artemis"
+    }
+  ],
+  "entries": [
+    {
+      "slug": "Shukusei-no-Girlfriend",
+      "workId": "v22880",
+      "versionId": "ef49dd01-c904-518f-aba7-50a36d46c596",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Shukusei-no-Girlfriend/",
+      "pilot": "artemis-v22880-1",
+      "source": "https://webgal.moe/webgal/Shukusei-no-Girlfriend/",
+      "engineFiles": {
+        "artemis.js": "e31325adc78e44dde8cb65de3e74f691804b5bdb272a08733414c1e592b39901",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "881150f7bfbe12b7fd0e0833840e86a7d2305f6e336274cb76eff57e97748a3a"
+      },
+      "mount": "/shukusei_no_girlfriend"
+    },
+    {
+      "slug": "Shukusei-no-Girlfriend-2",
+      "workId": "v23290",
+      "versionId": "2db31864-3a96-519e-be67-b75cac750691",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Shukusei-no-Girlfriend-2/",
+      "pilot": "artemis-v23290-1",
+      "source": "https://webgal.moe/webgal/Shukusei-no-Girlfriend-2/",
+      "engineFiles": {
+        "artemis.js": "1a77c3fc2c3cf4ea581b98e1df84a66d64460c7cd7d1cdd06c4f4db63c174688",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "5a38a36e69f6b0100988c67f4ebfdcf044ea5990326e2bbac19c2badd8667d42"
+      },
+      "mount": "/destiny_star_girlfriend_2"
+    },
+    {
+      "slug": "Shukusei-no-Girlfriend-3",
+      "workId": "v23772",
+      "versionId": "8949d767-3c75-5d50-ac5d-1e0693108a6a",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Shukusei-no-Girlfriend-3/",
+      "pilot": "artemis-v23772-1",
+      "source": "https://webgal.moe/webgal/Shukusei-no-Girlfriend-3/",
+      "engineFiles": {
+        "artemis.js": "9b3ac4dc82190dd766c182e5b562196b154c3c980b42d4d23cddaae77dcd0f09",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "1c4cd1e15bc33f29760cdd50fd7265285716dcf23dd9150a351b8ce124578567"
+      },
+      "mount": "/shukusei_no_girlfriend_3"
+    },
+    {
+      "slug": "hamidashi",
+      "workId": "v27449",
+      "versionId": "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+      "number": 2,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/hamidashi/",
+      "pilot": "artemis-v27449-2",
+      "source": "https://webgal.moe/webgal/hamidashi/",
+      "engineFiles": {
+        "artemis.js": "e92c05257ea599bc2a60af1b7a86ccbf302ec8fbca033d5583d154c78cb4c06b",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "8de79090f0b3775f5137d8ed5e28b3f6844463ce0e0c469a7668abe19385ebb4"
+      },
+      "mount": "/hamidashi"
+    },
+    {
+      "slug": "hamidashi-totsu",
+      "workId": "v33205",
+      "versionId": "c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+      "number": 2,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/hamidashi-totsu/",
+      "pilot": "artemis-v33205-2",
+      "source": "https://webgal.moe/webgal/hamidashi-totsu/",
+      "engineFiles": {
+        "artemis.js": "39acd4348be25e702845008c28b8ab93eece48eaf16a10672c6debd41d52cd8a",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "500e548b8a971828e4345f601a74a89d36d45b44a6a940f41819ee0976eae381"
+      },
+      "mount": "/hamidashi_totsu"
+    },
+    {
+      "slug": "hamidashi-ReRecall",
+      "workId": "v53590",
+      "versionId": "a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/hamidashi-ReRecall/",
+      "pilot": "artemis-v53590-1",
+      "source": "https://webgal.moe/webgal/hamidashi-ReRecall/",
+      "engineFiles": {
+        "artemis.js": "0e752f91af89ee5635c92a7b04ea35f66a19e99d1e5f3c2ed1c434c0e69824e5",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "7f377a8c0978dd5136d16b12d57edc775400279541d92917ae999315ce84b3dc"
+      },
+      "mount": "/hamidashi_rerecall"
+    },
+    {
+      "slug": "Raspberry-Cube",
+      "workId": "v22847",
+      "versionId": "cbc04bd1-9eaa-51db-906e-d434742211f8",
+      "number": 2,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Raspberry-Cube/",
+      "pilot": "artemis-v22847-2",
+      "source": "https://webgal.moe/webgal/Raspberry-Cube/",
+      "engineFiles": {
+        "artemis.js": "ab631913d91f87954900dadac752bd84dd6a0cce13af024ba637da6f22b9f90c",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "5354f1644acfc266e4adb3180aca6bfd6d2dd7432ef40c72e4b384adae8af52d"
+      },
+      "mount": "/raspberry_cube"
+    },
+    {
+      "slug": "SELECT-OBLIGE",
+      "workId": "v47175",
+      "versionId": "d872fbdb-a9a4-550e-8699-928cacc9750e",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/SELECT-OBLIGE/",
+      "pilot": "artemis-v47175-1",
+      "source": "https://webgal.moe/webgal/SELECT-OBLIGE/",
+      "engineFiles": {
+        "artemis.js": "38c8333e90198e086783432cb39b612c82151678a6a64ac8544555bd9c800321",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "d7d437a377f0187c8db15108b656964b2cde0d2eb21d6cbdbc49f3e556b235e4"
+      },
+      "mount": "/select_oblige"
+    },
+    {
+      "slug": "FlipxFlop-InnocenceOverclock",
+      "workId": "v37021",
+      "versionId": "0b9089be-6d34-5e21-85c4-c2020ac2a913",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/FlipxFlop-InnocenceOverclock/",
+      "pilot": "artemis-v37021-1",
+      "source": "https://webgal.moe/webgal/FlipxFlop-InnocenceOverclock/",
+      "engineFiles": {
+        "artemis.js": "a66392563bf26fa0c7aa4db99efb13f50e8101451238015decc82e61017c92d7",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "f0ceda51fe3ba04bf3f519d233f3c2c3b8cfd249532bb765443f22ee99baf9af"
+      },
+      "mount": "/flipflop_innocence_overclock"
+    },
+    {
+      "slug": "FlipxFlop-RamblingOverrun",
+      "workId": "v39197",
+      "versionId": "7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/FlipxFlop-RamblingOverrun/",
+      "pilot": "artemis-v39197-1",
+      "source": "https://webgal.moe/webgal/FlipxFlop-RamblingOverrun/",
+      "engineFiles": {
+        "artemis.js": "0a10bda0797e106a7e9dac455c48d9b61f5c098c91b2d4134cbe9dfe87c2eaec",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "6fb958a7ae98d1ae8c25b51598ec76d38205f1aaae6083018d3959ab52945749"
+      },
+      "mount": "/flipflop_rambling_overrun"
+    },
+    {
+      "slug": "Cherry-Petals-Fall-Like-Teardrops",
+      "workId": "v1115",
+      "versionId": "933436a8-85f5-5a76-9568-5f29faff9785",
+      "number": 2,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Cherry-Petals-Fall-Like-Teardrops/",
+      "pilot": "artemis-v1115-2",
+      "source": "https://webgal.moe/webgal/Cherry-Petals-Fall-Like-Teardrops/",
+      "engineFiles": {
+        "artemis.js": "3cf213317631aa2460a0721f1b0de431ece208b64a29fc2ebe740c1b1d30123e",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "c37ca15eefe5f851e2eeb0da946aabc9e054462676ee68fb9c9e0e2da74c1ff4"
+      },
+      "mount": "/cherry_petals_fall_like_teardrops"
+    },
+    {
+      "slug": "Sakura-no-Uta",
+      "workId": "v562",
+      "versionId": "33224257-9a7b-5d77-b690-2c0fd9643a48",
+      "number": 3,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Sakura-no-Uta/",
+      "pilot": "artemis-v562-3",
+      "source": "https://webgal.moe/webgal/Sakura-no-Uta/",
+      "engineFiles": {
+        "artemis.js": "85b4836e0ecc85e83e9cde743ba15da036ada7da48fe8225c2ea934cb6576682",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "c3221ed10095d618535e06aecc179255d19086f7c541e7dbf1cf3d68384f1a37"
+      },
+      "mount": "/sakura_no_uta"
+    },
+    {
+      "slug": "Sakura-no-Toki",
+      "workId": "v20431",
+      "versionId": "d6b4fc84-a347-5a28-9184-579085dadfa1",
+      "number": 2,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Sakura-no-Toki/",
+      "pilot": "artemis-v20431-2",
+      "source": "https://webgal.moe/webgal/Sakura-no-Toki/",
+      "engineFiles": {
+        "artemis.js": "e685684b85fae1440887e9e530b6ba8b3efb936401b5a15273c4918f2e126fa5",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "ef624c1f8a356459bf3be8312c51bb825e953bc6e80b42cce0fcbe7e7ff7f1ed"
+      },
+      "mount": "/sakura_no_toki"
+    },
+    {
+      "slug": "atri",
+      "workId": "v27448",
+      "versionId": "6016ffaf-4448-53d8-a129-b907b13b2d77",
+      "number": 2,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/atri/",
+      "pilot": "artemis-v27448-2",
+      "source": "https://webgal.moe/webgal/atri/",
+      "engineFiles": {
+        "artemis.js": "801d8cb249e19a69df36f606c6a0064ddbcbb7e51dcad8910033eb99a6750001",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "9339f2edd799aef0194efc67d2bc1a3b8757b58c462f1c42ae673fa6b814a138"
+      },
+      "mount": "/atri"
+    },
+    {
+      "slug": "Sen-no-Hatou",
+      "workId": "v15708",
+      "versionId": "476a1807-cfd5-5e67-8772-5ca53e9b616c",
+      "number": 1,
+      "prefix": "imports/webgal.moe/2026-10-27/cdn/Sen-no-Hatou/",
+      "pilot": "artemis-v15708-1",
+      "source": "https://webgal.moe/webgal/Sen-no-Hatou/",
+      "engineFiles": {
+        "artemis.js": "3bea70037426ed70c72dfaf902537932a0ae8355556de3068233bcdc1e5c55d6",
+        "artemis.wasm": "164b2e5191e40562695d001a93dc6fe68d5cfa860430275629f45a9eac36614c"
+      },
+      "packageFiles": {
+        "artemis.data": "e1744de63571ebeaece71d9a3c4dbb8da2c0f906b503e26eec63fcec8741fb77"
+      },
+      "mount": "/sen_no_hatou"
+    }
+  ],
+  "baseline": {
+    "versions": 79,
+    "works": 64,
+    "catalogVersionsSha256": "554e42cb1c6e16e6f155c937b485b432926fdd870d5e1f68cb88651c40cc6dd7",
+    "catalogWorksSha256": "8e5f4c6b57bd7bfadd62c26410052ebeeb65be7d9d9d483fa0e765c9ab372954",
+    "engineBindingsSha256": "0516cbe7c9fcf92492fc2819cdad95298cc41257d71d698c98689c33f549c2ca"
+  }
+}

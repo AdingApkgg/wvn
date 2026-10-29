@@ -863,6 +863,95 @@
         "飞鸟会长不肯认输"
       ],
       "evidence": "https://vndb.org/v37843"
+    },
+    {
+      "id": "v22880",
+      "title": "宿星Girlfriend",
+      "originalTitle": "宿星のガールフレンド -the destiny star of girlfriend-",
+      "aliases": [
+        "Shukusei no Girlfriend -the destiny star of girlfriend-",
+        "Destiny Star Girlfriend",
+        "宿星のガールフレンド -the destiny star of girlfriend-",
+        "宿星的女朋友"
+      ],
+      "evidence": "https://vndb.org/v22880"
+    },
+    {
+      "id": "v23290",
+      "title": "宿星Girlfriend2",
+      "originalTitle": "宿星のガールフレンド2 -the destiny star of girlfriend-",
+      "aliases": [
+        "Shukusei no Girlfriend 2 -The Destiny Star of Girlfriend-",
+        "Destiny Star Girlfriend 2",
+        "宿星のガールフレンド2 -the destiny star of girlfriend-",
+        "宿星的女朋友 2 -destiny star girlfriend-"
+      ],
+      "evidence": "https://vndb.org/v23290"
+    },
+    {
+      "id": "v23772",
+      "title": "宿星Girlfriend3",
+      "originalTitle": "宿星のガールフレンド3 -the destiny star of girlfriend-",
+      "aliases": [
+        "Shukusei no Girlfriend 3 -the destiny star of girlfriend-",
+        "Destiny Star Girlfriend 3",
+        "宿星のガールフレンド3 -the destiny star of girlfriend-",
+        "宿星的女朋友 3 -destiny star girlfriend-"
+      ],
+      "evidence": "https://vndb.org/v23772"
+    },
+    {
+      "id": "v53590",
+      "title": "常轨脱离Creative Re:Re:call",
+      "originalTitle": "ハミダシクリエイティブRe:Re:call",
+      "aliases": [
+        "Hamidashi Creative Re:Re:call",
+        "ハミダシクリエイティブRe:Re:call",
+        "常轨脱离Creative Re:Re:call"
+      ],
+      "evidence": "https://vndb.org/v53590"
+    },
+    {
+      "id": "v47175",
+      "title": "SELECT OBLIGE",
+      "originalTitle": "セレクトオブリージュ",
+      "aliases": [
+        "Select Oblige",
+        "セレクトオブリージュ",
+        "天选庶民的真命之选",
+        "天選庶民的真命之選"
+      ],
+      "evidence": "https://vndb.org/v47175"
+    },
+    {
+      "id": "v37021",
+      "title": "FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜",
+      "originalTitle": "FLIP＊FLOP ~INNOCENCE OVERCLOCK~",
+      "aliases": [
+        "FLIP＊FLOP ~INNOCENCE OVERCLOCK~"
+      ],
+      "evidence": "https://vndb.org/v37021"
+    },
+    {
+      "id": "v39197",
+      "title": "FLIP＊FLOP ～RAMBLING OVERRUN～",
+      "originalTitle": "FLIP＊FLOP ~RAMBLING OVERRUN~",
+      "aliases": [
+        "FLIP＊FLOP ~RAMBLING OVERRUN~"
+      ],
+      "evidence": "https://vndb.org/v39197"
+    },
+    {
+      "id": "v15708",
+      "title": "千之刃涛，桃花染之皇姬",
+      "originalTitle": "千の刃濤、桃花染の皇姫",
+      "aliases": [
+        "Sen no Hatou, Tsukisome no Kouki",
+        "Senmomo: Through Billows of Blades, A Peachbloom Princess",
+        "千の刃濤、桃花染の皇姫",
+        "千之刃涛，桃花染之皇姬"
+      ],
+      "evidence": "https://vndb.org/v15708"
     }
   ],
   "versions": [
@@ -1576,6 +1665,126 @@
       "legacyPath": "/飞鸟会长不肯认输/",
       "engine": "Artemis",
       "mappingNote": "Exact source title, translated title or established alias checked against VNDB API record"
+    },
+    {
+      "id": "ef49dd01-c904-518f-aba7-50a36d46c596",
+      "workId": "v22880",
+      "number": 1,
+      "title": "宿星Girlfriend · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Shukusei-no-Girlfriend/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "2db31864-3a96-519e-be67-b75cac750691",
+      "workId": "v23290",
+      "number": 1,
+      "title": "宿星Girlfriend2 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Shukusei-no-Girlfriend-2/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "8949d767-3c75-5d50-ac5d-1e0693108a6a",
+      "workId": "v23772",
+      "number": 1,
+      "title": "宿星Girlfriend3 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Shukusei-no-Girlfriend-3/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+      "workId": "v27449",
+      "number": 2,
+      "title": "常轨脱离Creative · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/hamidashi/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+      "workId": "v33205",
+      "number": 2,
+      "title": "常轨脱离 Creative 凸 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/hamidashi-totsu/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
+      "workId": "v53590",
+      "number": 1,
+      "title": "常轨脱离Creative Re:Re:call · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/hamidashi-ReRecall/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "cbc04bd1-9eaa-51db-906e-d434742211f8",
+      "workId": "v22847",
+      "number": 2,
+      "title": "树莓立方体 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Raspberry-Cube/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "d872fbdb-a9a4-550e-8699-928cacc9750e",
+      "workId": "v47175",
+      "number": 1,
+      "title": "SELECT OBLIGE · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/SELECT-OBLIGE/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "0b9089be-6d34-5e21-85c4-c2020ac2a913",
+      "workId": "v37021",
+      "number": 1,
+      "title": "FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/FlipxFlop-InnocenceOverclock/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
+      "workId": "v39197",
+      "number": 1,
+      "title": "FLIP＊FLOP ～RAMBLING OVERRUN～ · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/FlipxFlop-RamblingOverrun/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "933436a8-85f5-5a76-9568-5f29faff9785",
+      "workId": "v1115",
+      "number": 2,
+      "title": "繁花落舞恋如樱 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Cherry-Petals-Fall-Like-Teardrops/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "33224257-9a7b-5d77-b690-2c0fd9643a48",
+      "workId": "v562",
+      "number": 3,
+      "title": "樱之诗 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Sakura-no-Uta/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "d6b4fc84-a347-5a28-9184-579085dadfa1",
+      "workId": "v20431",
+      "number": 2,
+      "title": "樱之刻 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Sakura-no-Toki/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "6016ffaf-4448-53d8-a129-b907b13b2d77",
+      "workId": "v27448",
+      "number": 2,
+      "title": "ATRI · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/atri/",
+      "engine": "Artemis"
+    },
+    {
+      "id": "476a1807-cfd5-5e67-8772-5ca53e9b616c",
+      "workId": "v15708",
+      "number": 1,
+      "title": "千之刃涛，桃花染之皇姬 · WebGAL 2026-10-27",
+      "legacyPath": "/webgal-20261027/Sen-no-Hatou/",
+      "engine": "Artemis"
     }
   ],
   "pending": []

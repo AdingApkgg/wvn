@@ -9,9 +9,9 @@ import {isolateEntry,registerOtherPlayers} from '../src/player/http.server.ts';
 import {otherPlayers,players} from '../public/player/registry.mjs';
 import {validateSnapshot} from '../public/ons/protocol.mjs';
 
-test('all 79 stable version identities resolve and remain isolated across versions',()=>{
+test('all original and imported stable version identities resolve and remain isolated across versions',()=>{
  for(const player of otherPlayers)assert.equal(createHash('sha256').update(JSON.stringify(player.engineFiles)).digest('hex'),player.engine);
- assert.equal(players.length,79);assert.equal(otherPlayers.length,53);assert.equal(new Set(players.map(p=>p.versionId)).size,79);
+ assert.equal(players.length,94);assert.equal(otherPlayers.length,68);assert.equal(new Set(players.map(p=>p.versionId)).size,94);
  for(const p of players){assert.match(p.engine,/^[0-9a-f]{64}$/);assert.equal(validateSnapshot({schema:1,pilot:p.id,files:[]},p.id).pilot,p.id)}
 });
 test('entry scripts are inert until authenticated parent channel and resources are sandboxed on direct navigation',async()=>{

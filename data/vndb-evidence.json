@@ -1647,5 +1647,130 @@
     ],
     "api": "https://api.vndb.org/kana/vn",
     "reviewedAt": "2026-10-18T16:45:52.957420+00:00"
+  },
+  "v22880": {
+    "alttitle": "宿星のガールフレンド -the destiny star of girlfriend-",
+    "id": "v22880",
+    "title": "Shukusei no Girlfriend -the destiny star of girlfriend-",
+    "titles": [
+      {
+        "title": "Destiny Star Girlfriend"
+      },
+      {
+        "title": "宿星のガールフレンド -the destiny star of girlfriend-"
+      },
+      {
+        "title": "宿星的女朋友"
+      },
+      {
+        "title": "宿星的女朋友"
+      }
+    ]
+  },
+  "v23290": {
+    "alttitle": "宿星のガールフレンド2 -the destiny star of girlfriend-",
+    "id": "v23290",
+    "title": "Shukusei no Girlfriend 2 -The Destiny Star of Girlfriend-",
+    "titles": [
+      {
+        "title": "Destiny Star Girlfriend 2"
+      },
+      {
+        "title": "宿星のガールフレンド2 -the destiny star of girlfriend-"
+      },
+      {
+        "title": "宿星的女朋友 2 -destiny star girlfriend-"
+      },
+      {
+        "title": "宿星的女朋友 2 -destiny star girlfriend-"
+      }
+    ]
+  },
+  "v23772": {
+    "alttitle": "宿星のガールフレンド3 -the destiny star of girlfriend-",
+    "id": "v23772",
+    "title": "Shukusei no Girlfriend 3 -the destiny star of girlfriend-",
+    "titles": [
+      {
+        "title": "Destiny Star Girlfriend 3"
+      },
+      {
+        "title": "宿星のガールフレンド3 -the destiny star of girlfriend-"
+      },
+      {
+        "title": "宿星的女朋友 3 -destiny star girlfriend-"
+      },
+      {
+        "title": "宿星的女朋友 3 -destiny star girlfriend-"
+      }
+    ]
+  },
+  "v53590": {
+    "alttitle": "ハミダシクリエイティブRe:Re:call",
+    "id": "v53590",
+    "title": "Hamidashi Creative Re:Re:call",
+    "titles": [
+      {
+        "title": "ハミダシクリエイティブRe:Re:call"
+      },
+      {
+        "title": "常轨脱离Creative Re:Re:call"
+      }
+    ]
+  },
+  "v47175": {
+    "alttitle": "セレクトオブリージュ",
+    "id": "v47175",
+    "title": "Select Oblige",
+    "titles": [
+      {
+        "title": "Select Oblige"
+      },
+      {
+        "title": "セレクトオブリージュ"
+      },
+      {
+        "title": "天选庶民的真命之选"
+      },
+      {
+        "title": "天選庶民的真命之選"
+      }
+    ]
+  },
+  "v37021": {
+    "alttitle": null,
+    "id": "v37021",
+    "title": "FLIP＊FLOP ~INNOCENCE OVERCLOCK~",
+    "titles": [
+      {
+        "title": "FLIP＊FLOP ~INNOCENCE OVERCLOCK~"
+      }
+    ]
+  },
+  "v39197": {
+    "alttitle": null,
+    "id": "v39197",
+    "title": "FLIP＊FLOP ~RAMBLING OVERRUN~",
+    "titles": [
+      {
+        "title": "FLIP＊FLOP ~RAMBLING OVERRUN~"
+      }
+    ]
+  },
+  "v15708": {
+    "alttitle": "千の刃濤、桃花染の皇姫",
+    "id": "v15708",
+    "title": "Sen no Hatou, Tsukisome no Kouki",
+    "titles": [
+      {
+        "title": "Senmomo: Through Billows of Blades, A Peachbloom Princess"
+      },
+      {
+        "title": "千の刃濤、桃花染の皇姫"
+      },
+      {
+        "title": "千之刃涛，桃花染之皇姬"
+      }
+    ]
   }
 }
