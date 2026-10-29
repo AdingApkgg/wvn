@@ -19,3 +19,13 @@ test('rejected response validation still writes failed JSON and closes the conte
   await assert.rejects(api.finishBrowserCase({record:{status:'passed'},tasks:[],write:()=>{throw Error('disk error')},close:async()=>{closed++}}),/disk error/);assert.equal(closed,2);
  }finally{rmSync(directory,{recursive:true,force:true})}
 });
+test('CDP observer rejects failed, malformed and stalled actual responses',async()=>{
+ const {EventEmitter}=await import('node:events'),{observeBrowserManifest}=await import('../ops/b2/cas-manifest-observer.mjs');
+ for(const mode of ['failed','malformed','stalled']){const session=new EventEmitter(),tasks=[];session.send=async name=>name==='Network.enable'?{}:{bufferedData:Buffer.from('{bad json').toString('base64')};
+  await observeBrowserManifest({session,url:'https://localhost/api/resources',tasks,onManifest(){throw Error('Must not validate an incomplete body')},timeout:20});
+  session.emit('Network.responseReceived',{requestId:'one',response:{url:'https://localhost/api/resources',status:200}});
+  if(mode==='failed')session.emit('Network.loadingFailed',{requestId:'one',errorText:'net::ERR_ABORTED'});
+  if(mode==='malformed')session.emit('Network.loadingFinished',{requestId:'one'});
+  const keepAlive=setTimeout(()=>{},100);try{await assert.rejects(tasks[0],mode==='failed'?/ERR_ABORTED/:mode==='stalled'?/timed out/:/JSON|property name/)}finally{clearTimeout(keepAlive)}
+ }
+});

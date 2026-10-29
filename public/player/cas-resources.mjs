@@ -98,3 +98,15 @@ export function rewriteCasCssParts(parts,path,resolver){
 export async function rewriteCasCssPartsAsync(parts,path,resolver,read){
  const source=cssParts(parts),values=[];for(const token of source.tokens)values.push(await rewriteCasCss(source.text.slice(token.start,token.end),path,resolver,read));return source.apply(values);
 }
+
+// 已核验冻结原包缺少这些jQuery UI纹理/图标；仅恢复原浏览器404后的显示效果。
+export function applyCasCssCompatibility(text,path,resolver,actualSha){
+ const sha='832bd58857e7687c61635c0a29aa28e05fdad430e56069952745fc5170a6501e';
+ const pilots=['tyrano-b315601-1','tyrano-v18636-1','tyrano-v36554-1','tyrano-v36555-1','tyrano-v36556-1','tyrano-v36557-1','tyrano-v36558-1','tyrano-v49795-1'];
+ const names=['animated-overlay.gif','ui-bg_highlight-soft_75_cccccc_1x100.png','ui-bg_glass_75_e6e6e6_1x400.png','ui-bg_glass_75_dadada_1x400.png','ui-bg_glass_65_ffffff_1x400.png','ui-bg_glass_55_fbf9ee_1x400.png','ui-bg_glass_95_fef1ec_1x400.png','ui-icons_888888_256x240.png','ui-icons_454545_256x240.png','ui-icons_2e83ff_256x240.png','ui-icons_cd0a0a_256x240.png','ui-bg_flat_0_aaaaaa_40x100.png'];
+ if(!pilots.includes(resolver.manifest.pilot)||path!=='tyrano/libs/jquery-ui.css'||resolver.files.get(path)?.sha256!==sha||actualSha!==sha||names.some(name=>resolver.files.has('tyrano/libs/images/'+name)))return {text};
+ const tokens=cssTokens(text).filter(token=>!token.imported&&names.some(name=>token.value==='images/'+name));
+ if(tokens.length!==14||names.some(name=>tokens.filter(token=>token.value==='images/'+name).length!==(['ui-icons_454545_256x240.png','ui-bg_flat_0_aaaaaa_40x100.png'].includes(name)?2:1))||tokens.some(token=>text.slice(token.start,token.end)!==(token.value.endsWith('.gif')?'url("'+token.value+'")':'url('+token.value+')')))return {text};
+ let result='',offset=0;for(const token of tokens){result+=text.slice(offset,token.start)+'none';offset=token.end;}
+ return {text:result+text.slice(offset),applied:{id:'tyrano-missing-jquery-ui-images',paths:names.map(name=>'tyrano/libs/images/'+name),source:path,sha256:sha,tokens:tokens.length}};
+}

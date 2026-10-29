@@ -8,3 +8,5 @@ export function rewriteCasCssUrls(text:string,path:string,resolver:CasResolver,o
 export function rewriteCasCss(text:string,path:string,resolver:CasResolver,read:(path:string)=>Promise<string>,parents?:Set<string>):Promise<string>;
 export function rewriteCasCssParts(parts:string[],path:string,resolver:CasResolver):string[];
 export function rewriteCasCssPartsAsync(parts:string[],path:string,resolver:CasResolver,read:(path:string)=>Promise<string>):Promise<string[]>;
+
+export function applyCasCssCompatibility(text: string, path: string, resolver: ReturnType<typeof createCasResolver>, actualSha: string): {text: string; applied?: {id: string; paths: string[]; source: string; sha256: string; tokens: number}};
