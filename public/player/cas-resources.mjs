@@ -80,3 +80,21 @@ export async function rewriteCasCss(text,path,resolver,read,parents=new Set()){
  }
  return result+text.slice(offset);
 }
+
+// 保留每个 DOM Text 的规则归属；跨节点的单个 URL/import 只在其起始节点放置替换值。
+function cssParts(parts){
+ const normalized=parts.map((part,index)=>String(part).replace(index&&String(parts[index-1]).endsWith('\r')?/^\n/:/$^/,'').replace(/\r\n?|\f/g,'\n').replace(/\0/g,'\ufffd'));
+ const bounds=[0];for(const part of normalized)bounds.push(bounds.at(-1)+part.length);
+ const text=normalized.join(''),tokens=cssTokens(text);
+ function apply(values){
+  const output=normalized.map(()=>''),copy=(start,end)=>{for(let i=0;i<output.length;i++)if(start<bounds[i+1]&&end>bounds[i])output[i]+=text.slice(Math.max(start,bounds[i]),Math.min(end,bounds[i+1]));};let offset=0;
+  tokens.forEach((token,index)=>{copy(offset,token.start);const owner=normalized.findIndex((_,i)=>token.start<bounds[i+1]);output[owner]+=values[index];offset=token.end;});copy(offset,text.length);return output;
+ }
+ return {text,tokens,apply};
+}
+export function rewriteCasCssParts(parts,path,resolver){
+ const source=cssParts(parts);return source.apply(source.tokens.map(token=>{if(token.imported)throw Error('CSS import requires preparation');return 'url('+JSON.stringify(resolver.url(token.value,path))+')';}));
+}
+export async function rewriteCasCssPartsAsync(parts,path,resolver,read){
+ const source=cssParts(parts),values=[];for(const token of source.tokens)values.push(await rewriteCasCss(source.text.slice(token.start,token.end),path,resolver,read));return source.apply(values);
+}

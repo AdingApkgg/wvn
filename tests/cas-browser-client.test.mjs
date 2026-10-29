@@ -46,3 +46,9 @@ test('CSS input normalization preserves escaped identifiers across CRLF',()=>{
  const resolver=client.createCasResolver(manifest(),{id:'test',versionId:manifest().versionId});
  assert(client.rewriteCasCssUrls('.x{background:u\\72\r\nl(game.zip)}','index.html',resolver).includes(origin+'/'+hash+'.bin'));
 });
+test('CSS Text-part rewriting preserves rule ownership and handles tokens spanning nodes',async()=>{
+ const parts=await import('../public/player/cas-resources.mjs');assert.equal(typeof parts.rewriteCasCssParts,'function');
+ const resolver=client.createCasResolver(manifest(),{id:'test',versionId:manifest().versionId});
+ assert.deepEqual(parts.rewriteCasCssParts(['.a{color:red}', '.b{background:url(game.zip)}'],'index.html',resolver),['.a{color:red}', '.b{background:url("'+origin+'/'+hash+'.bin")}']);
+ assert.deepEqual(parts.rewriteCasCssParts(['.a{background:u','rl(game.zip)', '}'],'index.html',resolver),['.a{background:url("'+origin+'/'+hash+'.bin")','','}']);
+});

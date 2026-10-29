@@ -6,3 +6,5 @@ export function createCasResolver(manifest:unknown,entry:{id:string;versionId:st
 export function readCasManifest(response:Response,entry:{id:string;versionId:string},options?:{mainOrigin?:string;sharedEngine?:boolean}):Promise<CasManifest>;
 export function rewriteCasCssUrls(text:string,path:string,resolver:CasResolver,options?:{ignoreImports?:boolean}):string;
 export function rewriteCasCss(text:string,path:string,resolver:CasResolver,read:(path:string)=>Promise<string>,parents?:Set<string>):Promise<string>;
+export function rewriteCasCssParts(parts:string[],path:string,resolver:CasResolver):string[];
+export function rewriteCasCssPartsAsync(parts:string[],path:string,resolver:CasResolver,read:(path:string)=>Promise<string>):Promise<string[]>;
