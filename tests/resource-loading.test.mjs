@@ -60,3 +60,21 @@ test('native stream cancellation terminates startup instead of refreshing progre
  await win.fetch('/game.zip');const reader=response.body.getReader();await reader.read();await reader.cancel();
  assert.deepEqual(events,[{kind:'game',progress:true},{kind:'game',failed:true}]);stop();
 });
+
+test('pending native read cancellation is terminal before a simultaneous ready predicate',async()=>{
+ const {createEmscriptenDriver}=await import('../public/player/emscripten.mjs');
+ const controller=new AbortController(),response=new Response(new ReadableStream({start(){}})),win={fetch:()=>Promise.resolve(response)};
+ const stop=required('observeResourceRequests')(win,{phase(){}},()=> 'game',undefined,event=>{if(event.failed)controller.abort()});
+ await win.fetch('/game.zip');const reader=response.body.getReader(),pending=reader.read(),cancel=reader.cancel();
+ assert(cancel instanceof Promise);assert.equal((await pending).done,true);await cancel;
+ const driver=createEmscriptenDriver({kind:'RenPy'});await assert.rejects(driver.waitReady(()=>true,{signal:controller.signal}),/cancelled/);stop();
+});
+
+test('handled optional resource failure permits native readiness',async()=>{
+ const {createEmscriptenDriver}=await import('../public/player/emscripten.mjs');
+ const response=new Response('',{status:404}),win={fetch:()=>Promise.resolve(response)},events=[];
+ const stop=required('observeResourceRequests')(win,{phase(){}},()=> 'game',undefined,event=>events.push(event));
+ assert.equal((await win.fetch('/optional.png')).status,404);await Promise.resolve();
+ assert.deepEqual(events,[{kind:'game',failed:true}]);
+ const driver=createEmscriptenDriver({kind:'RenPy'});await driver.waitReady(()=>true);assert.equal(driver.state,'running');stop();
+});

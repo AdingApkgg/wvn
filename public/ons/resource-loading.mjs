@@ -97,7 +97,7 @@ export function observeResourceRequests(win,startup,classify,resources,activity=
   wrapMethod(response.body,'getReader',original=>function(...args){
    const reader=original.apply(this,args);
    wrapMethod(reader,'read',read=>function(...values){try{return observePromise(read.apply(this,values),chunk=>{if(chunk.done)item.end();else {loaded+=chunk.value?.byteLength??0;item.progress(loaded,total||undefined)}},()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
-   wrapMethod(reader,'cancel',cancel=>function(...values){try{return observePromise(cancel.apply(this,values),()=>item.end(true),()=>item.end(true))}catch(error){item.end(true);throw error}},item.cleanups);
+   wrapMethod(reader,'cancel',cancel=>function(...values){item.end(true);return cancel.apply(this,values)},item.cleanups);
    return reader;
   },item.cleanups);
  }
