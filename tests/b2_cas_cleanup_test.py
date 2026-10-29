@@ -1,4 +1,8 @@
 import importlib.util
+from contextlib import contextmanager
+import subprocess
+import sys
+import time
 import json
 from pathlib import Path
 import sqlite3
@@ -84,6 +88,10 @@ class CleanupTest(unittest.TestCase):
             def present(self,fid):return None
         with self.assertRaises(ValueError):m.execute(self.p,self.root/'c.db',r,m.digest(r),Fake())
         c=sqlite3.connect(self.root/'c.db');self.assertEqual(c.execute('SELECT count(*) FROM pending').fetchone()[0],1);c.close()
+        class Recovery:
+            def present(self,fid):return False
+            def delete_objects(self,**kw):raise AssertionError('已消失版本不能再删除')
+        self.assertEqual(m.execute(self.p,self.root/'c.db',r,m.digest(r),Recovery())['done'],1)
     def test_small_batch_limit_and_resume(self):
         self.build();self.p.chmod(0o600);c=sqlite3.connect(self.p)
         c.execute("INSERT INTO candidates(file_id,name,bytes,sha256,target_id,target_sha1) SELECT 'second',name,bytes,sha256,target_id,target_sha1 FROM candidates LIMIT 1")
@@ -95,6 +103,68 @@ class CleanupTest(unittest.TestCase):
         self.assertEqual(m.execute(self.p,self.root/'c.db',r,m.digest(r),Fake(),1,1)['done'],1)
         self.assertEqual(m.execute(self.p,self.root/'c.db',r,m.digest(r),Fake(),1,1)['done'],2)
         self.assertEqual([c['Delete']['Objects'][0]['VersionId'] for c in calls],['source','second'])
+    @contextmanager
+    def inflight_apply(self):
+        self.build();r=self.receipt();checkpoint=self.root/'exclusive.db'
+        entered=self.root/'entered';release=self.root/'release'
+        code = """
+import importlib.util,json,sys,time
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('cleanup',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+plan,checkpoint,receipt,entered,release=map(Path,sys.argv[2:])
+class Fake:
+ def delete_objects(self,**kw):
+  entered.write_text('request in flight')
+  deadline=time.monotonic()+10
+  while not release.exists():
+   if time.monotonic()>deadline:raise RuntimeError('test timeout')
+   time.sleep(.01)
+  return {'Deleted':kw['Delete']['Objects']}
+ def present(self,fid):raise AssertionError('normal first request needs no reconcile')
+m.execute(plan,checkpoint,receipt,m.digest(receipt),Fake())
+"""
+        process=subprocess.Popen([sys.executable,'-c',code,str(Path(m.__file__)),str(self.p),str(checkpoint),str(r),str(entered),str(release)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+        try:
+            deadline=time.monotonic()+5
+            while not entered.exists():
+                if process.poll() is not None or time.monotonic()>deadline:
+                    self.fail('first apply did not reach in-flight boundary')
+                time.sleep(.01)
+            yield checkpoint,r
+        finally:
+            release.write_text('continue')
+            stdout,stderr=process.communicate(timeout=5)
+            self.assertEqual(process.returncode,0,(stdout,stderr))
+    def test_inflight_same_checkpoint_rejected_before_reconcile(self):
+        calls=[]
+        class Second:
+            def present(self,fid):calls.append('present');return True
+            def delete_objects(self,**kw):calls.append('delete');return {'Deleted':kw['Delete']['Objects']}
+        with self.inflight_apply() as (checkpoint,r):
+            with self.assertRaisesRegex(ValueError,'另一个清理执行器'):
+                m.execute(self.p,checkpoint,r,m.digest(r),Second())
+            self.assertEqual(calls,[])
+            c=sqlite3.connect(checkpoint);self.assertEqual(c.execute('SELECT count(*) FROM pending').fetchone()[0],1);c.close()
+        # 首进程正常退出后，锁释放，同一检查点可正常恢复且不重复删除。
+        self.assertEqual(m.execute(self.p,checkpoint,r,m.digest(r),Second())['done'],1)
+        self.assertEqual(calls,[])
+    def test_inflight_same_plan_new_checkpoint_rejected_before_client(self):
+        calls=[]
+        def factory():calls.append('client');raise AssertionError('second client must not initialize')
+        with self.inflight_apply() as (checkpoint,r):
+            second=self.root/'second.db';plan_alias=self.root/'plan-alias';plan_alias.symlink_to(self.p)
+            with self.assertRaisesRegex(ValueError,'另一个清理执行器'):
+                m.execute(plan_alias,second,r,m.digest(r),factory)
+            self.assertEqual(calls,[]);self.assertFalse(second.exists())
+    def test_inflight_checkpoint_alias_different_plan_rejected(self):
+        calls=[]
+        def factory():calls.append('client');raise AssertionError('second client must not initialize')
+        with self.inflight_apply() as (checkpoint,r):
+            alias=self.root/'checkpoint-alias';alias.symlink_to(checkpoint)
+            other=self.root/'plan-copy.db';other.write_bytes(self.p.read_bytes())
+            with self.assertRaisesRegex(ValueError,'另一个清理执行器'):
+                m.execute(other,alias,r,m.digest(r),factory)
+            self.assertEqual(calls,[])
     def test_native_http_reconcile_boundary(self):
         class Response:
             status_code=404

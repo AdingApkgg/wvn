@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """WVN 精确版本清理；默认仅生成不可变计划。"""
 import argparse
+from contextlib import ExitStack, closing, contextmanager
+import fcntl
 import hashlib
 import json
 import os
@@ -137,62 +139,84 @@ def receipt_check(plan, receipt, expected_receipt_sha256):
     return meta
 
 
+@contextmanager
+def apply_lock(plan, checkpoint):
+    # 锁文件不能删除：保留同一个 inode，避免等待者和新进程锁住不同文件。
+    plan, checkpoint = Path(plan).resolve(), Path(checkpoint).resolve()
+    paths = sorted({str(plan) + '.apply.lock', str(checkpoint) + '.apply.lock'})
+    with ExitStack() as stack:
+        for path in paths:
+            fd = os.open(path, os.O_CREAT | os.O_RDWR | getattr(os, 'O_NOFOLLOW', 0), 0o600)
+            lock = stack.enter_context(os.fdopen(fd, 'a+'))
+            try:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise ValueError('另一个清理执行器正在使用该计划或检查点') from None
+        yield plan, checkpoint
+
+
 def execute(plan, checkpoint, receipt, receipt_sha256, client, batch_size=1000, limit=None):
     if not 1 <= batch_size <= 1000 or (limit is not None and limit < 0):
         raise ValueError('批大小或执行上限无效')
     os.umask(0o077)
+    with apply_lock(plan, checkpoint) as (plan, checkpoint):
+        return _execute_locked(plan, checkpoint, receipt, receipt_sha256, client, batch_size, limit)
+
+
+def _execute_locked(plan, checkpoint, receipt, receipt_sha256, client, batch_size, limit):
     meta = receipt_check(plan, receipt, receipt_sha256)
-    p = ro(plan); c = sqlite3.connect(checkpoint)
-    c.executescript('CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE IF NOT EXISTS done(file_id TEXT PRIMARY KEY);')
-    binding = digest(plan)
-    old = dict(c.execute('SELECT key,value FROM meta')).get('plan_sha256')
-    if old and old != binding:
-        raise ValueError('检查点属于另一计划')
-    c.execute('INSERT OR IGNORE INTO meta VALUES(?,?)', ('plan_sha256', binding)); c.commit()
-    # 崩溃后任何未提交批次均须先查询，不能把网络异常当作失败后盲重发。
-    c.execute('CREATE TABLE IF NOT EXISTS pending(file_id TEXT PRIMARY KEY,name TEXT)'); c.commit()
-    def reconcile(rows):
-        for row in rows:
-            state = client.present(row['file_id'])
-            if state is False:
-                c.execute('INSERT OR IGNORE INTO done VALUES(?)', (row['file_id'],))
-                c.execute('DELETE FROM pending WHERE file_id=?', (row['file_id'],))
-            elif state is True:
-                c.execute('DELETE FROM pending WHERE file_id=?', (row['file_id'],))
-            else:
-                c.commit(); raise ValueError('精确版本状态未知，停止等待复核')
-        c.commit()
-    c.row_factory = sqlite3.Row
-    reconcile(c.execute('SELECT * FROM pending').fetchall())
-    cursor = 0
-    attempted = 0
-    for rows in iter(lambda: p.execute('SELECT * FROM candidates WHERE seq>? ORDER BY seq LIMIT ?', (cursor, batch_size)).fetchall(), []):
-        cursor = rows[-1]['seq']
-        rows = [r for r in rows if not c.execute('SELECT 1 FROM done WHERE file_id=?', (r['file_id'],)).fetchone()]
-        if limit is not None:
-            rows = rows[:max(0, limit - attempted)]
-        if not rows:
+    client = client() if callable(client) else client
+    with closing(ro(plan)) as p, closing(sqlite3.connect(checkpoint)) as c:
+        c.executescript('CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE IF NOT EXISTS done(file_id TEXT PRIMARY KEY);')
+        binding = digest(plan)
+        old = dict(c.execute('SELECT key,value FROM meta')).get('plan_sha256')
+        if old and old != binding:
+            raise ValueError('检查点属于另一计划')
+        c.execute('INSERT OR IGNORE INTO meta VALUES(?,?)', ('plan_sha256', binding)); c.commit()
+        # 崩溃后任何未提交批次均须先查询，不能把网络异常当作失败后盲重发。
+        c.execute('CREATE TABLE IF NOT EXISTS pending(file_id TEXT PRIMARY KEY,name TEXT)'); c.commit()
+        def reconcile(rows):
+            for row in rows:
+                state = client.present(row['file_id'])
+                if state is False:
+                    c.execute('INSERT OR IGNORE INTO done VALUES(?)', (row['file_id'],))
+                    c.execute('DELETE FROM pending WHERE file_id=?', (row['file_id'],))
+                elif state is True:
+                    c.execute('DELETE FROM pending WHERE file_id=?', (row['file_id'],))
+                else:
+                    c.commit(); raise ValueError('精确版本状态未知，停止等待复核')
+            c.commit()
+        c.row_factory = sqlite3.Row
+        reconcile(c.execute('SELECT * FROM pending').fetchall())
+        cursor = 0
+        attempted = 0
+        for rows in iter(lambda: p.execute('SELECT * FROM candidates WHERE seq>? ORDER BY seq LIMIT ?', (cursor, batch_size)).fetchall(), []):
+            cursor = rows[-1]['seq']
+            rows = [r for r in rows if not c.execute('SELECT 1 FROM done WHERE file_id=?', (r['file_id'],)).fetchone()]
+            if limit is not None:
+                rows = rows[:max(0, limit - attempted)]
+            if not rows:
+                if limit is not None and attempted >= limit: break
+                continue
+            if any(CAS.fullmatch(r['name']) or not r['file_id'] for r in rows): raise ValueError('禁止删除 CAS 或无版本对象')
+            c.executemany('INSERT INTO pending VALUES(?,?)', [(r['file_id'], r['name']) for r in rows]); c.commit()
+            try:
+                response = client.delete_objects(Bucket=BUCKET, Delete={'Objects': [{'Key': r['name'], 'VersionId': r['file_id']} for r in rows], 'Quiet': False})
+            except Exception:
+                response = {}
+            deleted = {(d.get('Key'), d.get('VersionId')) for d in response.get('Deleted', []) if not d.get('DeleteMarker')}
+            uncertain = []
+            for r in rows:
+                if (r['name'], r['file_id']) in deleted:
+                    c.execute('INSERT OR IGNORE INTO done VALUES(?)', (r['file_id'],)); c.execute('DELETE FROM pending WHERE file_id=?', (r['file_id'],))
+                else: uncertain.append(r)
+            c.commit(); reconcile(uncertain)
+            attempted += len(rows)
+            print(json.dumps({'status': 'progress', 'attempted': attempted, 'last_seq': cursor, 'batch': len(rows)}), flush=True)
+            if uncertain: raise ValueError('部分或不确定结果已核对，请重跑继续')
             if limit is not None and attempted >= limit: break
-            continue
-        if any(CAS.fullmatch(r['name']) or not r['file_id'] for r in rows): raise ValueError('禁止删除 CAS 或无版本对象')
-        c.executemany('INSERT INTO pending VALUES(?,?)', [(r['file_id'], r['name']) for r in rows]); c.commit()
-        try:
-            response = client.delete_objects(Bucket=BUCKET, Delete={'Objects': [{'Key': r['name'], 'VersionId': r['file_id']} for r in rows], 'Quiet': False})
-        except Exception:
-            response = {}
-        deleted = {(d.get('Key'), d.get('VersionId')) for d in response.get('Deleted', []) if not d.get('DeleteMarker')}
-        uncertain = []
-        for r in rows:
-            if (r['name'], r['file_id']) in deleted:
-                c.execute('INSERT OR IGNORE INTO done VALUES(?)', (r['file_id'],)); c.execute('DELETE FROM pending WHERE file_id=?', (r['file_id'],))
-            else: uncertain.append(r)
-        c.commit(); reconcile(uncertain)
-        attempted += len(rows)
-        print(json.dumps({'status': 'progress', 'attempted': attempted, 'last_seq': cursor, 'batch': len(rows)}), flush=True)
-        if uncertain: raise ValueError('部分或不确定结果已核对，请重跑继续')
-        if limit is not None and attempted >= limit: break
-    result = {'done': c.execute('SELECT count(*) FROM done').fetchone()[0], 'planned': int(meta['count'])}
-    c.close(); p.close(); return result
+        result = {'done': c.execute('SELECT count(*) FROM done').fetchone()[0], 'planned': int(meta['count'])}
+        return result
 
 
 class LiveClient:
@@ -230,8 +254,7 @@ def main():
     try:
         if args.command == 'plan': result = build(args.frozen, args.inventory, args.enrichment, args.output, args.allow_server_enforced_lock_check)
         else:
-            receipt_check(args.plan, args.receipt, args.receipt_sha256)
-            result = execute(args.plan, args.checkpoint, args.receipt, args.receipt_sha256, LiveClient(args.config), args.batch_size, args.limit)
+            result = execute(args.plan, args.checkpoint, args.receipt, args.receipt_sha256, lambda: LiveClient(args.config), args.batch_size, args.limit)
         print(json.dumps(result, ensure_ascii=False))
     except Exception as e:
         # 网络异常可能包含签名请求，禁止直接输出异常内容。
