@@ -11,6 +11,7 @@ export function createShareAdminApp(
 ) {
   const app = new Hono(),
     sessions = new Map<string, number>();
+  const expectedHost = new URL(origin).host;
   let invite = token;
   app.use("*", async (c, next) => {
     c.header("Cache-Control", "private, no-store");
@@ -19,7 +20,7 @@ export function createShareAdminApp(
       "frame-ancestors 'none'; object-src 'none'",
     );
     c.header("Referrer-Policy", "no-referrer");
-    if (new URL(c.req.url).origin !== origin)
+    if (new URL(c.req.url).host !== expectedHost)
       return c.json({ code: "HOST_MISMATCH" }, 421);
     if (
       (c.req.method !== "GET" && c.req.header("origin") !== origin) ||
