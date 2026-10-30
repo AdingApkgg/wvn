@@ -52,6 +52,9 @@ export async function createAccountService(
   input: AccountConfig,
 ): Promise<AccountService> {
   const config = validateAccountConfig(input);
+  // Compare Host, not scheme: behind a TLS-terminating proxy (WG_ACCOUNT_HTTP)
+  // requests arrive as http:// but keep the public host.
+  const expectedHost = new URL(config.origin).host;
   const analytics=config.analytics?createAnalyticsApp({...config.analytics,origin:config.origin}):null;
   const db = new PgDatabase(config.database, { schema: config.databaseSchema });
   let gc: ReturnType<typeof setInterval> | null = null;
@@ -127,7 +130,7 @@ export async function createAccountService(
       "Content-Security-Policy",
       "frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
     );
-    if (new URL(c.req.url).origin !== config.origin)
+    if (new URL(c.req.url).host !== expectedHost)
       return c.json({ code: "HOST_MISMATCH" }, 421);
     if(c.req.method==='OPTIONS'){
       const requested=(c.req.header('access-control-request-headers')??'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);

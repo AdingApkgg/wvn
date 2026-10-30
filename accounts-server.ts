@@ -6,7 +6,8 @@ import {configuredCloudRuntime} from './src/engines/cloud-runtime.ts';
 import {configuredCandidate} from './src/engines/candidate.ts';
 import {registerEngineArtifacts} from './src/engines/artifacts.ts';
 import { serve } from "@hono/node-server";
-import { createServer, Server as HttpsServer } from "node:https";
+import { createServer as createHttpsServer, Server as HttpsServer } from "node:https";
+import { createServer as createHttpServer, Server as HttpServer } from "node:http";
 import { createShareAdminApp } from "./src/accounts/share-admin.server.ts";
 import { writeFileSync } from "node:fs";
 import { readFileSync } from "node:fs";
@@ -115,28 +116,34 @@ if (process.env.WG_ACCOUNT_UI === "1") {
     registerTrustedCatalog(service.app,getStore(),req=>handler(req,new RouterContextProvider()));
   }else service.app.get("/", (c) => c.redirect("/account"));
 }
+// WG_ACCOUNT_HTTP=1 runs plain HTTP listeners (behind a TLS-terminating reverse proxy),
+// skips the TLS files, and is the only mode that may bind beyond loopback/Tailscale.
+const plainHttp = process.env.WG_ACCOUNT_HTTP === '1';
 const port = Number(process.env.WG_ACCOUNT_PORT ?? 8383);
 const bind = process.env.WG_ACCOUNT_BIND ?? '127.0.0.1';
 const octets = bind.split('.').map(Number);
-if (bind !== '127.0.0.1' && !(isIP(bind) === 4 && octets[0] === 100 && octets[1] >= 64 && octets[1] <= 127))
+const tailscaleV4 = isIP(bind) === 4 && octets[0] === 100 && octets[1] >= 64 && octets[1] <= 127;
+if (bind !== '127.0.0.1' && !tailscaleV4 && !(plainHttp && bind === '0.0.0.0'))
   throw new Error('Account bind must be loopback or an explicit Tailscale IPv4 address');
 if (!Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error("Invalid account port");
+const createServer = (plainHttp ? createHttpServer : createHttpsServer) as typeof createHttpsServer;
+const serverOptions = plainHttp ? undefined : {
+  key: readFileSync(required("WG_ACCOUNT_TLS_KEY")),
+  cert: readFileSync(required("WG_ACCOUNT_TLS_CERT")),
+};
 const server = serve(
   {
     fetch: service.app.fetch,
     hostname: bind,
     port,
     createServer,
-    serverOptions: {
-      key: readFileSync(required("WG_ACCOUNT_TLS_KEY")),
-      cert: readFileSync(required("WG_ACCOUNT_TLS_CERT")),
-    },
+    serverOptions,
   },
   () => console.log(`WG accounts: ${origin} (${bind})`),
 );
 if (rooms) {
-  if (!(server instanceof HttpsServer)) throw new Error('Rooms require the configured HTTPS server');
+  if (!(server instanceof HttpsServer) && !(server instanceof HttpServer)) throw new Error('Rooms require the configured account server');
   rooms.attachWebSocket(server);
 }
 if ("requestTimeout" in server) server.requestTimeout = 300_000;
@@ -149,10 +156,7 @@ const adminServer = moderation
       hostname: "127.0.0.1",
       port: Number(required("WG_SHARE_ADMIN_PORT")),
       createServer,
-      serverOptions: {
-        key: readFileSync(required("WG_ACCOUNT_TLS_KEY")),
-        cert: readFileSync(required("WG_ACCOUNT_TLS_CERT")),
-      },
+      serverOptions,
     })
   : null;
 let stopping = false;
