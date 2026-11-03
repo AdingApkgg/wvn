@@ -15,6 +15,7 @@ export type ShareInput = ShareText & {
   requestId: string;
 };
 export type ShareView = ShareText & {
+  contentRedacted?: boolean;
   id: string;
   mode: "public" | "link";
   work: { id: string; title: string; url: string };

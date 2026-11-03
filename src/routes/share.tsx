@@ -16,6 +16,9 @@ import { Badge } from "../components/ui/badge";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
+import { useContentAccess } from "../content/client";
+import { ContentGate } from "../content/gate";
+import { ContentSettings } from "./content";
 export function meta() {
   return [
     { title: `玩家存档 · ${brand.shortName}` },
@@ -25,14 +28,25 @@ export function meta() {
 export default function Share() {
   const { shareId = "" } = useParams(),
     account = useAccount();
+  const content = useContentAccess(), scope = content.enabled ? content.access : null;
+  const scopeReady = !content.enabled || (!content.loading && !content.pendingPublic);
+  const binding = account.me?.binding ?? "";
   const [secret, setSecret] = useState<string | undefined>(),
     [ready, setReady] = useState(false),
-    [view, setView] = useState<ShareView | null>(null),
+    [storedView, setView] = useState<ShareView | null>(null),
     [missing, setMissing] = useState(false),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [name, setName] = useState(""),
     [report, setReport] = useState("");
+  const [storedGate, setGate] = useState("");
+  const [loaded, setLoaded] = useState<{ scope: typeof scope; binding: string; shareId: string; secret: typeof secret } | null>(null);
+  const current = useRef({ scope, binding, shareId, secret, ready: scopeReady });
+  current.current = { scope, binding, shareId, secret, ready: scopeReady };
+  const visible = !!loaded && scopeReady && loaded.scope === scope && loaded.binding === binding && loaded.shareId === shareId && loaded.secret === secret;
+  const view = visible ? storedView : null;
+  const gate = visible ? storedGate : "";
+  const returnTo = "/s/" + encodeURIComponent(shareId);
   const claimKey = useRef({ owner: "", id: "" });
   useEffect(() => {
     const update = () => {
@@ -54,10 +68,14 @@ export default function Share() {
     return () => window.removeEventListener("wg-account-invalidated", clear);
   }, []);
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !scopeReady) return;
     let live = true;
+    const captured = { scope, binding, shareId, secret };
+    const accepts = () => live && current.current.ready && current.current.scope === scope && current.current.binding === binding && current.current.shareId === shareId && current.current.secret === secret;
     setMissing(false);
+    setGate("");
     setView(null);
+    setMessage(""); setReport(""); claimKey.current = { owner: "", id: "" };
     void account
       .request<ShareView>(
         secret
@@ -66,15 +84,18 @@ export default function Share() {
         secret ? { secret } : undefined,
       )
       .then((data) => {
-        if (live) setView(data);
+        if (accepts()) { setView(data); setLoaded(captured); }
       })
-      .catch(() => {
-        if (live) setMissing(true);
+      .catch((error) => {
+        if (!accepts()) return;
+        if (error instanceof AccountClientError && (error.code.startsWith("CONTENT_") || error.code === "SIGN_IN_REQUIRED")) setGate(error.code);
+        else setMissing(true);
+        setLoaded(captured);
       });
     return () => {
       live = false;
     };
-  }, [shareId, secret, ready, account.me?.binding, account.request]);
+  }, [shareId, secret, ready, binding, account.request, scope, scopeReady]);
   async function action(fn: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -114,7 +135,7 @@ export default function Share() {
         </Button>
       </header>
       <main className="container share-shell">
-        {missing ? (
+        {gate ? <ContentGate code={gate} returnTo={returnTo} action={<Button onClick={() => document.getElementById("share-content-settings")?.scrollIntoView({ block: "start" })}>在本页查看浏览设置</Button>} /> : visible && missing ? (
           <Card>
             <CardHeader>
               <CardTitle>分享已失效或暂不可用。</CardTitle>
@@ -136,7 +157,7 @@ export default function Share() {
               </p>
               {view.version.engineReleaseId&&<p className="text-sm">新版独立档案 · <code title={view.version.engineReleaseId}>{view.version.engineReleaseId.slice(0,20)}</code></p>}
               <p className="text-xs text-muted-foreground">
-                {view.metadataBasis === "published"
+                {view.contentRedacted ? "受限文字已隐藏，版本归属保持不变。" : view.metadataBasis === "published"
                   ? "版本信息已按发布时保存。"
                   : "旧分享未保存发布时版本信息，当前显示目录信息。"}
               </p>
@@ -187,7 +208,7 @@ export default function Share() {
                   </p>
                 )}
                 <ul className="text-sm space-y-2">
-                  {view.files.map((f) => (
+                  {(view.contentRedacted ? [] : view.files).map((f) => (
                     <li className="break-all" key={f.name}>
                       {f.name} · {f.bytes} 字节{" "}
                       {account.me && (
@@ -209,7 +230,7 @@ export default function Share() {
                 </p>
               </CardContent>
             </Card>
-            {!account.me ? (
+            {view.contentRedacted ? <Card><CardHeader><CardTitle>查看完整分享</CardTitle><CardDescription>受限的文字和文件已隐藏。可在本页登录、完成规则测试并主动开启显示。</CardDescription></CardHeader></Card> : !account.me ? (
               <Card>
                 <CardHeader>
                   <CardTitle>登录后领取或下载</CardTitle>
@@ -337,6 +358,7 @@ export default function Share() {
             )}
           </>
         )}
+        {content.enabled && <div id="share-content-settings" hidden={!gate && !view?.contentRedacted} className="mt-8"><ContentSettings embedded returnTo={returnTo} /></div>}
       </main>
     </>
   );

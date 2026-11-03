@@ -1,6 +1,6 @@
 {
   "description": "WVN public hashed resources CORS",
-  "expression": "(http.host eq \"wg-b2.saop.cc\" and http.request.method in {\"GET\" \"HEAD\"})",
+  "expression": "(http.host eq \"wvn-s3-zi0.saop.cc\" and http.request.method in {\"GET\" \"HEAD\"})",
   "action": "rewrite",
   "action_parameters": {
     "headers": {

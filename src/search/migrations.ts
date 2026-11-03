@@ -1,7 +1,8 @@
 import type { Migration } from '../database/migrations.ts';
+import { contentCatalogMigrations } from '../database/content-catalog.ts';
 
 /** 必须在目录迁移之后安装；触发器与业务数据使用同一事务。 */
-export const searchMigrations: Migration[] = [{ id: '004-search-postgres', sql: `
+export const searchMigrations: Migration[] = [...contentCatalogMigrations, { id: '004-search-postgres', sql: `
 CREATE TABLE search_outbox(
  work_id text PRIMARY KEY,
  generation bigint NOT NULL DEFAULT 1,
@@ -43,4 +44,34 @@ CREATE TRIGGER search_versions AFTER INSERT OR UPDATE OR DELETE ON versions FOR 
 CREATE TRIGGER search_metadata AFTER INSERT OR UPDATE OR DELETE ON work_metadata FOR EACH ROW EXECUTE FUNCTION search_catalog_changed();
 CREATE TRIGGER search_reports AFTER INSERT OR UPDATE OR DELETE ON reports FOR EACH ROW EXECUTE FUNCTION search_catalog_changed();
 INSERT INTO search_outbox(work_id) SELECT id FROM works;
+` }, { id: '005-search-content-classification', sql: `
+CREATE FUNCTION search_classification_enqueue(record_kind text,record_id text) RETURNS void LANGUAGE plpgsql AS $$
+DECLARE target text;
+BEGIN
+ IF record_kind='work' THEN
+  PERFORM search_enqueue(record_id);
+ ELSIF record_kind='version' THEN
+  SELECT work_id INTO target FROM versions WHERE id=record_id;
+  PERFORM search_enqueue(target);
+ ELSIF record_kind='image' THEN
+  FOR target IN SELECT work_id FROM work_metadata
+   WHERE payload::jsonb #>> '{cover,url}'=record_id
+    OR EXISTS(SELECT 1 FROM jsonb_array_elements(COALESCE(payload::jsonb->'screenshots','[]'::jsonb)) image
+     WHERE image->>'url'=record_id)
+  LOOP
+   PERFORM search_enqueue(target);
+  END LOOP;
+ END IF;
+END $$;
+CREATE FUNCTION search_classification_changed() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+ IF TG_OP<>'INSERT' THEN PERFORM search_classification_enqueue(OLD.kind,OLD.id); END IF;
+ IF TG_OP='INSERT' OR (TG_OP='UPDATE' AND (NEW.kind,NEW.id) IS DISTINCT FROM (OLD.kind,OLD.id)) THEN
+  PERFORM search_classification_enqueue(NEW.kind,NEW.id);
+ END IF;
+ RETURN NULL;
+END $$;
+CREATE TRIGGER search_classifications AFTER INSERT OR UPDATE OR DELETE ON content_classifications
+ FOR EACH ROW EXECUTE FUNCTION search_classification_changed();
+SELECT search_enqueue(id) FROM works;
 ` }];

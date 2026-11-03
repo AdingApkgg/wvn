@@ -12,6 +12,11 @@ import { projectShares } from "../server/share-projection";
 import { SHARE_PROGRESS, isShareProgress } from "../accounts/share-metadata";
 import {projectWorkCounts} from '../analytics/projection.server';
 import {WorkInteractions} from '../components/work-stats';
+import {contentGateEnabled,getContentAccess} from '../content/access.server.ts';
+import {projectWork,accessError} from '../content/policy.ts';
+import {ContentGate} from '../content/gate';
+import {useContentAccess} from '../content/client';
+import {useLayoutEffect} from 'react';
 export async function loader({
   params,
   request,
@@ -21,8 +26,11 @@ export async function loader({
 }) {
   const id = parseWorkSlug(params.workId ?? "");
   if (!id) throw new Response(null, { status: 404 });
-  const w = (await getStore().get(id));
-  if (!w?.versions.length) throw new Response(null, { status: 404 });
+  const original = (await getStore().get(id));
+  if (!original?.versions.length) throw new Response(null, { status: 404 });
+  const access=contentGateEnabled()?await getContentAccess(request):null;
+  const w=access?projectWork(original,access):original;
+  if(!w)return {restricted:{code:accessError(access!),returnTo:new URL(request.url).pathname},title:'受限内容'};
   const url = new URL(request.url);
   const version = url.searchParams.get("saveVersion") ?? "";
   const progress = url.searchParams.get("saveProgress") ?? "";
@@ -42,17 +50,35 @@ export async function loader({
             progress: saveProgress || undefined,
             cursor: url.searchParams.get("saveCursor") ?? undefined,
           },
-          publicProjectionFetch(),
+          publicProjectionFetch(request),
         )
       : null;
   const counts=await projectWorkCounts([w.id]);
-  return { ...w, shares, saveVersion, saveProgress,counts:counts?.[w.id]??null };
+  return { ...w, shares, saveVersion, saveProgress,counts:counts?.[w.id]??null,
+    contentVisibility:access?(access.canViewRestricted?'restricted':'public'):null };
 }
-export function meta({ loaderData: data }: { loaderData?: { title: string } }) {
-  return [{ title: data ? `${data.title} — ${brand.shortName}` : brand.title }];
+export function meta({ loaderData: data }: { loaderData?: { title: string;restricted?:unknown } }) {
+  return [{ title: data ? `${data.title} — ${brand.shortName}` : brand.title },...(data?.restricted?[{name:'robots',content:'noindex,nofollow'}]:[])];
 }
 export default function Work() {
-  const w = useLoaderData<typeof loader>();
+  const loaded = useLoaderData<typeof loader>();
+  const content = useContentAccess();
+  const projected = 'restricted' in loaded ? null : content.enabled ? projectWork(loaded,content.access) : loaded;
+  const title = projected?.title ?? '受限内容';
+  const blocked = !projected;
+  useLayoutEffect(()=>{
+    if(!content.enabled)return;
+    document.title=`${title} — ${brand.shortName}`;
+    let robots=document.querySelector<HTMLMetaElement>('meta[data-wg-content-live]');
+    if(blocked&&!robots){robots=document.createElement('meta');robots.name='robots';robots.content='noindex,nofollow';robots.dataset.wgContentLive='1';document.head.append(robots)}
+    if(!blocked)robots?.remove();
+    return()=>{document.querySelector('meta[data-wg-content-live]')?.remove()};
+  },[content.enabled,title,blocked,loaded]);
+  if('restricted' in loaded)return <ContentGate code={loaded.restricted?.code??'CONTENT_UNREVIEWED'} returnTo={loaded.restricted?.returnTo??'/'}/>;
+  if(!projected)return <ContentGate code={accessError(content.access)} returnTo={loaded.url}/>;
+  // 版本备注和图片立即按当前权限重投影；旧受限快照的分享原文须等公共 SSR 快照后才恢复。
+  const staleShares=content.enabled&&!content.access.canViewRestricted&&loaded.contentVisibility==='restricted';
+  const w={...loaded,...projected,shares:staleShares?null:loaded.shares};
   const primary = w.versions.find(v => v.id === w.defaultVersionId) ?? w.versions[0];
   const description = w.metadata?.description ?? "";
   const summary = (description.split("[中文简介]")[1] ?? description).trim().split(/\n\s*\n/)[0];
@@ -79,7 +105,7 @@ export default function Work() {
           <p className="original">{w.originalTitle}</p>
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
-            <Button asChild size="lg"><Link to={primary.url}>开始阅读</Link></Button>
+            <Button asChild size="lg"><Link to={primary.url}>{'contentRestricted' in primary&&primary.contentRestricted?'取得资格后阅读':'开始阅读'}</Link></Button>
             {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
           <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>
@@ -93,7 +119,7 @@ export default function Work() {
         <div className="version-list">
           {w.versions.map(v => <Card key={v.id} className="version">
             <span className="slot">{String(v.number).padStart(2, "0")}</span>
-            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>
+            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>{v.classification&&<Badge variant="outline">{({none:'已确认不含成人性内容',present:'含成人性内容',unknown:'内容待核实'})[v.classification.sexualContent]}</Badge>}
               {v.notes && <p className="muted">{v.notes}</p>}
               <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>
@@ -170,7 +196,7 @@ export default function Work() {
                   {SHARE_PROGRESS[s.progress]}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {s.metadataBasis === "published"
+                  {s.contentRedacted?'受限文字已隐藏，版本归属保持不变':s.metadataBasis === "published"
                     ? "发布时版本信息"
                     : "旧分享 · 当前目录信息"}
                 </p>

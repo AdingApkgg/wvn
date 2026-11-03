@@ -8,6 +8,8 @@ import { createPublicApp, createAdminApp } from "./src/server/http.ts";
 import { Auth } from "./src/server/auth.ts";
 import { fileResponse } from "./src/server/resources.ts";
 import { mountPublicPlatform } from "./src/platform/public.server.ts";
+import {createContentFetch} from './src/content/http.server.ts';
+import {contentGateEnabled} from './src/content/access.server.ts';
 const store = getStore();
 await store.ready;
 const auth = new Auth();
@@ -44,7 +46,7 @@ for (const app of [pub, admin]) {
 const host = "127.0.0.1";
 const port = Number(process.env.WG_PORT ?? 8281),
   adminPort = Number(process.env.WG_ADMIN_PORT ?? 8282);
-const publicServer = serve({ fetch: pub.fetch, hostname: host, port }, () =>
+const publicServer = serve({ fetch: createContentFetch(pub.fetch,store,{enabled:contentGateEnabled()}), hostname: host, port }, () =>
   console.log(
     `WG preview: http://${host}:${port}; private admin: 127.0.0.1:${adminPort}`,
   ),

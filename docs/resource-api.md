@@ -3,7 +3,7 @@
 资源的逻辑身份是随机 UUID v4。首次导入为每个 `(namespace, original_path)` 分配一个 key；相同字节对应不同路径或 MIME 时仍保留各自的 key。SHA-256 仅标识内容，资源地址在响应时生成：
 
 ```text
-https://wg-b2.saop.cc/{完整的小写 SHA-256}.bin
+https://wvn-s3-zi0.saop.cc/{完整的小写 SHA-256}.bin
 ```
 
 API 不接受上游域名、URL、文件系统路径或访问密钥。缓存也只保存 key、摘要、大小、原 MIME。`source_file_id`、`target_file_id`、`content_sha1` 和冻结清单摘要保留在 PostgreSQL，供服务端审计，不出现在公开响应中。

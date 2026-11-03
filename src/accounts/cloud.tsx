@@ -29,6 +29,7 @@ import {
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
 import { SharePublish } from "./share-publish";
+import { useContentAccess } from "../content/client";
 export function CloudBackups({
   account,
   catalog,
@@ -39,6 +40,8 @@ export function CloudBackups({
   run: (fn: () => Promise<void>) => Promise<void>;
 }) {
   const owner = account.me!.user.id;
+  const content = useContentAccess();
+  const showNames = !content.enabled || (!content.loading && !content.pendingPublic && content.access.canViewRestricted);
   const fileInput = useRef<HTMLInputElement>(null);
   const [enabled, setEnabled] = useState(false),
     [sharing, setSharing] = useState(false),
@@ -58,6 +61,7 @@ export function CloudBackups({
     } | null>(null);
   const owned = <T,>(path: string, body?: unknown, method?: string) =>
     account.request<T>(path, body, method, owner);
+  useEffect(() => { setShareRevision(null); }, [content.access, content.loading, content.pendingPublic]);
   const reloadDrafts = async () => setDrafts(await draftsFor(owner));
   function historyItems(page: SaveHistory | null): SaveRevision[] {
     if (!page) return [];
@@ -302,7 +306,7 @@ export function CloudBackups({
                   · {draft.files.length} 个文件
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {draft.files.map((file) => (
+                  {draft.files.map((file, index) => (
                     <Button
                       key={file.name}
                       variant="link"
@@ -316,7 +320,7 @@ export function CloudBackups({
                         setTimeout(() => URL.revokeObjectURL(url), 1000);
                       }}
                     >
-                      导出本机 {file.name}
+                      导出本机 {showNames ? file.name : `文件 ${index + 1}`}
                     </Button>
                   ))}
                   {draft.status === "pending" && (
@@ -356,7 +360,7 @@ export function CloudBackups({
                             : "历史备份"}
                     </p>
                     <div className="flex flex-wrap gap-3">
-                      {sharing && (
+                      {sharing && showNames && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -365,13 +369,13 @@ export function CloudBackups({
                           分享这份存档
                         </Button>
                       )}
-                      {revision.files.map((file) => (
+                      {revision.files.map((file, index) => (
                         <a
                           className="underline text-sm break-all max-w-full"
                           key={file.name}
                           href={`/api/me/save-profiles/${profile!.id}/revisions/${revision.id}/files?name=${encodeURIComponent(file.name)}`}
                         >
-                          下载 {file.name}
+                          下载 {showNames ? file.name : `文件 ${index + 1}`}
                         </a>
                       ))}
                       {revision.id !== profile?.head && (
@@ -428,7 +432,7 @@ export function CloudBackups({
             {message}
           </p>
         )}
-        {shareRevision && profile && (
+        {shareRevision && profile && showNames && (
           <SharePublish
             account={account}
             profile={profile}

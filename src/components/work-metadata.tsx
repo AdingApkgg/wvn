@@ -2,6 +2,8 @@ import { Link } from "react-router";
 import { Badge } from "./ui/badge";
 import type { WorkMetadata } from "../metadata.ts";
 import { metadataSourceLabel, coverKindLabel } from "../metadata-sources.ts";
+import {useState} from 'react';
+import {useContentAccess} from '../content/client';
 export function WorkMetadataPanel({
   metadata,
   title,
@@ -25,18 +27,7 @@ export function WorkMetadataPanel({
         <section className="screenshots">
           <h2>游戏截图</h2>
           <div className="screenshot-grid">
-            {m.screenshots.map((s, i) => (
-              <a key={s.url} href={s.url} target="_blank" rel="noreferrer">
-                <img
-                  src={s.url}
-                  alt={title + " · 截图 " + (i + 1)}
-                  width={s.width}
-                  height={s.height}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </a>
-            ))}
+            {m.screenshots.map((s, i) => <Screenshot key={s.url} image={s} title={title} number={i+1}/>)}
           </div>
           <p className="metadata-credit">截图来自 VNDB，点击查看大图。</p>
         </section>
@@ -121,4 +112,10 @@ export function WorkMetadataPanel({
       </details>
     </section>
   );
+}
+
+function Screenshot({image,title,number}:{image:WorkMetadata['screenshots'][number];title:string;number:number}){
+  const {enabled}=useContentAccess();
+  const [opened,setOpened]=useState(!enabled||!image.classification?.spoiler);
+  return <div>{!opened?<button type="button" className="rounded-md border p-4 text-sm" onClick={()=>setOpened(true)}>截图 {number} 可能涉及剧透 · 点击查看</button>:<><a href={image.url} target="_blank" rel="noreferrer"><img src={image.url} alt={`${title} · 截图 ${number}`} width={image.width} height={image.height} loading="lazy" decoding="async"/></a>{image.classification?.spoiler&&<button type="button" className="text-sm underline" onClick={()=>setOpened(false)}>收起截图 {number}</button>}</>}</div>;
 }

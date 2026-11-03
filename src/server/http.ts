@@ -8,6 +8,9 @@ import { Auth } from "./auth.ts";
 import { fileResponse } from "./resources.ts";
 import { registerOnsPilot } from "../ons/http.server.ts";
 import { pilotForVersion } from "../ons/pilots.server.ts";
+import { registerContentClassificationAdmin } from "../content/classification-admin.server.ts";
+import {contentGateEnabled,getContentAccess} from '../content/access.server.ts';
+import {versionAccessError} from '../content/policy.ts';
 function base() {
   const app = new Hono();
   app.use("*", async (c, next) => {
@@ -99,6 +102,13 @@ export function createPublicApp(
           decoded.startsWith(v.legacyPath),
       );
     if (match) {
+      if(contentGateEnabled()){
+        const work=await store.get(match.workId),version=work?.versions.find(v=>v.id===match.id);
+        if(!work||!version)return c.notFound();
+        let error:string|null;
+        try{error=versionAccessError(work,version,await getContentAccess(c.req.raw))}catch{return c.json({code:'CONTENT_UNAVAILABLE'},503)}
+        if(error)return c.json({code:error},error==='SIGN_IN_REQUIRED'?401:403);
+      }
       if (decoded === match.legacyPath.slice(0, -1))
         return c.redirect(
           encodeURI(match.legacyPath) + new URL(c.req.url).search,
@@ -112,6 +122,7 @@ export function createPublicApp(
         if ([match.legacyPath, match.legacyPath + "index.html", match.legacyPath + "onsyuri.html"].includes(decoded)) return c.redirect(pilot.route, 302);
         return c.notFound();
       }
+      if(contentGateEnabled())return c.json({code:'CONTENT_PLAYER_UNAVAILABLE'},503);
       return (await fileResponse(
         c.req.raw,
         root,
@@ -167,6 +178,7 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
     return c.json((await store.bindPending(c.req.param("id"), b.workId)), 201);
   });
   app.get("/api/manage/sources", (c) => c.json(sourceData));
+  registerContentClassificationAdmin(app, store);
   app.patch("/api/manage/works/:id", async (c) => {
     const b = await c.req.json();
     return c.json((await store.editWork(c.req.param("id"), b.revision, b.patch)));

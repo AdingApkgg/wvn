@@ -4,6 +4,7 @@ import { bodyLimit } from "hono/body-limit";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { AccountService } from "./service.server.ts";
 import { AccountError } from "./errors.server.ts";
+import { mountContentAdmin } from './content-admin-http.server.ts';
 export function createShareAdminApp(
   service: AccountService,
   origin: string,
@@ -37,7 +38,7 @@ export function createShareAdminApp(
     }),
   );
   app.use("/api/share-admin/*", async (c, next) => {
-    if (c.req.path.endsWith("/login")) return next();
+    if (c.req.path === "/api/share-admin/login") return next();
     const session = getCookie(c, "__Host-wg-share-admin") ?? "";
     if ((sessions.get(session) ?? 0) < Date.now())
       return c.json({ code: "SIGN_IN_REQUIRED" }, 401);
@@ -90,6 +91,7 @@ export function createShareAdminApp(
     ));
     return c.json({ ok: true });
   });
+  mountContentAdmin(app, service);
   app.onError((e, c) =>
     c.json(
       { code: e instanceof AccountError ? e.code : "REQUEST_FAILED" },

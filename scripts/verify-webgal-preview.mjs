@@ -23,7 +23,7 @@ async function run(entry){
  const record={id:entry.id,route:entry.route,title:entry.title,startedAt:new Date().toISOString(),errors:[],network:[],console:[],invalid:[],mainBodies:[],failed:[]};
  const pulse=setInterval(()=>console.log(JSON.stringify({id:entry.id,stage,requests:record.network.length,at:new Date().toISOString()})),30000);pulse.unref();
  page.on('pageerror',e=>{record.errors.push(e.message);fs.writeFileSync(root+'/'+entry.id+'-error.json',JSON.stringify({message:e.message,stack:e.stack},null,2))});page.on('console',m=>{if(record.console.length<180)record.console.push(m.text().slice(0,500))});page.on('dialog',d=>d.accept());
- page.on('request',r=>{const u=new URL(r.url());if(u.host==='wg-b2.saop.cc'){record.network.push({url:r.url(),range:r.headers().range??null});if(!/^\/[a-f0-9]{64}\.bin$/.test(u.pathname)||u.search||!expected.has(r.url()))record.invalid.push(r.url());}});
+ page.on('request',r=>{const u=new URL(r.url());if(u.host==='wvn-s3-zi0.saop.cc'){record.network.push({url:r.url(),range:r.headers().range??null});if(!/^\/[a-f0-9]{64}\.bin$/.test(u.pathname)||u.search||!expected.has(r.url()))record.invalid.push(r.url());}});
  page.on('requestfailed',r=>{if(!stopping)record.failed.push({url:r.url(),failure:r.failure()?.errorText})});
  page.on('response',r=>{const u=new URL(r.url());if(u.origin===origin&&/^\/__(?:player\/resource|ons\/(?:data|engine)|engines\/resource)\//.test(u.pathname)&&!u.pathname.endsWith('/index.html'))record.mainBodies.push({url:r.url(),status:r.status()})});
  async function start(){
@@ -44,7 +44,7 @@ async function run(entry){
  try{
   const response=await page.request.get(origin+'/api/player/'+entry.id+'/resources',{timeout:180000});assert.equal(response.status(),200);const manifest=await response.json();assert.equal(manifest.versionId,entry.versionId);assert(manifest.resources.length>1000);
   expected=new Set([...manifest.resources,...manifest.engineResources.files].map(r=>r.url));record.resourceCount=manifest.resources.length;
-  for(const row of [...manifest.resources,...manifest.engineResources.files])assert.equal(row.url,'https://wg-b2.saop.cc/'+row.sha256+'.bin');
+  for(const row of [...manifest.resources,...manifest.engineResources.files])assert.equal(row.url,'https://wvn-s3-zi0.saop.cc/'+row.sha256+'.bin');
   await page.goto(origin+entry.route,{waitUntil:'domcontentloaded',timeout:60000});
   const oldId='artemis-v27448-1';await page.evaluate(async id=>{const s=await(await import('/ons/storage.mjs')).openSaveStore();try{await s.commit(id,0,{schema:1,pilot:id,files:[{path:'qa-preserve.dat',data:new Uint8Array([20,26,10,29]),mtime:1793232000000}]},'file-import')}finally{s.close()}},oldId);
   const old=native.describe((await native.localHead(page,oldId)).snapshot.files);
@@ -63,7 +63,7 @@ async function run(entry){
   stage='reopen';stopping=false;await page.reload({waitUntil:'domcontentloaded'});await start();const restored=native.describe(await native.nativeFiles(page,entry));
   const marker=expectedFiles.find(f=>f.path==='wvn-qa-retention.dat');assert.deepEqual(restored.find(f=>f.path===marker.path),marker);record.adapterPersistencePassed=true;
   record.restored=restored;stopping=true;await native.stop(page);
-  assert.deepEqual(record.invalid,[]);assert.deepEqual(record.mainBodies,[]);assert.deepEqual(record.errors,[]);assert(record.network.length>3);const packageUrl='https://wg-b2.saop.cc/'+entry.packageFiles['artemis.data']+'.bin',packageRequests=record.network.filter(r=>r.url===packageUrl);assert(packageRequests.length&&packageRequests.every(r=>r.range),'Native preload must reuse the verified package without a second full download');record.packageReuse={requests:packageRequests.length,unranged:0};record.status='passed';
+  assert.deepEqual(record.invalid,[]);assert.deepEqual(record.mainBodies,[]);assert.deepEqual(record.errors,[]);assert(record.network.length>3);const packageUrl='https://wvn-s3-zi0.saop.cc/'+entry.packageFiles['artemis.data']+'.bin',packageRequests=record.network.filter(r=>r.url===packageUrl);assert(packageRequests.length&&packageRequests.every(r=>r.range),'Native preload must reuse the verified package without a second full download');record.packageReuse={requests:packageRequests.length,unranged:0};record.status='passed';
  }catch(error){record.status='failed';record.error=error.message;record.statusText=await page.getByRole('status').allTextContents().catch(()=>[]);if(frame)record.frameState=await frame.evaluate(()=>({body:document.body.innerText.slice(0,800),calledRun:!!globalThis.Module?.calledRun,aborted:!!globalThis.Module?.ABORT})).catch(()=>null);await page.screenshot({path:root+'/'+entry.id+'-failed.png',timeout:10000}).catch(()=>{});}
  finally{clearInterval(pulse);record.stage=stage;record.finishedAt=new Date().toISOString();results.push(record);fs.writeFileSync(root+'/'+entry.id+'.json',JSON.stringify(record,null,2));fs.writeFileSync(root+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify({id:entry.id,status:record.status,stage,error:record.error,requests:record.network.length}));await context.close();}
 }

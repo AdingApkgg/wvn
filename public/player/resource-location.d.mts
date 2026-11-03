@@ -1,4 +1,4 @@
-export const b2ResourceOrigin: 'https://wg-b2.saop.cc';
+export const b2ResourceOrigin: 'https://wvn-s3-zi0.saop.cc';
 export const b2ReleasePrefix: '/releases/20261027-01/';
 export function resourceOriginForManifest(value: unknown, origin: string): string;
 export function runtimeResourceOrigin(base: string, entry: {id: string}, origin: string): string;

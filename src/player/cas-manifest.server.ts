@@ -8,7 +8,7 @@ import type {ResourceRepository} from '../resources/repository.ts';
 import {ResourceRequestError, SHA256, validMetadata, validNamespace, type Resource} from '../resources/types.ts';
 
 export const RENPY_RELEASE='renpy-5b572ebfa6248cac249cab61f698c967cac82b7d225da7515971b383d0f0a3cf';
-const ORIGIN='https://wg-b2.saop.cc', RELEASE='releases/20261027-01/';
+const ORIGIN='https://wvn-s3-zi0.saop.cc', RELEASE='releases/20261027-01/';
 const MAX_ROWS=60000, MAX_BYTES=32*1024*1024;
 export type ControlBundle={schema:number;entries:Record<string,{source:string;sha1:string;bytes:number}>};
 type Options={document:ControlBundle;namespace:string;inventorySha256:string;engineReleaseId:string};

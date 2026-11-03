@@ -1,4 +1,6 @@
 export type AccountConfig = {
+  contentGate?: boolean;
+  content?: import('./content-eligibility.server.ts').ContentEligibilityOptions;
   engineCloud?: {versionId:string;releaseId:string}[];
   analytics?: import('../analytics/proxy.server.ts').AnalyticsConfig;
   revision?: string;
@@ -30,5 +32,5 @@ export function validateAccountConfig(config: AccountConfig): AccountConfig {
   if (config.secret.length < 48)
     throw new Error("Account secret must be at least 48 characters");
   if(config.cookiePrefix && !/^__Host-wg(?:-[a-z0-9-]{1,40})?$/.test(config.cookiePrefix)) throw new Error('Invalid account cookie prefix');
-  return config;
+  return { ...config, contentGate: config.contentGate ?? process.env.WG_CONTENT_GATE === '1' };
 }

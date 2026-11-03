@@ -11,6 +11,14 @@ import {
 } from "../identity.ts";
 import { metadataDocument, type WorkMetadata } from "../metadata.ts";
 import type { CatalogSeed, Version, PublicWork, Check } from "../types.ts";
+import {
+  ContentClassificationStore,
+  unknownWorkClassification,
+  unknownVersionClassification,
+  unknownMediaClassification,
+  workTextFingerprint,
+} from "../content/classification.server.ts";
+import type { WorkClassification, VersionClassification, MediaClassification } from "../content/types.ts";
 export class Conflict extends Error {
   constructor() {
     super("记录已被其他操作更新，请刷新后重试");
@@ -77,10 +85,12 @@ function versionRow(r: PgRow): Version {
 
 export class Store {
   readonly database: PgDatabase;
+  readonly classifications: ContentClassificationStore;
   readonly ready: Promise<void>;
   constructor(database: PgDatabase | string) {
     this.database = typeof database === 'string' ? new PgDatabase(database) : database;
-    this.ready = migrate(this.database, catalogMigrations);
+    this.classifications = new ContentClassificationStore(this.database);
+    this.ready = Promise.all([migrate(this.database, catalogMigrations), this.classifications.ready]).then(() => {});
   }
   private async workRows(id?: string) {
     await this.ready;
@@ -133,7 +143,7 @@ export class Store {
   async raw(uuid: string): Promise<Version | undefined> {
     await this.ready;
     const row = await this.database.prepare('SELECT * FROM versions WHERE id=$1').get(uuid);
-    return row ? versionRow(row) : undefined;
+    return row ? { ...versionRow(row), classification: await this.classifications.get("version", row.id) ?? unknownVersionClassification() } : undefined;
   }
   async addVersion(id: string, input: unknown) {
     const value = versionInput.parse(input);
@@ -149,14 +159,33 @@ export class Store {
     const versions = await this.database.prepare('SELECT * FROM versions ORDER BY sort_order,number').all();
     const metadata = await this.database.prepare('SELECT work_id,payload FROM work_metadata').all();
     const reports = await this.database.prepare('SELECT version_id,payload FROM reports ORDER BY kind').all();
-    const meta = new Map(metadata.map(r => [r.work_id, JSON.parse(r.payload) as WorkMetadata]));
+    const classifications = await this.classifications.list();
+    const workClass = new Map(classifications.filter(r => r.kind === "work").map(r => [r.id, r.classification as WorkClassification]));
+    const workFingerprints = new Map(classifications.filter(r => r.kind === "work").map(r => [r.id, r.fingerprint]));
+    const versionClass = new Map(classifications.filter(r => r.kind === "version").map(r => [r.id, r.classification as VersionClassification]));
+    const mediaClass = new Map(classifications.filter(r => r.kind === "image").map(r => [r.id, r.classification as MediaClassification]));
+    const meta = new Map<string, WorkMetadata>(metadata.map(r => {
+      const value = JSON.parse(r.payload) as WorkMetadata;
+      const classifyImage = (image: NonNullable<WorkMetadata["cover"]>) => ({
+        ...image, classification: mediaClass.get(image.url) ?? unknownMediaClassification(),
+      });
+      return [r.work_id, { ...value, cover: value.cover ? classifyImage(value.cover) : null, screenshots: value.screenshots.map(classifyImage) }] as const;
+    }));
     return works.map(w => ({
       id: w.id, title: w.title, originalTitle: w.originalTitle, aliases: JSON.parse(w.aliases), evidence: w.evidence,
+      classification: workClass.has(w.id) && workFingerprints.get(w.id) === workTextFingerprint({
+        title: w.title, originalTitle: w.originalTitle, aliases: JSON.parse(w.aliases), evidence: w.evidence,
+      }, meta.get(w.id), versions.filter(version => version.work_id === w.id && version.status === 'published')
+        .map(version => ({ id: version.id, title: version.title, notes: version.notes, language: version.language }))) ? workClass.get(w.id) : {
+        ...(workClass.get(w.id) ?? unknownWorkClassification()), pageSuitability: "unknown" as const,
+        reason: workClass.has(w.id) ? "当前页面文本与审核快照不符，需要重新审核；原审核记录保留。" : "尚无独立审核记录",
+      },
       ...(meta.has(w.id) ? { metadata: meta.get(w.id) } : {}), revision: w.revision,
       defaultVersionId: w.defaultId, url: `/${workSlug(w.id)}/`,
       versions: versions.filter(v => v.work_id === w.id && (includeHidden || v.status === 'published')).map(row => {
         const v = versionRow(row);
         return { id: v.id, workId: v.workId, number: v.number, title: v.title, engine: v.engine,
+          classification: versionClass.get(v.id) ?? unknownVersionClassification(),
           language: v.language, notes: v.notes, sortOrder: v.sortOrder, revision: v.revision,
           url: `/${workSlug(v.workId)}/${v.number}/`, launchPath: encodeURI(v.legacyPath),
           checks: reports.filter(r => r.version_id === v.id).map(r => {
@@ -172,7 +201,7 @@ export class Store {
     try { decoded = decodeURIComponent(path); } catch { return; }
     await this.ready;
     const row = await this.database.prepare("SELECT * FROM versions WHERE legacy_path=$1 AND status='published'").get(decoded);
-    return row ? versionRow(row) : undefined;
+    return row ? { ...versionRow(row), classification: await this.classifications.get("version", row.id) ?? unknownVersionClassification() } : undefined;
   }
   async resolveRoute(slug: string, number: string) {
     const id = parseWorkSlug(slug);
@@ -180,7 +209,7 @@ export class Store {
     await this.ready;
     const row = await this.database.prepare(`SELECT v.* FROM routes r JOIN versions v ON v.id=r.version_id
       WHERE r.work_id=$1 AND r.number=$2 AND v.status='published'`).get(id, Number(number));
-    return row ? versionRow(row) : undefined;
+    return row ? { ...versionRow(row), classification: await this.classifications.get("version", row.id) ?? unknownVersionClassification() } : undefined;
   }
   async editWork(id: string, revision: number, input: unknown) {
     const patch = workPatch.parse(input);
@@ -241,6 +270,11 @@ export class Store {
   }
   async importMetadata(input: unknown, apply = false) {
     const document = metadataDocument.parse(input);
+    // 来源刷新只更新来源资料。分类字段由独立审核仓储管理，不能随上游输入覆盖。
+    for (const metadata of document.works) {
+      if (metadata.cover) delete metadata.cover.classification;
+      for (const image of metadata.screenshots) delete image.classification;
+    }
     const run = async () => {
       const ids = new Set<string>();
       const changes: { workId: string; kind: 'added' | 'updated' | 'unchanged' }[] = [];

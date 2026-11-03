@@ -102,7 +102,7 @@ TURN 凭据只向有效房间成员签发，格式为 `expiry:opaque-user-room-h
 
 公网部署需要另行授权与验收：WT 独立域名、可信证书与 UDP 443（或指定 QUIC 端口）；TURN 独立域名、UDP/TCP 3478、TLS TCP 5349 及受控 relay UDP 范围，NAT 外网映射须逐端口保持对应。Node WS 继续使用现有账号 HTTPS 域名。当前模板默认监听回环，未开放公网，也没有修改现有 CDN、DNS、防火墙或 Cloudflare。
 
-[Cloudflare 官方 HTTP/3 文档](https://developers.cloudflare.com/speed/optimization/protocol/http3/) 当前明确不支持 HTTP/3 回源，因此普通橙云不能承载此 WT 源站连接；独立入口规划不得改动 `wg-b2.saop.cc`。实现参考：[webtransport-go](https://github.com/quic-go/webtransport-go)、[coturn 官方配置](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf)、[Chrome WebTransport 语义](https://developer.chrome.com/docs/capabilities/web-apis/webtransport)。
+[Cloudflare 官方 HTTP/3 文档](https://developers.cloudflare.com/speed/optimization/protocol/http3/) 当前明确不支持 HTTP/3 回源，因此普通橙云不能承载此 WT 源站连接；独立入口规划不得改动 `wvn-s3-zi0.saop.cc`。实现参考：[webtransport-go](https://github.com/quic-go/webtransport-go)、[coturn 官方配置](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf)、[Chrome WebTransport 语义](https://developer.chrome.com/docs/capabilities/web-apis/webtransport)。
 
 ## 已验证与未验证
 

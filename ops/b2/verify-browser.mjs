@@ -16,7 +16,7 @@ const doc=JSON.parse(fs.readFileSync(process.env.WVN_B2_RELEASE_FILE??'/run/wvn-
 assert(!process.env.WVN_B2_CANARY_PREFIX,'CAS acceptance forbids request rewriting');
 assert(process.env.WVN_CAS_EXPECTED_MANIFESTS,'Independent PG manifest oracle is required');
 const expectedManifests=JSON.parse(fs.readFileSync(process.env.WVN_CAS_EXPECTED_MANIFESTS));
-const cdnHost='wg-b2.saop.cc';
+const cdnHost='wvn-s3-zi0.saop.cc';
 const isResourcePath=p=>/^\/(?:__player\/resource|__ons\/(?:data|engine)|__engines\/resource|releases)\//.test(p);
 const gameFrameSelector='iframe[sandbox="allow-scripts"][src^="/__"]';
 const isMainBodyRequest=request=>{const u=new URL(request.url());if(u.origin!==origin)return false;if(isResourcePath(u.pathname))return !(request.resourceType()==='document'&&u.pathname.endsWith('/index.html'));let frame;try{frame=request.frame()}catch{return false}return /\/__(?:ons\/runtime|player\/resource)\//.test(frame?.url()??'')&&request.resourceType()!=='document'&&!/^\/(?:player|ons)\/[^/]+\.(?:mjs|js)$/.test(u.pathname);};

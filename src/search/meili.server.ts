@@ -1,6 +1,8 @@
 export type SearchDocument = {
   id: string; title: string; originalTitle: string; aliases: string[]; titles: string[];
   tags: string[]; engines: string[]; states: string[]; numbers: string[];
+  pageSuitability: 'sfw' | 'nsfw' | 'unknown';
+  sexualContents: string[];
 };
 export type MeiliSearch = { hits: { id: string }[]; estimatedTotalHits: number };
 type Task = { taskUid: number };
@@ -66,7 +68,7 @@ export class MeiliClient {
   async settings(uid: string) {
     await this.wait(await this.request<Task>('/indexes/' + indexName(uid) + '/settings', 'PATCH', {
       searchableAttributes: ['id', 'numbers', 'title', 'originalTitle', 'aliases', 'titles', 'tags', 'engines'],
-      displayedAttributes: ['id'], filterableAttributes: ['engines', 'tags', 'states'],
+      displayedAttributes: ['id'], filterableAttributes: ['engines', 'tags', 'states', 'pageSuitability', 'sexualContents'],
       pagination: { maxTotalHits: 10_000 },
     }));
   }

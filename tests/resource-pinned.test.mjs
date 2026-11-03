@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readPinnedResource} from '../public/player/resource-location.mjs';
 const data=new TextEncoder().encode('abcdefghijklmnopqrstuvwxyz'),sha256=createHash('sha256').update(data).digest('hex');
-const row={url:'https://wg-b2.saop.cc/'+sha256+'.bin',sha256,bytes:data.length};
+const row={url:'https://wvn-s3-zi0.saop.cc/'+sha256+'.bin',sha256,bytes:data.length};
 test('CAS packages recover a failed chunk without ETag and only return verified complete bytes',async()=>{
  const ranges=[];let interrupted=false;
  const bytes=await readPinnedResource(row,{chunkBytes:8,retryDelay:async()=>{},fetcher:async(url,options)=>{

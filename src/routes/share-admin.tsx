@@ -20,6 +20,7 @@ import {
 } from "../components/ui/table";
 import type { ShareText, ModerationShare } from "../accounts/share-types";
 import { SHARE_PROGRESS } from "../accounts/share-metadata";
+import { ContentManagement } from '../accounts/content-management';
 type Item = ModerationShare;
 function ReviewText({ label, text }: { label: string; text: ShareText }) {
   return (
@@ -60,6 +61,25 @@ export default function ShareAdmin() {
     if (!response.ok) throw new Error("审核队列暂不可用");
     setItems(await response.json());
     setLogged(true);
+  }
+  async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+    let response: Response;
+    try {
+      response = await fetch('/api/share-admin/' + path, {
+        method, cache: 'no-store', headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+    } catch { throw new Error('连接暂时中断，请重试；输入已保留。'); }
+    const data = await response.json().catch(() => null);
+    if (response.status === 401) { setLogged(false); throw new Error('管理员会话已失效，请重新进入审核后台。'); }
+    if (response.status === 409) throw new Error(path.startsWith('content/shares/')
+      ? '分享无效、仍有待发布文案，或修订已变化。请先确认分享有效、完成发布审核并核对当前修订；输入已保留。'
+      : '账号状态已变化，请重新查询后再操作；输入已保留。');
+    if (!response.ok) throw new Error(response.status === 404 ? '未找到对应账号或分享。'
+      : data?.code === 'CONTENT_SUSPENDED' ? '资格仍处于暂停状态，请先解除暂停。'
+      : response.status === 400 ? '请检查操作、文案修订和审核理由；理由须为1–1000字且不含控制字符。'
+      : '管理服务暂不可用，请稍后重试；输入已保留。');
+    return data as T;
   }
   useEffect(() => {
     void load().catch(() => setMessage("审核队列暂不可用"));
@@ -126,6 +146,7 @@ export default function ShareAdmin() {
         </Card>
       ) : (
         <>
+          <ContentManagement request={api} />
           <div className="space-y-2">
             <Label htmlFor="moderation-reason">审核原因</Label>
             <Input

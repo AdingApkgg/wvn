@@ -129,7 +129,7 @@ test('real Passkey sessions connect RoomClient over WS and account deletion inva
 test('COEP account page records the actual CDN CORS fetch boundary separately from API success', async ({ page }, testInfo) => {
   const f = fixture(), consoleErrors: string[] = [], failures: string[] = [];
   const observed: { status: number; allowOrigin: string | null; resourcePolicy: string | null }[] = [];
-  page.on('console', message => { if (message.type() === 'error' && /wg-b2\.saop\.cc|cors/i.test(message.text())) consoleErrors.push(message.text()); });
+  page.on('console', message => { if (message.type() === 'error' && /wvn-s3-zi0\.saop\.cc|cors/i.test(message.text())) consoleErrors.push(message.text()); });
   page.on('requestfailed', request => { if (request.url() === f.cdnUrl) failures.push(request.failure()?.errorText ?? 'request_failed'); });
   page.on('response', response => {
     if (response.url() === f.cdnUrl) {

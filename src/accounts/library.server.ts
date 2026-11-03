@@ -67,7 +67,7 @@ export class LibraryStore {
         seconds: Number(row.seconds),
       }));
   }
-  async edit(owner: string, workId: string, revision: number, patch: { status: string; note: string }) {
+  async edit(owner: string, workId: string, revision: number, patch: { status: string; note?: string }) {
     return (await this.db.transaction(async () => (await this.editLocked(owner, workId, revision, patch)), { lock: 'wvn:library:' + owner }));
   }
   async start(owner: string, versionId: string, eventId: string) {
@@ -80,30 +80,31 @@ export class LibraryStore {
     owner: string,
     workId: string,
     revision: number,
-    patch: { status: string; note: string },
+    patch: { status: string; note?: string },
   ): Promise<LibraryEntry> {
     if (!(await this.currentCatalog()).some((w) => w.id === workId))
       throw new AccountError(404, "WORK_NOT_FOUND");
+    const hasNote = Object.hasOwn(patch, "note");
     if (
       !Number.isSafeInteger(revision) ||
       revision < 0 ||
       !["wanted", "playing", "completed", "paused", "dropped"].includes(
         patch.status,
       ) ||
-      typeof patch.note !== "string" ||
-      patch.note.length > 5000
+      (hasNote && (typeof patch.note !== "string" || patch.note.length > 5000))
     )
       throw new AccountError(400, "LIBRARY_INVALID");
     const existing = (await this.db
-      .prepare("SELECT revision FROM wg_library WHERE user_id=$1 AND work_id=$2")
+      .prepare("SELECT revision,note FROM wg_library WHERE user_id=$1 AND work_id=$2")
       .get(owner, workId));
     if (Number(existing?.revision ?? 0) !== revision)
       throw new AccountError(409, "CONTENT_CONFLICT");
+    const note = hasNote ? patch.note! : String(existing?.note ?? "");
     (await this.db
       .prepare(
         "INSERT INTO wg_library(user_id,work_id,status,note,revision,updated_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT(user_id,work_id) DO UPDATE SET status=excluded.status,note=excluded.note,revision=excluded.revision,updated_at=excluded.updated_at",
       )
-      .run(owner, workId, patch.status, patch.note, revision + 1, this.now()));
+      .run(owner, workId, patch.status, note, revision + 1, this.now()));
     return (await this.list(owner)).find((w) => w.workId === workId)!;
   }
   private async startLocked(owner: string, versionId: string, eventId: string): Promise<{ id: string }> {

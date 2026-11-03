@@ -5,10 +5,13 @@ import type { Store } from '../server/store.ts';
 import { createSearchApp } from './http.server.ts';
 import { MeiliClient } from './meili.server.ts';
 import { searchMigrations } from './migrations.ts';
+import {getContentAccess} from '../content/access.server.ts';
+import {projectWork} from '../content/policy.ts';
+import {filterContentVersions} from './projection.server.ts';
 
 export type SearchPage = {
   ids: string[]; offset: number; limit: number; nextOffset: number | null;
-  indexEstimatedTotalHits: number; filteredOut: number; source: 'meilisearch';
+  indexEstimatedTotalHits: number | null; visiblePageCount?: number; filteredOut: number; source: 'meilisearch';
 };
 export class SearchRuntimeError extends Error {
   constructor(readonly status: 400 | 503, readonly code: string) {
@@ -17,7 +20,7 @@ export class SearchRuntimeError extends Error {
 }
 export type SearchRuntime = {
   app: Hono;
-  query(params: URLSearchParams): Promise<SearchPage>;
+  query(params: URLSearchParams, viewer?: Request): Promise<SearchPage>;
   close?: () => Promise<void>;
 };
 function unavailableApp() {
@@ -40,15 +43,23 @@ export async function createSearchRuntime(store: Store, env: NodeJS.ProcessEnv =
   if (url && apiKey) {
     try {
       app = createSearchApp({ db: store.database, meili: new MeiliClient({ url, apiKey }),
-        indexUid: env.MEILI_INDEX_UID || 'wvn_public_works' });
+        indexUid: env.MEILI_INDEX_UID || 'wvn_public_works', store, contentGate: env.WG_CONTENT_GATE === '1' });
     } catch {
       // 配置无效时明确返回 503；基础目录不依赖此服务。
     }
   }
   return {
     app,
-    async query(params) {
-      const response = await app.request('/api/search?' + params.toString());
+    async query(params, viewer) {
+      const target = new URL('/api/search?' + params.toString(), viewer?.url ?? 'http://localhost');
+      const headers = new Headers();
+      if (viewer && target.origin === new URL(viewer.url).origin) {
+        for (const name of ['cookie', 'origin', 'user-agent', 'authorization']) {
+          const value = viewer.headers.get(name);
+          if (value) headers.set(name, value);
+        }
+      }
+      const response = await app.request(target.href, { headers });
       if (!response.ok) {
         const code = (await response.json() as { error?: string }).error;
         throw new SearchRuntimeError(response.status === 400 ? 400 : 503, code || 'search_unavailable');
@@ -61,7 +72,7 @@ export async function createSearchRuntime(store: Store, env: NodeJS.ProcessEnv =
 const runtimes = new WeakMap<Store, { config: (string | undefined)[]; runtime: Promise<SearchRuntime> }>();
 /** 目录 loader 复用已配置 runtime；配置改变时重新创建，失败的迁移可在下次请求重试。 */
 export function getConfiguredSearchRuntime(store: Store, env: NodeJS.ProcessEnv = process.env) {
-  const config = [env.MEILISEARCH_URL, env.MEILI_SEARCH_KEY, env.MEILI_WRITE_KEY, env.MEILI_MASTER_KEY, env.MEILI_INDEX_UID];
+  const config = [env.MEILISEARCH_URL, env.MEILI_SEARCH_KEY, env.MEILI_WRITE_KEY, env.MEILI_MASTER_KEY, env.MEILI_INDEX_UID, env.WG_CONTENT_GATE];
   const existing = runtimes.get(store);
   if (existing && config.every((value, i) => value === existing.config[i])) return existing.runtime;
   const runtime = createSearchRuntime(store, env);
@@ -75,11 +86,15 @@ export function getConfiguredSearchRuntime(store: Store, env: NodeJS.ProcessEnv 
 export async function loadCatalog(request: Request, store: Store, env: NodeJS.ProcessEnv = process.env) {
   let all = (await store.list()).filter(w => w.versions.length);
   const url = new URL(request.url);
+  const content = url.searchParams.get('content') ?? '';
+  const access=env.WG_CONTENT_GATE==='1'?await getContentAccess(request):null;
+  const visible=(works:typeof all)=>works.flatMap(w=>{const filtered=filterContentVersions(w,content);if(!filtered)return [];const p=access?projectWork(filtered,access):filtered;return p?[p]:[]});
+  all=visible(all);
   const q = url.searchParams.get("q") ?? "";
   const engine = url.searchParams.get("engine") ?? "";
   const state = url.searchParams.get("state") ?? "";
   const tag = url.searchParams.get("tag") ?? "";
-  const isSearch = ["q", "engine", "state", "tag"].some(key => url.searchParams.getAll(key).some(value => value.trim()));
+  const isSearch = ["q", "engine", "state", "tag", "content"].some(key => url.searchParams.getAll(key).some(value => value.trim()));
   let items = all;
   let searchError: string | null = null;
   let searchStatus: 200 | 400 | 503 = 200;
@@ -88,10 +103,10 @@ export async function loadCatalog(request: Request, store: Store, env: NodeJS.Pr
   if (isSearch) {
     const params = new URLSearchParams();
     for (const [key, value] of url.searchParams)
-      if (["q", "engine", "state", "tag", "offset", "limit"].includes(key)) params.append(key, value);
+      if (["q", "engine", "state", "tag", "content", "offset", "limit"].includes(key)) params.append(key, value);
     try {
-      const page = await (await getConfiguredSearchRuntime(store, env)).query(params);
-      all = (await store.list()).filter(w => w.versions.length);
+      const page = await (await getConfiguredSearchRuntime(store, env)).query(params, request);
+      all = visible((await store.list()).filter(w => w.versions.length));
       const byId = new Map(all.map(work => [work.id, work]));
       items = page.ids.flatMap(id => byId.has(id) ? [byId.get(id)!] : []);
       nextOffset = page.nextOffset;
@@ -109,7 +124,7 @@ export async function loadCatalog(request: Request, store: Store, env: NodeJS.Pr
     items,
     counts: await projectWorkCounts(items.map(w => w.id)),
     recentWorks: all.map(w => ({ title: w.title, versions: w.versions.map(v => ({ id: v.id, url: v.url, number: v.number })) })),
-    q, engine, state, tag, isSearch, searchError, searchStatus, nextOffset, nextSearchUrl,
+    q, engine, state, tag, content, contentGate: env.WG_CONTENT_GATE === '1', isSearch, searchError, searchStatus, nextOffset, nextSearchUrl,
     release: env.WG_DEPLOYMENT_MODE === "production",
     total: all.length,
     versions: all.reduce((n, w) => n + w.versions.length, 0),

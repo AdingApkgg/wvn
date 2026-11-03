@@ -54,7 +54,7 @@ node --import tsx scripts/migration/sqlite-to-postgres.ts --source /私有路径
 
 ## 公共资源索引与 API
 
-逻辑 key 是独立 UUID，内容是完整 SHA-256；原名/MIME 保存在 PG。客户端请求 API 获取 URL，再从 `wg-b2.saop.cc` 读取正文。
+逻辑 key 是独立 UUID，内容是完整 SHA-256；原名/MIME 保存在 PG。客户端请求 API 获取 URL，再从 `wvn-s3-zi0.saop.cc` 读取正文。
 
 ```text
 GET  /api/resources/{UUID}
@@ -64,7 +64,7 @@ GET  /api/versions/{原versionId}/resources?limit=500&cursor=...
 GET  /api/versions/{原versionId}/resource?path=相对文件名
 ```
 
-返回 `{key,url,sha256,bytes,contentType}`，`url` 固定为 `https://wg-b2.saop.cc/{sha256}.bin`。批量最多 100 项并显式列出 missing；清单每页最多 500 项。无按请求参数拼接任意上游 URL 的入口。资源缓存故障会回查 PG。
+返回 `{key,url,sha256,bytes,contentType}`，`url` 固定为 `https://wvn-s3-zi0.saop.cc/{sha256}.bin`。批量最多 100 项并显式列出 missing；清单每页最多 500 项。无按请求参数拼接任意上游 URL 的入口。资源缓存故障会回查 PG。
 
 实际完整映射已在构建机隔离 `wvn_qa.resource_full_20261029` 演练，原 SQLite 在 `/home/i/wvn-platform-20261029/data/resources.sqlite`：
 

@@ -127,4 +127,4 @@ docker compose --env-file state/compose/compose.env --profile qa run --rm --no-d
 
 ## B2 资源直链
 
-后续公开资源切换使用 `ops/b2/compose.direct.yaml`，仅增加本地公开控制清单；浏览器直接向 `wg-b2.saop.cc` 获取游戏和引擎对象，账号服务不转发对象正文。配置、实际游戏验收和回退边界见 [B2 公开游戏资源直链](b2-resource-cutover.md)。前文 B2 profile 记录的是初次隔离预览，保留原部署，不作为此次直链发布路径；账号服务和私人存档的 Compose 迁移仍需分别安排。
+后续公开资源切换使用 `ops/b2/compose.direct.yaml`，仅增加本地公开控制清单；浏览器直接向 `wvn-s3-zi0.saop.cc` 获取游戏和引擎对象，账号服务不转发对象正文。配置、实际游戏验收和回退边界见 [B2 公开游戏资源直链](b2-resource-cutover.md)。前文 B2 profile 记录的是初次隔离预览，保留原部署，不作为此次直链发布路径；账号服务和私人存档的 Compose 迁移仍需分别安排。

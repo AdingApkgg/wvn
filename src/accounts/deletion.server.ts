@@ -99,6 +99,10 @@ export async function deleteAccountRows(
   // 离线旧备份恢复可能没有开启 foreign_keys；账本重放也必须移除个人关系。
   if((await db.prepare("SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='wg_work_reactions'").get()))
     (await db.prepare("DELETE FROM wg_work_reactions WHERE user_id=$1").run(userId));
+  for (const table of ['wg_content_session_modes', 'wg_content_attempts', 'wg_content_audit', 'wg_content_eligibility']) {
+    if (await db.prepare('SELECT 1 FROM information_schema.tables WHERE table_schema=current_schema() AND table_name=$1').get(table))
+      await db.prepare(`DELETE FROM ${table} WHERE user_id=$1`).run(userId);
+  }
   for (const table of [
     "wg_library",
     "wg_plays",
