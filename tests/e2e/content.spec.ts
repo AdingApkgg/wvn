@@ -373,3 +373,20 @@ test("仍然可见但未聚焦的窗口也会定期发现资格撤销", async ({
   await expect.poll(() => checks).toBeGreaterThan(0);
   await expect(page.getByRole("heading", { name: "当前资格已暂停", exact: true })).toBeVisible();
 });
+
+test("SSR重验延迟时立即收起播放器NSFW网页标题", async ({page})=>{
+ await reader(page);await completeQuiz(page);await enable(page);
+ const work=(await api(page,'/api/catalog')).data.find((w:{id:string})=>w.id==='v97');
+ expect(work).toBeTruthy();await page.goto(origin+work.versions[0].url);
+ await expect(page.getByRole('button',{name:'开始阅读',exact:true})).toBeVisible();
+ await expect.poll(()=>page.title()).toContain(work.title);
+ let release!:()=>void;const released=new Promise<void>(r=>release=r);
+ let requested!:()=>void;const held=new Promise<void>(r=>requested=r);
+ await page.route(/\.data(?:\?|$)/,async route=>{requested();await released;await route.continue().catch(()=>{})});
+ try {
+  expect((await api(page,'/api/me/content/mode',{mode:'public'},'PATCH')).status).toBe(200);
+  await page.evaluate(()=>window.dispatchEvent(new StorageEvent('storage',{key:'wg-content-change',newValue:'title-review'})));
+  await held;await expect(page.getByRole('heading',{name:'敏感内容已收起',exact:true})).toBeVisible();
+  await expect.poll(()=>page.title()).not.toContain(work.title);
+ }finally{release()}
+});

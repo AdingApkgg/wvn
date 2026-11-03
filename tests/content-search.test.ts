@@ -8,7 +8,7 @@ import { searchMigrations } from "../src/search/migrations.ts";
 import { MeiliClient } from "../src/search/meili.server.ts";
 import { SearchIndexer } from "../src/search/indexer.server.ts";
 import { createSearchRuntime, loadCatalog } from "../src/search/runtime.server.ts";
-import { configureContentAccess } from "../src/content/access.server.ts";
+import { configureContentAccess, cacheContentAccess } from "../src/content/access.server.ts";
 import { PUBLIC_CONTENT_ACCESS } from "../src/content/policy.ts";
 import type { WorkClassification } from "../src/content/types.ts";
 
@@ -128,4 +128,19 @@ test("gated multi-page search reports unknown totals separately from visible pag
     assert.equal(typeof beforeGate.indexEstimatedTotalHits, "number");
     assert.equal((beforeGate as any).visiblePageCount, undefined);
   } finally { await f.close(); }
+});
+
+// 反向TLS代理的外层入口已鉴权，内部SSR子请求必须保留同一请求可信结果。
+test("HTTP listener SSR search preserves outer trusted access without trusting foreign headers", async () => {
+ const f=await fixture();
+ try {
+  const viewer=new Request("http://wvn.test/?q=共同搜索",{headers:{cookie:"viewer=restricted"}});
+  cacheContentAccess(viewer,Promise.resolve({...PUBLIC_CONTENT_ACCESS,authenticated:true,eligibility:"qualified",displayMode:"restricted",canViewRestricted:true}));
+  const page=await f.runtime.query(new URLSearchParams("q=共同搜索"),viewer);
+  assert.deepEqual(page.ids.sort(),["v4","v5"]);
+  for(const url of ["http://wvn.test/","https://foreign.test/"]) {
+   const anonymous=await f.runtime.query(new URLSearchParams("q=共同搜索"),new Request(url,{headers:{cookie:"viewer=restricted","x-content-qualified":"true"}}));
+   assert.deepEqual(anonymous.ids,["v4"]);
+  }
+ } finally {await f.close()}
 });

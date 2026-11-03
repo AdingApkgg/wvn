@@ -5,7 +5,7 @@ import type { Store } from '../server/store.ts';
 import { createSearchApp } from './http.server.ts';
 import { MeiliClient } from './meili.server.ts';
 import { searchMigrations } from './migrations.ts';
-import {getContentAccess} from '../content/access.server.ts';
+import {getContentAccess,cacheContentAccess} from '../content/access.server.ts';
 import {projectWork} from '../content/policy.ts';
 import {filterContentVersions} from './projection.server.ts';
 
@@ -59,7 +59,9 @@ export async function createSearchRuntime(store: Store, env: NodeJS.ProcessEnv =
           if (value) headers.set(name, value);
         }
       }
-      const response = await app.request(target.href, { headers });
+      const projected = new Request(target.href, { headers });
+      if(viewer&&env.WG_CONTENT_GATE==='1')cacheContentAccess(projected,getContentAccess(viewer));
+      const response = await app.fetch(projected);
       if (!response.ok) {
         const code = (await response.json() as { error?: string }).error;
         throw new SearchRuntimeError(response.status === 400 ? 400 : 503, code || 'search_unavailable');

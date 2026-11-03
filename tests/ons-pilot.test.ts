@@ -56,6 +56,8 @@ const snapshot = () => ({ schema: 1, pilot: "clannad", files: [{ path: "save1.da
     assert.equal(runtime.headers.get("cache-control"), "no-store");
     assert.match(runtime.headers.get("content-security-policy")!,/http:\/\/localhost\/player\/registry\.mjs/);
     assert.equal((await app.request("http://localhost/player/registry.mjs")).status,200);
+    assert.match(runtime.headers.get("content-security-policy")!, /http:\/\/localhost\/player\/content-visibility\.mjs/);
+    assert.equal((await app.request("http://localhost/player/content-visibility.mjs")).status,200);
     assert.equal((await app.request("http://localhost/player/adapters.mjs")).status,200);
     assert.equal((await app.request("http://localhost/player/native-input.mjs")).status,200);
     assert.equal((await app.request("http://localhost/player/native-input.d.mts")).status,404);

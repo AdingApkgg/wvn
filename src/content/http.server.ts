@@ -1,7 +1,7 @@
 import type {Store} from '../server/store.ts';
 import type {ContentAccess} from './types.ts';
 import {PUBLIC_CONTENT_ACCESS,accessError,projectWork,restrictedAllowed,versionAccessError,workVisible} from './policy.ts';
-import {getContentAccess,cacheContentAccess} from './access.server.ts';
+import {getContentAccess,cacheContentAccess,cachedContentAccess} from './access.server.ts';
 import {players} from '../../public/player/registry.mjs';
 import {parseWorkSlug,workIdPattern} from '../identity.ts';
 
@@ -40,7 +40,7 @@ export function createContentFetch(next:Fetcher,store:Store,options:Options):Fet
   const version=/^\/api\/versions\/([^/]+)\/(?:resources|resource)$/.exec(path);
   const player=/^\/api\/player\/([^/]+)\/resources$/.exec(path)??/^\/__(?:ons|player)\/(?:runtime|manifest|data|resource)\/([^/]+)(?:\/|$)/.exec(path);
   const playerVersion=player?players.find(p=>p.id===player[1])?.versionId:undefined;
-  const accessPromise=(options.access??getContentAccess)(request);
+  const accessPromise=cachedContentAccess(request)??(options.access??getContentAccess)(request);
   cacheContentAccess(request,accessPromise);
   let access:ContentAccess;
   try{access=await accessPromise}catch{

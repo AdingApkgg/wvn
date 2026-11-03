@@ -1,5 +1,5 @@
 import { brand } from "../brand";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useLoaderData, useBlocker, redirect, useLocation, Link } from "react-router";
 import { parseWorkSlug, workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
@@ -71,8 +71,12 @@ export default function Play() {
   useEffect(()=>{const update=(event:Event)=>setSaveError(String((event as CustomEvent).detail??'本机保存未完成，请保留页面重试'));window.addEventListener('wg-content-save-error',update);return()=>window.removeEventListener('wg-content-save-error',update)},[]);
   if(!('restricted' in data))retained.current={path:location.pathname,data};
   const previous=retained.current?.path===location.pathname?retained.current.data:null;
+  const blocked=!previous||'restricted' in data||(previous.requiresQualification&&!content.access.canViewRestricted);
+  const liveTitle=!blocked&&previous?`${previous.work.title} · 版本 ${previous.version.number} — ${brand.shortName}`:brand.title;
+  useLayoutEffect(()=>{
+    if(content.enabled)document.title=liveTitle;
+  },[content.enabled,liveTitle,data]);
   if(!previous)return <ContentGate code={data.restricted?.code??'CONTENT_MODE_REQUIRED'} returnTo={data.restricted?.returnTo??location.pathname}/>;
-  const blocked='restricted' in data||(previous.requiresQualification&&!content.access.canViewRestricted);
   const {pilot,work,cloud,version}=previous;
   return <div className="content-player-shell">
     <div inert={blocked||undefined} aria-hidden={blocked||undefined} style={blocked?{display:'none'}:undefined}>
