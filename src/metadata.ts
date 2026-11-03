@@ -1,5 +1,17 @@
 import { z } from "zod";
 import { officialSources } from "./metadata-sources.ts";
+export const mediaClassificationSchema = z.object({
+  reason: z.string().trim().min(1).max(4000),
+  source: z.string().trim().min(1).max(2000),
+  reviewedAt: z.iso.datetime({ offset: true }),
+  revision: z.number().int().nonnegative(),
+  sexual: z.enum(["safe", "suggestive", "explicit", "unknown"]),
+  violence: z.enum(["tame", "violent", "brutal", "unknown"]),
+  spoiler: z.boolean(),
+  rawSexual: z.number().min(0).max(2).optional(),
+  rawViolence: z.number().min(0).max(2).optional(),
+  voteCount: z.number().int().nonnegative().optional(),
+}).strict();
 export const provider = z.enum(["vndb", "bgm", "official"]);
 export function trustedImageUrl(value: string): boolean {
   try {
@@ -26,6 +38,7 @@ const image = z
     kind: z.enum(["logo", "promotion", "screenshot"]).optional(),
     width: z.number().int().positive().optional(),
     height: z.number().int().positive().optional(),
+    classification: mediaClassificationSchema.optional(),
   })
   .strict()
   .superRefine((i, ctx) => {

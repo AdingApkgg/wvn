@@ -1,4 +1,5 @@
 import type { WorkMetadata } from "./metadata.ts";
+import type { WorkClassification, VersionClassification } from "./content/types.ts";
 export interface WorkSeed {
   id: string;
   title: string;
@@ -37,6 +38,7 @@ export interface Check {
   detail: string;
 }
 export interface Version extends VersionSeed {
+  classification?: VersionClassification;
   revision: number;
   status: "published" | "hidden" | "deleted";
   createdAt: string;
@@ -45,6 +47,7 @@ export interface Version extends VersionSeed {
   sortOrder: number;
 }
 export interface PublicVersion {
+  classification?: VersionClassification;
   id: string;
   workId: string;
   number: number;
@@ -59,6 +62,7 @@ export interface PublicVersion {
   sortOrder: number;
 }
 export interface PublicWork extends WorkSeed {
+  classification?: WorkClassification;
   metadata?: WorkMetadata;
   revision: number;
   defaultVersionId: string | null;

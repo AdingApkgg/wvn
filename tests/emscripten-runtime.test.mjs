@@ -99,7 +99,7 @@ test('direct CDN engines reuse already verified WASM and package bytes without a
  const driver=createEmscriptenDriver({kind:'RenPy',engineBytes:new Map([['renpy.wasm',wasm],['renpy.data',data]])}),win={};driver.installGlobal(win);
  win.Module={getPreloadedPackage:()=> 'original-fallback'};
  assert.equal(win.Module.wasmBinary,wasm);
- assert.equal(win.Module.getPreloadedPackage('https://wg-b2.saop.cc/__engines/resource/release/renpy.data',4),data.buffer);
+ assert.equal(win.Module.getPreloadedPackage('https://wvn-s3-zi0.saop.cc/__engines/resource/release/renpy.data',4),data.buffer);
  assert.equal(win.Module.getPreloadedPackage('game.zip',77),'original-fallback');
  assert.throws(()=>win.Module.getPreloadedPackage('renpy.data',9),/size/);
 });
@@ -111,7 +111,7 @@ test('Artemis uses the verified registered game package through its native prelo
  assert.equal(win.Module.getPreloadedPackage('unregistered.pfs',3),undefined);
 });
 test('CAS package hash URLs retain the original preload filename',()=>{
- const bytes=new Uint8Array([1,2,3]),url='https://wg-b2.saop.cc/'+'a'.repeat(64)+'.bin',win={};
+ const bytes=new Uint8Array([1,2,3]),url='https://wvn-s3-zi0.saop.cc/'+'a'.repeat(64)+'.bin',win={};
  const driver=createEmscriptenDriver({kind:'Artemis',engineBytes:new Map([['artemis.data',bytes]]),resources:{resolve:name=>name==='artemis.data'?url:name,path:name=>name===url?'artemis.data':name}});
  driver.installGlobal(win);assert.equal(win.Module.getPreloadedPackage(url,3),bytes.buffer);assert.throws(()=>win.Module.getPreloadedPackage(url,4),/size/);
 });

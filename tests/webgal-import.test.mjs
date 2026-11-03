@@ -34,8 +34,8 @@ test('import adds distinct versions without changing the original catalog or sav
 });
 function fixture(text='image/a.png,'+'a'.repeat(40)+'\nimage/a,'+'a'.repeat(40)){
  const bytes=new TextEncoder().encode(text),hash=createHash('sha256').update(bytes).digest('hex');
- const rows=[{path:'hashlist.txt',sha256:hash,bytes:bytes.length,url:'https://wg-b2.saop.cc/'+hash+'.bin'},{path:'res/image/a.png',sha256:'b'.repeat(64),bytes:20,url:'https://wg-b2.saop.cc/'+'b'.repeat(64)+'.bin'}].map(row=>({...row,key:'12345678-1234-4234-8234-123456789abc',contentType:'application/octet-stream'}));
- const entry={id:'artemis-v27448-2',versionId:'legacy-'+'a'.repeat(24)},resolver=createCasResolver({schema:1,delivery:'cas',pilot:entry.id,versionId:entry.versionId,inventorySha256:'c'.repeat(64),resourceOrigin:'https://wg-b2.saop.cc',resources:rows,engineResources:{id:'engine',files:[]}},entry);
+ const rows=[{path:'hashlist.txt',sha256:hash,bytes:bytes.length,url:'https://wvn-s3-zi0.saop.cc/'+hash+'.bin'},{path:'res/image/a.png',sha256:'b'.repeat(64),bytes:20,url:'https://wvn-s3-zi0.saop.cc/'+'b'.repeat(64)+'.bin'}].map(row=>({...row,key:'12345678-1234-4234-8234-123456789abc',contentType:'application/octet-stream'}));
+ const entry={id:'artemis-v27448-2',versionId:'legacy-'+'a'.repeat(24)},resolver=createCasResolver({schema:1,delivery:'cas',pilot:entry.id,versionId:entry.versionId,inventorySha256:'c'.repeat(64),resourceOrigin:'https://wvn-s3-zi0.saop.cc',resources:rows,engineResources:{id:'engine',files:[]}},entry);
  return {resolver,fetcher:async()=>new Response(bytes)};
 }
 test('source hashlist aliases resolve to registered bytes without expanding the network manifest',async()=>{
@@ -55,7 +55,7 @@ test('hashlist digest and bounded complete responses are required',async()=>{
 });
 test('source directory records remain optional probes and do not create object aliases',async()=>{
  const f=fixture('pc/ja/blog/name/,'+'a'.repeat(40)+'\nimage/a.png,'+'b'.repeat(40));
- const r=await prepareWebgalResolver(f.resolver,{fetcher:f.fetcher});for(const path of ['./','https://wg-b2.saop.cc/','res/','res/.','res/?v=1','res/pc/ja/blog/name/','res/pc//ja/'])assert(r.optionalMissing(path),path);assert.throws(()=>r.url('res/pc/ja/blog/name/'));assert.throws(()=>r.optionalMissing('https://evil.invalid/res/'));
+ const r=await prepareWebgalResolver(f.resolver,{fetcher:f.fetcher});for(const path of ['./','https://wvn-s3-zi0.saop.cc/','res/','res/.','res/?v=1','res/pc/ja/blog/name/','res/pc//ja/'])assert(r.optionalMissing(path),path);assert.throws(()=>r.url('res/pc/ja/blog/name/'));assert.throws(()=>r.optionalMissing('https://evil.invalid/res/'));
 });
 test('unmapped package-local probes retain HTTP 404 semantics without hiding registered objects',async()=>{
  const f=fixture('debug/lua/index.lua,'+'c'.repeat(40)+'\nimage/a.png,'+'a'.repeat(40));

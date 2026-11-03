@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useContentAccess } from "../content/client";
 import type { useAccount } from "./client";
 import type { OwnShare, SharePage } from "./share-types";
 import { Button } from "../components/ui/button";
@@ -31,6 +32,14 @@ export function ShareManagement({
   run: (fn: () => Promise<void>) => Promise<void>;
 }) {
   const owner = account.me!.user.id;
+  const content = useContentAccess(), scope = content.enabled ? content.access : null;
+  const ready = !content.enabled || (!content.loading && !content.pendingPublic);
+  const binding = account.me!.binding;
+  const current = useRef({ scope, binding, ready });
+  current.current = { scope, binding, ready };
+  const [loaded, setLoaded] = useState<{ scope: typeof scope; binding: string } | null>(null);
+  const visible = !!loaded && ready && loaded.scope === scope && loaded.binding === binding;
+  const canEdit = !content.enabled || content.access.canViewRestricted;
   const [items, setItems] = useState<OwnShare[]>([]),
     [next, setNext] = useState<string | null>(null),
     [enabled, setEnabled] = useState(false),
@@ -41,6 +50,8 @@ export function ShareManagement({
     [progress, setProgress] = useState<ShareProgress>("chapter"),
     [spoiler, setSpoiler] = useState(false);
   async function load(cursor?: string) {
+    const captured = current.current;
+    if (!captured.ready) return;
     const page = await account.request<SharePage<OwnShare>>(
       "/api/me/save-shares" +
         (cursor ? "?cursor=" + encodeURIComponent(cursor) : ""),
@@ -48,21 +59,31 @@ export function ShareManagement({
       undefined,
       owner,
     );
+    if (!current.current.ready || current.current.scope !== captured.scope || current.current.binding !== captured.binding) return;
     setItems((old) => (cursor ? [...old, ...page.items] : page.items));
     setNext(page.next);
+    setLoaded({ scope: captured.scope, binding: captured.binding });
   }
   useEffect(() => {
+    setEdit(null); setRevoke(null); setTitle(""); setDescription("");
+    if (!ready) return;
+    let live = true;
     void account
       .request<{ sharing: boolean }>("/api/cloud-options")
       .then(async (options) => {
+        if (!live) return;
+        setEnabled(options.sharing);
         if (options.sharing) {
           setEnabled(true);
           await load();
         }
       })
       .catch(() => {});
-  }, [owner]);
+    return () => { live = false; };
+  }, [owner, binding, scope, ready, account.request]);
   if (!enabled) return null;
+  // 直接移除整个旧展示子树（包括 Portal），不等待 effect 或对话框退场动画。
+  if (!visible) return <Card className="account-sharing" id="my-shares"><CardHeader><CardTitle><h2>我的分享</h2></CardTitle></CardHeader><CardContent><p role="status">正在更新分享显示…</p></CardContent></Card>;
   return (
     <Card className="account-sharing" id="my-shares">
       <CardHeader>
@@ -100,7 +121,7 @@ export function ShareManagement({
               {s.spoiler && " · 含剧透说明"}
             </p>
             <p className="text-xs text-muted-foreground">
-              {s.metadataBasis === "published"
+              {!canEdit || s.contentRedacted ? "受限文字已隐藏，版本归属保持不变。" : s.metadataBasis === "published"
                 ? "版本信息已按发布时保存。"
                 : "旧分享未保存发布时版本信息，当前显示目录信息。"}
             </p>
@@ -114,6 +135,7 @@ export function ShareManagement({
                 <>
                   <Button
                     variant="outline"
+                    disabled={!canEdit || s.contentRedacted}
                     onClick={() => {
                       setEdit(s);
                       const text = s.pending ?? s;
@@ -131,6 +153,7 @@ export function ShareManagement({
                 </>
               )}
             </div>
+            {!canEdit && <p className="text-xs text-muted-foreground">受限文案已隐藏；开启显示后可编辑原说明，撤回操作仍可使用。</p>}
           </div>
         ))}
         {next && (

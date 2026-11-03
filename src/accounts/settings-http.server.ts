@@ -11,6 +11,7 @@ export function mountSettings({
   workStats,
   saves,
   deletions,
+  content,
 }: AccountService) {
   app.patch("/api/me/passkeys/:id", async (c) => {
     const { session } = await player(c);
@@ -34,6 +35,7 @@ export function mountSettings({
       format: "wg-account-export-v1",
       exportedAt: new Date().toISOString(),
       user: { id: session.user.id, name: session.user.name },
+      content: await content.export(session.user.id),
       library: (await library.list(session.user.id)),
       workReactions: (await workStats.export(session.user.id)),
       saveProfiles: saves ? await Promise.all((await saves.profiles(session.user.id)).map(async p => ({

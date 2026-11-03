@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createResilientFetch} from '../public/player/resource-download.mjs';
 
-const url='https://wg-b2.saop.cc/__player/resource/test/game.zip';
+const url='https://wvn-s3-zi0.saop.cc/__player/resource/test/game.zip';
 const headers={'content-length':'6',etag:'"fixed"','accept-ranges':'bytes'};
 function broken(){let first=true;return new ReadableStream({pull(c){if(first){first=false;c.enqueue(new Uint8Array([1,2,3]))}else c.error(new TypeError('connection reset'))}})}
 const wrap=fetcher=>createResilientFetch({fetcher,allowed:()=>true,delay:async()=>{},idleMs:100});

@@ -36,11 +36,13 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     let seq = 0, pending = null, queued = null, failed = false, started = false;
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
+    const {installContentVisibility}=await import(origin+'/player/content-visibility.mjs');
+    const contentVisibility=installContentVisibility(window);
     let cas, validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter, createOnsResourceClient;
     try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter,readResourceBytes}=await import(origin+"/ons/resource-loading.mjs")); if(init.resourceManifest)({createOnsResourceClient}=await import(origin+"/ons/cache-client.mjs")); }
     catch (e) { send({type:"loading-progress",stage:"failed",message:"播放器组件暂时不可用，请取消后重试"});status("启动失败：存档桥接模块不可用"); return; }
     const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
-    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(cas){const row=cas.urls.get(url.href);return row?(cas.engines.has(row.path)?"engine":"game"):null;}if(url.origin!==origin&&url.origin!=="https://wg-b2.saop.cc")return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
+    stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(cas){const row=cas.urls.get(url.href);return row?(cas.engines.has(row.path)?"engine":"game"):null;}if(url.origin!==origin&&url.origin!=="https://wvn-s3-zi0.saop.cc")return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
     if(createOnsResourceClient)resourceClient=createOnsResourceClient(port,{pilot,nonce,loading,resources});
     function snapshot() {
       const files = captureFilesystem(g_onsyuri_module.FS, [{path:"/save",prefix:""}], limits);
@@ -56,6 +58,7 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     };
     port.onmessage = ({ data }) => {
       if (!data || data.nonce !== nonce || data.pilot !== pilot) return;
+      if(data.type==='content-visibility'&&typeof data.visible==='boolean'){void contentVisibility.setVisible(data.visible);return;}
       if(resourceClient?.receive(data))return;
       if (data.type === "ack" && data.seq === pending) {
         pending = null; failed = !data.ok;
@@ -74,10 +77,10 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       loading.phase("downloading","engine");status("正在载入共享引擎…");
       if(init.resourceManifest)g_onsyuri_index=init.resourceManifest;else {const r=await fetch(`/__ons/manifest/${pilot}`,{credentials:"omit"});if(!r.ok)throw Error("资源清单不可用");g_onsyuri_index=await r.json();}
       if (g_onsyuri_index.pilot !== pilot || g_onsyuri_index.savedir !== "/save") throw Error("资源版本不匹配");
-      if(g_onsyuri_index.resourceOrigin==='https://wg-b2.saop.cc'&&!cas)throw Error('CAS resource manifest required');
+      if(g_onsyuri_index.resourceOrigin==='https://wvn-s3-zi0.saop.cc'&&!cas)throw Error('CAS resource manifest required');
       if(cas){if(g_onsyuri_index!==init.casManifest.ons&&JSON.stringify(g_onsyuri_index)!==JSON.stringify(init.casManifest.ons))throw Error('CAS ONS manifest mismatch');for(const file of g_onsyuri_index.files)if(cas.files.get(file.path)?.url!==file.url)throw Error('CAS ONS URL mismatch');}
       const release=g_onsyuri_index.engineRelease;
-      const assetOrigin=g_onsyuri_index.resourceOrigin??origin;if(assetOrigin!==origin&&assetOrigin!=="https://wg-b2.saop.cc")throw Error("Untrusted resource origin");
+      const assetOrigin=g_onsyuri_index.resourceOrigin??origin;if(assetOrigin!==origin&&assetOrigin!=="https://wvn-s3-zi0.saop.cc")throw Error("Untrusted resource origin");
       if(release&&(!/^ons-[a-f0-9]{64}$/.test(release.id)||!Array.isArray(release.files)))throw Error("候选引擎登记无效");
       const engine = assetOrigin + (release?"/__engines/resource/"+release.id+"/":"/__ons/engine/" + g_onsyuri_index.engine + "/");
       const scriptHash=cas?.engines.get("onsyuri.js")?.sha256??release?.files.find(file=>file.path==="onsyuri.js")?.sha256;

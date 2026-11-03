@@ -1,4 +1,5 @@
 import {EngineManagement} from '../engines/management';
+import { ContentClassificationManagement } from '../content/classification-management';
 import { brand } from "../brand";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -182,8 +183,10 @@ export default function Manage() {
               <TabsTrigger value="sources">来源与映射</TabsTrigger>
               <TabsTrigger value="reports">验证报告</TabsTrigger>
               <TabsTrigger value="engines">引擎与 SDK</TabsTrigger>
+              <TabsTrigger value="classification">内容分类</TabsTrigger>
             </TabsList>
             <TabsContent value="engines"><EngineManagement /></TabsContent>
+            <TabsContent value="classification"><ContentClassificationManagement api={api} catalog={items} onSaved={reload} /></TabsContent>
             <TabsContent
               value="catalog"
               forceMount

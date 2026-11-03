@@ -1,4 +1,4 @@
-export const casOrigin='https://wg-b2.saop.cc';
+export const casOrigin='https://wvn-s3-zi0.saop.cc';
 const sha=/^[a-f0-9]{64}$/,uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const validPath=path=>typeof path==='string'&&path.length>0&&path.length<=12288&&!/[\\\u0000-\u001f\u007f]/.test(path)&&path.split('/').every(p=>p&&p!=='.'&&p!=='..');
 export function createCasResolver(manifest,entry,{mainOrigin,sharedEngine=true}={}){

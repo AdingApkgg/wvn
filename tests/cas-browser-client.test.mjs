@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as client from '../public/player/resource-location.mjs';
-const hash='a'.repeat(64),second='b'.repeat(64),origin='https://wg-b2.saop.cc';
+const hash='a'.repeat(64),second='b'.repeat(64),origin='https://wvn-s3-zi0.saop.cc';
 const row=(path,sha256=hash)=>({path,key:'opaque/'+path,sha256,url:origin+'/'+sha256+'.bin',bytes:12,contentType:'application/octet-stream'});
 const manifest=()=>({schema:1,delivery:'cas',pilot:'test',versionId:'11111111-1111-4111-8111-111111111111',inventorySha256:'c'.repeat(64),resourceOrigin:origin,resources:[row('dir/a #%.png'),row('game.zip'),row('style/main.css'),row('style/nested.css',second)],engineResources:{id:'engine',files:[row('renpy.wasm',second)]}});
 test('manifest resolver maps scoped logical paths and exact returned URLs, never extension-derived keys',()=>{
@@ -9,13 +9,13 @@ test('manifest resolver maps scoped logical paths and exact returned URLs, never
  const resolve=client.createCasResolver(manifest(),{id:'test',versionId:manifest().versionId});
  assert.equal(resolve.url('dir/a%20%23%25.png'),origin+'/'+hash+'.bin');
  assert.equal(resolve.url('/__player/resource/test/game.zip?cache=1'),origin+'/'+hash+'.bin');
- assert.equal(resolve.url('https://wg-b2.saop.cc/game.zip'),origin+'/'+hash+'.bin');
+ assert.equal(resolve.url('https://wvn-s3-zi0.saop.cc/game.zip'),origin+'/'+hash+'.bin');
  assert.equal(resolve.url('renpy.wasm'),origin+'/'+second+'.bin');
  for(const path of ['missing.png','https://evil.invalid/game.zip','/__player/resource/other/game.zip',origin+'/'+'d'.repeat(64)+'.bin'])assert.throws(()=>resolve.url(path));
 });
 test('rejects wrong identities, origins, hash URLs, MIME, sizes and duplicate paths',()=>{
  assert.equal(typeof client.createCasResolver,'function');
- for(const change of [m=>m.pilot='other',m=>m.resources[0].url=origin+'/releases/a.png',m=>m.resources[0].bytes=-1,m=>m.resources[0].contentType='text/html\nX:1',m=>m.resources.push(m.resources[0]),m=>m.resources[0].path='../x']){
+ for(const change of [m=>m.pilot='other',m=>m.resourceOrigin='https://wg-b2.saop.cc',m=>m.resources[0].url='https://wg-b2.saop.cc/'+hash+'.bin',m=>m.resources[0].url=origin+'/releases/a.png',m=>m.resources[0].bytes=-1,m=>m.resources[0].contentType='text/html\nX:1',m=>m.resources.push(m.resources[0]),m=>m.resources[0].path='../x']){
   const m=manifest();change(m);assert.throws(()=>client.createCasResolver(m,{id:'test',versionId:manifest().versionId}));
  }
 });

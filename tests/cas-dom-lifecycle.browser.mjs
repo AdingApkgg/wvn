@@ -4,7 +4,7 @@ const encode=text=>'data:text/javascript;base64,'+Buffer.from(text).toString('ba
 const resourceURL=encode(readFileSync('public/player/cas-resources.mjs','utf8')+'\n//# sourceURL=cas-resources-fixture.mjs');
 const domURL=encode(readFileSync('public/player/cas-dom.mjs','utf8').replace("'./cas-resources.mjs'",JSON.stringify(resourceURL))+'\n//# sourceURL=cas-dom-fixture.mjs');
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});after(()=>browser.close());
-const origin='https://wg-b2.saop.cc',names=['slow.css','fast.css','bad.css','parse.css','pic.png','text.png','sync.png','async.png','escape.png'];
+const origin='https://wvn-s3-zi0.saop.cc',names=['slow.css','fast.css','bad.css','parse.css','pic.png','text.png','sync.png','async.png','escape.png'];
 const rows=names.map((path,index)=>({path,key:path,url:origin+'/'+(index+1).toString(16).repeat(64)+'.bin',sha256:(index+1).toString(16).repeat(64),bytes:10,contentType:path.endsWith('.css')?'text/css':'image/png'}));
 async function setup(t){
  const page=await browser.newPage(),requests=[],failed=[];let unlock,seen;
@@ -19,7 +19,7 @@ async function setup(t){
  await page.setContent('<base href="'+origin+'/__player/resource/test/"><div class="target"></div>');
  await page.evaluate(async({resourceURL,domURL,rows})=>{
   const {createCasResolver}=await import(resourceURL),{installCasBrowser}=await import(domURL);
-  const manifest={schema:1,delivery:'cas',pilot:'test',versionId:'legacy-22f82f586933328e09f8545a',inventorySha256:'c'.repeat(64),resourceOrigin:'https://wg-b2.saop.cc',resources:rows,engineResources:{id:'engine',files:[]}};
+  const manifest={schema:1,delivery:'cas',pilot:'test',versionId:'legacy-22f82f586933328e09f8545a',inventorySha256:'c'.repeat(64),resourceOrigin:'https://wvn-s3-zi0.saop.cc',resources:rows,engineResources:{id:'engine',files:[]}};
   window.events={load:0,error:0};window.liveBlobs=new Set();window.revoked=[];
   const create=URL.createObjectURL.bind(URL),revoke=URL.revokeObjectURL.bind(URL);URL.createObjectURL=value=>{const url=create(value);liveBlobs.add(url);return url};URL.revokeObjectURL=url=>{liveBlobs.delete(url);revoked.push(url);return revoke(url)};
   window.api=installCasBrowser(window,createCasResolver(manifest,{id:'test',versionId:manifest.versionId}));
@@ -53,7 +53,7 @@ test('Text insertion, constructed stylesheet replacement and escaped CSS request
   for(const name of ['text','sync','async','escape']){const div=document.createElement('div');div.className=name;document.body.append(div);void getComputedStyle(div).backgroundImage;}
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
  });
- await page.waitForTimeout(50);for(const name of ['text.png','sync.png','async.png','escape.png'])assert(requests.includes(rows.find(r=>r.path===name).url),'Missing mapped native request: '+name);assert(!requests.includes(rows[0].url),'Constructed stylesheets must retain native import-ignore behavior');assert(requests.every(url=>/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)),JSON.stringify(requests));
+ await page.waitForTimeout(50);for(const name of ['text.png','sync.png','async.png','escape.png'])assert(requests.includes(rows.find(r=>r.path===name).url),'Missing mapped native request: '+name);assert(!requests.includes(rows[0].url),'Constructed stylesheets must retain native import-ignore behavior');assert(requests.every(url=>/^https:\/\/wvn-s3-zi0\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)),JSON.stringify(requests));
 });
 test('empty fetch and XHR URLs fail before any old-base network request',{timeout:10000},async t=>{
  const {page,requests}=await setup(t);const result=await page.evaluate(async()=>{let fetchFailed=false,xhrFailed=false;try{await fetch('')}catch{fetchFailed=true}try{new XMLHttpRequest().open('GET','')}catch{xhrFailed=true}return {fetchFailed,xhrFailed}});assert.deepEqual(result,{fetchFailed:true,xhrFailed:true});assert.deepEqual(requests,[]);
@@ -76,10 +76,10 @@ test('loaded link can be detached and the same node reattached',{timeout:10000},
  const {page,requests}=await setup(t);await page.evaluate(()=>{document.querySelector('.target').classList.add('slow');window.link=document.createElement('link');link.rel='stylesheet';link.onload=()=>events.load++;link.onerror=()=>events.error++;link.href='fast.css';document.head.append(link)});await page.evaluate(()=>api.ready());
  const before=await page.evaluate(()=>getComputedStyle(document.querySelector('.target')).color);await page.evaluate(()=>link.remove());const detached=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,blobs:liveBlobs.size}));
  await page.evaluate(()=>document.head.append(link));await page.evaluate(()=>api.ready());const after=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,sheet:!!link.sheet,events,blobs:liveBlobs.size}));
- assert.equal(before,'rgb(1, 2, 3)');assert.deepEqual(detached,{color:'rgb(0, 0, 0)',blobs:0});assert.deepEqual(after,{color:'rgb(1, 2, 3)',sheet:true,events:{load:2,error:0},blobs:1});assert(requests.every(url=>/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)));
+ assert.equal(before,'rgb(1, 2, 3)');assert.deepEqual(detached,{color:'rgb(0, 0, 0)',blobs:0});assert.deepEqual(after,{color:'rgb(1, 2, 3)',sheet:true,events:{load:2,error:0},blobs:1});assert(requests.every(url=>/^https:\/\/wvn-s3-zi0\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)));
 });
 for(const kind of ['link','style'])test('pending '+kind+' resumes its logical source after remove and reappend',{timeout:10000},async t=>{
  const {page,requests,slow,unlock}=await setup(t);await page.evaluate(kind=>{document.querySelector('.target').classList.add('slow');window.pendingStyle=document.createElement(kind);pendingStyle.onerror=()=>events.error++;if(kind==='link'){pendingStyle.rel='stylesheet';pendingStyle.onload=()=>events.load++;pendingStyle.href='slow.css'}else pendingStyle.textContent='@import "slow.css";';document.head.append(pendingStyle)},kind);await slow;
  await page.evaluate(()=>pendingStyle.remove());await page.evaluate(()=>api.ready());await page.evaluate(kind=>{if(kind==='link'){pendingStyle.removeAttribute('rel');pendingStyle.rel='stylesheet';}document.head.append(pendingStyle)},kind);unlock();await page.evaluate(()=>api.ready());
- const result=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,sheet:!!pendingStyle.sheet,rules:pendingStyle.sheet?.cssRules.length,events}));assert.equal(result.color,'rgb(1, 2, 3)');assert(result.sheet);assert(result.rules>0);assert.equal(result.events.error,0);if(kind==='link')assert.equal(result.events.load,1);assert.equal(requests.filter(url=>url===rows[0].url).length,2);assert(requests.every(url=>/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)));
+ const result=await page.evaluate(()=>({color:getComputedStyle(document.querySelector('.target')).color,sheet:!!pendingStyle.sheet,rules:pendingStyle.sheet?.cssRules.length,events}));assert.equal(result.color,'rgb(1, 2, 3)');assert(result.sheet);assert(result.rules>0);assert.equal(result.events.error,0);if(kind==='link')assert.equal(result.events.load,1);assert.equal(requests.filter(url=>url===rows[0].url).length,2);assert(requests.every(url=>/^https:\/\/wvn-s3-zi0\.saop\.cc\/[a-f0-9]{64}\.bin$/.test(url)));
 });

@@ -5,6 +5,10 @@ import type { PoolClient } from "pg";
 import { PgDatabase } from "../database/postgres.ts";
 import { migrate } from "../database/migrations.ts";
 import { accountMigrations } from "../database/accounts.ts";
+import { contentAccountMigrations } from "../database/content-accounts.ts";
+import type { ContentAccess } from '../content/types.ts';
+import { ContentEligibilityStore } from './content-eligibility.server.ts';
+import { mountContent } from './content-http.server.ts';
 import { getMigrations } from "better-auth/db/migration";
 import { validateAccountConfig, type AccountConfig } from "./config.server.ts";
 import {
@@ -17,7 +21,7 @@ import {
 import { AccountError } from "./errors.server.ts";
 import { RecoveryStore } from "./recovery.server.ts";
 import { DeletionLedger } from "./deletion.server.ts";
-import { SaveStore } from "./saves.server.ts";
+import { SaveStore,profileIdentity } from "./saves.server.ts";
 import { mountSaves } from "./saves-http.server.ts";
 import { LibraryStore } from "./library.server.ts";
 import { mountSettings } from "./settings-http.server.ts";
@@ -38,6 +42,9 @@ export type AccountService = {
   auth: ReturnType<typeof makeAuth>;
   config: AccountConfig;
   player: (c: Context, recent?: boolean) => Promise<Player>;
+  content: ContentEligibilityStore;
+  getContentAccess: (request: Request) => Promise<ContentAccess>;
+  getContentOwnWorkIds: (request:Request) => Promise<Set<string>>;
   recovery: RecoveryStore;
   library: LibraryStore;
   workStats: WorkStatsStore;
@@ -63,6 +70,8 @@ export async function createAccountService(
   const auth = makeAuth(db, config, (id) => deletions.entries.has(id));
   await (await getMigrations(auth.options)).runMigrations();
   await migrate(db, accountMigrations);
+  await migrate(db, contentAccountMigrations);
+  const content = new ContentEligibilityStore(db, config.content);
   const recovery = new RecoveryStore(db);
   const dynamicCatalog = config.catalogProvider ?? (config.catalogOrigin ? catalogProvider(config.catalogOrigin) : undefined);
   const library = new LibraryStore(db, config.catalog ?? [], undefined, dynamicCatalog);
@@ -187,8 +196,8 @@ export async function createAccountService(
           : 500,
     ),
   );
-  function authHeaders(c: Context) {
-    const headers = new Headers(c.req.raw.headers);
+  function sanitizedAuthHeaders(input: Headers, peer = '127.0.0.1') {
+    const headers = new Headers(input);
     for (const key of [
       "forwarded",
       "x-forwarded-for",
@@ -197,16 +206,19 @@ export async function createAccountService(
       "x-wg-client-ip",
     ])
       headers.delete(key);
+    headers.set("x-wg-client-ip", peer);
+    return headers;
+  }
+  function authHeaders(c: Context) {
     let peer = "127.0.0.1";
     try {
       peer = getConnInfo(c).remote.address ?? peer;
     } catch {}
-    headers.set("x-wg-client-ip", peer);
-    return headers;
+    return sanitizedAuthHeaders(c.req.raw.headers, peer);
   }
-  async function readSession(c: Context) {
+  async function readSessionHeaders(headers: Headers) {
     const result = await auth.api.getSession({
-      headers: authHeaders(c),
+      headers,
       returnHeaders: true,
     });
     const session = result.response;
@@ -223,6 +235,31 @@ export async function createAccountService(
       return { ...result, response: null };
     }
     return result;
+  }
+  async function readSession(c: Context) {
+    return readSessionHeaders(authHeaders(c));
+  }
+  async function getContentAccess(request: Request): Promise<ContentAccess> {
+    if (!config.contentGate) return content.publicAccess();
+    try {
+      const { response: session } = await readSessionHeaders(sanitizedAuthHeaders(request.headers));
+      if (!session) return content.publicAccess();
+      return await content.getAccess(session.user.id, session.session.id);
+    } catch (error) {
+      if (error instanceof AccountError && error.status === 401) return content.publicAccess();
+      throw new AccountError(503, 'CONTENT_ACCESS_UNAVAILABLE');
+    }
+  }
+  async function getContentOwnWorkIds(request:Request):Promise<Set<string>>{
+    const {response:session}=await readSessionHeaders(sanitizedAuthHeaders(request.headers));
+    if(!session)return new Set();
+    const owner=session.user.id;
+    const refs=await db.prepare('SELECT work_id FROM wg_library WHERE user_id=$1 UNION SELECT work_id FROM wg_work_reactions WHERE user_id=$1 AND kind=\'favorite\' UNION SELECT work AS work_id FROM wg_save_shares WHERE owner=$1').all(owner);
+    const ids=new Set(refs.map(row=>String(row.work_id)));
+    const profiles=await db.prepare('SELECT DISTINCT version_id FROM wg_save_profiles WHERE owner=$1 AND deleted=0').all(owner);
+    const versions=new Set(profiles.map(row=>profileIdentity(String(row.version_id)).versionId));
+    for(const work of await library.currentCatalog())if(work.versions.some(v=>versions.has(v.id)))ids.add(work.id);
+    return ids;
   }
   async function player(c: Context, recent = false): Promise<Player> {
     const result = await readSession(c);
@@ -384,15 +421,14 @@ export async function createAccountService(
     ));
     return c.json({ ok: true });
   });
-  gc = saves
-    ? setInterval(() => {
+  gc = setInterval(() => {
         void withLock(async () => {
+          await content.gc();
           await sharing?.gc();
           await claims?.gc();
-          await saves.gc();
+          await saves?.gc();
         }).catch(() => {});
-      }, 6 * 3600_000)
-    : null;
+      }, 6 * 3600_000);
   gc?.unref();
   const service = {
     app,
@@ -400,6 +436,9 @@ export async function createAccountService(
     auth,
     config,
     player,
+    content,
+    getContentAccess,
+    getContentOwnWorkIds,
     recovery,
     library,
     workStats,
@@ -414,6 +453,7 @@ export async function createAccountService(
     },
   };
   (await mountRecovery(service));
+  mountContent(service);
   mountLibrary(service);
   mountWorkStats(service);
   (await mountSettings(service));

@@ -11,7 +11,7 @@ const browser=await chromium.launch(options),results=[];fs.mkdirSync(root,{recur
 for(const id of ['clannad','tyrano-v49795-1','renpy-v50789-1']){
  const entry=players.find(p=>p.id===id),context=await browser.newContext(),page=await context.newPage(),record={id,errors:[],objectHosts:[],mainObjectBodies:[]};
  page.on('dialog',d=>d.accept());page.on('pageerror',error=>record.errors.push(error.message));
- page.on('response',response=>{const url=new URL(response.url());if(url.hostname==='wg-b2.saop.cc')record.objectHosts.push(url.hostname);if(url.origin===origin&&response.status()===200&&/\/__(?:player\/resource|ons\/(?:data|engine)|engines\/resource)\//.test(url.pathname)&&!url.pathname.endsWith('/index.html'))record.mainObjectBodies.push(url.pathname)});
+ page.on('response',response=>{const url=new URL(response.url());if(url.hostname==='wvn-s3-zi0.saop.cc')record.objectHosts.push(url.hostname);if(url.origin===origin&&response.status()===200&&/\/__(?:player\/resource|ons\/(?:data|engine)|engines\/resource)\//.test(url.pathname)&&!url.pathname.endsWith('/index.html'))record.mainObjectBodies.push(url.pathname)});
  const pulse=setInterval(async()=>console.log(JSON.stringify({id,loading:await page.getByTestId('reader-loading').innerText({timeout:1000}).catch(()=>''),at:new Date().toISOString()})),30000);pulse.unref();
  try{
   await page.goto(origin+entry.route,{waitUntil:'domcontentloaded'});if(await page.getByLabel('主角名字',{exact:true}).count())await page.getByLabel('主角名字',{exact:true}).fill('预览验收');

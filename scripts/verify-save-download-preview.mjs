@@ -20,14 +20,14 @@ options.args.push('--enable-unsafe-swiftshader','--autoplay-policy=no-user-gestu
 const browser=await chromium.launch(options),context=await browser.newContext({viewport:{width:1280,height:960}}),page=await context.newPage();
 let frame;const record={stage:'seed',startedAt:new Date().toISOString(),network:[],errors:[]};
 page.on('dialog',d=>d.accept());page.on('pageerror',e=>record.errors.push(e.message));
-page.on('request',r=>{if(r.url().startsWith('https://wg-b2.saop.cc/'))record.network.push({url:r.url(),range:r.headers().range??null})});
-record.transfers=[];page.on('requestfinished',r=>{if(r.url().startsWith('https://wg-b2.saop.cc/')){const timing=r.timing();record.transfers.push({url:r.url(),ttfbMs:timing.responseStart-timing.requestStart,totalMs:timing.responseEnd-timing.requestStart})}});
+page.on('request',r=>{if(r.url().startsWith('https://wvn-s3-zi0.saop.cc/'))record.network.push({url:r.url(),range:r.headers().range??null})});
+record.transfers=[];page.on('requestfinished',r=>{if(r.url().startsWith('https://wvn-s3-zi0.saop.cc/')){const timing=r.timing();record.transfers.push({url:r.url(),ttfbMs:timing.responseStart-timing.requestStart,totalMs:timing.responseEnd-timing.requestStart})}});
 await context.addInitScript(()=>{
  const original=fetch;globalThis.qaFault={injected:false,resumes:0};
  globalThis.fetch=async function(input,options){
   const url=new URL(typeof input==='string'?input:input.url,document.baseURI),headers=new Headers(options?.headers??input?.headers);
   const response=await original.call(this,input,options);
-  if(url.origin!=='https://wg-b2.saop.cc'||!url.pathname.endsWith('/artemis-v27448-1/root.pfs'))return response;
+  if(url.origin!=='https://wvn-s3-zi0.saop.cc'||!url.pathname.endsWith('/artemis-v27448-1/root.pfs'))return response;
   if(headers.has('range')){qaFault.resumes++;return response}
   if(qaFault.injected)return response;qaFault.injected=true;const reader=response.body.getReader();let sent=0;
   return new Response(new ReadableStream({async pull(c){if(sent>=1024**2){void reader.cancel();c.error(new TypeError('QA injected connection reset'));return}const part=await reader.read();if(part.done)c.close();else{sent+=part.value.byteLength;c.enqueue(part.value)}},cancel(){return reader.cancel()}}),{status:response.status,headers:response.headers});

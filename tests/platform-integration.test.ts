@@ -29,7 +29,7 @@ test('public platform resolves opaque keys to the configured CDN and exposes sea
     await pg.db.prepare(`INSERT INTO wvn_resources(key,namespace,original_path,sha256,content_type,source_file_id,target_file_id,content_sha1) VALUES($1,'integration','原名.png',$2,'image/png','source','target','dddddddddddddddddddddddddddddddddddddddd')`).run(key, digest);
     const resource = await listener.request('/api/resources/' + key);
     assert.equal(resource.status, 200);
-    assert.deepEqual(await resource.json(), { key, sha256: digest, bytes: 5, contentType: 'image/png', url: `https://wg-b2.saop.cc/${digest}.bin` });
+    assert.deepEqual(await resource.json(), { key, sha256: digest, bytes: 5, contentType: 'image/png', url: `https://wvn-s3-zi0.saop.cc/${digest}.bin` });
     assert.equal((await listener.request('/api/search?q=story')).status, 503);
     const sdk = await listener.request('/player/room-client.mjs');
     assert.equal(sdk.status, 200);

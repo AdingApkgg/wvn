@@ -34,7 +34,7 @@ test('version resource manifests preserve relative names, scope cursors and immu
     assert.deepEqual([first.resources[0].path, second.resources[0].path].sort(), ['slot.bin', '数据/图 A.png'].sort());
     const lookup = await app.request('/api/versions/original-version/resource?path=' + encodeURIComponent('数据/图 A.png'));
     assert.equal(lookup.status, 200);
-    assert.equal((await lookup.json()).url, 'https://wg-b2.saop.cc/' + 'a'.repeat(64) + '.bin');
+    assert.equal((await lookup.json()).url, 'https://wvn-s3-zi0.saop.cc/' + 'a'.repeat(64) + '.bin');
     assert.equal((await app.request('/api/versions/original-version/resource?path=../other/private.dat')).status, 400);
     const work = (await catalog.get('v4', true))!;
     await catalog.editWork('v4', work.revision, { defaultVersionId: null });

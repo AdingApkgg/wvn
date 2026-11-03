@@ -17,7 +17,7 @@ export function validContentType(value: unknown): value is string {
 }
 export function publicResource(metadata: ResourceMetadata): Resource {
   // 公共地址仅由已验证的完整摘要生成，存储位置和请求输入均不能提供 URL。
-  return { key: metadata.key, url: 'https://wg-b2.saop.cc/' + metadata.sha256 + '.bin', sha256: metadata.sha256, bytes: metadata.bytes, contentType: metadata.contentType };
+  return { key: metadata.key, url: 'https://wvn-s3-zi0.saop.cc/' + metadata.sha256 + '.bin', sha256: metadata.sha256, bytes: metadata.bytes, contentType: metadata.contentType };
 }
 export function validMetadata(value: unknown, key: string): value is ResourceMetadata {
   if (!value || typeof value !== 'object') return false;

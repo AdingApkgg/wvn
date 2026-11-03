@@ -27,6 +27,9 @@ import { isIP } from 'node:net';
 import { RemoteBlobStore } from './src/accounts/blob-remote.server.ts';
 import {configureResourceTimeout} from './src/server/resource-timeout.ts';
 import type {IncomingMessage,ServerResponse} from 'node:http';
+import {configureContentAccess,contentGateEnabled} from './src/content/access.server.ts';
+import {createContentFetch} from './src/content/http.server.ts';
+import {registerPreviewManifests} from './src/content/preview-manifests.server.ts';
 function required(name: string) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required`);
@@ -45,8 +48,8 @@ const service = await createAccountService({
   analytics:process.env.WG_UMAMI_WEBSITE_ID||process.env.WG_UMAMI_INTERNAL_URL?{websiteId:required('WG_UMAMI_WEBSITE_ID'),internalUrl:required('WG_UMAMI_INTERNAL_URL')}:undefined,
   revision: process.env.WG_ACCOUNT_REVISION,
   shareLedger: process.env.WG_ACCOUNT_SHARE_LEDGER,
-  catalogOrigin: process.env.WG_ACCOUNT_CATALOG_ORIGIN,
-  catalogProvider:process.env.WG_ACCOUNT_CATALOG_ORIGIN?catalogProvider(process.env.WG_ACCOUNT_CATALOG_ORIGIN):async()=>(await getStore().list()).filter(w=>w.versions.length).map(w=>({id:w.id,title:w.title,url:w.url,versions:w.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))})),
+  catalogOrigin: contentGateEnabled()?undefined:process.env.WG_ACCOUNT_CATALOG_ORIGIN,
+  catalogProvider:!contentGateEnabled()&&process.env.WG_ACCOUNT_CATALOG_ORIGIN?catalogProvider(process.env.WG_ACCOUNT_CATALOG_ORIGIN):async()=>(await getStore().list()).filter(w=>w.versions.length).map(w=>({id:w.id,title:w.title,url:w.url,versions:w.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))})),
   database: process.env.WG_ACCOUNT_DATABASE_URL ?? required("WG_ACCOUNT_DATABASE"),
   databaseSchema: process.env.WG_ACCOUNT_DATABASE_SCHEMA,
   deletionLedger: required("WG_ACCOUNT_DELETION_LEDGER"),
@@ -55,8 +58,8 @@ const service = await createAccountService({
   secret: readFileSync(required("WG_ACCOUNT_SECRET_FILE"), "utf8").trim(),
 });
 const platform = await mountPublicPlatform(service.app, getStore());
+if(process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN)registerPreviewManifests(service.app,{origin:process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN,deployment:process.env.WG_DEPLOYMENT_MODE??'preview'});
 const rooms = await mountAccountRooms(service, getStore());
-if(service.sharing&&process.env.WG_ALL_ENGINES==='1')configurePublicProjection(origin,service.app.fetch);
 const moderation = service.sharing
   ? createShareAdminApp(service, required("WG_SHARE_ADMIN_ORIGIN"))
   : null;
@@ -69,6 +72,7 @@ if(engineCandidate&&!process.env.WG_B2_CONTROL_FILE)registerEngineArtifacts(serv
 if (process.env.WG_ACCOUNT_UI === "1") {
   const buildPath = "./build/server/index.js";
   const handler = createRequestHandler(await import(buildPath), "production");
+  for(const path of ['/content','/content.data','/content/_.data'])service.app.get(path,c=>handler(c.req.raw,new RouterContextProvider()));
   service.app.get("/assets/*", (c) =>
     fileResponse(c.req.raw, resolve("build/client"), c.req.path),
   );
@@ -128,13 +132,21 @@ if (bind !== '127.0.0.1' && !tailscaleV4 && !(plainHttp && bind === '0.0.0.0'))
 if (!Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error("Invalid account port");
 const createServer = (plainHttp ? createHttpServer : createHttpsServer) as typeof createHttpsServer;
+if(contentGateEnabled())configureContentAccess(origin,request=>service.getContentAccess(request));
+const contentFetch=createContentFetch(service.app.fetch,getStore(),{enabled:contentGateEnabled(),access:request=>service.getContentAccess(request),ownWorkIds:request=>service.getContentOwnWorkIds(request),shareReview:async id=>service.db.transaction(async()=>{
+  const row=await service.db.prepare('SELECT version,approved FROM wg_save_shares WHERE id=$1 FOR SHARE').get(id);
+  if(!row)return {suitability:'unknown' as const};
+  const text=row.approved?JSON.parse(row.approved):{};
+  return {title:text.title,description:text.description,progress:text.progress,spoiler:text.spoiler,suitability:await service.content.shareSuitability(id),versionId:row.version};
+})});
+if(service.sharing&&process.env.WG_ALL_ENGINES==='1')configurePublicProjection(origin,contentFetch);
 const serverOptions = plainHttp ? undefined : {
   key: readFileSync(required("WG_ACCOUNT_TLS_KEY")),
   cert: readFileSync(required("WG_ACCOUNT_TLS_CERT")),
 };
 const server = serve(
   {
-    fetch: service.app.fetch,
+    fetch: contentFetch,
     hostname: bind,
     port,
     createServer,

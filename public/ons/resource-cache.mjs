@@ -43,7 +43,7 @@ export async function openResourceCacheStore(idb=globalThis.indexedDB){
 }
 export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fetch,now=()=>Date.now(),maxBytes=256*MiB,maxFileBytes=32*MiB,ttl=7*86400000,prefetchFiles=6,prefetchBytes=8*MiB,idleMs=1000,onStats=()=>{}}){
  const registered=new Set([...plan.resources.values()].map(row=>row.url));
- const transfer=createResilientFetch({fetcher,allowed:value=>typeof value==='string'&&value.startsWith('https://wg-b2.saop.cc/')&&registered.has(value)});
+ const transfer=createResilientFetch({fetcher,allowed:value=>typeof value==='string'&&value.startsWith('https://wvn-s3-zi0.saop.cc/')&&registered.has(value)});
  const flights=new Map(),queue=[],queued=new Set(),waiters=[];let closed=false,foreground=0,background=null,timer=null,started=false,attempts=0,preloadBudget=prefetchBytes;
  const stats={available:!!store,hits:0,downloads:0,preloaded:0,bytes:0,maxBytes,prefetching:false};
  const publish=()=>{try{onStats({...stats})}catch{/* 状态显示不影响游戏。 */}},remove=async keys=>{if(store)try{await store.remove(keys)}catch{stats.available=false;publish()}},meta=async()=>{try{return await store?.list()??[]}catch{stats.available=false;return []}};

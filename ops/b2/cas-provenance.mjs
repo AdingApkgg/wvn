@@ -8,6 +8,7 @@ const release='releases/20261027-01/';
 const ons='64ed1e7b9e92aa83b8106227d6095b3ab951e2bed75ac4bb8ed43f044737de04';
 const shared='renpy-5b572ebfa6248cac249cab61f698c967cac82b7d225da7515971b383d0f0a3cf';
 export function expectedOriginalKey(requestURL){
+ // 仅用于旧B2/Worker历史记录补验；当前CAS清单与浏览器地址在下方单独校验。
  const url=new URL(requestURL);assert.equal(url.origin,'https://wg-b2.saop.cc','Unexpected resource origin');assert(!url.username&&!url.password,'Unexpected URL credentials');
  const pathname=url.pathname.replace(/^\/__cas-canary(?=\/)/,'');
  const decoded=decodeURIComponent(pathname.slice(1));
@@ -36,7 +37,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
 // 无 Worker 验收只依赖独立 PG 快照元数据与浏览器实际 URL，不接受旧来源响应头作为证据。
 export function validateBrowserManifest(expected,actual){
  for(const key of ['schema','delivery','pilot','versionId','inventorySha256','resourceOrigin'])assert.equal(actual?.[key],expected?.[key],'CAS manifest identity differs: '+key);
- assert.equal(actual.schema,1);assert.equal(actual.delivery,'cas');assert.equal(actual.resourceOrigin,'https://wg-b2.saop.cc');
+ assert.equal(actual.schema,1);assert.equal(actual.delivery,'cas');assert.equal(actual.resourceOrigin,'https://wvn-s3-zi0.saop.cc');
  assert.equal(actual.engineResources?.id,expected.engineResources?.id,'CAS engine release differs');
  const urls=new Map();
  for(const field of ['resources','engineResources']){
@@ -45,14 +46,14 @@ export function validateBrowserManifest(expected,actual){
   const byPath=new Map(want.map(row=>[row.path,row])),seen=new Set();assert.equal(byPath.size,want.length);
   for(const row of rows){assert(!seen.has(row.path),'Duplicate resource path');seen.add(row.path);const oracle=byPath.get(row.path);assert(oracle,'Unexpected path');
    for(const key of ['path','key','url','sha256','bytes','contentType'])assert.equal(row[key],oracle[key],'CAS metadata differs: '+row.path+' '+key);
-   assert.match(row.sha256,/^[a-f0-9]{64}$/);assert.equal(row.url,'https://wg-b2.saop.cc/'+row.sha256+'.bin');urls.set(row.url,row);
+   assert.match(row.sha256,/^[a-f0-9]{64}$/);assert.equal(row.url,'https://wvn-s3-zi0.saop.cc/'+row.sha256+'.bin');urls.set(row.url,row);
   }
  }
  return urls;
 }
 export function validateBrowserResourceURL(value,urls){
- assert.match(value,/^https:\/\/wg-b2\.saop\.cc\/[a-f0-9]{64}\.bin$/,'Browser resource must use literal root SHA.bin URL');
- const row=urls.get(value);assert(row,'Browser resource absent from independently verified manifest');assert.equal(value,'https://wg-b2.saop.cc/'+row.sha256+'.bin');return row;
+ assert.match(value,/^https:\/\/wvn-s3-zi0\.saop\.cc\/[a-f0-9]{64}\.bin$/,'Browser resource must use literal root SHA.bin URL');
+ const row=urls.get(value);assert(row,'Browser resource absent from independently verified manifest');assert.equal(value,'https://wvn-s3-zi0.saop.cc/'+row.sha256+'.bin');return row;
 }
 
 export async function finishBrowserCase({record,tasks,write,close}){

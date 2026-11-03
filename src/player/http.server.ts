@@ -22,7 +22,7 @@ export function isolateEntry(html:string,id:string,options?:{resourceOrigin:stri
     const config=JSON.stringify({src:src?.[1]??src?.[2]??src?.[3]??null,body:src?'':body}).replace(/</g,'\\u003c');
     return `<script type="application/x-wg-script">${config}</script>`;
   });
-  if(options&&(options.resourceOrigin!=="https://wg-b2.saop.cc"||new URL(options.bootstrapOrigin).origin!==options.bootstrapOrigin||!options.bootstrapOrigin.startsWith("https://")))throw Error("Untrusted bootstrap origin");
+  if(options&&(options.resourceOrigin!=="https://wvn-s3-zi0.saop.cc"||new URL(options.bootstrapOrigin).origin!==options.bootstrapOrigin||!options.bootstrapOrigin.startsWith("https://")))throw Error("Untrusted bootstrap origin");
   const bootstrap=`<base href="${options?.resourceOrigin??""}/__player/resource/${id}/"><script type="module" src="${options?.bootstrapOrigin??""}/player/runtime.mjs"></script>`;
   if(options?.cas){safe=safe.replace(/<body\b([^>]*)>/i,'<div data-cas-body$1>').replace(/<\/body\s*>/i,'</div>');return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+bootstrap+'</head><body><template id="wg-cas-document">'+safe+'</template></body></html>';}
   return safe.replace(/<head\b[^>]*>/i,match=>match+bootstrap);

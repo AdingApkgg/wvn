@@ -49,7 +49,7 @@ test('resource keys resolve to the fixed SHA256 URL with path-specific MIME and 
     const app = createResourceApp(repo);
     const response = await app.request('/api/resources/' + keys[1]);
     assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { key: keys[1], url: 'https://wg-b2.saop.cc/' + sha + '.bin', sha256: sha, bytes: 11, contentType: 'text/plain' });
+    assert.deepEqual(await response.json(), { key: keys[1], url: 'https://wvn-s3-zi0.saop.cc/' + sha + '.bin', sha256: sha, bytes: 11, contentType: 'text/plain' });
     assert.equal((await repo.findByOriginalPath(namespace, '故事/0.png'))?.key, keys[0]);
     assert.equal(await repo.findByOriginalPath(namespace, 'not-found'), undefined);
     assert.equal((await app.request('/api/resources/' + randomUUID())).status, 404);

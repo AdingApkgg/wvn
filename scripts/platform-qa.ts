@@ -206,7 +206,7 @@ try {
     });
     const binding = new VersionResources(catalog, new ResourceRepository(resources));
     await binding.bind({ versionId, namespace, inventorySha256: inventory, prefix: 'qa-game/' });
-    await writeFile(fixtureFile, JSON.stringify({ runId, schemas, versionId, namespace, inventory, keys, paths, sha256, cdnUrl: 'https://wg-b2.saop.cc/' + sha256 + '.bin' }), { mode: 0o600 });
+    await writeFile(fixtureFile, JSON.stringify({ runId, schemas, versionId, namespace, inventory, keys, paths, sha256, cdnUrl: 'https://wvn-s3-zi0.saop.cc/' + sha256 + '.bin' }), { mode: 0o600 });
   } finally { await resources.close(); await catalog.close(); }
   await step('rebuild-own-search-index', ['--import', 'tsx', 'scripts/search-index.ts', 'rebuild']);
   await launch('search-worker', ['--import', 'tsx', 'scripts/search-index.ts', 'worker']);

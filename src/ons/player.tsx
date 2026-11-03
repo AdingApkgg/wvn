@@ -34,7 +34,7 @@ async function modules() {
     protocol: await import(/* @vite-ignore */ protocolPath) as ProtocolModule,
   };
 }
-export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; workUrl: string; cloud?: boolean }) {
+export function OnsPlayer({ pilot, workUrl, cloud = false, contentBlocked=false }: { pilot: Pilot; workUrl: string; cloud?: boolean;contentBlocked?:boolean }) {
   const runtime=pilot.engineRuntime??pilot.engineCandidate,releaseId=pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId;
   const [ready, setReady] = useState(false), [running, setRunning] = useState(false);
   const [gameStarted,setGameStarted]=useState(false);
@@ -53,6 +53,17 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const active = useRef(true);
   const runningNow = useRef(false);
+  const blockedNow=useRef(contentBlocked);blockedNow.current=contentBlocked;
+  useEffect(()=>{const c=channel.current;if(c)c.port.postMessage({type:'content-visibility',pilot:pilot.id,nonce:c.nonce,visible:!contentBlocked})},[contentBlocked,pilot.id]);
+  useEffect(()=>{
+    const exit=()=>{void run(async()=>{
+      try{
+        if(runningNow.current&&channel.current?.started&&!(await capture()).saved)throw Error('本机备份尚未成功，请保留页面重试');
+        channel.current?.dispose();channel.current=null;changeRunning(false);window.location.assign(workUrl);
+      }catch(error){window.dispatchEvent(new CustomEvent('wg-content-save-error',{detail:error instanceof Error?error.message:'本机保存未完成'}));throw error;}
+    })};
+    window.addEventListener('wg-content-save-exit',exit);return()=>window.removeEventListener('wg-content-save-exit',exit);
+  },[pilot.id,workUrl]);
   function changeRunning(value: boolean) { runningNow.current = value; setRunning(value);setGameStarted(false);setResources(null);setLoading(value?{stage:"connecting"}:null);if(value)setLoadStartedAt(Date.now()); }
   function cancelLoading(){
     if(channel.current?.started)return;
@@ -80,7 +91,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
   }, [pilot.id,releaseId]);
   useEffect(() => {
     if (!running) return;
-    const before = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    const before = (event: BeforeUnloadEvent) => { if(!runningNow.current)return;event.preventDefault(); event.returnValue = ""; };
     window.addEventListener("beforeunload", before);
     return () => window.removeEventListener("beforeunload", before);
   }, [running]);
@@ -134,11 +145,11 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     };
     let resourceManifest:unknown,casManifest:any;
     if(pilot.resourceDelivery==='cas'){
-      const response=await fetch('/api/player/'+encodeURIComponent(pilot.id)+'/resources'+(releaseId?'?engine='+encodeURIComponent(releaseId):''),{credentials:'omit',cache:'no-store',redirect:'error',signal:controller.signal});
+      const response=await fetch('/api/player/'+encodeURIComponent(pilot.id)+'/resources'+(releaseId?'?engine='+encodeURIComponent(releaseId):''),{credentials:'same-origin',cache:'no-store',redirect:'error',signal:controller.signal});
       casManifest=await readCasManifest(response,pilot);resourceManifest=casManifest.ons;
     }
     if(!pilot.runtimeKind){
-      if(!casManifest){const response=await fetch('/__ons/manifest/'+encodeURIComponent(pilot.id),{credentials:'omit',cache:'no-cache',redirect:'error',signal:controller.signal});if(!response.ok)throw Error('资源清单不可用');
+      if(!casManifest){const response=await fetch('/__ons/manifest/'+encodeURIComponent(pilot.id),{credentials:'same-origin',cache:'no-cache',redirect:'error',signal:controller.signal});if(!response.ok)throw Error('资源清单不可用');
       const text=await response.text();if(text.length>32*1024*1024)throw Error('资源清单过大');resourceManifest=JSON.parse(text);}
       const plan=await createOnsResourcePlan(pilot,resourceManifest,location.origin,runtime?.engineRelease,casManifest);
       if(controller.signal.aborted)return;
@@ -151,6 +162,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
     // Opaque frames have no serializable target origin. Bind one dedicated port to
     // this exact frame; never broadcast credentials or expose a general fetch API.
     frame.current.contentWindow.postMessage({ type: "WG_ONS_INIT", pilot: pilot.id, nonce, ...(casManifest?{casManifest}:{}), ...(pilot.runtimeKind==='RenPy'&&runtime?.engineRelease?{engineRelease:runtime.engineRelease}:{}), ...(inputSpec?{nativeInput:{playerName:validatePlayerName(playerName)}}:{}), ...(resourceManifest?{resourceManifest}:{}), snapshot: current.current?.snapshot ?? { schema: 1, pilot: pilot.id, files: [] } }, "*", [ports.port2]);
+    ports.port1.postMessage({type:'content-visibility',pilot:pilot.id,nonce,visible:!blockedNow.current});
   }
   function capture(): Promise<{ snapshot: Snapshot; saved: boolean }> {
     const connection = channel.current;
@@ -185,7 +197,13 @@ export function OnsPlayer({ pilot, workUrl, cloud = false }: { pilot: Pilot; wor
         {running&&!gameStarted&&loading&&<LoadingView progress={loading} startedAt={loadStartedAt} onCancel={cancelLoading} />}
       </div>
       {!running&&inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
-      <div className="reader-toolbar" aria-label="阅读操作">
+      <div className="reader-toolbar" aria-label="阅读操作" onMouseDown={event => {
+        // 游戏仍持有当前页面焦点时，工具栏保留画布焦点，避免权限复查在按下与点击之间收起按钮。
+        // 真正返回窗口仍走全局 focus 复查；键盘操作保留原生聚焦行为，保存只由 click 执行。
+        if (event.button === 0 && document.visibilityState === "visible" && document.hasFocus() &&
+          document.activeElement === frame.current && event.target instanceof Element && event.target.closest("button"))
+          event.preventDefault();
+      }}>
         <div className="reader-controls">
           {!running ? <Button disabled={!ready || busy} onClick={() => run(async () => { if(inputSpec)validatePlayerName(playerName); await refresh(); setStatus("正在连接沙箱…"); changeRunning(true); })}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>

@@ -3,6 +3,7 @@ import {
   type ShareProgress,
 } from "../accounts/share-metadata";
 export type PublicShareCard = {
+  contentRedacted?: boolean;
   id: string;
   title: string;
   description: string;
@@ -118,6 +119,7 @@ export async function projectShares(
       )
         return empty;
       items.push({
+        ...(x.contentRedacted===true?{contentRedacted:true}:{}),
         id: x.id,
         title: x.title,
         description: x.description,

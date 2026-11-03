@@ -9,10 +9,12 @@ export function mountLibrary({ app, player, library }: AccountService) {
   app.patch("/api/me/library/:id", async (c) => {
     const { session } = await player(c);
     const body = await c.req.json();
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      throw new AccountError(400, "LIBRARY_INVALID");
     return c.json(
       (await library.edit(session.user.id, c.req.param("id"), body.revision, {
         status: body.status,
-        note: body.note,
+        ...(Object.hasOwn(body, "note") ? { note: body.note } : {}),
       })),
     );
   });

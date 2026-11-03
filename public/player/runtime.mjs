@@ -1,4 +1,5 @@
 import {createCasResolver} from './cas-resources.mjs';
+import {installContentVisibility} from './content-visibility.mjs';
 import {installCasBrowser} from './cas-dom.mjs';
 import {prepareWebgalResolver,installWebgalProbeFallback} from './webgal-artemis.mjs';
 import {installWebgalShaderCompatibility} from './webgal-shaders.mjs';
@@ -21,6 +22,7 @@ addEventListener('message',async function initialize(event){
   const port=event.ports[0],nonce=init.nonce;let seq=0,queue=Promise.resolve(),capture,failed=false;
   const acknowledgements=new Map(),send=message=>port.postMessage({...message,pilot:id,nonce});
   const status=message=>send({type:'status',message:String(message).slice(0,500)});
+  const contentVisibility=installContentVisibility(window);
   let transferAt=0;
   const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase('connecting');
   function persist(files,requestId){
@@ -34,6 +36,7 @@ addEventListener('message',async function initialize(event){
   }
   port.onmessage=({data})=>{
     if(!data||data.nonce!==nonce||data.pilot!==id)return;
+    if(data.type==='content-visibility'&&typeof data.visible==='boolean'){void contentVisibility.setVisible(data.visible);return;}
     if(data.type==='ack'){
       const ack=acknowledgements.get(data.seq);if(!ack)return;clearTimeout(ack.timer);acknowledgements.delete(data.seq);
       if(data.ok){failed=false;ack.resolve();status('本机存档已保留')}else ack.reject(Error('存档写入失败，请保留页面并导出备份'));
@@ -50,7 +53,7 @@ addEventListener('message',async function initialize(event){
     installNativeInput(window,id,init.nativeInput);
     if(!init.casManifest)installAnonymousMedia(window);
     const assetOrigin=runtimeResourceOrigin(document.baseURI,entry,origin);
-    if(assetOrigin==='https://wg-b2.saop.cc'&&!init.casManifest)throw Error('CAS resource manifest required');
+    if(assetOrigin==='https://wvn-s3-zi0.saop.cc'&&!init.casManifest)throw Error('CAS resource manifest required');
     let cas=init.casManifest?createCasResolver(init.casManifest,entry,{mainOrigin:origin,sharedEngine:entry.runtimeKind!=='RenPy'||!!init.engineRelease}):null;
     if(entry.sourceImport==='webgal-20261027'){
       if(!cas)throw Error('WebGAL import requires CAS resources');

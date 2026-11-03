@@ -4,6 +4,7 @@ export default [
   route("s/:shareId", "routes/share.tsx"),
   route("share-admin", "routes/share-admin.tsx"),
   route("account", "routes/account.tsx"),
+  route("content", "routes/content.tsx"),
   route("manage", "routes/manage.tsx"),
   route(":workId", "routes/work.tsx"),
   route(":workId/:slot", "routes/play.tsx"),

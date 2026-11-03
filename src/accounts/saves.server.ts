@@ -34,7 +34,7 @@ function profileScope(versionId: string, releaseId?: string) {
   if (!versionId || typeof versionId !== "string" || versionId.length > 200 || (releaseId !== undefined && !/^renpy-[a-f0-9]{64}$/.test(releaseId))) throw new AccountError();
   return releaseId ? JSON.stringify(["wvn-engine-cloud-v2",versionId,releaseId]) : versionId;
 }
-function profileIdentity(scope: string): {versionId:string;engineReleaseId?:string} {
+export function profileIdentity(scope: string): {versionId:string;engineReleaseId?:string} {
   if (scope.startsWith('["wvn-engine-cloud-v2",')) {
     const [,versionId,engineReleaseId]=JSON.parse(scope);
     if(profileScope(versionId,engineReleaseId)!==scope)throw new AccountError();
