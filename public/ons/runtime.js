@@ -13,14 +13,14 @@ async function fetch_file(FS, path, filemap) {
   if (!node) return 0;
   if (node.loaded) return 1;
   try {
-    const cached=resourceClient&&node.key?await resourceClient.read(node.key):null;
+    const cached=localResources?.has(node.url)?new Uint8Array(await (await localResources.fetch(node.url)).arrayBuffer()):resourceClient&&node.key?await resourceClient.read(node.key):null;
     if(cached){FS.writeFile(path,cached);node.loaded=true;return 1;}
     const r = await fetch(node.url, { credentials: "omit" });
     if (!r.ok) throw Error("资源读取失败 " + r.status);
     FS.writeFile(path, await readResourceBytes(r)); node.loaded = true; return 1;
   } catch (e) { console.error("WG ONS resource", path, e); return -1; }
 }
-let readResourceBytes, resourceClient;
+let readResourceBytes, resourceClient, localResources;
 let captureSave = () => {};
 function flush_save() { queueMicrotask(() => captureSave()); }
 addEventListener("resize", () => scale_full(document.getElementById("canvas"), g_screen_width / g_screen_height));
@@ -33,13 +33,13 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
     if (initialized || event.source !== parent || event.origin !== origin || init?.type !== "WG_ONS_INIT" || init.pilot !== pilot || !/^[a-f0-9-]{36}$/.test(init.nonce) || event.ports.length !== 1) return;
     initialized = true; removeEventListener("message", initialize);
     const port = event.ports[0], nonce = init.nonce;
-    let seq = 0, pending = null, queued = null, failed = false, started = false;
+    let seq = 0, pending = null, queued = null, failed = false, started = false, cacheInitError, cacheClosed=false;const pendingCacheFiles=[],cacheEnabled=Object.hasOwn(init,"resourceFiles");
     const send = message => port.postMessage({ ...message, pilot, nonce });
     const status = message => { document.getElementById("status").textContent = message; send({ type: "status", message }); };
     const {installContentVisibility}=await import(origin+'/player/content-visibility.mjs');
     const contentVisibility=installContentVisibility(window);
-    let cas, validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter, createOnsResourceClient;
-    try { ({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter,readResourceBytes}=await import(origin+"/ons/resource-loading.mjs")); if(init.resourceManifest)({createOnsResourceClient}=await import(origin+"/ons/cache-client.mjs")); }
+    let cas, resourcePort, validateSnapshot, limits, createEmscriptenDriver, captureFilesystem, createLoadingReporter, observeStartupRequests, createResourceReporter, createOnsResourceClient;
+    try { if(init.resourceBroker){const {createResourcePort}=await import(origin+'/player/resource-port.mjs');resourcePort=createResourcePort(port,{pilot,nonce})}({ validateSnapshot, limits } = await import(origin + "/ons/protocol.mjs")); ({ createEmscriptenDriver, captureFilesystem } = await import(origin + "/player/emscripten.mjs")); ({createLoadingReporter,observeStartupRequests}=await import(origin+"/ons/loading.mjs")); ({createResourceReporter,readResourceBytes}=await import(origin+"/ons/resource-loading.mjs")); if(init.resourceManifest)({createOnsResourceClient}=await import(origin+"/ons/cache-client.mjs")); }
     catch (e) { send({type:"loading-progress",stage:"failed",message:"播放器组件暂时不可用，请取消后重试"});status("启动失败：存档桥接模块不可用"); return; }
     const resources=createResourceReporter(send),loading=createLoadingReporter(send);let stopObserving=()=>{};loading.phase("connecting");
     stopObserving=observeStartupRequests(window,loading,resource=>{const url=new URL(typeof resource==="string"?resource:resource?.url??resource?.href??"",location.href);if(cas){const row=cas.urls.get(url.href);return row?(cas.engines.has(row.path)?"engine":"game"):null;}if(url.origin!==origin&&url.origin!=="https://wvn-s3-zi0.saop.cc")return null;if(url.pathname.startsWith("/__ons/engine/")||url.pathname.startsWith("/__engines/resource/"))return "engine";return url.pathname.startsWith("/__ons/data/"+pilot+"/")?"game":null;},resources);
@@ -57,8 +57,11 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       } catch (e) { status("保存失败：" + e.message); }
     };
     port.onmessage = ({ data }) => {
-      if (!data || data.nonce !== nonce || data.pilot !== pilot) return;
-      if(data.type==='content-visibility'&&typeof data.visible==='boolean'){void contentVisibility.setVisible(data.visible);return;}
+      if (!data || data.nonce !== nonce || data.pilot !== pilot) return;if(data.type==='content-visibility'&&typeof data.visible==='boolean'){void contentVisibility.setVisible(data.visible);return;}if(resourcePort?.receive(data))return;
+      if(data.type==='cache-files'){
+        if(!cacheEnabled||cacheClosed)return;
+        try{if(!Array.isArray(data.files)||data.files.length>128)throw Error('Invalid local resource batch');if(localResources){for(const file of data.files)localResources.put(file)}else{if(pendingCacheFiles.length+data.files.length>4096)throw Error('Local resource initialization queue full');pendingCacheFiles.push(...data.files)}}catch(e){if(!localResources)cacheInitError=e;status('资源缓存回执无效：'+e.message)}return;
+      }
       if(resourceClient?.receive(data))return;
       if (data.type === "ack" && data.seq === pending) {
         pending = null; failed = !data.ok;
@@ -72,7 +75,15 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       }
     };
     try {
-      if(init.casManifest){const {createCasResolver}=await import(origin+'/player/cas-resources.mjs');cas=createCasResolver(init.casManifest,{id:pilot,versionId:init.casManifest.ons?.versionId},{mainOrigin:origin});}
+      if(init.casManifest){
+        const {createCasResolver}=await import(origin+'/player/cas-resources.mjs');cas=createCasResolver(init.casManifest,{id:pilot,versionId:init.casManifest.ons?.versionId},{mainOrigin:origin});
+        if(cacheEnabled){
+          if(!Array.isArray(init.resourceFiles))throw Error('Invalid local resource initialization');
+          const {createLocalResources}=await import(origin+'/player/local-resources.mjs'),{installCasBrowser}=await import(origin+'/player/cas-dom.mjs');
+          if(cacheInitError)throw cacheInitError;localResources=createLocalResources(cas,[...init.resourceFiles,...pendingCacheFiles],{load:resourcePort?(sha,signal)=>resourcePort.read(sha,{signal}):undefined});pendingCacheFiles.length=0;cas={...cas,url:localResources.resolve,fetch:localResources.fetch,path:localResources.path,logical:localResources.logical,workerURL:localResources.workerURL,attachWorker:localResources.attachWorker,detachWorker:localResources.detachWorker};
+          URL.createObjectURL=localResources.createURL;installCasBrowser(window,cas);addEventListener('pagehide',()=>{cacheClosed=true;pendingCacheFiles.length=0;resourcePort?.close();localResources.close()},{once:true});
+        }
+      }
       const restored = validateSnapshot(init.snapshot, pilot);
       loading.phase("downloading","engine");status("正在载入共享引擎…");
       if(init.resourceManifest)g_onsyuri_index=init.resourceManifest;else {const r=await fetch(`/__ons/manifest/${pilot}`,{credentials:"omit"});if(!r.ok)throw Error("资源清单不可用");g_onsyuri_index=await r.json();}
@@ -85,10 +96,10 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       const engine = assetOrigin + (release?"/__engines/resource/"+release.id+"/":"/__ons/engine/" + g_onsyuri_index.engine + "/");
       const scriptHash=cas?.engines.get("onsyuri.js")?.sha256??release?.files.find(file=>file.path==="onsyuri.js")?.sha256;
       if(release&&!/^[a-f0-9]{64}$/.test(scriptHash))throw Error("候选引擎脚本指纹缺失");
-      let wasmBytes=resourceClient?await resourceClient.read("engine:wasm"):null;
+      let wasmBytes=localResources?.has("onsyuri.wasm")?new Uint8Array(await(await localResources.fetch("onsyuri.wasm")).arrayBuffer()):resourceClient?await resourceClient.read("engine:wasm"):null;
       if(!wasmBytes){const wasm=await fetch(cas?cas.url("onsyuri.wasm"):engine+"onsyuri.wasm",{credentials:"omit"});if(!wasm.ok)throw Error("共享引擎校验失败");wasmBytes=await readResourceBytes(wasm);}
       const bootstrap=new Map(),restoredSettings=restored.files.find(file=>file.path.toLowerCase()==="envdata");
-      if(resourceClient)await Promise.all(g_onsyuri_index.files.filter(f=>(!f.lazyload||f.path.toLowerCase()==="envdata")&&!(f.path.toLowerCase()==="envdata"&&restoredSettings)).map(async f=>{let bytes=await resourceClient.read("game:"+f.path);if(!bytes){const response=await fetch(new URL(f.url,origin).href,{credentials:"omit"});if(!response.ok)throw Error("资源读取失败");bytes=await readResourceBytes(response)}bootstrap.set(f.path,bytes)}));
+      if(resourceClient)await Promise.all(g_onsyuri_index.files.filter(f=>(!f.lazyload||f.path.toLowerCase()==="envdata")&&!(f.path.toLowerCase()==="envdata"&&restoredSettings)).map(async f=>{let bytes=localResources?.has(f.url)?new Uint8Array(await(await localResources.fetch(f.url)).arrayBuffer()):await resourceClient.read("game:"+f.path);if(!bytes){const response=await fetch(new URL(f.url,origin).href,{credentials:"omit"});if(!response.ok)throw Error("资源读取失败");bytes=await readResourceBytes(response)}bootstrap.set(f.path,bytes)}));
       await new Promise((resolve, reject) => {
         const script = document.createElement("script"); script.src = cas?cas.url("onsyuri.js"):engine + "onsyuri.js";
         script.crossOrigin = "anonymous"; script.integrity = scriptHash?"sha256-"+btoa(String.fromCharCode(...scriptHash.match(/../g).map(byte=>parseInt(byte,16)))):"sha256-M07jIknc5sjWzffgxraOcEEpxY76lJM2yPrRR0KogsE=";
@@ -135,7 +146,7 @@ addEventListener("resize", () => scale_full(document.getElementById("canvas"), g
       scale_full(g_onsyuri_module.canvas, g_screen_width / g_screen_height);
       g_onsyuri_module.canvas.focus();loading.complete();send({type:'started'});resources.activate();bootstrap.clear(); status("引擎已启动");
       setInterval(() => captureSave(), 5000);
-    } catch (e) { loading.fail(e.message);resourceClient?.close();resources.close();stopObserving();status("启动失败：" + e.message); }
+    } catch (e) { cacheClosed=true;pendingCacheFiles.length=0;resourcePort?.close();localResources?.close();loading.fail(e.message);resourceClient?.close();resources.close();stopObserving();status("启动失败：" + e.message); }
   }
   addEventListener("message", initialize);
 })();

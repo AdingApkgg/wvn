@@ -58,7 +58,7 @@ const service = await createAccountService({
   secret: readFileSync(required("WG_ACCOUNT_SECRET_FILE"), "utf8").trim(),
 });
 const platform = await mountPublicPlatform(service.app, getStore());
-if(process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN)registerPreviewManifests(service.app,{origin:process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN,deployment:process.env.WG_DEPLOYMENT_MODE??'preview'});
+if(process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN)registerPreviewManifests(service.app,{origin:process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN,deployment:process.env.WG_DEPLOYMENT_MODE??'preview',manifestDirectory:process.env.WG_PREVIEW_CAS_MANIFEST_DIRECTORY});
 const rooms = await mountAccountRooms(service, getStore());
 const moderation = service.sharing
   ? createShareAdminApp(service, required("WG_SHARE_ADMIN_ORIGIN"))

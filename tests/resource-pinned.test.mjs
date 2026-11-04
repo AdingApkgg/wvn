@@ -7,11 +7,13 @@ const row={url:'https://wvn-s3-zi0.saop.cc/'+sha256+'.bin',sha256,bytes:data.len
 test('CAS packages recover a failed chunk without ETag and only return verified complete bytes',async()=>{
  const ranges=[];let interrupted=false;
  const bytes=await readPinnedResource(row,{chunkBytes:8,retryDelay:async()=>{},fetcher:async(url,options)=>{
-  assert.equal(url,row.url);const range=options.headers.get('range');ranges.push(range);const [,a,b]=/^bytes=(\d+)-(\d+)$/.exec(range),start=Number(a),end=Number(b);
+  assert.equal(url,row.url);const range=options.headers.get('range');ranges.push(range);assert.equal(options.credentials,'omit');
+  if(range===null){assert.equal(options.cache,'force-cache');throw Error('initial full download interrupted')}
+  assert.equal(options.cache,'no-store');const [,a,b]=/^bytes=(\d+)-(\d+)$/.exec(range),start=Number(a),end=Number(b);
   if(start===8&&!interrupted){interrupted=true;return new Response(new ReadableStream({start(c){c.enqueue(data.slice(8,10));c.error(Error('connection reset'))}}),{status:206,headers:{'content-range':'bytes 8-15/26'}})}
   return new Response(data.slice(start,end+1),{status:206,headers:{'content-range':`bytes ${start}-${end}/26`}});
  }});
- assert.deepEqual(bytes,data);assert.deepEqual(ranges,['bytes=0-7','bytes=8-15','bytes=8-15','bytes=16-23','bytes=24-25']);
+ assert.deepEqual(bytes,data);assert.deepEqual(ranges,[null,'bytes=0-7','bytes=8-15','bytes=8-15','bytes=16-23','bytes=24-25']);
 });
 test('wrong range and modified same-size bytes fail closed',async()=>{
  await assert.rejects(readPinnedResource(row,{chunkBytes:8,retries:0,fetcher:async()=>new Response(data.slice(0,8),{status:206,headers:{'content-range':'bytes 1-8/26'}})}),/range/);

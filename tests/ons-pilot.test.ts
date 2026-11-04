@@ -52,7 +52,9 @@ const snapshot = () => ({ schema: 1, pilot: "clannad", files: [{ path: "save1.da
     assert.equal(runtime.status, 200);
     assert.match(runtime.headers.get("content-security-policy")!, /sandbox allow-scripts/);
     assert.doesNotMatch(runtime.headers.get("content-security-policy")!, /allow-same-origin/);
-    assert.match(runtime.headers.get("content-security-policy")!, /frame-ancestors 'self'/);
+    assert.equal(runtime.headers.get("content-security-policy")!.split("; ").find(value => value.startsWith("frame-ancestors ")), "frame-ancestors http://localhost");
+    const otherOrigin = await app.request("https://reader.invalid/__ons/runtime/clannad");
+    assert.equal(otherOrigin.headers.get("content-security-policy")!.split("; ").find(value => value.startsWith("frame-ancestors ")), "frame-ancestors https://reader.invalid");
     assert.equal(runtime.headers.get("cache-control"), "no-store");
     assert.match(runtime.headers.get("content-security-policy")!,/http:\/\/localhost\/player\/registry\.mjs/);
     assert.equal((await app.request("http://localhost/player/registry.mjs")).status,200);

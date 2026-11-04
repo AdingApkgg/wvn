@@ -1,11 +1,13 @@
 import { brand } from "../brand";
-import { useEffect, useState } from "react";
-import {useLoaderData, useSearchParams} from "react-router";
+import { useEffect, useRef, useState } from "react";
+import {Link, useLoaderData, useNavigate, useSearchParams} from "react-router";
+import { safeReturnPath } from "../content/policy";
+import {AccountConsumer,type ReaderAccount} from '../accounts/account-consumer';
 import { startRegistration } from "@simplewebauthn/browser";
 import { Fingerprint, KeyRound, ShieldCheck, Monitor } from "lucide-react";
 import { ShareManagement } from "../accounts/share-management";
 import { Library } from "../accounts/library";
-import { useAccount, AccountClientError, errorCopy } from "../accounts/client";
+import { AccountClientError, errorCopy } from "../accounts/client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -47,11 +49,21 @@ type RecoveryKit = {
   signInRequired?: boolean;
 };
 export default function Account() {
+  return <AccountConsumer>{account=><AccountPage account={account}/>}</AccountConsumer>;
+}
+function AccountPage({account}:{account:ReaderAccount}) {
   const {release}=useLoaderData<typeof loader>();
-  const account = useAccount();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate(), awaitingReturn = useRef(false);
   const candidate = searchParams.get("tab") ?? "library";
   const tab = ["library", "saves", "shares", "security"].includes(candidate) ? candidate : "library";
+  const title = tab === "library" ? "书架" : tab === "security" ? "设置" : "存档";
+  useEffect(()=>{
+    if(!account.loading&&!account.me)awaitingReturn.current=true;
+    if(account.me&&awaitingReturn.current&&searchParams.has("returnTo")){
+      awaitingReturn.current=false;navigate(safeReturnPath(searchParams.get("returnTo")),{replace:true});
+    }
+  },[account.me,account.loading,searchParams,navigate]);
   const [authMode, setAuthMode] = useState("login");
   useEffect(() => { if (!account.me) setAuthMode("login"); }, [account.me?.user.id]);
   const {
@@ -74,7 +86,11 @@ export default function Account() {
     [remove, setRemove] = useState<string | null>(null),
     [deleteAccount, setDeleteAccount] = useState(false);
   useEffect(() => {
-    setSupported(typeof PublicKeyCredential !== "undefined");
+    setSupported(
+      typeof PublicKeyCredential === "function" &&
+        typeof navigator.credentials?.create === "function" &&
+        typeof navigator.credentials?.get === "function",
+    );
     const clear = () => {
       setKit(null);
       setRecoveryCode("");
@@ -147,7 +163,7 @@ export default function Account() {
           <>
             <section className="account-intro">
               <p className="eyebrow">{brand.fullName}</p>
-              <h1>管理你的作品与存档</h1>
+              <h1>{searchParams.has("returnTo")?"登录后回到刚才的作品":`登录后管理你的${title}`}</h1>
               <p>
                 使用通行密钥登录 {brand.shortName}。
                 <br />
@@ -275,11 +291,11 @@ export default function Account() {
           <>
             <section className="account-heading">
               <div>
-                <p className="eyebrow">THE STORIES YOU KEEP</p>
-                <h1>我的故事</h1>
-                <p>{me.user.name}，欢迎回来。</p>
+                <h1>{title}</h1>
+                <p data-account-identity>{me.user.name}，欢迎回来。</p>
+                <p>{tab==="library"?"继续阅读，整理想读的故事。":tab==="security"?"管理登录设备、账号恢复和浏览偏好。":"备份、恢复与分享你的游戏存档。"}</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" hidden={tab!=="security"}>
                 <Button
                   variant="outline"
                   disabled={busy}
@@ -303,7 +319,8 @@ export default function Account() {
               </div>
             </section>
             <Tabs value={tab} onValueChange={value => { const next = new URLSearchParams(searchParams); next.set("tab", value); setSearchParams(next, { preventScrollReset: true }); }} className="account-sections">
-              <TabsList aria-label="我的故事分区" className="account-section-tabs"><TabsTrigger value="library">书架</TabsTrigger><TabsTrigger value="saves">存档</TabsTrigger><TabsTrigger value="shares">我的分享</TabsTrigger><TabsTrigger value="security">账号安全</TabsTrigger></TabsList>
+              {(tab==="saves"||tab==="shares")&&<nav className="local-navigation" aria-label="存档分区"><Link to="/account?tab=saves" aria-current={tab==="saves"?"page":undefined}>我的备份</Link><Link to="/account?tab=shares" aria-current={tab==="shares"?"page":undefined}>我的分享</Link></nav>}
+              {tab==="security"&&<nav className="local-navigation" aria-label="设置分区"><Link to="/account?tab=security" aria-current="page">账号与安全</Link><Link to="/content">浏览偏好</Link></nav>}
               <Library key={me.user.id} account={account} run={run} view={tab} />
               <TabsContent value="shares" forceMount hidden={tab !== "shares"}><ShareManagement key={"shares-" + me.user.id} account={account} run={run} /></TabsContent>
               <TabsContent value="security" forceMount hidden={tab !== "security"}>

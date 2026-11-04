@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Fingerprint, ShieldCheck } from "lucide-react";
 import { brand } from "../brand";
@@ -40,6 +40,7 @@ export function ContentSettings({ returnTo: suppliedReturnTo, embedded = false }
   const [result, setResult] = useState<QuizResult | null>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [confirm, setConfirm] = useState(false), [supported, setSupported] = useState(false);
+  const [rulesOpen,setRulesOpen]=useState(false), rulesId=useId();
   const [nickname, setNickname] = useState("");
   const [now, setNow] = useState(Date.now);
   const task = useRef(0), busyRef = useRef(false), heading = useRef<HTMLHeadingElement>(null);
@@ -53,6 +54,7 @@ export function ContentSettings({ returnTo: suppliedReturnTo, embedded = false }
       setAttempt(null);
       setAnswers({});
       setResult(null);
+      setRulesOpen(false);
       setError("");
       setConfirm(false);
     };
@@ -128,11 +130,13 @@ export function ContentSettings({ returnTo: suppliedReturnTo, embedded = false }
       <p className="eyebrow">浏览规则与显示设置</p>
       <Heading>敏感内容浏览资格测试</Heading>
       <p>只确认对本站规则的理解。是否显示敏感内容，由你在每次登录后主动选择。</p>
+      <ol className="content-steps" aria-label="开启步骤"><li aria-current={!access.authenticated?"step":undefined}>1 登录账号</li><li aria-current={canTest?"step":undefined}>2 了解规则并测试</li><li aria-current={qualified?"step":undefined}>3 主动选择显示</li></ol>
+      <Button variant="outline" aria-expanded={rulesOpen} aria-controls={rulesId} onClick={()=>setRulesOpen(!rulesOpen)}>{rulesOpen?"收起浏览规则":"查看完整浏览规则"}</Button>
     </header>
 
     <div className="content-columns">
-      <section className="content-rules" aria-labelledby="content-rules-heading">
-        <h2 id="content-rules-heading">先了解本站规则</h2>
+      <section id={rulesId} className="content-rules" hidden={!rulesOpen} aria-labelledby={rulesId+"-heading"}>
+        <h2 id={rulesId+"-heading"}>先了解本站规则</h2>
         <ol>
           <li><strong>分别查看页面与版本。</strong>页面标为 SFW 不代表所有游玩版本都不含成人性内容；启动前查看具体版本标记。“内容待核实”按受限版本处理。</li>
           <li><strong>尊重现实中的同意与边界。</strong>游戏中的虚构描写不等于现实行为的许可。</li>

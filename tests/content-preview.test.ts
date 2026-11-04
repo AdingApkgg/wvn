@@ -1,6 +1,9 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {Hono} from 'hono';
 import {registerPreviewManifests} from '../src/content/preview-manifests.server.ts';
 import {players} from '../public/player/registry.mjs';
+import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
 const player=players.find(row=>row.id==='clannad')!;
 function manifest(origin='https://wvn-s3-zi0.saop.cc'){
  const sha='a'.repeat(64),url=origin+'/'+sha+'.bin';
@@ -36,4 +39,19 @@ test('预览拒绝旧域名、混合资源/引擎/ONS来源及带查询的摘要
   const app=new Hono();registerPreviewManifests(app,{origin:'https://wg.saop.cc',deployment:'preview',fetcher:async()=>Response.json(mutate(manifest()))});
   assert.equal((await app.request('/api/player/'+player.id+'/resources')).status,503);
  }
+});
+
+test('隔离预览读取冻结清单，继续校验CAS来源且不向生产取账号权限',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'wvn-preview-manifests-'));
+ try{
+  const raw=JSON.stringify(manifest());await writeFile(join(directory,player.id+'.json'),raw);
+  let externalCalls=0;
+  const app=new Hono();registerPreviewManifests(app,{origin:'https://wg.saop.cc',deployment:'preview',manifestDirectory:directory,fetcher:async()=>{externalCalls++;throw Error('不允许外部请求')}});
+  assert.equal(await(await app.request('/api/player/'+player.id+'/resources')).text(),raw);
+  assert.equal((await app.request('/api/player/'+player.id+'/resources?engine=missing')).status,503);
+  await writeFile(join(directory,player.id+'.json'),JSON.stringify(manifest('https://wg-b2.saop.cc')));
+  assert.equal((await app.request('/api/player/'+player.id+'/resources')).status,503);
+  assert.equal(externalCalls,0);
+  assert.throws(()=>registerPreviewManifests(new Hono(),{origin:'https://wg.saop.cc',deployment:'production',manifestDirectory:directory}));
+ }finally{await rm(directory,{recursive:true,force:true})}
 });

@@ -101,7 +101,7 @@ export function createContentFetch(next:Fetcher,store:Store,options:Options):Fet
    return safe?[{id:safe.id,title:safe.title,url:safe.url,versions:safe.versions.map(v=>({id:v.id,title:v.title,number:v.number,engine:v.engine,url:v.url}))}]:owned.has(w.id)?[{id:w.id,title:'受限作品',url:w.url,versions:w.versions.map((v:any)=>({id:v.id,number:v.number,engine:v.engine,url:v.url,title:`版本 ${v.number} · 受限`}))}]:[];
    }));
   }
-  if(libraryRoute&&!restrictedAllowed(access))return replace(result,Array.isArray(value)?value.map(row=>({...row,note:''})):{...value,note:''});
+  if(libraryRoute&&!restrictedAllowed(access))return replace(result,Array.isArray(value)?value.map(row=>({...row,note:'',noteHidden:true})):{...value,note:'',noteHidden:true});
   if(path==='/api/public/work-stats')return replace(result,Object.fromEntries(Object.entries(value).filter(([id])=>{const work=byId.get(id);return work&&workVisible(work,access)})));
   if(path==='/api/me/save-shares'&&!restrictedAllowed(access)){
    const redact=(s:any)=>({...s,title:'受限存档分享',description:'',pending:null,work:{...s.work,title:'受限作品'},version:{...s.version,title:`版本 ${s.version?.number??''} · 受限`},publicSource:s.publicSource?{...s.publicSource,title:'受限来源'}:null});

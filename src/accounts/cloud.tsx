@@ -43,11 +43,14 @@ export function CloudBackups({
   const content = useContentAccess();
   const showNames = !content.enabled || (!content.loading && !content.pendingPublic && content.access.canViewRestricted);
   const fileInput = useRef<HTMLInputElement>(null);
-  const [enabled, setEnabled] = useState(false),
+  const displayScope=useRef(content.access);displayScope.current=content.access;
+  const [enabled, setEnabled] = useState<boolean|null>(null),
     [sharing, setSharing] = useState(false),
     [shareRevision, setShareRevision] = useState<SaveRevision | null>(null),
     [version, setVersion] = useState(""),
     [release,setRelease]=useState(""),[runtimeProfiles,setRuntimeProfiles]=useState<SaveProfile[]>([]),
+    [savedProfiles,setSavedProfiles]=useState<SaveProfile[]>([]),
+    [profilesLoaded,setProfilesLoaded]=useState(false),
     [profile, setProfile] = useState<SaveProfile | null>(null),
     [history, setHistory] = useState<SaveRevision[]>([]),
     [nextCursor, setNextCursor] = useState<string | null>(null),
@@ -62,6 +65,14 @@ export function CloudBackups({
   const owned = <T,>(path: string, body?: unknown, method?: string) =>
     account.request<T>(path, body, method, owner);
   useEffect(() => { setShareRevision(null); }, [content.access, content.loading, content.pendingPublic]);
+  useEffect(()=>{setFiles([]);if(fileInput.current)fileInput.current.value=""},[version,release,content.access.canViewRestricted,content.pendingPublic]);
+  async function downloadFile(revision:SaveRevision,file:SaveRevision["files"][number],index:number) {
+    if(!profile)return;
+    const check=account.guard(),scope=displayScope.current;
+    const blob=await account.readFile(`/api/me/save-profiles/${profile.id}/revisions/${revision.id}/files?name=${encodeURIComponent(file.name)}`,owner,file.bytes);
+    check();if(scope!==displayScope.current)throw new AccountClientError("IDENTITY_CHANGED");
+    const url=URL.createObjectURL(blob),anchor=document.createElement("a");anchor.href=url;anchor.download=showNames?file.name:`backup-file-${index+1}`;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
   const reloadDrafts = async () => setDrafts(await draftsFor(owner));
   function historyItems(page: SaveHistory | null): SaveRevision[] {
     if (!page) return [];
@@ -70,7 +81,7 @@ export function CloudBackups({
       : page.items;
   }
   async function load(versionId = version) {
-    const all=await owned<SaveProfile[]>("/api/me/save-profiles");setRuntimeProfiles(all.filter(p=>p.engineReleaseId));
+    const all=await owned<SaveProfile[]>("/api/me/save-profiles");setSavedProfiles(all);setRuntimeProfiles(all.filter(p=>p.engineReleaseId));
     const profiles = await owned<SaveProfile[]>(
       "/api/me/save-profiles?versionId=" + encodeURIComponent(versionId)+(release?"&engineReleaseId="+encodeURIComponent(release):""),
     );
@@ -93,7 +104,7 @@ export function CloudBackups({
           setSharing(options.sharing);
         }
       })
-      .catch(() => {});
+      .catch(() => {if(live)setMessage("云端备份暂时无法连接，请刷新重试。本机副本仍保留。");});
     return () => {
       live = false;
     };
@@ -128,7 +139,7 @@ export function CloudBackups({
       live = false;
     };
   }, [version, release, enabled, owner]);
-  useEffect(()=>{if(!enabled)return;let live=true;void owned<SaveProfile[]>("/api/me/save-profiles").then(rows=>{if(live)setRuntimeProfiles(rows.filter(p=>p.engineReleaseId))}).catch(()=>{});return()=>{live=false}},[enabled,owner]);
+  useEffect(()=>{if(!enabled)return;let live=true;setProfilesLoaded(false);void owned<SaveProfile[]>("/api/me/save-profiles").then(rows=>{if(live){setSavedProfiles(rows);setRuntimeProfiles(rows.filter(p=>p.engineReleaseId));setProfilesLoaded(true)}}).catch(()=>{if(live)setMessage("备份目录暂不可用，请刷新重试。")});return()=>{live=false}},[enabled,owner]);
   async function upload(draft: SaveDraft) {
     if (!account.isOwner(owner))
       throw new AccountClientError("IDENTITY_CHANGED");
@@ -239,20 +250,34 @@ export function CloudBackups({
       setBusy(false);
     }
   }
-  if (!enabled) return null;
+  if (enabled===null) return <p role={message?"alert":"status"}>{message||"正在确认云端备份…"}</p>;
+  if (!enabled) return <p className="text-muted-foreground">当前环境未启用云端备份。本机副本可在各作品的阅读器中下载。</p>;
   const pending = drafts.filter((d) => d.version === version && (d.engineReleaseId??"")===release);
+  const profileGroups = new Map<string, { title: string; profiles: SaveProfile[] }>();
+  for (const saved of savedProfiles) {
+    const work=catalog.find(work=>work.versions.some(version=>version.id===saved.versionId));
+    const key=work?.id??saved.versionId;
+    const group=profileGroups.get(key)??{title:work?.title??"已保存作品",profiles:[]};
+    group.profiles.push(saved);profileGroups.set(key,group);
+  }
   return (
     <Card className="account-cloud">
       <CardHeader>
         <CardTitle>
-          <h2>云端文件备份</h2>
+          <h2>我的云端备份</h2>
         </CardTitle>
         <CardDescription>
-          先从游戏内导出存档，再选择文件备份。保留历史；不会自动读取或覆盖浏览器里的游戏存档。
+          选择已有备份查看历史、下载或分享。上传文件会新建备份，已有历史保留。
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
+        {!profilesLoaded?<p role="status">正在读取备份目录…</p>:savedProfiles.length>0?<section className="backup-directory" aria-label="已有备份档案">{[...profileGroups].map(([key,group])=><div className="backup-group" key={key}><h3>{group.title}</h3><div className="backup-profile-list">{group.profiles.map(saved=>{
+          const work=catalog.find(work=>work.versions.some(version=>version.id===saved.versionId)),item=work?.versions.find(version=>version.id===saved.versionId);
+          return <Button key={saved.id} variant="outline" disabled={busy} aria-pressed={version===saved.versionId&&release===(saved.engineReleaseId??"")} onClick={()=>{setVersion(saved.versionId);setRelease(saved.engineReleaseId??"");setFiles([]);setMessage("")}}><span>{work?.title??"已保存作品"}{item?` · 版本 ${item.number}`:""}</span><small>{saved.head?"已有云端备份":"等待首次上传"} · {saved.engineReleaseId?"独立引擎档案":"原引擎档案"}</small></Button>;
+        })}</div></div>)}</section>:<p className="text-sm text-muted-foreground">还没有云端备份。可以在阅读器中备份到云端，或在这里上传游戏导出的文件。</p>}
+        <Label htmlFor="backup-version">选择其他作品或上传文件</Label>
         <NativeSelect
+          id="backup-version"
           aria-label="存档所属版本"
           disabled={busy}
           value={version}
@@ -273,10 +298,11 @@ export function CloudBackups({
             )),
           )}
         </NativeSelect>
-        {version && <div className="space-y-2"><Label htmlFor="account-engine-profile">引擎存档档案</Label><NativeSelect id="account-engine-profile" value={release} disabled={busy} onChange={e=>{setRelease(e.target.value);setFiles([]);setMessage('')}}><NativeSelectOption value="">原引擎档案</NativeSelectOption>{runtimeProfiles.filter(p=>p.versionId===version).map(p=><NativeSelectOption key={p.id} value={p.engineReleaseId}>新版独立档案 · {p.engineReleaseId?.slice(0,20)}</NativeSelectOption>)}</NativeSelect>{release&&<p className="text-sm text-muted-foreground">此档案属于新引擎 {release}。原引擎档案与历史保留。</p>}</div>}
+        {version && runtimeProfiles.some(p=>p.versionId===version) && <div className="space-y-2"><Label htmlFor="account-engine-profile">引擎存档档案</Label><NativeSelect id="account-engine-profile" value={release} disabled={busy} onChange={e=>{setRelease(e.target.value);setFiles([]);setMessage('')}}><NativeSelectOption value="">原引擎档案</NativeSelectOption>{runtimeProfiles.filter(p=>p.versionId===version).map(p=><NativeSelectOption key={p.id} value={p.engineReleaseId}>新版独立档案 · {p.engineReleaseId?.slice(0,20)}</NativeSelectOption>)}</NativeSelect>{release&&<p className="text-sm text-muted-foreground">此档案属于新引擎 {release}。原引擎档案与历史保留。</p>}</div>}
         {version && (
           <>
-            <div className="space-y-3">
+            <details className="backup-upload space-y-3">
+              <summary>上传游戏导出的文件</summary>
               <Label htmlFor="save-files">游戏导出的存档文件</Label>
               <Input
                 id="save-files"
@@ -294,9 +320,9 @@ export function CloudBackups({
                 disabled={busy || !files.length || pending.length > 0}
                 onClick={() => action(capture)}
               >
-                保留云端历史，保存为新备份
+                上传为新的云端备份
               </Button>
-            </div>
+            </details>
             {pending.map((draft) => (
               <div className="account-pending space-y-2" key={draft.key}>
                 <p>
@@ -315,7 +341,7 @@ export function CloudBackups({
                         const url = URL.createObjectURL(file.blob);
                         const a = document.createElement("a");
                         a.href = url;
-                        a.download = file.name;
+                        a.download = showNames ? file.name : `backup-file-${index + 1}`;
                         a.click();
                         setTimeout(() => URL.revokeObjectURL(url), 1000);
                       }}
@@ -373,7 +399,9 @@ export function CloudBackups({
                         <a
                           className="underline text-sm break-all max-w-full"
                           key={file.name}
-                          href={`/api/me/save-profiles/${profile!.id}/revisions/${revision.id}/files?name=${encodeURIComponent(file.name)}`}
+                          href="#"
+                          download={showNames ? file.name : `backup-file-${index + 1}`}
+                          onClick={event=>{event.preventDefault();void action(()=>downloadFile(revision,file,index))}}
                         >
                           下载 {showNames ? file.name : `文件 ${index + 1}`}
                         </a>
@@ -387,7 +415,7 @@ export function CloudBackups({
                             setConfirm({ kind: "restore", id: revision.id })
                           }
                         >
-                          设为当前云端备份
+                          设为最新云端备份
                         </Button>
                       )}
                     </div>

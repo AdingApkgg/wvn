@@ -19,8 +19,8 @@ export async function createOnsResourcePlan(pilot,manifest,origin,release,casMan
   const wasm=release.files?.find(f=>f.path==='onsyuri.wasm');if(!/^[a-f0-9]{64}$/.test(wasm?.sha256))throw Error('资源缓存引擎校验缺失');wasmHash=wasm.sha256;engine=`/__engines/resource/${release.id}/`;
  }
  const revision=await digest(new TextEncoder().encode(JSON.stringify([pilot.id,pilot.versionId,files]))),namespace=`game/${pilot.id}/${pilot.versionId}/${revision}`,resources=new Map();
- for(const file of files)resources.set('game:'+file.path,{key:namespace+'/'+file.path,namespace,url:new URL(file.url,origin).href,path:file.path,kind:'game',lazy:file.lazyload,...(cas?{sha256:cas.files.get(file.path).sha256}:{})});
- resources.set('engine:wasm',{key:`engine/${wasmHash}/onsyuri.wasm`,namespace:'engine/'+wasmHash,url:cas?cas.url('onsyuri.wasm'):assetOrigin+engine+'onsyuri.wasm',kind:'engine',sha256:wasmHash});
+ for(const file of files)resources.set('game:'+file.path,{key:namespace+'/'+file.path,namespace,url:new URL(file.url,origin).href,path:file.path,kind:'game',lazy:file.lazyload,...(cas?{sha256:cas.files.get(file.path).sha256,bytes:cas.files.get(file.path).bytes}:{})});
+ resources.set('engine:wasm',{key:`engine/${wasmHash}/onsyuri.wasm`,namespace:'engine/'+wasmHash,url:cas?cas.url('onsyuri.wasm'):assetOrigin+engine+'onsyuri.wasm',kind:'engine',sha256:wasmHash,...(cas?{bytes:cas.engines.get('onsyuri.wasm').bytes}:{})});
  const candidates=files.filter(f=>f.lazyload&&/\.(png|jpe?g|webp|ogg|mp3|wav)$/i.test(f.path)).map(f=>'game:'+f.path);
  return {pilot:pilot.id,versionId:pilot.versionId,revision,namespace,resources,candidates,manifest};
 }
@@ -43,8 +43,10 @@ export async function openResourceCacheStore(idb=globalThis.indexedDB){
 }
 export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fetch,now=()=>Date.now(),maxBytes=256*MiB,maxFileBytes=32*MiB,ttl=7*86400000,prefetchFiles=6,prefetchBytes=8*MiB,idleMs=1000,onStats=()=>{}}){
  const registered=new Set([...plan.resources.values()].map(row=>row.url));
- const transfer=createResilientFetch({fetcher,allowed:value=>typeof value==='string'&&value.startsWith('https://wvn-s3-zi0.saop.cc/')&&registered.has(value)});
+ const lengths=new Map([...plan.resources.values()].filter(row=>row.sha256&&Number.isSafeInteger(row.bytes)).map(row=>[row.url,row.bytes]));
+ const transfer=createResilientFetch({fetcher,allowed:value=>typeof value==='string'&&value.startsWith('https://wvn-s3-zi0.saop.cc/')&&registered.has(value),expectedBytes:value=>lengths.get(value)});
  const flights=new Map(),queue=[],queued=new Set(),waiters=[];let closed=false,foreground=0,background=null,timer=null,started=false,attempts=0,preloadBudget=prefetchBytes;
+ const writes=new Map();let pendingBytes=0,writeQueue=Promise.resolve();
  const stats={available:!!store,hits:0,downloads:0,preloaded:0,bytes:0,maxBytes,prefetching:false};
  const publish=()=>{try{onStats({...stats})}catch{/* 状态显示不影响游戏。 */}},remove=async keys=>{if(store)try{await store.remove(keys)}catch{stats.available=false;publish()}},meta=async()=>{try{return await store?.list()??[]}catch{stats.available=false;return []}};
  const initial=meta().then(rows=>{stats.bytes=rows.reduce((n,r)=>n+r.size,0);publish()});
@@ -58,32 +60,41 @@ export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fet
    await remove(evicted);check();await store.put(row);stats.bytes=used+row.size;
   }catch{stats.available=false}publish();
  }
+ function persist(row){
+  // 已验证的公开字节可先交给引擎；队列仅保留有限内存，不接触存档数据库。
+  if(!store||row.size>maxBytes||pendingBytes+row.size>Math.min(maxBytes,64*MiB))return;
+  pendingBytes+=row.size;writes.set(row.key,row);
+  writeQueue=writeQueue.then(()=>write(row)).finally(()=>{pendingBytes-=row.size;if(writes.get(row.key)===row)writes.delete(row.key);settle()});
+ }
  async function read(key,mode,signal,notify){
   check();await initial;const resource=plan.resources.get(key);if(!resource)throw Error('资源未登记');
-  let row;try{row=await store?.get(resource.key)}catch{stats.available=false}
+  let row=writes.get(resource.key);if(!row)try{row=await store?.get(resource.key)}catch{stats.available=false}
   check();
   if(row){
    if(row.expiresAt>now()&&row.data instanceof Uint8Array&&row.data.byteLength===row.size&&await digest(row.data)===row.sha256&&(!resource.sha256||row.sha256===resource.sha256)){
-    stats.hits++;try{await store.touch(row.key,now())}catch{stats.available=false}publish();return {data:new Uint8Array(row.data),source:'cache'};
+    stats.hits++;void store?.touch(row.key,now()).catch(()=>{stats.available=false});publish();return {data:new Uint8Array(row.data),source:'cache'};
    }
    await remove([resource.key]);
   }
-  const options={credentials:'omit',redirect:'error',cache:'no-store',signal};
-  const head=await transfer(resource.url,{...options,method:'HEAD'});check();if(!head.ok)throw Error('资源读取失败 '+head.status);
-  const length=decodedLength(head),limit=mode==='prefetch'?Math.min(maxFileBytes,MiB,preloadBudget):maxFileBytes;
+  const pinned=!!resource.sha256&&Number.isSafeInteger(resource.bytes)&&resource.bytes>=0;
+  const options={credentials:'omit',redirect:'error',cache:pinned?'force-cache':'no-store',signal};
+  let length=pinned?resource.bytes:null;
+  if(!pinned){const head=await transfer(resource.url,{...options,method:'HEAD'});check();if(!head.ok)throw Error('资源读取失败 '+head.status);length=decodedLength(head)}
+  const limit=mode==='prefetch'?Math.min(maxFileBytes,MiB,preloadBudget):maxFileBytes;
   if(length!==null&&length>limit||mode==='prefetch'&&(length===null||length===0))return {direct:true};
   if(mode==='prefetch'&&length!==null&&length>preloadBudget)return {direct:true};
   notify({loaded:0,total:length??0,source:'network'});
   const response=await transfer(resource.url,{...options,method:'GET'});check();if(response.status!==200||response.headers.has('content-range'))throw Error('资源响应无效');
-  const responseLength=decodedLength(response),expected=responseLength??length;
-  if(length!==null&&responseLength!==null&&length!==responseLength)throw Error('资源读取期间大小发生变化');
+  const responseLength=decodedLength(response),expected=pinned?length:responseLength??length;
+  if(!pinned&&length!==null&&responseLength!==null&&length!==responseLength)throw Error('资源读取期间大小发生变化');
   const reader=response.body?.getReader(),chunks=[];let received=0;
   if(reader){try{for(;;){const part=await reader.read();check();if(part.done)break;received+=part.value.byteLength;if(received>limit){await reader.cancel();return {direct:true}}chunks.push(part.value);notify({loaded:received,total:expected??0,source:'network'})}}finally{reader.releaseLock()}}
   else {const data=new Uint8Array(await response.arrayBuffer());received=data.byteLength;if(received>limit)return {direct:true};chunks.push(data)}
   check();if(expected!==null&&received!==expected)throw Error('资源大小与响应头不符');
   const data=new Uint8Array(received);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength}
   const sha256=await digest(data);if(resource.sha256&&sha256!==resource.sha256)throw Error('共享引擎校验失败');
-  await write({key:resource.key,namespace:resource.namespace,size:received,sha256,data,accessedAt:now(),expiresAt:now()+ttl});
+  const saved={key:resource.key,namespace:resource.namespace,size:received,sha256,data,accessedAt:now(),expiresAt:now()+ttl};
+  if(store?.putBounded)persist(saved);else await write(saved);
   check();stats.downloads++;if(mode==='prefetch'){stats.preloaded++;preloadBudget-=received}publish();return {data,source:'network'};
  }
  async function obtain(key,mode,listener=()=>{}){
@@ -96,21 +107,25 @@ export function createOnsResourceSession({plan,store=null,fetcher=globalThis.fet
   }
   flight.listeners.add(listener);try{const value=await flight.promise;return value.data?{...value,data:new Uint8Array(value.data)}:value}finally{flight.listeners.delete(listener)}
  }
- function settle(){if(!timer&&!background&&!queue.length)for(const resolve of waiters.splice(0))resolve()}
+ function settle(){if(!timer&&!background&&!queue.length&&!writes.size)for(const resolve of waiters.splice(0))resolve()}
  function schedule(){
   if(!store||!stats.available||maxFileBytes<=0){queue.length=0;settle();return}
   if(closed||!started||foreground||background||timer||!queue.length||stats.preloaded>=prefetchFiles||preloadBudget<=0||attempts>=24){if(stats.preloaded>=prefetchFiles||preloadBudget<=0||attempts>=24)queue.length=0;settle();return}
   timer=setTimeout(async()=>{timer=null;if(closed)return;const key=queue.shift();attempts++;const token={key};background=token;stats.prefetching=true;publish();try{await obtain(key,'prefetch')}catch{/* 预加载失败不干扰阅读。 */}finally{if(background===token)background=null;stats.prefetching=false;publish();schedule();settle()}},idleMs);
  }
- function enqueue(keys){for(const key of keys){if(queue.length>=24)break;if(!queued.has(key)){queued.add(key);queue.push(key)}}schedule()}
+ function enqueue(keys,priority=false){
+  const next=[];for(const key of keys){const at=queue.indexOf(key);if(priority&&at>=0)queue.splice(at,1);else if(queued.has(key))continue;queued.add(key);next.push(key)}
+  if(priority)queue.unshift(...next);else queue.push(...next);for(const dropped of queue.splice(24))queued.delete(dropped);schedule();
+ }
  return {
   async load(key,onProgress=()=>{}){
    check();if(!plan.resources.has(key))throw Error('资源未登记');foreground++;if(timer){clearTimeout(timer);timer=null}
+   const waiting=queue.indexOf(key);if(waiting>=0)queue.splice(waiting,1);queued.add(key);
    if(background&&background.key!==key)flights.get(background.key)?.controller.abort();
-   try{return await obtain(key,'demand',onProgress)}finally{foreground--;if(key.startsWith('game:')&&started){const index=plan.candidates.indexOf(key);if(index>=0)enqueue(plan.candidates.slice(index+1,index+4))}schedule();settle()}
+   try{return await obtain(key,'demand',onProgress)}finally{foreground--;if(key.startsWith('game:')&&started){const index=plan.candidates.indexOf(key);if(index>=0)enqueue(plan.candidates.slice(index+1,index+4),true)}schedule();settle()}
   },
   startPrefetch(){started=true;enqueue(plan.candidates.slice(0,12))},
-  whenIdle(){return !timer&&!background&&!queue.length?Promise.resolve():new Promise(resolve=>waiters.push(resolve))},
+  whenIdle(){return !timer&&!background&&!queue.length&&!writes.size?Promise.resolve():new Promise(resolve=>waiters.push(resolve))},
   stats(){return {...stats}},
   close(){closed=true;if(timer)clearTimeout(timer);timer=null;queue.length=0;for(const value of flights.values())value.controller.abort();for(const resolve of waiters.splice(0))resolve();},
  };

@@ -1,4 +1,5 @@
 import { registrationFixture } from "../helpers/webauthn.ts";
+import { RULE_QUESTIONS } from "../../src/content/quiz";
 import { test, expect, type Page } from "@playwright/test";
 const origin = process.env.WG_ACCOUNT_TEST_URL;
 test.use({ ignoreHTTPSErrors: false });
@@ -9,6 +10,19 @@ import {
   login,
   api,
 } from "../helpers/account-browser";
+
+async function allowPrivateNames(page: Page) {
+  await expect.poll(async()=>(await api(page,"/api/me")).status).toBe(200);
+  const access=await api(page,"/api/me/content");
+  expect(access.status).toBe(200);
+  if(access.data.canViewRestricted)return;
+  const attempt=(await api(page,"/api/me/content/attempts",{})).data;
+  const answers=Object.fromEntries(attempt.questions.map((question:any)=>[question.id,RULE_QUESTIONS.find(rule=>rule.id===question.id)!.correctChoiceId]));
+  expect((await api(page,`/api/me/content/attempts/${attempt.id}/submit`,{answers})).status).toBe(200);
+  expect((await api(page,"/api/me/content/mode",{mode:"restricted"},"PATCH")).status).toBe(200);
+  await page.evaluate(()=>window.dispatchEvent(new StorageEvent("storage",{key:"wg-content-change",newValue:"qualified-test-setup"})));
+  if(await page.locator(".site-navigation").count())await expect(page.getByRole("link",{name:"NSFW 已开启",exact:true})).toBeVisible();
+}
 test("Passkey-first: registration, sign-out, login and last-key protection", async ({
   page,
 }) => {
@@ -107,14 +121,14 @@ test("account page lets a player register and keep a recovery kit", async ({
   await page.goto(origin + "/account");
   await authenticator(page);
   await expect(
-    page.getByRole("heading", { name: "管理你的作品与存档" }),
+    page.getByRole("heading", { name: "登录后管理你的书架" }),
   ).toBeVisible();
   await page.getByRole("tab", { name: "创建账号", exact: true }).click();
   await page.getByLabel("昵称").fill("UI Reader");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
-  await expect(page.getByRole("heading", { name: "我的故事" })).toBeVisible();
-  await page.getByRole("tab", { name: "账号安全", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "书架", exact: true })).toBeVisible();
+  await page.getByRole("navigation",{name:"主要导航"}).getByRole("link", { name: "设置", exact: true }).click();
   await page.getByRole("button", { name: "生成恢复码" }).click();
   await expect(
     page.getByRole("heading", { name: "保存你的恢复码" }),
@@ -175,6 +189,7 @@ test("private library survives login and another account cannot read it", async 
   await page.goto(origin + "/health");
   await authenticator(page);
   expect((await register(page, "Book Owner")).status).toBe(200);
+  await allowPrivateNames(page);
   const catalog = await api(page, "/api/account-catalog");
   const work = catalog.data[0];
   expect(work).toBeTruthy();
@@ -275,18 +290,20 @@ test("manual cloud backup uploads exact files and restores history without touch
   await page.getByLabel("昵称").fill("Cloud Reader");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
-  await page.getByRole("tab", { name: "存档", exact: true }).click();
+  await allowPrivateNames(page);
+  await page.getByRole("navigation",{name:"主要导航"}).getByRole("link", { name: "存档", exact: true }).click();
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
   const version = await select.locator("option").nth(1).getAttribute("value");
   await select.selectOption(version!);
+  await page.locator(".backup-upload > summary").click();
   await page.getByLabel("游戏导出的存档文件").setInputFiles({
     name: "save1.dat",
     mimeType: "application/octet-stream",
     buffer: Buffer.from("progress-one"),
   });
   await page
-    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .getByRole("button", { name: "上传为新的云端备份" })
     .click();
   await expect(page.getByRole("status")).toContainText("文件备份已保存到云端");
   const firstDownload = page.waitForEvent("download");
@@ -306,12 +323,12 @@ test("manual cloud backup uploads exact files and restores history without touch
     buffer: Buffer.from("progress-two"),
   });
   await page
-    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .getByRole("button", { name: "上传为新的云端备份" })
     .click();
   await expect(
     page.getByRole("link", { name: "下载 save1.dat", exact: true }),
   ).toHaveCount(2);
-  await page.getByRole("button", { name: "设为当前云端备份" }).click();
+  await page.getByRole("button", { name: "设为最新云端备份" }).click();
   await page
     .getByRole("alertdialog")
     .getByRole("button", { name: "确认", exact: true })
@@ -340,11 +357,13 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
   await page.getByLabel("昵称").fill("Draft Owner");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
-  await page.getByRole("tab", { name: "存档", exact: true }).click();
+  await allowPrivateNames(page);
+  await page.getByRole("navigation",{name:"主要导航"}).getByRole("link", { name: "存档", exact: true }).click();
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
   const version = await select.locator("option").nth(1).getAttribute("value");
   await select.selectOption(version!);
+  await page.locator(".backup-upload > summary").click();
   await page.route("**/api/me/uploads/*/files/*", (route) => route.abort());
   await page.getByLabel("游戏导出的存档文件").setInputFiles({
     name: "pending.dat",
@@ -352,7 +371,7 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
     buffer: Buffer.from("offline-progress"),
   });
   await page
-    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .getByRole("button", { name: "上传为新的云端备份" })
     .click();
   await expect(
     page.getByRole("button", { name: "继续上传", exact: true }),
@@ -364,11 +383,13 @@ test("interrupted cloud upload stays local after reload and is hidden from a dif
   await expect(
     page.getByRole("button", { name: "继续上传", exact: true }),
   ).toBeVisible();
+  await page.getByRole("navigation",{name:"主要导航"}).getByRole("link",{name:"设置",exact:true}).click();
   await page.getByRole("button", { name: "退出账号", exact: true }).click();
   await page.getByRole("tab", { name: "创建账号", exact: true }).click();
   await page.getByLabel("昵称").fill("Other Draft Reader");
   await expect(page.locator("#account-invite")).toHaveCount(0);
   await page.getByRole("button", { name: "创建通行密钥并注册" }).click();
+  await page.getByRole("navigation",{name:"主要导航"}).getByRole("link",{name:"存档",exact:true}).click();
   await page
     .getByRole("combobox", { name: "存档所属版本" })
     .selectOption(version!);
@@ -477,7 +498,7 @@ test("late rotation refresh cannot restore A recovery secrets after a cross-tab 
       await released;
       await route.fulfill({ response }).catch(() => {});
     });
-    await page.getByRole("tab", { name: "账号安全", exact: true }).click();
+    await page.getByRole("navigation",{name:"主要导航"}).getByRole("link", { name: "设置", exact: true }).click();
     await page.getByRole("button", { name: "生成恢复码", exact: true }).click();
     await held;
     await page.context().addCookies(cookiesB);

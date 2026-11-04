@@ -22,8 +22,10 @@ export async function recordReading(workId:string,versionId:string){
  try{
   await navigator.locks.request('wvn-reading-visitor',async()=>{
    for(let i=0;i<2;i++){
-    const r=await fetch('/api/public/works/'+encodeURIComponent(workId)+'/read',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({versionId}),signal:AbortSignal.timeout(5000)});
-    if(r.status===202&&i===0&&(await r.json()).visitorRequired)continue;
+    const r=await fetch('/api/public/works/'+encodeURIComponent(workId)+'/read',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({versionId}),keepalive:true,signal:AbortSignal.timeout(15000)});
+    // Drain the terminal response too, before its timeout can abort an unread body.
+    const body=await r.json();
+    if(r.status===202&&i===0&&body.visitorRequired)continue;
     return;
    }
   });
