@@ -18,6 +18,7 @@ export type LibraryEntry = {
   workId: string;
   status: string;
   note: string;
+  noteHidden?: boolean;
   revision: number;
   lastVersionId: string | null;
   seconds: number;

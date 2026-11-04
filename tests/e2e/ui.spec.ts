@@ -36,6 +36,7 @@ test("catalog filtering works without JavaScript", async ({ browser }) => {
     const page = await context.newPage();
     await page.goto((process.env.WG_TEST_URL ?? "http://127.0.0.1:8281") + "/");
     await page.getByRole("searchbox").fill("ATRI");
+    await page.locator(".advanced-filters > summary").click();
     await page.getByRole("combobox", { name: /引擎/ }).selectOption("Artemis");
     await page.getByRole("button", { name: "查找" }).click();
     await expect(page.locator(".story-card")).toHaveCount(1);
@@ -52,6 +53,7 @@ test("narrow layouts retain accessible filters and the story directory", async (
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     await expect(page.getByRole("searchbox")).toBeVisible();
+    await page.locator(".advanced-filters > summary").click();
     await expect(
       page.getByRole("combobox", { name: "引擎", exact: true }),
     ).toBeVisible();

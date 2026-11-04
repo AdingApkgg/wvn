@@ -29,13 +29,28 @@ export function createCasResolver(manifest,entry,{mainOrigin,sharedEngine=true}=
  }
  return {manifest,files,engines,urls,base,path,row,url};
 }
+const interruptedManifestBodies=new WeakSet();
 export async function readCasManifest(response,entry,options){
  if(!response.ok)throw Error('资源清单不可用');
  const limit=32*1024**2;if(Number(response.headers.get('content-length'))>limit)throw Error('资源清单过大');
  const reader=response.body.getReader(),chunks=[];let size=0;
- try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>limit){await reader.cancel();throw Error('资源清单过大')}chunks.push(value)}}finally{reader.releaseLock()}
+ try{for(;;){let part;try{part=await reader.read()}catch(error){if(error instanceof TypeError)interruptedManifestBodies.add(error);throw error}const {done,value}=part;if(done)break;size+=value.byteLength;if(size>limit){await reader.cancel();throw Error('资源清单过大')}chunks.push(value)}}finally{reader.releaseLock()}
  const bytes=new Uint8Array(size);let offset=0;for(const part of chunks){bytes.set(part,offset);offset+=part.byteLength}
  const manifest=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));createCasResolver(manifest,entry,options);return manifest;
+}
+// 仅公共清单的传输中断限次重读；HTTP拒绝、内容/身份校验失败及主动取消原样失败。
+export async function loadCasManifest(entry,{engine,signal,fetcher=globalThis.fetch,...options}={}){
+ const url='/api/player/'+encodeURIComponent(entry.id)+'/resources'+(engine?'?engine='+encodeURIComponent(engine):'');
+ for(let attempt=0;;attempt++){
+  signal?.throwIfAborted();let transportFailure=false;
+  try{
+   let response;try{response=await fetcher(url,{credentials:'omit',cache:'no-store',redirect:'error',signal})}catch(error){transportFailure=error instanceof TypeError;throw error}
+   signal?.throwIfAborted();const manifest=await readCasManifest(response,entry,options);signal?.throwIfAborted();return manifest;
+  }catch(error){
+   signal?.throwIfAborted();if(attempt!==0||!transportFailure&&!interruptedManifestBodies.has(error))throw error;
+   await new Promise((resolve,reject)=>{const done=()=>{signal?.removeEventListener('abort',abort);resolve()},timer=setTimeout(done,200),abort=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);reject(signal.reason)};signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort()});
+  }
+ }
 }
 const unescapeCss=value=>value.replace(/\\(?:([a-f\d]{1,6})\s?|([^\r\n\f])|\r?\n)/gi,(_,hex,char)=>hex?String.fromCodePoint(parseInt(hex,16)>0x10ffff||parseInt(hex,16)>=0xd800&&parseInt(hex,16)<=0xdfff?0xfffd:parseInt(hex,16)||0xfffd):char??'');
 function stringEnd(text,start){const quote=text[start];let i=start+1;for(;i<text.length;i++){if(text[i]==='\\'){i++;continue}if(text[i]===quote)return i+1}throw Error('Unterminated CSS string')}
@@ -66,6 +81,10 @@ export function rewriteCasCssUrls(text,path,resolver,{ignoreImports=false}={}){
  text=text.replace(/\r\n?|\f/g,'\n').replace(/\0/g,'\ufffd');
  let result='',offset=0;for(const token of cssTokens(text)){if(token.imported){if(!ignoreImports)throw Error('CSS import requires preparation');result+=text.slice(offset,token.start);offset=token.end;continue;}result+=text.slice(offset,token.start)+'url('+JSON.stringify(resolver.url(token.value,path))+')';offset=token.end}return result+text.slice(offset);
 }
+// 原生层存档只投影实际CSS引用；不改注释、字符串或未匹配资源。
+export function projectCasCssUrls(text,project){
+ let result='',offset=0;for(const token of cssTokens(text)){const value=project(token.value);if(value===token.value)continue;result+=text.slice(offset,token.start)+(token.imported?'@import url('+JSON.stringify(value)+')'+(token.media?' '+token.media:'')+';':'url('+JSON.stringify(value)+')');offset=token.end}return result+text.slice(offset);
+}
 export async function rewriteCasCss(text,path,resolver,read,parents=new Set()){
  text=text.replace(/\r\n?|\f/g,'\n').replace(/\0/g,'\ufffd');
  if(parents.has(path))return '';if(parents.size>=32||text.length>8*1024**2)throw Error('CSS dependency limit');
@@ -88,7 +107,7 @@ function cssParts(parts){
  const text=normalized.join(''),tokens=cssTokens(text);
  function apply(values){
   const output=normalized.map(()=>''),copy=(start,end)=>{for(let i=0;i<output.length;i++)if(start<bounds[i+1]&&end>bounds[i])output[i]+=text.slice(Math.max(start,bounds[i]),Math.min(end,bounds[i+1]));};let offset=0;
-  tokens.forEach((token,index)=>{copy(offset,token.start);const owner=normalized.findIndex((_,i)=>token.start<bounds[i+1]);output[owner]+=values[index];offset=token.end;});copy(offset,text.length);return output;
+  tokens.forEach((token,index)=>{copy(offset,token.start);if(text.slice(token.start,token.end)===values[index]){copy(token.start,token.end);offset=token.end;return;}const owner=normalized.findIndex((_,i)=>token.start<bounds[i+1]);output[owner]+=values[index];offset=token.end;});copy(offset,text.length);return output;
  }
  return {text,tokens,apply};
 }
@@ -99,8 +118,35 @@ export async function rewriteCasCssPartsAsync(parts,path,resolver,read){
  const source=cssParts(parts),values=[];for(const token of source.tokens)values.push(await rewriteCasCss(source.text.slice(token.start,token.end),path,resolver,read));return source.apply(values);
 }
 
+// 只预热已审计版本中浏览器原本先选用的TTF，不改src顺序、字体或CSS正文。
+export async function prepareAuditedCssFonts(text,path,resolver,actualSha,prepare,signal){
+ const cssSha='b9a367e220f1136187f548f392455a74bd2b7a7bea78d8614e88780cba9f95ef',fontPath='data/others/这份恋情、予以保留、.ttf',fontSha='137729c9209fdf7ae9503f4407d7a0b95b872c67ee921ebc0ce4c4cba327bcce';
+ if(typeof prepare!=='function'||resolver.manifest.pilot!=='tyrano-v49795-1'||path!=='tyrano/css/font.css'||actualSha!==cssSha||resolver.files.get(path)?.sha256!==cssSha||resolver.files.get(path)?.bytes!==1478)return [];
+ const tokens=cssTokens(text);if(tokens.length!==3||tokens.some(t=>t.imported)||tokens[0].value!=='../../'+fontPath)return [];
+ const row=resolver.row(tokens[0].value,path);if(row.sha256!==fontSha||row.bytes!==11728152||row.contentType!=='font/ttf')return [];
+ signal?.throwIfAborted();await prepare(row.url,signal);signal?.throwIfAborted();return ['这份恋情、予以保留、'];
+}
+
 // 已核验冻结原包缺少这些jQuery UI纹理/图标；仅恢复原浏览器404后的显示效果。
 export function applyCasCssCompatibility(text,path,resolver,actualSha){
+ // 原生UTF8解析已证明这些face的所有候选均不可用；禁止转码或替换字体。
+ const fontScopes=[
+  {pilots:['tyrano-b315601-1','tyrano-v18636-1'],path:'tyrano/font.css',sha:'20fa3e8307a3ed04f0ae7fdd845c4c6f971f5d0ba85c02f4aefa51f6d34ba99f',bytes:440,faces:1,candidates:4},
+  {pilots:['tyrano-v36554-1','tyrano-v36555-1'],path:'tyrano/font.css',sha:'d5ac434510c66ba950129d5dd0e4991c132e594cfad451dcd1445e3edf79c5e2',bytes:1800,faces:4,candidates:3},
+  {pilots:['tyrano-v36556-1'],path:'tyrano/font.css',sha:'5eb8b81d8376de74c53f3a39983218c1a793773f1df85c0993f7108ddcfdafbc',bytes:3150,faces:7,candidates:3},
+  {pilots:['tyrano-v36557-1','tyrano-v44249-1'],path:'tyrano/css/font.css',sha:'c3d124b364a4282e49f2d6183817dddfc6f782b6724912cf7834e8464fbcee8a',bytes:1389,faces:3,candidates:3},
+ ];
+ const scope=fontScopes.find(item=>item.pilots.includes(resolver.manifest.pilot)&&item.path===path&&item.sha===actualSha&&resolver.files.get(path)?.sha256===item.sha&&resolver.files.get(path)?.bytes===item.bytes);
+ if(scope){
+  const faces=[...text.matchAll(/@font-face\s*\{[^{}]*\}/g)],paths=[];
+  if(faces.length!==scope.faces)return {text};
+  for(const face of faces){const candidates=cssTokens(face[0]);if(candidates.length!==scope.candidates||candidates.some(token=>token.imported))return {text};
+   for(const token of candidates){try{resolver.row(token.value,path);return {text};}catch(error){if(!error.message.startsWith('Unregistered resource: '))return {text};}paths.push(resolver.path(token.value,path));}
+  }
+  let result='',offset=0;for(const face of faces){result+=text.slice(offset,face.index);offset=face.index+face[0].length;}
+  return {text:result+text.slice(offset),applied:{id:'tyrano-unavailable-native-font-faces',paths:[...new Set(paths)],source:path,sha256:scope.sha,tokens:paths.length,faces:faces.length}};
+ }
+
  const sha='832bd58857e7687c61635c0a29aa28e05fdad430e56069952745fc5170a6501e';
  const pilots=['tyrano-b315601-1','tyrano-v18636-1','tyrano-v36554-1','tyrano-v36555-1','tyrano-v36556-1','tyrano-v36557-1','tyrano-v36558-1','tyrano-v49795-1'];
  const names=['animated-overlay.gif','ui-bg_highlight-soft_75_cccccc_1x100.png','ui-bg_glass_75_e6e6e6_1x400.png','ui-bg_glass_75_dadada_1x400.png','ui-bg_glass_65_ffffff_1x400.png','ui-bg_glass_55_fbf9ee_1x400.png','ui-bg_glass_95_fef1ec_1x400.png','ui-icons_888888_256x240.png','ui-icons_454545_256x240.png','ui-icons_2e83ff_256x240.png','ui-icons_cd0a0a_256x240.png','ui-bg_flat_0_aaaaaa_40x100.png'];

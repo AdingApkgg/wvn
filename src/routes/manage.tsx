@@ -43,7 +43,8 @@ import {
   AlertDialogAction,
 } from "../components/ui/alert-dialog";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {useBlocker} from "react-router";
 import { metadataSourceLabel } from "../metadata-sources.ts";
 import { workSlug, providerLink } from "../identity.ts";
 import type { PublicWork, PublicVersion } from "../types.ts";
@@ -60,7 +61,15 @@ export default function Manage() {
     [logged, setLogged] = useState(false),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false),
-    [query, setQuery] = useState("");
+    [query, setQuery] = useState(""),
+    [selectedWork,setSelectedWork]=useState(""),
+    [collapsedWork,setCollapsedWork]=useState("");
+  const baselines=useRef(new Map<string,number>()),dirtyForms=useRef(new Set<HTMLFormElement>()),submitting=useRef<HTMLFormElement|null>(null),root=useRef<HTMLElement>(null);
+  const [dirty,setDirty]=useState(false),blocker=useBlocker(dirty);
+  useEffect(()=>{if(!dirty)return;const guard=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue=""};window.addEventListener("beforeunload",guard);return()=>window.removeEventListener("beforeunload",guard)},[dirty]);
+  useEffect(()=>{const saved=(event:Event)=>{if(event.target instanceof HTMLFormElement){dirtyForms.current.delete(event.target);setDirty(dirtyForms.current.size>0)}};root.current?.addEventListener("wvn-form-saved",saved);return()=>root.current?.removeEventListener("wvn-form-saved",saved)},[]);
+  const matches=items.filter(work=>(work.title+work.id+work.aliases.join(" ")).toLowerCase().includes(query.toLowerCase()));
+  const currentWork=matches.some(work=>work.id===selectedWork)?selectedWork:matches[0]?.id??"";
   async function api(path: string, method = "GET", body?: unknown) {
     const r = await fetch("/api/manage/" + path, {
       method,
@@ -74,6 +83,8 @@ export default function Manage() {
           ? "记录已变化，请刷新列表后重新应用编辑；输入已保留。"
           : (data.error ?? "请求失败"),
       );
+    const edited=/^(?:works|versions)\/([^/]+)(?:\/reassign)?$/.exec(path);
+    if(edited&&typeof data.revision==="number")baselines.current.set(edited[1],data.revision);
     return data;
   }
   async function reload() {
@@ -82,6 +93,7 @@ export default function Manage() {
       api("sources"),
       api("pending"),
     ]);
+    for(const work of catalog){if(!baselines.current.has(work.id))baselines.current.set(work.id,work.revision);for(const version of work.versions)if(!baselines.current.has(version.id))baselines.current.set(version.id,version.revision)}
     setItems(catalog);
     setSources(data.entries ?? []);
     setPending(unresolved);
@@ -91,9 +103,11 @@ export default function Manage() {
     reload().catch(() => {});
   }, []);
   async function act(fn: () => Promise<any>) {
+    const form=submitting.current;submitting.current=null;
     setBusy(true);
     try {
       await fn();
+      if(form){dirtyForms.current.delete(form);setDirty(dirtyForms.current.size>0)}
       setMessage("已保存");
       await reload();
     } catch (e) {
@@ -103,7 +117,7 @@ export default function Manage() {
     }
   }
   return (
-    <main className="container manage">
+    <main ref={root} className="container manage" onChangeCapture={event=>{const form=(event.target as HTMLElement).closest("form");if(logged&&form){dirtyForms.current.add(form);setDirty(true)}}} onSubmitCapture={event=>{submitting.current=event.target as HTMLFormElement}}>
       <div className="admin-heading">
         <a className="brand" href="/manage">
           {brand.shortName}<span>私有管理</span>
@@ -185,8 +199,8 @@ export default function Manage() {
               <TabsTrigger value="engines">引擎与 SDK</TabsTrigger>
               <TabsTrigger value="classification">内容分类</TabsTrigger>
             </TabsList>
-            <TabsContent value="engines"><EngineManagement /></TabsContent>
-            <TabsContent value="classification"><ContentClassificationManagement api={api} catalog={items} onSaved={reload} /></TabsContent>
+            <TabsContent value="engines" forceMount className="data-[state=inactive]:hidden"><EngineManagement /></TabsContent>
+            <TabsContent value="classification" forceMount className="data-[state=inactive]:hidden"><ContentClassificationManagement api={api} catalog={items} onSaved={reload} /></TabsContent>
             <TabsContent
               value="catalog"
               forceMount
@@ -211,19 +225,16 @@ export default function Manage() {
                 {items.length} 部作品 ·{" "}
                 {items.reduce((n, w) => n + w.versions.length, 0)} 条版本记录
               </p>
-              <Accordion type="multiple" className="work-editors">
-                {items
-                  .filter((w) =>
-                    (w.title + w.id + w.aliases.join(" "))
-                      .toLowerCase()
-                      .includes(query.toLowerCase()),
-                  )
-                  .map((w) => (
+              <div className="admin-work-layout">
+              <nav className="admin-work-list" aria-label="选择编辑作品">{matches.map(work=><Button key={work.id} variant="outline" aria-pressed={work.id===currentWork} onClick={()=>{setSelectedWork(work.id);setCollapsedWork("")}}>{work.title}<span className="text-xs text-muted-foreground">{work.id}</span></Button>)}{!matches.length&&<p>没有匹配的作品。</p>}</nav>
+              <Accordion type="multiple" value={currentWork&&collapsedWork!==currentWork?[currentWork]:[]} onValueChange={values=>setCollapsedWork(values.length?"":currentWork)} className="work-editors admin-work-editors">
+                {items.map((w) => (
                     <AccordionItem
                       key={w.id}
                       value={w.id}
                       data-work-id={w.id}
                       className="work-editor"
+                      hidden={w.id!==currentWork}
                     >
                       <AccordionTrigger>
                         {w.title}{" "}
@@ -244,7 +255,7 @@ export default function Manage() {
                             const f = new FormData(e.currentTarget);
                             act(() =>
                               api("works/" + w.id, "PATCH", {
-                                revision: w.revision,
+                                revision: baselines.current.get(w.id)??w.revision,
                                 patch: {
                                   title: f.get("title"),
                                   aliases: String(f.get("aliases"))
@@ -322,7 +333,7 @@ export default function Manage() {
                             save={(patch) =>
                               act(() =>
                                 api("versions/" + v.id, "PATCH", {
-                                  revision: v.revision,
+                                  revision: baselines.current.get(v.id)??v.revision,
                                   patch,
                                 }),
                               )
@@ -330,7 +341,7 @@ export default function Manage() {
                             reassign={(id) =>
                               act(() =>
                                 api("versions/" + v.id + "/reassign", "POST", {
-                                  revision: v.revision,
+                                  revision: baselines.current.get(v.id)??v.revision,
                                   workId: id,
                                 }),
                               )
@@ -383,6 +394,7 @@ export default function Manage() {
                     </AccordionItem>
                   ))}
               </Accordion>
+              </div>
             </TabsContent>
             <TabsContent
               value="sources"
@@ -549,6 +561,7 @@ export default function Manage() {
           </Tabs>
         </>
       )}
+      <AlertDialog open={blocker.state==="blocked"} onOpenChange={open=>{if(!open&&blocker.state==="blocked")blocker.reset()}}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>有尚未保存的管理草稿</AlertDialogTitle><AlertDialogDescription>返回可继续编辑。离开只会放弃未提交内容，已保存记录不变。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>返回编辑</AlertDialogCancel><AlertDialogAction onClick={()=>{if(blocker.state==="blocked")blocker.proceed()}}>放弃草稿并离开</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     </main>
   );
 }

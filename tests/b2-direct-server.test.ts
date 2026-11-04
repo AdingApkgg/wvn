@@ -40,7 +40,9 @@ test('ONS 清单尊重 gzip 禁用与通配协商，HEAD 不发送正文',async(
 
 test('CAS 入口在清单就绪前惰性，所有旧正文端点关闭且不跳转',async()=>{
  const app=setup(true),response=await app.request('/__player/resource/artemis-v27448-1/index.html');
- const html=await response.text();assert.match(html,/<template id="wg-cas-document">/);assert.match(html,/application\/x-wg-script/);
+ const html=await response.text(),carrier=/<script id="wg-cas-document" type="application\/json">([\s\S]*?)<\/script>/.exec(html);assert(carrier);
+ const document=JSON.parse(carrier[1]);assert.match(document,/application\/x-wg-script/);assert.match(document,/engine\.js/);
+ assert(!carrier[1].includes('<'));assert.doesNotMatch(html,/<script src="engine\.js"/);
  assert.match(response.headers.get('content-security-policy')!,/connect-src https:\/\/wvn-s3-zi0.saop.cc/);
  for(const path of ['/__ons/manifest/clannad','/__ons/data/clannad/nscript.dat','/__ons/engine/abc/onsyuri.js','/__player/resource/artemis-v27448-1/artemis.wasm','/__engines/resource/renpy-'+ 'a'.repeat(64)+'/renpy.wasm']){
   const r=await app.request(path);assert.equal(r.status,404);assert.equal(r.headers.get('location'),null);

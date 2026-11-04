@@ -17,6 +17,9 @@ import {projectWork,accessError} from '../content/policy.ts';
 import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
 import {useLayoutEffect} from 'react';
+import { splitSynopsis } from "../lib/reader-experience";
+import { ShelfButton } from "../accounts/shelf-button";
+import {useLocalReading} from '../accounts/local-reading';
 export async function loader({
   params,
   request,
@@ -64,6 +67,7 @@ export default function Work() {
   const loaded = useLoaderData<typeof loader>();
   const content = useContentAccess();
   const projected = 'restricted' in loaded ? null : content.enabled ? projectWork(loaded,content.access) : loaded;
+  const localReading=useLocalReading(projected?.versions??[]);
   const title = projected?.title ?? '受限内容';
   const blocked = !projected;
   useLayoutEffect(()=>{
@@ -79,9 +83,11 @@ export default function Work() {
   // 版本备注和图片立即按当前权限重投影；旧受限快照的分享原文须等公共 SSR 快照后才恢复。
   const staleShares=content.enabled&&!content.access.canViewRestricted&&loaded.contentVisibility==='restricted';
   const w={...loaded,...projected,shares:staleShares?null:loaded.shares};
-  const primary = w.versions.find(v => v.id === w.defaultVersionId) ?? w.versions[0];
+  const previous=localReading.items.flatMap(item=>w.versions.filter(version=>version.id===item.id&&!('contentRestricted' in version&&version.contentRestricted)))[0];
+  const primary = previous ?? w.versions.find(v => v.id === w.defaultVersionId) ?? w.versions[0];
   const description = w.metadata?.description ?? "";
-  const summary = (description.split("[中文简介]")[1] ?? description).trim().split(/\n\s*\n/)[0];
+  const summary = splitSynopsis(description).primary.split(/\n\s*\n/)[0];
+  const readLabel = (version: typeof primary) => 'contentRestricted' in version && version.contentRestricted ? content.access.authenticated && content.access.eligibility === 'qualified' ? '开启显示后阅读' : '取得资格后阅读' : localReading.items.some(item=>item.id===version.id)?'继续阅读':'开始阅读';
   return (
     <main className="container work">
       <nav className="work-breadcrumb" aria-label="面包屑"><Link to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
@@ -105,7 +111,8 @@ export default function Work() {
           <p className="original">{w.originalTitle}</p>
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
-            <Button asChild size="lg"><Link to={primary.url}>{'contentRestricted' in primary&&primary.contentRestricted?'取得资格后阅读':'开始阅读'}</Link></Button>
+            <Button asChild size="lg"><Link to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
+            <ShelfButton key={w.id} workId={w.id} workUrl={w.url}/>
             {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
           <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>
@@ -114,7 +121,7 @@ export default function Work() {
         </div>
       </section>
       {w.metadata && <WorkMetadataPanel metadata={w.metadata} title={w.title} />}
-      <details id="work-versions" className="work-versions" open={w.versions.length > 1 || undefined}>
+      <details id="work-versions" className="work-versions">
         <summary>{w.versions.length > 1 ? `版本选择 · ${w.versions.length} 个版本` : "版本与检查记录"}</summary>
         <div className="version-list">
           {w.versions.map(v => <Card key={v.id} className="version">
@@ -123,7 +130,7 @@ export default function Work() {
               {v.notes && <p className="muted">{v.notes}</p>}
               <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>
-            <Button asChild variant="outline"><Link to={v.url}>阅读版本 {v.number}</Link></Button>
+            <Button asChild variant="outline"><Link to={v.url} state={{startReading:v.id}}>{readLabel(v)} · 版本 {v.number}</Link></Button>
           </Card>)}
         </div>
         {!!w.aliases.length && <details className="metadata-titles"><summary>别名 · {w.aliases.length}</summary><div className="aliases">{w.aliases.map(x => <Badge key={x} variant="secondary">{x}</Badge>)}</div></details>}

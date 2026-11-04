@@ -60,11 +60,13 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const editor = useRef<HTMLDivElement>(null);
+  const drafts=useRef(new Map<string,ClassificationReviewRecord>());
   async function refresh() { setRecords(await api("content-classification")); setLoaded(true); }
   useEffect(() => { void refresh().catch(error => setMessage((error as Error).message)); }, []);
   useEffect(() => { if (selected) editor.current?.scrollIntoView({ block: "start" }); }, [selected]);
   const listed = entries(records, loaded ? catalog : []);
   const record = listed.values.find(value => keyOf(value) === selected);
+  if(record&&!drafts.current.has(keyOf(record)))drafts.current.set(keyOf(record),record);
   const originalImage = record?.kind === "image" ? catalog.flatMap(work => [work.metadata?.cover, ...(work.metadata?.screenshots ?? [])])
     .find(image => image?.url === record.id)?.sourceUrl : undefined;
   const reviewText = record?.kind === "work" ? record.reviewText : undefined;
@@ -93,6 +95,8 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
         ...(record.kind === "work" ? { expectedFingerprint: record.reviewFingerprint } : {}), payload });
       await refresh();
       await onSaved();
+      drafts.current.delete(keyOf(record));
+      form.dispatchEvent(new Event("wvn-form-saved",{bubbles:true}));
       setMessage("审核已保存，修订 " + result.revision + "。人工审核将优先于后续批量导入。");
     } catch (error) { setMessage((error as Error).message); }
     finally { setBusy(false); }
@@ -123,8 +127,9 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
           .map(version => <div key={version.id} className="space-y-1"><strong>版本 {version.number} · {version.title}</strong><p>语言：{version.language}</p><p className="whitespace-pre-wrap">说明：{version.notes || "无"}</p></div>)}
       </div></details>}
       {statusOf(record).includes("stale") && <p role="alert">页面文案已变化，旧审核暂不用于公开发现。请核对本次页面及版本文案快照后重新保存。</p>}</CardHeader>
-      <CardContent><ClassificationEditor key={keyOf(record) + ":" + record.classification.revision + ":" + record.reviewFingerprint} record={record}
-        busy={busy || record.kind === "work" && !record.reviewFingerprint} save={form => save(form, record)} /></CardContent></Card></div>}
+      <CardContent><p className="muted">草稿保留在当前页面；保存仍核对开始编辑时的修订与文案快照。</p></CardContent></Card></div>}
+    {[...drafts.current].map(([key,draft])=><div key={key+":"+draft.classification.revision+":"+draft.reviewFingerprint} hidden={selected!==key}><ClassificationEditor record={draft}
+        busy={busy || draft.kind === "work" && !draft.reviewFingerprint} save={form => save(form, draft)} /></div>)}
     <p>{filtered.length} 条匹配记录；当前显示 {Math.min(filtered.length, limit)} 条。</p>
     <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>对象</TableHead><TableHead>状态</TableHead><TableHead>修订</TableHead><TableHead>操作</TableHead></TableRow></TableHeader><TableBody>
       {filtered.slice(0, limit).map(value => <TableRow key={keyOf(value)}><TableCell><strong>{listed.names.get(keyOf(value)) ?? labels[value.kind]}</strong><p className="break-all text-xs">{labels[value.kind]} · {value.id}</p><p className="max-w-xl text-sm">{value.classification.reason || "尚无审核理由"}</p><p className="max-w-xl break-all text-xs text-muted-foreground">来源：{value.classification.source}</p></TableCell>

@@ -1,0 +1,9 @@
+export type ResourceFile={sha256:string;blob:Blob};
+export type DownloadMode='demand'|'background'|'complete';
+export type ResourceFailure={httpStatus:number;code?:string;requestId?:string;edgeRay?:string;retryAfterMs?:number;bodyBytes?:number;bodyTruncated?:boolean;bodyReadFailed?:boolean};
+export type DownloadProgress={mode:DownloadMode;paused:boolean;foregroundBusy?:boolean;status:string;reason:string;lastFailure?:{sha256:string;details:ResourceFailure};verifiedBytes:number;totalBytes:number;completed:number;total:number;activeBytes:number;speed:number;failures:{sha256:string;error:string}[]};
+export type CacheClient={plan:{id:string;rows:{sha256:string;bytes:number;paths:string[]}[];totalBytes:number};ready:Promise<{progress:DownloadProgress}>;command(type:string,value?:Record<string,unknown>,signal?:AbortSignal):Promise<any>;get(sha256:string,options?:{signal?:AbortSignal}):Promise<ResourceFile>;close():Promise<{graceful:boolean}>};
+export function createCacheClient(options:{origin:string;parentOrigin?:string;manifest:any;entry:{id:string;versionId:string};sharedEngine?:boolean;onProgress?:(progress:DownloadProgress)=>void;onFile?:(file:ResourceFile)=>void}):CacheClient;
+export type ForegroundResult=ResourceFile|{sha256:string;direct:true};
+export type ForegroundReader={read(sha256:string,options?:{signal?:AbortSignal}):Promise<ForegroundResult>;reset():void};
+export function createForegroundReader(options:{client:CacheClient;files:Map<string,ResourceFile>;onFallback?:(error:Error)=>void}):ForegroundReader;

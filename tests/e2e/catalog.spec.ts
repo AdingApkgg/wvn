@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 test("desktop catalog search, work navigation, version URL and exit confirmation", async ({
   page,
 }) => {
@@ -60,18 +61,25 @@ test("private management edits persist and stale edit retains unsaved draft", as
   page,
 }) => {
   const admin = process.env.WG_ADMIN_URL ?? "http://127.0.0.1:8282";
+  const taskPreview=!!process.env.WG_TEST_URL&&process.env.WG_TEST_URL===process.env.WG_UI_UX_TEST_URL;
+  const privateDir=resolve("..","private"),sessionFile=resolve(privateDir,"browser-admin-session.json");
+  const server=taskPreview?JSON.parse(readFileSync(resolve(privateDir,"preview-process.json"),"utf8")):null;
+  if(taskPreview){try{const saved=JSON.parse(readFileSync(sessionFile,"utf8"));if(saved.pid===server.pid)await page.context().addCookies(saved.cookies)}catch{}}
   await page.goto(admin + "/manage");
+  if((await page.request.get(admin+"/api/manage/catalog")).status()!==200){
   const token = readFileSync(
     process.env.WG_TEST_TOKEN_FILE ?? "state/admin-token",
     "utf8",
   );
   await page.getByLabel("本次服务启动令牌").fill(token);
   await page.getByRole("button", { name: "登录管理" }).click();
+  }
+  if(taskPreview)writeFileSync(sessionFile,JSON.stringify({pid:server.pid,cookies:await page.context().cookies(admin)}),{mode:0o600});
   await expect(page.getByRole("tab", { name: "作品与版本" })).toBeVisible();
   await page.getByPlaceholder("标题或 v / b 编号").fill("v27448");
   const editor = page.locator('[data-work-id="v27448"]');
   const toggle = editor.locator('[data-slot="accordion-trigger"]').first();
-  await toggle.click();
+  if(await toggle.getAttribute("aria-expanded")!=="true")await toggle.click();
   const title = editor.getByLabel("显示标题");
   await title.fill("ATRI 测试草稿");
   await page.evaluate(async () => {
@@ -89,6 +97,9 @@ test("private management edits persist and stale edit retains unsaved draft", as
   await expect(title).toHaveValue("ATRI 测试草稿");
   await page.getByRole("button", { name: "刷新列表" }).click();
   await expect(title).toHaveValue("ATRI 测试草稿");
+  await page.getByRole("button", { name: "保存作品", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("记录已变化");
+  expect(await page.evaluate(async()=>(await(await fetch("/api/manage/catalog")).json()).find((work:any)=>work.id==="v27448").title)).not.toBe("ATRI 测试草稿");
   await toggle.click();
   await expect(title).not.toBeVisible();
   await toggle.click();
@@ -105,7 +116,7 @@ test("private management edits persist and stale edit retains unsaved draft", as
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         title: "UI confirmation fixture",
-        legacyPath: "/ui-confirm-fixture/",
+        legacyPath: "/ui-confirm-fixture-"+crypto.randomUUID()+"/",
         engine: "Artemis",
       }),
     });
@@ -137,6 +148,16 @@ test("private management edits persist and stale edit retains unsaved draft", as
   await confirm.getByRole("button", { name: "确认删除登记" }).click();
   await expect.poll(persisted).toBe("deleted");
   await expect(confirm).toHaveCount(0);
+  await page.getByRole("tab",{name:"内容分类",exact:true}).click();
+  const classifications=page.getByRole("region",{name:"内容分类管理"}),reviews=classifications.getByRole("button",{name:"审核",exact:true});
+  const classificationReason=classifications.getByRole("textbox",{name:"审核理由",exact:true});
+  await reviews.nth(0).click();await classificationReason.fill("尚未提交的分类证据");
+  await reviews.nth(1).click();await reviews.nth(0).click();
+  await expect(classificationReason).toHaveValue("尚未提交的分类证据");
+  const leaving=page.waitForEvent("dialog"),attempted=page.locator(".admin-heading a").click();
+  const leaveDialog=await leaving;expect(leaveDialog.type()).toBe("beforeunload");await leaveDialog.dismiss();await attempted;
+  await expect(classificationReason).toHaveValue("尚未提交的分类证据");
+  await page.getByRole("tab",{name:"作品与版本",exact:true}).click();
   await toggle.click();
   await page.getByPlaceholder("标题或 v / b 编号").fill("");
   await page.evaluate(() => window.scrollTo(0, 0));

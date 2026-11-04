@@ -1,22 +1,23 @@
 import { brand } from "../brand";
 import { Link, useLocation } from "react-router";
-import { BookOpen, Compass, HardDrive, Shield, UserRound } from "lucide-react";
+import { BookOpen, Compass, HardDrive, Shield, Settings } from "lucide-react";
 import { useContentAccess } from "../content/client";
+import { accountReturnPath, sectionFor } from "../lib/reader-experience";
 
 export function SiteNavigation({ preview }: { preview: boolean }) {
   const location = useLocation();
   const tab = new URLSearchParams(location.search).get("tab") ?? "library";
-  const account = location.pathname === "/account";
   const contentPage = location.pathname === "/content";
+  const section = sectionFor(location.pathname, tab);
   const { enabled, access } = useContentAccess();
   const contentLabel = access.canViewRestricted ? "NSFW 已开启" : "公共浏览";
   // 链接分享的 fragment 可能含访问密钥，不得移入查询串或服务器日志。
-  const returnHash = /^\/s\//.test(location.pathname) ? "" : location.hash;
-  const contentTarget = "/content?returnTo=" + encodeURIComponent(location.pathname + location.search + returnHash);
+  const contentTarget = "/content?returnTo=" + encodeURIComponent(accountReturnPath(location.pathname, location.search, location.hash));
   const links = [
-    { to: "/", label: "发现", icon: Compass, active: !account && !contentPage },
-    { to: "/account?tab=library", label: "我的书架", icon: BookOpen, active: account && tab === "library" },
-    { to: "/account?tab=saves", label: "存档", icon: HardDrive, active: account && tab === "saves" },
+    { to: "/", label: "发现", icon: Compass, active: section === "discover" },
+    { to: "/account?tab=library", label: "书架", icon: BookOpen, active: section === "library" },
+    { to: "/account?tab=saves", label: "存档", icon: HardDrive, active: section === "saves" },
+    { to: "/account?tab=security", label: "设置", icon: Settings, active: section === "settings" },
   ];
   return <header className="site-header site-navigation">
     <Link className="brand" to="/" aria-label={`${brand.shortName} ${brand.translation}首页`}>{brand.shortName}<span>{brand.translation}</span></Link>
@@ -30,7 +31,6 @@ export function SiteNavigation({ preview }: { preview: boolean }) {
         <Shield size={16} aria-hidden="true" /><span>{contentLabel}</span>
         {access.eligibility === "qualified" && !access.canViewRestricted && <small>已取得资格</small>}
       </Link>}
-      <Link to="/account?tab=security" className="account-entry" aria-label="账号与安全" aria-current={account && tab === "security" ? "page" : undefined}><UserRound size={18} aria-hidden="true" /></Link>
     </div>
   </header>;
 }

@@ -3,7 +3,7 @@ import {authenticator,register,api} from '../helpers/account-browser';
 import {RULE_QUESTIONS} from '../../src/content/quiz';
 
 const origin=process.env.WG_CONTENT_TEST_URL;
-test.skip(origin!=='https://localhost-1.tailac9c6f.ts.net:24483'||process.env.WG_CONTENT_NATIVE_CAS!=='1','仅用于本任务隔离预览的真实CAS启动补验');
+test.skip(![process.env.WG_NSFW_TEST_URL,process.env.WG_UI_UX_TEST_URL].filter(Boolean).includes(origin)||process.env.WG_CONTENT_NATIVE_CAS!=='1','仅用于本任务隔离预览的真实CAS启动补验');
 test.use({ignoreHTTPSErrors:false});
 test.afterEach(async({page},info)=>{
  if(info.status!==info.expectedStatus)console.log('ONS保存失败诊断：'+JSON.stringify(await page.evaluate(()=>({events:(window as any).__casEvents??[],error:document.querySelector('.reader-error')?.textContent,status:document.querySelector('.reader-save-status')?.textContent})).catch(()=>({pageClosed:true}))));
@@ -14,7 +14,7 @@ test('真实ONS使用线上CAS域名启动并保留本机捕获后退出',async(
  await context.grantPermissions(['local-network-access']);
  await page.addInitScript(()=>{
   const events:any[]=[];(window as any).__casEvents=events;
-  const record=(event:Event)=>{const type=event.type,button=(event.target as Element)?.closest?.('button')?.textContent;if(['mousedown','mouseup','click'].includes(type)&&!button?.includes('保存并退出'))return;events.push({type,focused:document.hasFocus(),active:document.activeElement?.tagName,allowed:(event as CustomEvent).detail?.access?.canViewRestricted,button});if(events.length>80)events.shift()};
+  const record=(event:Event)=>{const type=event.type,button=(event.target as Element)?.closest?.('button')?.textContent;if(['mousedown','mouseup','click'].includes(type)&&!button?.includes('结束阅读'))return;events.push({type,focused:document.hasFocus(),active:document.activeElement?.tagName,allowed:(event as CustomEvent).detail?.access?.canViewRestricted,button});if(events.length>80)events.shift()};
   for(const type of ['focus','blur','wg-content-change'])window.addEventListener(type,record);
   for(const type of ['mousedown','mouseup','click'])document.addEventListener(type,record,true);
  });
@@ -39,8 +39,8 @@ test('真实ONS使用线上CAS域名启动并保留本机捕获后退出',async(
  console.log('真实ONS验收：引擎已启动，CAS新域名请求数='+resources.length);
  await page.screenshot({path:info.outputPath('cas-native-ons.png')});
  expect(await page.evaluate(()=>document.hasFocus()&&document.activeElement?.tagName==='IFRAME')).toBe(true);
- await page.getByRole('button',{name:'保存并退出',exact:true}).click();
- await expect(page.locator('.reader-save-status')).toContainText('阅读已结束，存档已保留',{timeout:35_000});
+ await page.getByRole('button',{name:'结束阅读',exact:true}).click();
+ await expect(page.locator('.reader-save-status')).toContainText('阅读已结束，本机副本已保留',{timeout:35_000});
  const retained=await page.evaluate(async()=>{const path='/ons/storage.mjs';const {openSaveStore}=await import(path);const store=await openSaveStore();try{const head=await store.get('clannad');return !!head&&head.snapshot?.schema===1&&Array.isArray(head.snapshot.files)}finally{store.close()}});
  expect(retained).toBe(true);expect(oldRequests).toEqual([]);expect(mainBodies).toEqual([]);
 });

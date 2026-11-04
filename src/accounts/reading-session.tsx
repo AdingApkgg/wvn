@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
-import { useAccount } from "./client";
+import { AccountConsumer,type ReaderAccount } from "./account-consumer";
 import { Button } from "../components/ui/button";
 
 // 书架计时跟随顶层阅读器；账号状态不传入游戏沙箱。
 export function ReadingSession({ running }: { running: boolean }) {
   const [query] = useSearchParams();
   const id = query.get("session");
-  return id && /^[a-f0-9-]{36}$/.test(id) ? <Session key={id} id={id} running={running} /> : null;
+  return id && /^[a-f0-9-]{36}$/.test(id) ? <AccountConsumer>{account=><Session key={id} id={id} running={running} account={account}/>}</AccountConsumer> : null;
 }
-function Session({ id, running }: { id: string; running: boolean }) {
-  const account = useAccount();
+function Session({ id, running,account }: { id: string; running: boolean;account:ReaderAccount }) {
   const owner = account.me?.user.id;
   const sequence = useRef(Date.now()), renewed = useRef(Date.now());
   const [idle, setIdle] = useState(false), [online, setOnline] = useState(true);

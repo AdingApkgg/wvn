@@ -24,7 +24,13 @@ export function isolateEntry(html:string,id:string,options?:{resourceOrigin:stri
   });
   if(options&&(options.resourceOrigin!=="https://wvn-s3-zi0.saop.cc"||new URL(options.bootstrapOrigin).origin!==options.bootstrapOrigin||!options.bootstrapOrigin.startsWith("https://")))throw Error("Untrusted bootstrap origin");
   const bootstrap=`<base href="${options?.resourceOrigin??""}/__player/resource/${id}/"><script type="module" src="${options?.bootstrapOrigin??""}/player/runtime.mjs"></script>`;
-  if(options?.cas){safe=safe.replace(/<body\b([^>]*)>/i,'<div data-cas-body$1>').replace(/<\/body\s*>/i,'</div>');return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+bootstrap+'</head><body><template id="wg-cas-document">'+safe+'</template></body></html>';}
+  if(options?.cas){
+    safe=safe.replace(/<body\b([^>]*)>/i,'<div data-cas-body$1>').replace(/<\/body\s*>/i,'</div>');
+    // Firefox can speculatively preload URLs from an HTTP-parsed template. Keep
+    // the source as escaped data until the parent resource manifest is verified.
+    const document=JSON.stringify(safe).replace(/</g,'\\u003c');
+    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+bootstrap+'</head><body><script id="wg-cas-document" type="application/json">'+document+'</script></body></html>';
+  }
   return safe.replace(/<head\b[^>]*>/i,match=>match+bootstrap);
 }
 export function registerOtherPlayers(app:Hono,root:string,options?:{mediaRoot?:string;mediaManifest?:unknown}){
@@ -38,7 +44,7 @@ export function registerOtherPlayers(app:Hono,root:string,options?:{mediaRoot?:s
   }
   function headers(c:any,id:string){
     const origin=new URL(c.req.url).origin,base=`${origin}/__player/resource/${id}/`;
-    c.header('Content-Security-Policy',`sandbox allow-scripts; default-src 'none'; script-src ${base} ${origin}/player/ ${origin}/ons/ 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; connect-src ${base}; style-src ${base} 'unsafe-inline'; img-src ${base} data: blob:; media-src ${base} data: blob:; font-src ${base} data:; worker-src ${base} blob:; object-src 'none'; base-uri ${base}; form-action 'none'; frame-src 'none'; frame-ancestors 'self'`);
+    c.header('Content-Security-Policy',`sandbox allow-scripts; default-src 'none'; script-src ${base} ${origin}/player/ ${origin}/ons/ 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:; connect-src ${base}; style-src ${base} 'unsafe-inline'; img-src ${base} data: blob:; media-src ${base} data: blob:; font-src ${base} data:; worker-src ${base} blob:; object-src 'none'; base-uri ${base}; form-action 'none'; frame-src 'none'; frame-ancestors ${origin}`);
     c.header('Access-Control-Allow-Origin','*');c.header('Cross-Origin-Resource-Policy','cross-origin');c.header('X-Content-Type-Options','nosniff');c.header('Referrer-Policy','no-referrer');
   }
   app.get('/__player/runtime/:id',c=>{

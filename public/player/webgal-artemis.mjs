@@ -35,6 +35,7 @@ export async function prepareWebgalResolver(resolver,{fetcher=fetch}={}){
   if(!value||/^(?:data:|blob:)/i.test(String(value)))return false;
   const path=resolver.path(String(value));return /^movie(?:_[a-z0-9]+)?\/.+\.(?:mp4|ogv|webm)$/i.test(path)&&!resolver.files.has(path);
  },optionalMissing(value){
+  if(/^(?:data:|blob:)/i.test(String(value)))return false;
   // 索引还包含包内文件。没有独立对象的 res/ 读取保留源 HTTP 的 404
   // 语义，让原生引擎执行包内回退；不能将这个正常分支变成 JS 异常。
   const url=new URL(String(value),resolver.base);url.pathname=url.pathname.replace(/\/+$/,'');

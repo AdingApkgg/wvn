@@ -4,6 +4,7 @@ import { useLoaderData, useBlocker, redirect, useLocation, Link } from "react-ro
 import { parseWorkSlug, workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { pilotForVersion } from "../ons/pilots.server.ts";
+import {resourceCacheOrigin} from "../player/cache-config.server.ts";
 import { OnsPlayer } from "../ons/player.tsx";
 import {contentGateEnabled,getContentAccess} from '../content/access.server.ts';
 import {versionAccessError} from '../content/policy.ts';
@@ -35,6 +36,7 @@ export async function loader({
     work: { title: w.title, url: w.url },
     pilot: player,
     cloud: process.env.WG_ONS_CLOUD === '1' && !player?.engineCandidate,
+    resourceCacheOrigin: resourceCacheOrigin(process.env.WG_RESOURCE_CACHE_ORIGIN,request?new URL(request.url).origin:process.env.WG_ACCOUNT_ORIGIN??''),
     requiresQualification:gated&&(w.classification?.pageSuitability!=='sfw'||version.classification?.sexualContent!=='none'),
   };
 }
@@ -73,15 +75,13 @@ export default function Play() {
   const previous=retained.current?.path===location.pathname?retained.current.data:null;
   const blocked=!previous||'restricted' in data||(previous.requiresQualification&&!content.access.canViewRestricted);
   const liveTitle=!blocked&&previous?`${previous.work.title} · 版本 ${previous.version.number} — ${brand.shortName}`:brand.title;
-  useLayoutEffect(()=>{
-    if(content.enabled)document.title=liveTitle;
-  },[content.enabled,liveTitle,data]);
+  useLayoutEffect(()=>{if(content.enabled)document.title=liveTitle},[content.enabled,liveTitle,data]);
   if(!previous)return <ContentGate code={data.restricted?.code??'CONTENT_MODE_REQUIRED'} returnTo={data.restricted?.returnTo??location.pathname}/>;
   const {pilot,work,cloud,version}=previous;
   return <div className="content-player-shell">
     <div inert={blocked||undefined} aria-hidden={blocked||undefined} style={blocked?{display:'none'}:undefined}>
       {previous.requiresQualification&&<aside className="container text-sm p-4" role="note">{version.classification?.sexualContent==='present'?'此版本含成人性内容。':'此版本内容尚待核实，不能据此认定为全年龄版本。'} 请确认当前环境适合，再开始阅读。</aside>}
-      {pilot?<OnsPlayer key={pilot.id+':'+(pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} workUrl={work.url} cloud={cloud} contentBlocked={blocked}/>:<LegacyPlay version={version} work={work} requiresConfirmation={previous.requiresQualification}/>}
+      {pilot?<OnsPlayer key={pilot.id+':'+(pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} versionNumber={version.number} workUrl={work.url} cloud={cloud} resourceCacheOrigin={previous.resourceCacheOrigin} contentBlocked={blocked} autoStart={!previous.requiresQualification}/>:<LegacyPlay version={version} work={work} requiresConfirmation={previous.requiresQualification}/>}
     </div>
     {blocked&&<section className="container content-playback-shield"><h1>敏感内容已收起</h1><p role="status">本次浏览权限已关闭或失效。运行实例与本机存档仍保留；恢复权限后可继续。</p>{pilot&&<Button variant="outline" onClick={()=>window.dispatchEvent(new Event('wg-content-save-exit'))}>保存到本机后退出</Button>}{saveError&&<p role="status">{saveError}</p>}<ContentSettings embedded returnTo={location.pathname}/></section>}
   </div>;

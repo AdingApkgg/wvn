@@ -66,7 +66,7 @@ test('未审核分享返回中性拒绝，个人书架备注不泄露但条目�
  const response=await run('/api/public/save-shares/share');
  assert.equal(response.status,401);assert(!await response.text().then(t=>t.includes('敏感分享文案')));
  const rows=await(await run('/api/me/library')).json();
- assert.equal(rows.length,1);assert.equal(rows[0].note,'');
+ assert.equal(rows.length,1);assert.equal(rows[0].note,'');assert.equal(rows[0].noteHidden,true);
 });
 test('公共模式修改阅读状态的回执也隐藏原备注而不改变保存语义',async()=>{
  const app=new Hono();let updated=false;

@@ -23,7 +23,7 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
     buffer: Buffer.from("shared-original-chapter"),
   });
   await page
-    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .getByRole("button", { name: "上传为新的云端备份" })
     .click();
   await page.getByRole("button", { name: "分享这份存档" }).click();
   await page.getByLabel("分享标题").fill("A quiet chapter");
@@ -52,12 +52,12 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
     await expect(recipient.locator("#share-signup-invite")).toHaveCount(0);
     await recipient.getByLabel("昵称", {exact:true}).fill("Sharing Recipient");
     await recipient.getByRole("button", {name:"创建通行密钥并注册", exact:true}).click();
-    await expect(recipient.getByRole("button", {name:"保存到我的云存档", exact:true})).toBeVisible();
+    await expect(recipient.getByRole("button", {name:"保存到我的备份", exact:true})).toBeVisible();
     await expect(
       recipient.getByRole("heading", { name: "A quiet chapter", exact: true }),
     ).toBeVisible();
     await recipient
-      .getByRole("button", { name: "保存到我的云存档", exact: true })
+      .getByRole("button", { name: "保存到我的备份", exact: true })
       .click();
     await expect(
       recipient.getByText("已保存独立副本，当前备份与游戏内存档未改变。", {
@@ -112,7 +112,8 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
         manager.getByText("暂无待处理条目", { exact: true }),
       ).toBeVisible();
       await page.getByRole("button", { name: "关闭", exact: true }).click();
-      await page.getByRole("tab", { name: "我的分享", exact: true }).click();
+      await page.getByRole("navigation",{name:"主要导航"}).getByRole("link",{name:"存档",exact:true}).click();
+      await page.getByRole("link", { name: "我的分享", exact: true }).click();
       await page
         .getByRole("button", { name: "刷新分享列表", exact: true })
         .click();
@@ -353,7 +354,7 @@ test("public version and progress filters persist through the next page and rese
     buffer: Buffer.from("Synthetic pagination fixture"),
   });
   await page
-    .getByRole("button", { name: "保留云端历史，保存为新备份" })
+    .getByRole("button", { name: "上传为新的云端备份" })
     .click();
   await page.getByRole("button", { name: "分享这份存档" }).waitFor();
   const profile = (await api(page, "/api/me/save-profiles")).data[0];

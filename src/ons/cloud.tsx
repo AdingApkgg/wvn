@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useAccount, AccountClientError, errorCopy } from '../accounts/client';
+import { type useAccount, AccountClientError, errorCopy } from '../accounts/client';
 import type { SaveProfile, SaveRevision, SaveHistory } from '../accounts/saves.server';
 import type { Snapshot } from '../../public/ons/protocol.mjs';
 import type { CloudTarget, CloudDraft } from '../../public/ons/cloud.mjs';
@@ -7,10 +7,15 @@ import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Label } from '../components/ui/label';
 import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
+import {useActionConfirmation} from '../components/confirm-action';
+import {AccountConsumer,type ReaderAccount} from '../accounts/account-consumer';
 const loadModule=async()=>{const path='/ons/cloud.mjs';return await import(/* @vite-ignore */ path) as typeof import('../../public/ons/cloud.mjs')};
-type Props={pilot:CloudTarget;running:boolean;capture:()=>Promise<Snapshot>;restore:(snapshot:Snapshot,check:()=>void)=>Promise<void>;onBusy:(value:boolean)=>void;onStatus?:(value:string)=>void};
+type Props={pilot:CloudTarget;targetLabel?:string;running:boolean;capture:()=>Promise<Snapshot>;restore:(snapshot:Snapshot,check:()=>void)=>Promise<void>;onBusy:(value:boolean)=>void;onStatus?:(value:string)=>void};
 export function OnsCloud(props:Props){
-  const account=useAccount();
+  return <AccountConsumer>{account=><CloudPanel {...props} account={account}/>}</AccountConsumer>;
+}
+function CloudPanel(props:Props&{account:ReaderAccount}){
+  const {account}=props;
   useEffect(()=>{props.onStatus?.(account.error?"云端账号暂时无法确认："+account.error:account.loading?"云端：正在确认账号":account.me?"云端：已登录，需手动上传":"云端：未登录，仅保留本机存档")},[account.loading,account.me?.binding,account.error,props.onStatus]);
   return <Card><CardHeader><CardTitle>账号云存档</CardTitle></CardHeader><CardContent className="space-y-4">
     <p className="text-sm text-muted-foreground">本机保存与云端上传分别确认。保留本机和云端历史，不向游戏沙箱提供账号权限。本设备存档可匿名使用；上传前请核对目标账号。</p>
@@ -18,7 +23,8 @@ export function OnsCloud(props:Props){
     {account.error&&<p role="alert">{account.error}</p>}
   </CardContent></Card>;
 }
-function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,account}:Props&{account:ReturnType<typeof useAccount>}){
+function AuthenticatedCloud({pilot,targetLabel,running,capture,restore,onBusy,onStatus,account}:Props&{account:ReturnType<typeof useAccount>}){
+  const confirmation=useActionConfirmation();
   const owner=account.me!.user.id, alive=useRef(true), locked=useRef(false), loadSequence=useRef(0);
   const [busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
   const [profile,setProfile]=useState<SaveProfile|null>(null),[history,setHistory]=useState<SaveRevision[]>([]),[next,setNext]=useState<string|null>(null),[selected,setSelected]=useState(''),[drafts,setDrafts]=useState<CloudDraft[]>([]);
@@ -36,6 +42,8 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
       setLegacyProfile(old);setLegacyHistory(oldPage?[...new Map([...(oldPage.current?[oldPage.current]:[]),...oldPage.items].map(r=>[r.id,r])).values()]:[]);setLegacyNext(oldPage?.next??null);
     }
     setProfile(p);setHistory(page?[...new Map([...(page.current?[page.current]:[]),...page.items].map(r=>[r.id,r])).values()]:[]);setNext(page?.next??null);setDrafts(pending.filter(d=>d.pilot===pilot.id&&d.version===pilot.versionId&&d.engineReleaseId===pilot.engineReleaseId));setLoaded(true);
+    const head=page?.current??page?.items.find(revision=>revision.id===p?.head);
+    onStatus?.(head?`云端：${new Date(head.createdAt).toLocaleString('zh-CN')} 的手动备份，后续进度需再次上传`:p?.head?'云端：已有备份，时间尚未确认，请刷新历史':'云端：此档案尚无备份');
   }
   useEffect(()=>{alive.current=true;void load().catch(e=>{if(alive.current){const text=e instanceof AccountClientError?errorCopy(e.code):'云端记录暂时无法读取，本机存档保留';setError(text);onStatus?.('云端读取失败：'+text)}});return()=>{alive.current=false;if(locked.current)onBusy(false)}},[owner,pilot.id,pilot.engineReleaseId]);
   async function action(fn:(check:()=>void)=>Promise<void>){
@@ -61,7 +69,7 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
     }finally{if(alive.current&&account.isOwner(owner))await load(check)}
   }
   async function send(check:()=>void){
-    if(!window.confirm(`将本设备的此游戏存档上传到账号「${account.me!.user.name}」？本机副本可能来自匿名游玩或其他账号；现有云端历史会保留。`))return;
+    if(!await confirmation.ask('备份到当前账号？',`将本设备的此游戏存档上传到账号「${account.me!.user.name}」。本机副本可能来自匿名游玩或其他账号；现有云端历史会保留。`,'备份到云端'))return;
     const snapshot=await capture();check();const mod=await loadModule(),packed=await mod.packSnapshot(snapshot,pilot);check();
     const p=profile??await owned<SaveProfile>('/api/me/save-profiles',{versionId:pilot.versionId,...(pilot.engineReleaseId?{engineReleaseId:pilot.engineReleaseId}:{})});check();
     const link=await mod.cloudState.link(owner,pilot.versionId,pilot.engineReleaseId);check();
@@ -71,7 +79,8 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
   async function apply(check:()=>void,legacyCopy=false){
     if(running)throw Error('请先结束阅读并保留存档，再恢复云端版本');
     const revision=(legacyCopy?legacyHistory:history).find(r=>r.id===(legacyCopy?legacySelected:selected)),p=legacyCopy?legacyProfile:profile;if(!revision||!p)throw Error('请选择云端历史版本');
-    if(!window.confirm(legacyCopy?'将所选原引擎云档复制到新版独立工作区？原云档、本机原档与全部历史不变，复制后需手动上传新版云档。':'将这份云端备份用于下次启动？当前本机进度会留在历史中，旧存档库和云端当前版本均不改变。'))return;
+    const source=`来源：${new Date(revision.createdAt).toLocaleString('zh-CN')} 的备份。目标：${targetLabel??pilot.versionId}。`;
+    if(!await confirmation.ask(legacyCopy?'复制到独立引擎档案？':'从云端恢复到本机？',source+(legacyCopy?'将所选原引擎云档复制到新版独立工作区。原云档、本机原档与全部历史不变，复制后需手动上传新版云档。':'用于下次启动。当前本机进度会留在历史中，旧存档库和云端当前版本均不改变。'),'确认恢复'))return;
     const mod=await loadModule(),files=[];
     if(revision.files.length<2||revision.files.length>3||revision.files.reduce((n,f)=>n+f.bytes,0)>64*1024**2)throw Error('此备份不是统一播放器格式，请在账号页下载原文件');
     for(const f of revision.files){
@@ -85,11 +94,11 @@ function AuthenticatedCloud({pilot,running,capture,restore,onBusy,onStatus,accou
     <p className="text-sm">当前账号：<strong>{account.me!.user.name}</strong> <a className="underline ml-3" href="/account" target="_blank" rel="noreferrer">管理账号与全部备份</a></p>
     {pilot.engineReleaseId&&<div className="rounded border p-3 space-y-3"><p>新版引擎独立云档 · {pilot.engineReleaseId.slice(0,20)}</p><Label htmlFor="ons-legacy-cloud-history">原引擎云档（只读复制）</Label><NativeSelect id="ons-legacy-cloud-history" value={legacySelected} disabled={busy} onChange={e=>setLegacySelected(e.target.value)}><NativeSelectOption value="">选择原引擎云端历史…</NativeSelectOption>{legacyHistory.map(r=><NativeSelectOption key={r.id} value={r.id}>{new Date(r.createdAt).toLocaleString()} · {r.id===legacyProfile?.head?'原引擎当前版本':'原引擎历史版本'}</NativeSelectOption>)}</NativeSelect><Button variant="outline" disabled={busy||running||!legacySelected} onClick={()=>{void action(check=>apply(check,true))}}>复制原引擎云档到新版工作区</Button>{!legacyProfile&&<p>没有原引擎云档，可先切回原引擎手动上传。</p>}{legacyNext&&legacyProfile&&<Button disabled={busy} variant="ghost" onClick={()=>{void action(async check=>{const page=await owned<SaveHistory>(`/api/me/save-profiles/${legacyProfile.id}/revisions?cursor=${encodeURIComponent(legacyNext)}`);check();setLegacyHistory(h=>[...new Map([...h,...page.items].map(r=>[r.id,r])).values()]);setLegacyNext(page.next)})}}>加载更早的原引擎云档</Button>}</div>}
     {busy&&<Button variant="outline" onClick={()=>{void account.refresh(true)}}>暂停云端操作，保留本机副本</Button>}
-    <div className="flex flex-wrap gap-3"><Button disabled={busy||!loaded||drafts.length>0} onClick={()=>{void action(send)}}>上传本机存档为新云端版本</Button><Button variant="outline" disabled={busy} onClick={()=>{void action(check=>load(check))}}>刷新云端历史</Button></div>
-    {drafts.map(d=><div key={d.captureId} className="rounded border p-3 space-y-2"><p>此账号的待上传副本 · {d.files.reduce((n,f)=>n+f.bytes,0).toLocaleString()} 字节</p><Button disabled={busy} onClick={()=>{void action(check=>upload(d,check))}}>重试此账号的上传</Button><Button variant="ghost" disabled={busy} onClick={()=>{void action(async check=>{if(!window.confirm('移除此设备的待上传副本？请确认已有本机历史或导出备份。云端历史不变。'))return;await(await loadModule()).cloudState.discard(d.captureId);check();await load(check)})}}>移除此待上传副本</Button></div>)}
+    <div className="flex flex-wrap gap-3"><Button disabled={busy||!loaded||drafts.length>0} onClick={()=>{void action(send)}}>备份到云端</Button><Button variant="outline" disabled={busy} onClick={()=>{void action(check=>load(check))}}>刷新云端历史</Button></div>
+    {drafts.map(d=><div key={d.captureId} className="rounded border p-3 space-y-2"><p>此账号的待上传副本 · {d.files.reduce((n,f)=>n+f.bytes,0).toLocaleString()} 字节</p><Button disabled={busy} onClick={()=>{void action(check=>upload(d,check))}}>重试此账号的上传</Button><Button variant="ghost" disabled={busy} onClick={()=>{void action(async check=>{if(!await confirmation.ask('移除此待上传副本？','请确认已有本机历史或导出备份。云端历史不变。','移除此副本'))return;check();await(await loadModule()).cloudState.discard(d.captureId);check();await load(check)})}}>移除此待上传副本</Button></div>)}
     <div className="flex flex-wrap items-center gap-3"><Label htmlFor="ons-cloud-history">云端历史版本</Label><NativeSelect id="ons-cloud-history" value={selected} disabled={busy} onChange={e=>setSelected(e.target.value)}><NativeSelectOption value="">选择一个云端版本…</NativeSelectOption>{history.map(r=><NativeSelectOption key={r.id} value={r.id}>{new Date(r.createdAt).toLocaleString()} · {r.conflict?'冲突副本':r.id===profile?.head?'当前云端版本':'历史版本'} · {r.files.length} 个备份文件</NativeSelectOption>)}</NativeSelect><Button variant="outline" disabled={busy||running||!selected} onClick={()=>{void action(apply)}}>保留本机历史，恢复所选云端版本</Button></div>
     {next&&profile&&<Button variant="ghost" disabled={busy} onClick={()=>{void action(async check=>{const page=await owned<SaveHistory>(`/api/me/save-profiles/${profile.id}/revisions?cursor=${encodeURIComponent(next)}`);check();setHistory(h=>[...new Map([...h,...page.items].map(r=>[r.id,r])).values()]);setNext(page.next)})}}>加载更早的云端版本</Button>}
     <p className="text-xs text-muted-foreground">恢复只对当前游戏版本生效。请先在游戏内保存；上传不会替你创建游戏内存档槽。首次连接已有云端记录时，先恢复可建立同步基线，否则上传会保留为冲突副本。</p>
-    {message&&<p role="status" className="text-sm">{message}</p>}{error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
+    {message&&<p role="status" className="text-sm">{message}</p>}{error&&<p role="alert" className="text-sm text-destructive">{error}</p>}{confirmation.dialog}
   </div>;
 }

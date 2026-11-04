@@ -2,7 +2,7 @@ import { brand } from "../brand";
 import { SHARE_PROGRESS } from "../accounts/share-metadata";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
-import { useAccount, AccountClientError, errorCopy } from "../accounts/client";
+import { AccountClientError, errorCopy } from "../accounts/client";
 import type { ShareView } from "../accounts/share-types";
 import { Button } from "../components/ui/button";
 import {
@@ -19,6 +19,7 @@ import { Textarea } from "../components/ui/textarea";
 import { useContentAccess } from "../content/client";
 import { ContentGate } from "../content/gate";
 import { ContentSettings } from "./content";
+import {AccountConsumer,type ReaderAccount} from '../accounts/account-consumer';
 export function meta() {
   return [
     { title: `玩家存档 · ${brand.shortName}` },
@@ -26,8 +27,10 @@ export function meta() {
   ];
 }
 export default function Share() {
-  const { shareId = "" } = useParams(),
-    account = useAccount();
+  return <AccountConsumer>{account=><SharePage account={account}/>}</AccountConsumer>;
+}
+function SharePage({account}:{account:ReaderAccount}) {
+  const { shareId = "" } = useParams();
   const content = useContentAccess(), scope = content.enabled ? content.access : null;
   const scopeReady = !content.enabled || (!content.loading && !content.pendingPublic);
   const binding = account.me?.binding ?? "";
@@ -126,14 +129,6 @@ export default function Share() {
   }
   return (
     <>
-      <header className="site-header">
-        <a className="brand" href="/">
-          {brand.shortName}<span>{brand.translation}</span>
-        </a>
-        <Button asChild variant="outline">
-          <a href="/account">我的账号</a>
-        </Button>
-      </header>
       <main className="container share-shell">
         {gate ? <ContentGate code={gate} returnTo={returnTo} action={<Button onClick={() => document.getElementById("share-content-settings")?.scrollIntoView({ block: "start" })}>在本页查看浏览设置</Button>} /> : visible && missing ? (
           <Card>
@@ -207,7 +202,7 @@ export default function Share() {
                     {view.description || "作者未填写说明。"}
                   </p>
                 )}
-                <ul className="text-sm space-y-2">
+                <details><summary>文件明细 · {view.contentRedacted?0:view.files.length} 个文件</summary><ul className="text-sm space-y-2 mt-3">
                   {(view.contentRedacted ? [] : view.files).map((f) => (
                     <li className="break-all" key={f.name}>
                       {f.name} · {f.bytes} 字节{" "}
@@ -223,7 +218,7 @@ export default function Share() {
                       )}
                     </li>
                   ))}
-                </ul>
+                </ul></details>
                 <p className="text-sm text-muted-foreground">
                   SHA256
                   校验只证明文件完整；实际读档取决于对应游戏版本。领取不会改变当前备份或游戏内存档。
@@ -305,7 +300,7 @@ export default function Share() {
                         })
                       }
                     >
-                      保存到我的云存档
+                      保存到我的备份
                     </Button>
                     <Button
                       variant="outline"
@@ -315,7 +310,7 @@ export default function Share() {
                       下载完整存档包
                     </Button>
                     <Button variant="link" asChild>
-                      <a href="/account">查看收到的存档</a>
+                      <a href="/account?tab=saves">查看我的备份</a>
                     </Button>
                   </div>
                   <details>

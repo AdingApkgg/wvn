@@ -4,6 +4,7 @@ import type { WorkMetadata } from "../metadata.ts";
 import { metadataSourceLabel, coverKindLabel } from "../metadata-sources.ts";
 import {useState} from 'react';
 import {useContentAccess} from '../content/client';
+import { splitSynopsis } from "../lib/reader-experience";
 export function WorkMetadataPanel({
   metadata,
   title,
@@ -12,12 +13,14 @@ export function WorkMetadataPanel({
   title: string;
 }) {
   const m = metadata;
+  const synopsis = splitSynopsis(m.description ?? "");
   return (
     <section className="work-metadata" aria-label="作品资料">
       {!!m.description && (
         <div className="synopsis" id="story-description">
           <h2>故事简介</h2>
-          <p>{m.description}</p>
+          <p>{synopsis.primary}</p>
+          {synopsis.original && <details><summary>阅读原文简介</summary><p>{synopsis.original}</p></details>}
           <span className="metadata-credit">
             简介来源：{metadataSourceLabel(m.descriptionSource ?? "vndb")}{m.descriptionAdapted ? "（中文整理）" : ""}
           </span>

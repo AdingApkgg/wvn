@@ -2,15 +2,19 @@ import {useEffect,useState} from 'react';
 import {Link} from 'react-router';
 import {BookOpen,Heart,Bookmark} from 'lucide-react';
 import {Button} from './ui/button';
-import {useAccount,AccountClientError,errorCopy} from '../accounts/client';
+import {AccountClientError,errorCopy} from '../accounts/client';
 import type {WorkCounts} from '../accounts/work-stats.server.ts';
 import {trackPublicEvent} from '../analytics/client.tsx';
+import {AccountConsumer,type ReaderAccount} from '../accounts/account-consumer';
 export function WorkCountSummary({counts}:{counts?:WorkCounts|null}){
  if(!counts)return <span className="text-xs text-muted-foreground">统计暂不可用</span>;
  return <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground" aria-label="作品统计"><span>阅读 {counts.reads.toLocaleString('zh-CN')}</span><span>点赞 {counts.likes.toLocaleString('zh-CN')}</span><span>收藏 {counts.favorites.toLocaleString('zh-CN')}</span></span>;
 }
 export function WorkInteractions({workId,workUrl,counts}:{workId:string;workUrl:string;counts:WorkCounts|null}){
- const account=useAccount(),owner=account.me?.user.id,{request}=account;
+ return <AccountConsumer>{account=><InteractionActions account={account} workId={workId} workUrl={workUrl} counts={counts}/>}</AccountConsumer>;
+}
+function InteractionActions({account,workId,workUrl,counts}:{account:ReaderAccount;workId:string;workUrl:string;counts:WorkCounts|null}){
+ const owner=account.me?.user.id,{request}=account;
  const [total,setTotal]=useState(counts),[mine,setMine]=useState({liked:false,favorited:false}),[known,setKnown]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  useEffect(()=>{setTotal(counts)},[counts]);
  useEffect(()=>{
@@ -24,15 +28,15 @@ export function WorkInteractions({workId,workUrl,counts}:{workId:string;workUrl:
    const next=await request<{liked:boolean;favorited:boolean;stats:WorkCounts}>('/api/me/work-stats/'+workId+'/'+kind,{enabled},'PUT',owner);check();setMine(next);setTotal(next.stats);trackPublicEvent(kind,enabled,workUrl);
   }catch(e){setError(errorCopy(e instanceof AccountClientError?e.code:'NETWORK'))}finally{setBusy(false)}
  }
- return <section className="my-4 space-y-2" aria-label="阅读与作品互动" data-work-stats={workId}>
+ return <section className="work-interactions space-y-2" aria-label="阅读与作品互动" data-work-stats={workId}>
   <div className="flex flex-wrap items-center gap-3">
    <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"><BookOpen size={16} aria-hidden="true"/>阅读 {total?.reads.toLocaleString('zh-CN')??'—'}</span>
    {owner?<>
     <Button size="sm" variant={mine.liked?'secondary':'outline'} aria-pressed={mine.liked} disabled={!known||busy} onClick={()=>void react('like')}><Heart size={15} aria-hidden="true"/>{mine.liked?'已点赞':'点赞'} · {total?.likes??'—'}</Button>
     <Button size="sm" variant={mine.favorited?'secondary':'outline'} aria-pressed={mine.favorited} disabled={!known||busy} onClick={()=>void react('favorite')}><Bookmark size={15} aria-hidden="true"/>{mine.favorited?'已收藏':'收藏'} · {total?.favorites??'—'}</Button>
    </>:<>
-    <Button asChild size="sm" variant="outline"><Link to="/account"><Heart size={15} aria-hidden="true"/>点赞 · {total?.likes??'—'}</Link></Button>
-    <Button asChild size="sm" variant="outline"><Link to="/account"><Bookmark size={15} aria-hidden="true"/>收藏 · {total?.favorites??'—'}</Link></Button>
+    <Button asChild size="sm" variant="ghost"><Link to={"/account?returnTo="+encodeURIComponent(workUrl)}><Heart size={15} aria-hidden="true"/>点赞 · {total?.likes??'—'}</Link></Button>
+    <Button asChild size="sm" variant="ghost"><Link to={"/account?returnTo="+encodeURIComponent(workUrl)}><Bookmark size={15} aria-hidden="true"/>收藏 · {total?.favorites??'—'}</Link></Button>
    </>}
   </div>
   <p className="text-xs text-muted-foreground">阅读按实际启动去重计数{!owner?' · 登录后可点赞和收藏':''}{!total?' · 统计暂不可用':''}</p>

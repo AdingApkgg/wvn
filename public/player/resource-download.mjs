@@ -2,7 +2,7 @@ const temporary=status=>[408,429,500,502,503,504].includes(status);
 const timeout=()=>new DOMException('Resource transfer idle timeout','TimeoutError');
 const strong=value=>typeof value==='string'&&/^"[^"\r\n]+"$/.test(value);
 // 只恢复公开、不可变资源；账号请求、原生 Range 请求和用户取消不改写。
-export function createResilientFetch({fetcher=fetch,allowed=()=>false,idleMs=30000,totalMs=1800000,retries=3,maxBytes=1024**3,delay=(ms,signal)=>new Promise((resolve,reject)=>{
+export function createResilientFetch({fetcher=fetch,allowed=()=>false,expectedBytes=()=>null,idleMs=30000,totalMs=1800000,retries=3,maxBytes=1024**3,delay=(ms,signal)=>new Promise((resolve,reject)=>{
  const timer=setTimeout(done,ms);function done(){signal?.removeEventListener('abort',abort);resolve()}function abort(){clearTimeout(timer);signal?.removeEventListener('abort',abort);reject(signal.reason)}signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)abort();
 })}={}){
  return async function resourceFetch(input,options){
@@ -35,7 +35,7 @@ export function createResilientFetch({fetcher=fetch,allowed=()=>false,idleMs=300
   let response;try{response=await request()}catch(error){finish();throw error}
   if(response.status!==200||!response.body||response.headers.has('content-range')){finish();return response}
   const raw=response.headers.get('content-length'),encoded=response.headers.get('content-encoding');
-  const total=!encoded&&raw!==null&&/^\d+$/.test(raw)&&Number.isSafeInteger(Number(raw))?Number(raw):null,etag=response.headers.get('etag');
+  const pinned=expectedBytes(input),total=Number.isSafeInteger(pinned)&&pinned>=0?pinned:!encoded&&raw!==null&&/^\d+$/.test(raw)&&Number.isSafeInteger(Number(raw))?Number(raw):null,etag=response.headers.get('etag');
   if(total!==null&&total>maxBytes){finish();void response.body.cancel();throw Error('Resource exceeds size limit')}
   reader=response.body.getReader();let received=0;
   const body=new ReadableStream({

@@ -2,6 +2,8 @@ import type {Hono} from 'hono';
 import {players} from '../../public/player/registry.mjs';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import {readFile,stat} from 'node:fs/promises';
+import {join} from 'node:path';
 
 const execute=promisify(execFile);
 // 仅用于隔离预览元数据。显式沿用机器代理，压缩传输，并在监听器短超时前结束。
@@ -13,7 +15,7 @@ const previewFetch:typeof fetch=async(input,init)=>{
 };
 
 /** 隔离预览读取已公开的CAS元数据；不代理游戏、媒体或引擎正文。 */
-export function registerPreviewManifests(app:Hono,options:{origin:string;deployment:string;fetcher?:typeof fetch}){
+export function registerPreviewManifests(app:Hono,options:{origin:string;deployment:string;fetcher?:typeof fetch;manifestDirectory?:string}){
  if(options.deployment!=='preview'||options.origin!=='https://wg.saop.cc')throw Error('Public manifest bridge is preview-only');
  const fetcher=options.fetcher??previewFetch;
  app.all('/api/player/:id/resources',async c=>{
@@ -23,7 +25,13 @@ export function registerPreviewManifests(app:Hono,options:{origin:string;deploym
   if([...query.keys()].some(key=>key!=='engine'||query.getAll(key).length!==1)||query.has('engine')&&!/^[A-Za-z0-9_-]{1,128}$/.test(query.get('engine')!))return c.json({code:'INVALID_QUERY'},400);
   try{
    const target=new URL('/api/player/'+encodeURIComponent(player.id)+'/resources',options.origin);target.search=query.toString();
-   const response=await fetcher(target.href,{credentials:'omit',redirect:'error',headers:{accept:'application/json','accept-encoding':'identity'},signal:AbortSignal.any([c.req.raw.signal,AbortSignal.timeout(45_000)])});
+   let response:Response;
+   if(options.manifestDirectory){
+    // 文件名仅由已登记播放器和严格校验的引擎标识组成；仍经过下方同一套清单校验。
+    const file=join(options.manifestDirectory,player.id+(query.has('engine')?'--'+query.get('engine'):'')+'.json');
+    if((await stat(file)).size>32*1024*1024)throw Error('Manifest exceeds limit');
+    response=new Response(await readFile(file,'utf8'),{headers:{'content-type':'application/json'}});
+   }else response=await fetcher(target.href,{credentials:'omit',redirect:'error',headers:{accept:'application/json','accept-encoding':'identity'},signal:AbortSignal.any([c.req.raw.signal,AbortSignal.timeout(45_000)])});
    if(!response.ok)return c.json({code:'PREVIEW_MANIFEST_UNAVAILABLE'},503);
    const reader=response.body?.getReader();if(!reader)throw Error('Empty manifest');
    const chunks:Uint8Array[]=[];let bytes=0;

@@ -5,8 +5,9 @@ import {authenticator,register,api} from '../helpers/account-browser';
 import {RULE_QUESTIONS} from '../../src/content/quiz';
 
 const origin=process.env.WG_CONTENT_TEST_URL;
-const admin='https://localhost:24484',moderation='https://localhost:24485';
-test.skip(origin!=='https://localhost-1.tailac9c6f.ts.net:24483','只允许本任务隔离预览');
+const uiUx=!!origin&&origin===process.env.WG_UI_UX_TEST_URL;
+const admin=uiUx?'https://localhost:24684':'https://localhost:24484',moderation=uiUx?'https://localhost:24685':'https://localhost:24485';
+test.skip(![process.env.WG_NSFW_TEST_URL,process.env.WG_UI_UX_TEST_URL].filter(Boolean).includes(origin),'只允许本任务隔离预览');
 test.use({ignoreHTTPSErrors:false});
 
 test('隔离预览验证真实权限、私有管理、CAS直连和运行实例的收起恢复及保存退出',async({page,context},info)=>{
@@ -15,7 +16,7 @@ test('隔离预览验证真实权限、私有管理、CAS直连和运行实例�
  await context.grantPermissions(['local-network-access']);
  const privateDir=resolve('..','private');
  const owner=JSON.parse(await readFile(resolve(privateDir,'owner.json'),'utf8'));
- expect(owner.task).toBe('nsfw-20261104');expect(owner.origin).toBe(origin);
+ expect(owner.task).toBe(uiUx?'ui-ux-20261104':'nsfw-20261104');expect(owner.origin).toBe(origin);
  const server=JSON.parse(await readFile(resolve(privateDir,'preview-process.json'),'utf8'));
  const sessionFile=resolve(privateDir,'browser-admin-session.json');
  const saved=await readFile(sessionFile,'utf8').then(JSON.parse,()=>null);

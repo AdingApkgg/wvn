@@ -11,10 +11,16 @@ export type SaveDraft = {
   files: (SaveFile & { blob: Blob })[];
   status: "pending" | "conflict";
 };
+type StoredDraft = Omit<SaveDraft, "files"> & {
+  storageVersion?: 2;
+  files: (SaveFile & { blob?: Blob; data?: ArrayBuffer; mimeType?: string })[];
+};
 async function database() {
   return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("wg-account-save-outbox", 1);
-    request.onupgradeneeded = () => {
+    const request = indexedDB.open("wg-account-save-outbox", 2);
+    request.onupgradeneeded = (event) => {
+      // v2 沿用原 object store 和 owner 索引，不删除或重写 v1 待上传副本。
+      if (event.oldVersion !== 0) return;
       const store = request.result.createObjectStore("drafts", {
         keyPath: "key",
       });
@@ -36,8 +42,16 @@ async function transaction<T>(
   const db = await database();
   return new Promise<T>((resolve, reject) => {
     let result: T;
-    const tx = db.transaction("drafts", mode);
-    const request = operation(tx.objectStore("drafts"));
+    let tx: IDBTransaction;
+    let request: IDBRequest<T>;
+    try {
+      tx = db.transaction("drafts", mode);
+      request = operation(tx.objectStore("drafts"));
+    } catch (error) {
+      db.close();
+      reject(error);
+      return;
+    }
     request.onsuccess = () => {
       result = request.result;
     };
@@ -55,13 +69,29 @@ async function transaction<T>(
     };
   });
 }
-export function draftsFor(owner: string) {
-  return transaction("readonly", (s) =>
+export async function draftsFor(owner: string): Promise<SaveDraft[]> {
+  const drafts = await transaction<StoredDraft[]>("readonly", (s) =>
     s.index("owner").getAll(owner),
-  ) as Promise<SaveDraft[]>;
+  );
+  return drafts.map(({ storageVersion, files, ...draft }) => ({
+    ...draft,
+    files: files.map(({ data, mimeType, blob, ...file }) => {
+      if (data instanceof ArrayBuffer)
+        return { ...file, blob: new Blob([data], { type: mimeType ?? "" }) };
+      if (blob instanceof Blob) return { ...file, blob };
+      throw new Error("Local backup bytes are unavailable; original record retained");
+    }),
+  }));
 }
 export async function saveDraft(draft: SaveDraft) {
-  await transaction("readwrite", (s) => s.put(draft));
+  // WebKit 某些数据存储模式无法持久化 Blob；转换在事务外完成，避免事务自动结束。
+  const files = await Promise.all(draft.files.map(async ({ blob, ...file }) => ({
+    ...file,
+    data: await blob.arrayBuffer(),
+    mimeType: blob.type,
+  })));
+  const stored: StoredDraft = { ...draft, storageVersion: 2, files };
+  await transaction("readwrite", (s) => s.put(stored));
 }
 export async function removeDraft(key: string) {
   await transaction("readwrite", (s) => s.delete(key));
