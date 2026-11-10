@@ -1,4 +1,5 @@
 import { brand } from "../brand";
+import { useCallback, useState, type CSSProperties } from "react";
 import type { PublicWork } from "../types.ts";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -11,6 +12,7 @@ import { Badge } from "../components/ui/badge";
 import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
 import { data, Form, Link, useLoaderData, useLocation } from "react-router";
+import { coverLayout } from "../lib/cover-layout";
 import { withoutFilter } from "../lib/reader-experience";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
@@ -122,10 +124,17 @@ export default function Catalog() {
 
 function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: number;counts?:WorkCounts }) {
   const cover = w.metadata?.cover;
+  const [naturalRatio, setNaturalRatio] = useState<number>();
+  const {ratio, wide} = coverLayout(cover, naturalRatio);
+  // 缓存/快速响应可能在 hydration 前已加载，挂载时同样读取实际尺寸。
+  const updateRatio = useCallback((image: HTMLImageElement | null) => {
+    if (image?.naturalHeight) setNaturalRatio(image.naturalWidth / image.naturalHeight);
+  }, []);
   return (
     <Link
       to={w.url}
-      className="story-card"
+      className={"story-card" + (wide ? " story-card-wide" : "")}
+      style={{ "--cover-ratio": ratio } as CSSProperties}
     >
       <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
         {cover && (
@@ -137,6 +146,8 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
             decoding="async"
             width={cover.width}
             height={cover.height}
+            ref={updateRatio}
+            onLoad={(e) => updateRatio(e.currentTarget)}
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         )}

@@ -51,8 +51,8 @@
 
 ## 响应式与无障碍
 
-验证 320、390、768、1440px，手机底栏预留安全区。作品首屏的标题、编号、互动和主操作必须有明确网格位置；不允许新增子组件落入封面宽度的隐式列。目录使用固定比例封面区，宽图不跨列，完整内容用 contain 保留。
+验证 320、390、768、1440px，手机底栏预留安全区。作品首屏的标题、编号、互动和主操作必须有明确网格位置；不允许新增子组件落入封面宽度的隐式列。目录继承[自适应封面墙](cover-gallery.md)：按原图比例等高混排，Logo 和超宽图使用横向卡片，末行不将单张封面撑满。尺寸元数据用于首屏，图片加载后按实际比例更新；不得以统一视觉为由改成固定宽高比。contain 只保证完整显示，不能代替自适应布局。
 
 普通文字对比度至少 4.5:1，大文字至少 3:1。44px 触控目标是本项目采用的增强设计目标，不称为 WCAG AA 的最小要求。支持键盘、可见焦点、状态播报、缩放与 reduced-motion。动态进度仅显示实测数据，无总量时保持不定进度。
 
-当前具体实现及验收范围见 [UI/UX 设计规格](superpowers/specs/2026-11-04-ui-ux-system-design.md)。对比度依据为 [W3C Contrast Minimum](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)，触控尺寸依据为 [W3C Target Size Enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)。
+UI 改动必须在隔离远程预览执行 `npm run test:e2e:ui`，同时覆盖原封面墙比例/横卡/末行约束与阅读体验测试，不得只选择新增用例。具体实现及验收范围见 [UI/UX 验收记录](ui-ux-preview-20261104.md)。对比度依据为 [W3C Contrast Minimum](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)，触控尺寸依据为 [W3C Target Size Enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)。
