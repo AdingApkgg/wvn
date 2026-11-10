@@ -177,7 +177,7 @@ test("已有云档案可从目录直接选择，查看不会创建新备份",asy
   expect((await api(page,"/api/me/save-profiles")).data).toHaveLength(1);
 });
 
-test("目录在各断点保持规则网格、触控尺寸和完整搜索条件",async({page},info)=>{
+test("目录在各断点保持自适应布局、触控尺寸和完整搜索条件",async({page},info)=>{
   for(const width of [320,390,768,1440]){
     await page.setViewportSize({width,height:900});await page.goto("/?q=ATRI&engine=Artemis");
     await expect(page.getByRole("searchbox")).toBeVisible();

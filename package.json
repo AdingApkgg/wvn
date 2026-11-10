@@ -12,6 +12,7 @@
     "typecheck": "react-router typegen && tsc --noEmit",
     "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
     "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test tests/e2e/poster-layout.spec.ts tests/e2e/reader-experience.spec.ts",
     "seed": "tsx scripts/seed.ts",
     "start:accounts": "tsx accounts-server.ts",
     "accounts:backup": "tsx scripts/account-backup.ts",
