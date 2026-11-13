@@ -11,7 +11,7 @@ const questions: RuleQuestion[] = [
     id: 'version-content', core: true,
     text: '作品页面标为 SFW，是否说明其中所有游玩版本都不含成人性内容？',
     choices: [{ id: 'specific-version', text: '不能，需要查看具体版本的内容标记' }, { id: 'all-versions', text: '是，页面标记适用于所有版本' }, { id: 'cover-only', text: '只要封面安全就可以判断' }],
-    correctChoiceId: 'specific-version', explanation: '页面适宜性与游玩版本分别分类，启动前需要查看具体版本的内容标记；内容待核实也按受限版本处理。',
+    correctChoiceId: 'specific-version', explanation: '页面适宜性与游玩版本分别分类，启动前需要查看具体版本的标记。“内容待核实”仍受限；“默认 SFW · 未核实”按设置公开，但不表示内容已核实。',
   },
   {
     id: 'fiction-boundaries', core: true,
@@ -64,7 +64,7 @@ const questions: RuleQuestion[] = [
   {
     id: 'unknown-version', core: false, text: '游玩版本标为“内容待核实”时，公共浏览可以直接启动吗？',
     choices: [{ id: 'wait-for-review', text: '不可以，按受限启动处理，需要资格及当前会话开启' }, { id: 'assume-safe', text: '可以，未知等同于安全' }, { id: 'cover-proves-safe', text: '封面安全就可以直接启动' }],
-    correctChoiceId: 'wait-for-review', explanation: '缺少证据的版本不能默认安全。“内容待核实”按受限启动处理，需取得资格并主动开启当前会话的显示。',
+    correctChoiceId: 'wait-for-review', explanation: '标为“内容待核实”的版本仍按受限启动处理，需取得资格并主动开启显示。另标“默认 SFW · 未核实”的版本按用户设置公开，不代表已确认无成人内容。',
   },
   {
     id: 'public-mode-data', core: false, text: '切回公共浏览后，自己的收藏和私人存档会怎样？',

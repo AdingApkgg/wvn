@@ -1,0 +1,1762 @@
+{
+  "schemaVersion": 1,
+  "group": 1,
+  "checkedAt": "2026-11-13T21:27:21Z",
+  "scope": "只补查第1组前轮unknown的9版本；不重复研究已决版本，不修改分类或运行时。",
+  "userPolicy": "用户要求待核实直接按SFW；这是展示默认，不是研究得出无色情内容。",
+  "counts": {
+    "versions": 9,
+    "works": 6,
+    "researchDecisions": {
+      "unknown": 9
+    }
+  },
+  "sourceFiles": [
+    "data/version-nsfw-review-20261114.json",
+    "data/version-release-index-20261114.json",
+    "data/version-community-research-group-1.json"
+  ],
+  "records": [
+    {
+      "versionId": "legacy-2bc9744f4a39fda45c162027",
+      "workId": "v1286",
+      "title": "eden*",
+      "engine": "RenPy",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "未找到当前RenPy转换版明确含PLUS+MOSAIC附加内容或明确去除成人内容的社区标记，继续unknown。",
+      "exactReleaseIds": [
+        "r2461",
+        "r4050",
+        "r35705",
+        "r35710",
+        "r63325",
+        "r107883",
+        "r125816"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r2461",
+          "url": "https://vndb.org/r2461",
+          "title": "eden* They were only two, on the planet. - Package Edition",
+          "hasEro": false,
+          "minage": 0,
+          "patch": false,
+          "official": true,
+          "engine": "Musica",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r4050",
+          "url": "https://vndb.org/r4050",
+          "title": "eden* PLUS+MOSAIC - Add-on Disc",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "partial"
+          ]
+        },
+        {
+          "id": "r35705",
+          "url": "https://vndb.org/r35705",
+          "title": "eden* - Censored edition",
+          "hasEro": false,
+          "minage": 17,
+          "patch": false,
+          "official": true,
+          "engine": "Musica",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r35710",
+          "url": "https://vndb.org/r35710",
+          "title": "eden* PLUS＋MOSAIC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r63325",
+          "url": "https://vndb.org/r63325",
+          "title": "eden* They were only two, on the planet. - R18 Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": "Musica",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r107883",
+          "url": "https://vndb.org/r107883",
+          "title": "eden* PLUS＋MOSAIC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r125816",
+          "url": "https://vndb.org/r125816",
+          "title": "eden* PLUS＋MOSAIC mini",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/22",
+          "site": "KUNGal",
+          "access": "prior_round_opened",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/1263",
+          "site": "KUNGal",
+          "access": "prior_round_inaccessible",
+          "scope": "resource",
+          "label": "RenPy网页版示例（索引）",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "基础eden*发行hasEro=false，PLUS+MOSAIC/R18与mini附加版hasEro=true。",
+        "KUN作品条目合并eden*与PLUS+MOSAIC；旧RenPy网页版示例不说明附加内容。"
+      ],
+      "newFinding": "补读r125816备注：这是含append的简中mini改编，版本0.2/0.32；记录未标RenPy，不能把mini与当前转换包等同。新增精确检索未命中。",
+      "queriesPerformed": [
+        "site:kungal.com \"eden*\" \"RenPy\" \"H\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-0a8a7282eb43a670959e29ae",
+      "workId": "v26310",
+      "title": "NinNinDays",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "Artemis引擎内同时有删改完整本体与18+完整本体，未找到当前版本已打R18补丁的资源说明，继续unknown。",
+      "exactReleaseIds": [
+        "r65403",
+        "r65404",
+        "r69822",
+        "r71865",
+        "r110546",
+        "r135915",
+        "r168865"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r65403",
+          "url": "https://vndb.org/r65403",
+          "title": "NinNinDays - Censored Edition",
+          "hasEro": false,
+          "minage": 0,
+          "patch": false,
+          "official": true,
+          "engine": "Artemis Engine",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r65404",
+          "url": "https://vndb.org/r65404",
+          "title": "NinNinDays [R-18 patch]",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r69822",
+          "url": "https://vndb.org/r69822",
+          "title": "NinNinDays",
+          "hasEro": false,
+          "minage": 17,
+          "patch": false,
+          "official": true,
+          "engine": "Artemis Engine",
+          "platforms": [
+            "swi"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r71865",
+          "url": "https://vndb.org/r71865",
+          "title": "NinNinDays",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": "Artemis Engine",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r110546",
+          "url": "https://vndb.org/r110546",
+          "title": "NinNinDays",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "swi"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r135915",
+          "url": "https://vndb.org/r135915",
+          "title": "NinNinDays",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": "Artemis Engine",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r168865",
+          "url": "https://vndb.org/r168865",
+          "title": "NinNin Heroines",
+          "hasEro": false,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "swi"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/481",
+          "site": "KUNGal",
+          "access": "prior_round_opened",
+          "scope": "work",
+          "label": "R18；Artemis Engine",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "r65403删改版与r69822无色情；r71865/r135915成人版与r65404官方R18补丁有色情。",
+        "原控制清单无补丁文件或来源标记，KUN作品R18不能区分当前Artemis分支。"
+      ],
+      "newFinding": "针对作品名+R18补丁的KUN检索未命中；没有新发行/资源绑定证据。",
+      "queriesPerformed": [
+        "site:kungal.com \"NinNinDays\" \"R18补丁\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-9eec48bf553b29f80a0cf3b6",
+      "workId": "v32805",
+      "title": "NinNinDays2",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "NinNinDays2存在无色情本体、R18本体和独立补丁；新检索只返回原作品级引擎信息，不能确认当前包补丁状态，继续unknown。",
+      "exactReleaseIds": [
+        "r84675",
+        "r85902",
+        "r86437",
+        "r86438",
+        "r87161",
+        "r168865"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r84675",
+          "url": "https://vndb.org/r84675",
+          "title": "NinNinDays2",
+          "hasEro": false,
+          "minage": 16,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "swi"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r85902",
+          "url": "https://vndb.org/r85902",
+          "title": "NinNinDays2",
+          "hasEro": false,
+          "minage": 17,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r86437",
+          "url": "https://vndb.org/r86437",
+          "title": "NinNinDays2 - R-18 Patch",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r86438",
+          "url": "https://vndb.org/r86438",
+          "title": "NinNinDays2",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r87161",
+          "url": "https://vndb.org/r87161",
+          "title": "NinNinDays2 - Uncensored Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": "Artemis Engine",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r168865",
+          "url": "https://vndb.org/r168865",
+          "title": "NinNin Heroines",
+          "hasEro": false,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "swi"
+          ],
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/482",
+          "site": "KUNGal",
+          "access": "prior_round_opened",
+          "scope": "work",
+          "label": "R18；Artemis Engine",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "r84675/r85902无色情，r86438/r87161成人本体有色情，r86437为R18补丁。",
+        "KUN同页R18及Artemis属于作品级；不能证明当前包应用了补丁。"
+      ],
+      "newFinding": "KUN作品名+Artemis检索返回既有481/482作品条目，只增加/重复作品级信息，没有资源级补丁说明。",
+      "queriesPerformed": [
+        "site:kungal.com \"NinNinDays2\" \"Artemis\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-fe2406e269b2dc19be3a75ba",
+      "workId": "v44184",
+      "title": "万华镜系列 · 万华镜6 demo",
+      "engine": "RenPy",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+      "exactReleaseIds": [
+        "r106553",
+        "r122247",
+        "r122272",
+        "r122351",
+        "r123596",
+        "r123935",
+        "r131795"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r106553",
+          "url": "https://vndb.org/r106553",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Package Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122247",
+          "url": "https://vndb.org/r122247",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122272",
+          "url": "https://vndb.org/r122272",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122351",
+          "url": "https://vndb.org/r122351",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123596",
+          "url": "https://vndb.org/r123596",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123935",
+          "url": "https://vndb.org/r123935",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r131795",
+          "url": "https://vndb.org/r131795",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/99",
+          "site": "KUNGal",
+          "access": "prior_round_nsfw_confirmation",
+          "scope": "work",
+          "label": "NSFW确认页",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/39710",
+          "site": "KUNGal",
+          "access": "prior_round_inaccessible",
+          "scope": "resource",
+          "label": "未取得正文",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "日文/简中完整成人发行hasEro=true，未来简中Steam版r131795=false。",
+        "KUN作品NSFW确认页是作品级展示门禁；没有进入门禁，不能据此逐版断言。"
+      ],
+      "newFinding": "新搜雪女demo0.91/demo0.93均无结果；雪女+RenPy只返回系列通用模板的无关作品，排除该结果。既有发行索引没有这四个demo版本。",
+      "queriesPerformed": [
+        "site:kungal.com \"雪女\" \"0.93\"",
+        "\"雪女\" \"demo0.91\"",
+        "site:kungal.com \"雪女\" \"RenPy\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-c193d7dd6680727121b1f9d6",
+      "workId": "v44184",
+      "title": "万华镜系列 · 万华镜6 demo0.91",
+      "engine": "RenPy",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+      "exactReleaseIds": [
+        "r106553",
+        "r122247",
+        "r122272",
+        "r122351",
+        "r123596",
+        "r123935",
+        "r131795"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r106553",
+          "url": "https://vndb.org/r106553",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Package Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122247",
+          "url": "https://vndb.org/r122247",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122272",
+          "url": "https://vndb.org/r122272",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122351",
+          "url": "https://vndb.org/r122351",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123596",
+          "url": "https://vndb.org/r123596",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123935",
+          "url": "https://vndb.org/r123935",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r131795",
+          "url": "https://vndb.org/r131795",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/99",
+          "site": "KUNGal",
+          "access": "prior_round_nsfw_confirmation",
+          "scope": "work",
+          "label": "NSFW确认页",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/39710",
+          "site": "KUNGal",
+          "access": "prior_round_inaccessible",
+          "scope": "resource",
+          "label": "未取得正文",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "日文/简中完整成人发行hasEro=true，未来简中Steam版r131795=false。",
+        "KUN作品NSFW确认页是作品级展示门禁；没有进入门禁，不能据此逐版断言。"
+      ],
+      "newFinding": "新搜雪女demo0.91/demo0.93均无结果；雪女+RenPy只返回系列通用模板的无关作品，排除该结果。既有发行索引没有这四个demo版本。",
+      "queriesPerformed": [
+        "site:kungal.com \"雪女\" \"0.93\"",
+        "\"雪女\" \"demo0.91\"",
+        "site:kungal.com \"雪女\" \"RenPy\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-ad49d61a350643ebf45d85b5",
+      "workId": "v44184",
+      "title": "万华镜系列 · 万华镜6 demo0.92",
+      "engine": "RenPy",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+      "exactReleaseIds": [
+        "r106553",
+        "r122247",
+        "r122272",
+        "r122351",
+        "r123596",
+        "r123935",
+        "r131795"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r106553",
+          "url": "https://vndb.org/r106553",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Package Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122247",
+          "url": "https://vndb.org/r122247",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122272",
+          "url": "https://vndb.org/r122272",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122351",
+          "url": "https://vndb.org/r122351",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123596",
+          "url": "https://vndb.org/r123596",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123935",
+          "url": "https://vndb.org/r123935",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r131795",
+          "url": "https://vndb.org/r131795",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/99",
+          "site": "KUNGal",
+          "access": "prior_round_nsfw_confirmation",
+          "scope": "work",
+          "label": "NSFW确认页",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/39710",
+          "site": "KUNGal",
+          "access": "prior_round_inaccessible",
+          "scope": "resource",
+          "label": "未取得正文",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "日文/简中完整成人发行hasEro=true，未来简中Steam版r131795=false。",
+        "KUN作品NSFW确认页是作品级展示门禁；没有进入门禁，不能据此逐版断言。"
+      ],
+      "newFinding": "新搜雪女demo0.91/demo0.93均无结果；雪女+RenPy只返回系列通用模板的无关作品，排除该结果。既有发行索引没有这四个demo版本。",
+      "queriesPerformed": [
+        "site:kungal.com \"雪女\" \"0.93\"",
+        "\"雪女\" \"demo0.91\"",
+        "site:kungal.com \"雪女\" \"RenPy\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-31cf96913037760bf3f22036",
+      "workId": "v44184",
+      "title": "万华镜系列 · 万华镜6 demo0.93",
+      "engine": "RenPy",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+      "exactReleaseIds": [
+        "r106553",
+        "r122247",
+        "r122272",
+        "r122351",
+        "r123596",
+        "r123935",
+        "r131795"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r106553",
+          "url": "https://vndb.org/r106553",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Package Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122247",
+          "url": "https://vndb.org/r122247",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122272",
+          "url": "https://vndb.org/r122272",
+          "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r122351",
+          "url": "https://vndb.org/r122351",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123596",
+          "url": "https://vndb.org/r123596",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r123935",
+          "url": "https://vndb.org/r123935",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r131795",
+          "url": "https://vndb.org/r131795",
+          "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/99",
+          "site": "KUNGal",
+          "access": "prior_round_nsfw_confirmation",
+          "scope": "work",
+          "label": "NSFW确认页",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/39710",
+          "site": "KUNGal",
+          "access": "prior_round_inaccessible",
+          "scope": "resource",
+          "label": "未取得正文",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "日文/简中完整成人发行hasEro=true，未来简中Steam版r131795=false。",
+        "KUN作品NSFW确认页是作品级展示门禁；没有进入门禁，不能据此逐版断言。"
+      ],
+      "newFinding": "新搜雪女demo0.91/demo0.93均无结果；雪女+RenPy只返回系列通用模板的无关作品，排除该结果。既有发行索引没有这四个demo版本。",
+      "queriesPerformed": [
+        "site:kungal.com \"雪女\" \"0.93\"",
+        "\"雪女\" \"demo0.91\"",
+        "site:kungal.com \"雪女\" \"RenPy\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-ece0d0fae22a134abcbf8b22",
+      "workId": "v7738",
+      "title": "君与彼女与彼女之恋",
+      "engine": "RenPy",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "补读语言字段后确认简中RenPy候选r38393为有色情，另两个RenPy候选为俄文且内容标记不同；当前控制快照未记录实际文本语言或移植来源，不能仅凭中文目录标题确认r38393，研究仍unknown。",
+      "exactReleaseIds": [
+        "r38393",
+        "r124825",
+        "r127992",
+        "r71526",
+        "r84524",
+        "r110554"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r38393",
+          "url": "https://vndb.org/r38393",
+          "title": "Ni yu Binv he Binv zhi Lian.",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": false,
+          "engine": "Ren'Py",
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r124825",
+          "url": "https://vndb.org/r124825",
+          "title": "YOU and ME and HER: A Love Story",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": false,
+          "engine": "Ren'Py",
+          "platforms": [
+            "ios",
+            "and"
+          ],
+          "languages": [
+            "ru"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r127992",
+          "url": "https://vndb.org/r127992",
+          "title": "YOU and ME and HER: A Love Story",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": false,
+          "engine": "Ren'Py",
+          "platforms": [
+            "ios",
+            "and",
+            "swi"
+          ],
+          "languages": [
+            "ru"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r71526",
+          "url": "https://vndb.org/r71526",
+          "title": "YOU and ME and HER: A Love Story - Steam Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": true,
+          "engine": "Diesel Engine",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r84524",
+          "url": "https://vndb.org/r84524",
+          "title": "YOU and ME and HER: A Love Story - Steam Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": true,
+          "engine": "Diesel Engine",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "en",
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r110554",
+          "url": "https://vndb.org/r110554",
+          "title": "Ni He Ta He Ta de Lian'ai. - R-18 DLC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/112",
+          "site": "KUNGal",
+          "access": "prior_round_opened",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/2973",
+          "site": "KUNGal",
+          "access": "prior_round_inaccessible",
+          "scope": "resource",
+          "label": "Steam无和谐补丁（索引）",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        }
+      ],
+      "knownConflicts": [
+        "r38393简中成人RenPy与俄文RenPy删改版是不同分支；不能混称同语言内容冲突。",
+        "本目录标题为中文，不等同包内语言或具体移植版证据；旧控制快照没有该字段。"
+      ],
+      "newFinding": "新增字段核查区分了语言：r38393=zh-Hans/完整/RenPy/true，r124825=ru/RenPy/true，r127992=ru/RenPy/false。旧“同引擎冲突”并不发生在同一语言内，但当前包对应仍未唯一确定。KUN君彼+RenPy检索未命中。",
+      "queriesPerformed": [
+        "site:kungal.com \"君与彼女\" \"RenPy\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    },
+    {
+      "versionId": "legacy-eec29e88f9c64b1a6ba50d5c",
+      "workId": "v8158",
+      "title": "大图书馆的牧羊人",
+      "engine": "ONS",
+      "checkedAt": "2026-11-13T21:27:21Z",
+      "researchDecision": "unknown",
+      "reason": "新增搜索索引出现明确4GB ONS及本篇/FD合集说明，但实际打开的KUN作品页未返回这些资源正文；尚不能确认当前ONS对应成人本篇而非无色情移植/试玩，继续unknown。",
+      "exactReleaseIds": [
+        "r16537",
+        "r22604",
+        "r22618",
+        "r26097",
+        "r36588",
+        "r139609",
+        "r151369"
+      ],
+      "releaseEvidence": [
+        {
+          "id": "r16537",
+          "url": "https://vndb.org/r16537",
+          "title": "Daitoshokan no Hitsujikai - First Press Limited Edition Standard Pack",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": "BGI/Ethornell",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r22604",
+          "url": "https://vndb.org/r22604",
+          "title": "Daitoshokan no Hitsujikai - Web Trial",
+          "hasEro": false,
+          "minage": 0,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "trial"
+          ]
+        },
+        {
+          "id": "r22618",
+          "url": "https://vndb.org/r22618",
+          "title": "Daitoshokan no Hitsujikai - Trial Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "official": true,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "trial"
+          ]
+        },
+        {
+          "id": "r26097",
+          "url": "https://vndb.org/r26097",
+          "title": "Datushuguan de Muyangren",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r36588",
+          "url": "https://vndb.org/r36588",
+          "title": "Daitoshokan no Hitsujikai -Library Party-",
+          "hasEro": false,
+          "minage": 17,
+          "patch": false,
+          "official": true,
+          "engine": "Yeti/Regista Engine",
+          "platforms": [
+            "psv"
+          ],
+          "languages": [
+            "ja"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        },
+        {
+          "id": "r139609",
+          "url": "https://vndb.org/r139609",
+          "title": "Datushuguan de Muyangren -Tushuguan Paidui- Yizhijiang Jinyu Xian",
+          "hasEro": false,
+          "minage": 0,
+          "patch": false,
+          "official": false,
+          "engine": "WebGAL",
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "partial"
+          ]
+        },
+        {
+          "id": "r151369",
+          "url": "https://vndb.org/r151369",
+          "title": "Da Tushuguan de Muyangren - Tushuguan Paidui - Yizhijiang Jinyu",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "official": false,
+          "engine": null,
+          "platforms": [
+            "win"
+          ],
+          "languages": [
+            "zh-Hans"
+          ],
+          "releaseType": [
+            "complete"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "access": "existing_public_api_snapshot_read",
+          "scope": "release",
+          "label": "逐条核对hasEro/engine/languages/patch/releaseType",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "note": "本轮读取仓库完整发行索引；没有重复请求API，未声称单独打开每个发行网页。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/654",
+          "site": "KUNGal",
+          "access": "prior_round_opened",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/48825",
+          "site": "KUNGal",
+          "access": "prior_round_opened",
+          "scope": "resource",
+          "label": "模拟器；泛称KRKR/Tyranor/ONS",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "note": "沿用前轮已记录的访问与限制；不重新尝试已失败两次/确认页入口。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/654",
+          "site": "KUNGal",
+          "access": "current_round_opened",
+          "scope": "work",
+          "label": "年龄字段R18；搜索索引ONS资源未在可读正文找到",
+          "checkedAt": "2026-11-13T21:27:21Z",
+          "note": "新open及两次不同文本find用于验证新搜索结果，不是对旧失败入口重复重试。"
+        }
+      ],
+      "knownConflicts": [
+        "PC成人本篇hasEro=true；全年龄试玩、Library Party及其内容移植hasEro=false。",
+        "原控制只证明ONS及nscript.dat路径；具体来源未记录。"
+      ],
+      "newFinding": "KUN精确ONS+R18搜索索引曾列Meousck的4GB模拟器资源（备注ons）与本篇+FD合集；实际open/find的407行作品页没有Meousck/4gb，仍只确认作品R18。将索引提示与可读正文区分，不升级分类。",
+      "queriesPerformed": [
+        "site:kungal.com \"大图书馆的牧羊人\" \"ONS\" \"R18\""
+      ],
+      "userRequestedDisplayFallback": "SFW（未核实按用户默认）",
+      "fallbackIsEvidence": false,
+      "classificationMutationPerformed": false
+    }
+  ]
+}

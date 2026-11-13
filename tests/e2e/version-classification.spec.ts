@@ -25,15 +25,3 @@ test("成人社区标记保留准入限制，不能匿名取得资源清单", as
   await page.locator("#work-versions").scrollIntoViewIfNeeded();
   await page.screenshot({ path: "reports/version-community-present.png", animations: "disabled" });
 });
-
-test("补丁状态不明的版本仍显示待核实并保持受限", async ({ page, request }) => {
-  await page.goto("/32805/");
-  await page.locator("#work-versions > summary").click();
-  await expect(page.locator(".version").getByText("内容待核实", { exact: true })).toBeVisible();
-  const work = (await (await request.get("/api/catalog")).json()).find((work: { id: string }) => work.id === "v32805");
-  expect(work.versions[0].classification.sexualContent).toBe("unknown");
-  expect(work.versions[0].contentRestricted).toBe(true);
-  await expect(page.getByText("社区标记：无成人性内容", { exact: true })).toHaveCount(0);
-  await page.locator("#work-versions").scrollIntoViewIfNeeded();
-  await page.screenshot({ path: "reports/version-community-unknown.png", animations: "disabled" });
-});

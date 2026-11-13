@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { ClassificationRecord, ClassificationReviewRecord, WorkReviewSnapshot } from "./classification.server.ts";
 import type { PublicWork } from "../types.ts";
+import { versionContentLabel } from "./version-label";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -13,7 +14,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from ".
 type Api = (path: string, method?: string, body?: unknown) => Promise<any>;
 const labels: Record<string, string> = {
   work: "作品页面", version: "游玩版本", image: "单张图片", unknown: "待核实", sfw: "SFW 页面", nsfw: "NSFW 页面",
-  none: "已确认不含成人性内容", present: "含成人性内容", safe: "无性内容", suggestive: "含性暗示", explicit: "露骨性内容",
+  none: "SFW（含默认）", present: "含成人性内容", safe: "无性内容", suggestive: "含性暗示", explicit: "露骨性内容",
   tame: "无显著暴力", violent: "暴力", brutal: "强烈暴力", stale: "文案已变化，需复审",
 };
 const keyOf = (record: Pick<ClassificationRecord, "kind" | "id">) => record.kind + ":" + record.id;
@@ -112,7 +113,7 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
       <Label className="field">分类状态<NativeSelect value={status} onChange={event => { setStatus(event.target.value); setLimit(50); }}><NativeSelectOption value="">全部状态</NativeSelectOption>{["unknown", "stale", "sfw", "nsfw", "none", "present", "safe", "suggestive", "explicit", "tame", "violent", "brutal"].map(value => <NativeSelectOption key={value} value={value}>{labels[value]}</NativeSelectOption>)}</NativeSelect></Label>
     </div>
     {record && <div ref={editor}><Card><CardHeader><h3>审核：{listed.names.get(keyOf(record)) ?? record.id}</h3><p className="break-all text-sm">{labels[record.kind]} · {record.id}</p>
-      <p className="muted">修订 {record.classification.revision} · {record.manual ? "人工覆盖" : "导入或尚未审核"}{record.classification.reviewedAt && " · 上次核实 " + record.classification.reviewedAt}</p>
+      <p className="muted">修订 {record.classification.revision} · {record.manual ? "人工覆盖" : "导入或尚未审核"}{record.classification.reviewedAt && " · 记录更新时间 " + record.classification.reviewedAt}</p>
       {originalImage && <p><a href={originalImage} target="_blank" rel="noreferrer">打开登记的来源原图（新窗口）</a></p>}
       {reviewText && <WorkReviewText text={reviewText} />}
       {currentWork && <details className="space-y-2"><summary>核对当前页面与版本文案</summary><div className="space-y-2 text-sm">
@@ -133,7 +134,7 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
     <p>{filtered.length} 条匹配记录；当前显示 {Math.min(filtered.length, limit)} 条。</p>
     <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>对象</TableHead><TableHead>状态</TableHead><TableHead>修订</TableHead><TableHead>操作</TableHead></TableRow></TableHeader><TableBody>
       {filtered.slice(0, limit).map(value => <TableRow key={keyOf(value)}><TableCell><strong>{listed.names.get(keyOf(value)) ?? labels[value.kind]}</strong><p className="break-all text-xs">{labels[value.kind]} · {value.id}</p><p className="max-w-xl text-sm">{value.classification.reason || "尚无审核理由"}</p><p className="max-w-xl break-all text-xs text-muted-foreground">来源：{value.classification.source}</p></TableCell>
-        <TableCell>{statusOf(value).map((state, index) => <Badge key={state + index} variant="outline">{labels[state] ?? state}</Badge>)}</TableCell><TableCell>{value.classification.revision}{value.manual && <p className="text-xs">人工覆盖</p>}</TableCell>
+        <TableCell>{statusOf(value).map((state, index) => <Badge key={state + index} variant="outline">{value.kind === "version" ? versionContentLabel(value.classification) : labels[state] ?? state}</Badge>)}</TableCell><TableCell>{value.classification.revision}{value.manual && <p className="text-xs">人工覆盖</p>}</TableCell>
         <TableCell><Button type="button" variant="outline" disabled={busy} aria-pressed={selected === keyOf(value)} onClick={() => setSelected(keyOf(value))}>审核</Button></TableCell></TableRow>)}
     </TableBody></Table></div>
     {filtered.length > limit && <Button variant="outline" onClick={() => setLimit(limit + 50)}>再显示 50 条</Button>}
@@ -159,7 +160,7 @@ function ClassificationEditor({ record, busy, save }: { record: ClassificationRe
     <fieldset disabled={busy} className="space-y-4"><legend className="sr-only">审核分类与证据</legend>
       {record.kind === "work" && select("pageSuitability", "页面适宜性", record.classification.pageSuitability, ["unknown", "sfw", "nsfw"])}
       {record.kind === "version" && <>{select("sexualContent", "实际版本性内容", record.classification.sexualContent, ["unknown", "none", "present"])}
-        <p className="muted">“不含成人性内容”不表示适合所有年龄；需要与本站实际资源包及补丁状态相符的证据。</p>
+        <p className="muted">SFW不表示适合所有年龄。用户指定的未核实默认值须在来源与理由中保留标识，不能写成已确认不含成人内容。</p>
         <Label className="flex items-center gap-2"><input type="checkbox" name="titleSafe" defaultChecked={record.classification.titleSafe} />版本标题已审核，可在公共浏览显示</Label>
         <Label className="field">有证据的年龄分级（可留空）<Input name="ageRating" maxLength={100} defaultValue={record.classification.ageRating ?? ""} /></Label></>}
       {record.kind === "image" && <><div className="grid gap-3 sm:grid-cols-2">{select("sexual", "图片性内容", record.classification.sexual, ["unknown", "safe", "suggestive", "explicit"])}{select("violence", "图片暴力内容", record.classification.violence, ["unknown", "tame", "violent", "brutal"])}</div>
@@ -168,7 +169,7 @@ function ClassificationEditor({ record, busy, save }: { record: ClassificationRe
         <p className="muted">保留来源中的 0–2 小数与票数。自动安全导入需对应图片的双零分与有效票数；独立覆盖记录必须注明审核方式与文件证据。AI 视觉复核不等同人工审核或官方年龄评级；“可信来源”本身不等于图片安全。</p></>}
       <Label className="field">审核理由<Textarea name="reason" required maxLength={4000} defaultValue={record.classification.reason} placeholder="记录检查范围、判定依据和仍缺少的证据" /></Label>
       <Label className="field">证据来源<Input name="source" required maxLength={2000} defaultValue={record.classification.source} placeholder="对应来源链接或独立复核记录" /></Label>
-      <p className="muted">保存时记录本次核实时间。页面审核只批准上方所见的文案快照；文案已变化时请刷新分类并重新核对。</p>
+      <p className="muted">保存时记录本次更新时间。页面审核只批准上方所见的文案快照；文案已变化时请刷新分类并重新核对。</p>
       <Button type="submit">{busy ? "正在保存…" : "保存审核"}</Button>
     </fieldset>
   </form>;

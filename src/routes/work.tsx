@@ -19,18 +19,12 @@ import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
 import {useLayoutEffect} from 'react';
 import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
-import type { VersionClassification } from "../content/types.ts";
+import { versionContentLabel } from "../content/version-label";
 
 import { splitSynopsis } from "../lib/reader-experience";
 import { ShelfButton } from "../accounts/shelf-button";
 import {useLocalReading} from '../accounts/local-reading';
 
-function versionContentLabel(classification: VersionClassification) {
-  if (classification.source.startsWith("community:") && classification.sexualContent !== "unknown") {
-    return `社区标记：${classification.sexualContent === "none" ? "无" : "含"}成人性内容`;
-  }
-  return { none: "已确认不含成人性内容", present: "含成人性内容", unknown: "内容待核实" }[classification.sexualContent];
-}
 export async function loader({
   params,
   request,

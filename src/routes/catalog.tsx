@@ -47,7 +47,7 @@ export default function Catalog() {
   const nextSearchUrl=staleRestricted?null:loaded.nextSearchUrl;
   const recentKey=String(loaded.contentVisibility)+':'+JSON.stringify(recentWorks);
   const stateLabels:Record<string,string>={unchecked:"未导入检查",passed:"有通过记录",failed:"有失败记录",incomplete:"检查未完成"};
-  const contentLabels:Record<string,string>={none:"不含成人性内容",present:"含成人性内容",unknown:"内容待核实"};
+  const contentLabels:Record<string,string>={none:"SFW（含默认）",present:"含成人性内容",unknown:"内容待核实"};
   const filterValue=(key:string,value:string)=>key==="state"?(stateLabels[value]??value):key==="content"?(contentLabels[value]??value):value;
   return (
     <>
@@ -69,7 +69,7 @@ export default function Catalog() {
               <p className="text-sm text-muted-foreground">引擎和检查记录为技术筛选；日常阅读可保持全部。</p>
               <div className="field"><Label htmlFor="catalog-engine">引擎</Label><NativeSelect id="catalog-engine" name="engine" defaultValue={engine}><NativeSelectOption value="">全部引擎</NativeSelectOption>{["ONS", "Artemis", "RenPy", "Tyrano"].map(x => <NativeSelectOption key={x}>{x}</NativeSelectOption>)}</NativeSelect></div>
               <div className="field"><Label htmlFor="catalog-state">检查记录</Label><NativeSelect id="catalog-state" name="state" defaultValue={state}><NativeSelectOption value="">全部状态</NativeSelectOption><NativeSelectOption value="unchecked">未导入检查</NativeSelectOption><NativeSelectOption value="passed">有通过记录</NativeSelectOption><NativeSelectOption value="failed">有失败记录</NativeSelectOption><NativeSelectOption value="incomplete">检查未完成</NativeSelectOption></NativeSelect></div>
-              {contentGate && <div className="field"><Label htmlFor="catalog-content">版本内容</Label><NativeSelect id="catalog-content" name="content" defaultValue={content}><NativeSelectOption value="">全部可见版本</NativeSelectOption><NativeSelectOption value="none">已确认不含成人性内容</NativeSelectOption><NativeSelectOption value="present">含成人性内容</NativeSelectOption><NativeSelectOption value="unknown">内容待核实</NativeSelectOption></NativeSelect></div>}
+              {contentGate && <div className="field"><Label htmlFor="catalog-content">版本内容</Label><NativeSelect id="catalog-content" name="content" defaultValue={content}><NativeSelectOption value="">全部可见版本</NativeSelectOption><NativeSelectOption value="none">SFW（含默认）</NativeSelectOption><NativeSelectOption value="present">含成人性内容</NativeSelectOption><NativeSelectOption value="unknown">内容待核实</NativeSelectOption></NativeSelect></div>}
               <p className="text-xs text-muted-foreground">检查记录仅反映已执行的项目。</p>
             </div>
           </details>

@@ -929,12 +929,12 @@
       "kind": "version",
       "id": "legacy-2bc9744f4a39fda45c162027",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或成人补丁，当前版本的补丁/发行版对应仍不明确，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-2bc9744f4a39fda45c162027",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：未找到当前RenPy转换版明确含PLUS+MOSAIC附加内容或明确去除成人内容的社区标记，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-2bc9744f4a39fda45c162027",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -953,24 +953,24 @@
       "kind": "version",
       "id": "legacy-0a8a7282eb43a670959e29ae",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或成人补丁，当前版本的补丁/发行版对应仍不明确，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-0a8a7282eb43a670959e29ae",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis引擎内同时有删改完整本体与18+完整本体，未找到当前版本已打R18补丁的资源说明，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-0a8a7282eb43a670959e29ae",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-9eec48bf553b29f80a0cf3b6",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或成人补丁，当前版本的补丁/发行版对应仍不明确，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-9eec48bf553b29f80a0cf3b6",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：NinNinDays2存在无色情本体、R18本体和独立补丁；新检索只返回原作品级引擎信息，不能确认当前包补丁状态，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-9eec48bf553b29f80a0cf3b6",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1109,48 +1109,48 @@
       "kind": "version",
       "id": "legacy-fe2406e269b2dc19be3a75ba",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-fe2406e269b2dc19be3a75ba",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-fe2406e269b2dc19be3a75ba",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-c193d7dd6680727121b1f9d6",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-c193d7dd6680727121b1f9d6",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-c193d7dd6680727121b1f9d6",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-ad49d61a350643ebf45d85b5",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-ad49d61a350643ebf45d85b5",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-ad49d61a350643ebf45d85b5",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-31cf96913037760bf3f22036",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-31cf96913037760bf3f22036",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：仍未找到当前RenPy demo、demo0.91、demo0.92或demo0.93的精确社区内容标记；正式版成人标签不能覆盖这四个转换试玩，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-31cf96913037760bf3f22036",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1193,12 +1193,12 @@
       "kind": "version",
       "id": "legacy-ece0d0fae22a134abcbf8b22",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-ece0d0fae22a134abcbf8b22",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：补读语言字段后确认简中RenPy候选r38393为有色情，另两个RenPy候选为俄文且内容标记不同；当前控制快照未记录实际文本语言或移植来源，不能仅凭中文目录标题确认r38393，研究仍unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-ece0d0fae22a134abcbf8b22",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1217,12 +1217,12 @@
       "kind": "version",
       "id": "legacy-eec29e88f9c64b1a6ba50d5c",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-eec29e88f9c64b1a6ba50d5c",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：新增搜索索引出现明确4GB ONS及本篇/FD合集说明，但实际打开的KUN作品页未返回这些资源正文；尚不能确认当前ONS对应成人本篇而非无色情移植/试玩，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-eec29e88f9c64b1a6ba50d5c",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1361,36 +1361,36 @@
       "kind": "version",
       "id": "legacy-2a67a4d4f50f9f8b69621a75",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-2a67a4d4f50f9f8b69621a75",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：新找到2024年安卓/Tyranor资源帖，确认这种移植确实存在，但正文未写成人补丁或删减状态；VNDB简中Artemis本体为false、另有18+补丁true，目录版本无法区分。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-2a67a4d4f50f9f8b69621a75",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-c89356e75eb8577e08dda1e1",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-c89356e75eb8577e08dda1e1",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：已核对同为Artemis的日文成人发行和简中Steam剪辑DLC，以及独立18+补丁；KUN的Tyranor资源与合集存在，但没有可把当前两个目录版本对应为已打补丁的新增说明。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-c89356e75eb8577e08dda1e1",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-79060b38748739bd8e64e718",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-79060b38748739bd8e64e718",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：逐条复核发现解密移植补丁r96548自身虽false，但备注明确把Steam中文译文移到原始R18游戏；这能证明存在成人中文移植路线，仍不能证明当前目录版本采用此路线还是未打18+补丁的Steam版。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-79060b38748739bd8e64e718",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1493,24 +1493,24 @@
       "kind": "version",
       "id": "legacy-156b1273e3d67dc3ec603fd2",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-156b1273e3d67dc3ec603fd2",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：新查到KUN 1&2 PC/Ty移植帖，索引称小鳥遊暁移植、第一部有官中/民汉双版本；原页面本轮超时，不再重试。帖中文字没有成人补丁已应用信息，现有Artemis版本仍无法排除剪辑版。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-156b1273e3d67dc3ec603fd2",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-589e8be3f37d376dd02787fe",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-589e8be3f37d376dd02787fe",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：同一KUN PC/Ty 1&2帖子提供新增移植线索，但未说明第二部成人补丁应用；VNDB明确存在约一小时剪辑版和完整成人版且均可关联Artemis，因此继续待核实。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-589e8be3f37d376dd02787fe",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1565,24 +1565,24 @@
       "kind": "version",
       "id": "legacy-3ab8194b66d726bd4279e3b4",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-3ab8194b66d726bd4279e3b4",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：针对Artemis、Tyranor、18+ DLC和资源补丁作了定向搜索，结果仍仅作品级R18/引擎资料；发行表有Steam剪辑、主机非色情与原PC/安卓成人分支，两个目录版本均未增加版次或补丁标记。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-3ab8194b66d726bd4279e3b4",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-f71101d6acb2871ade48bcec",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-f71101d6acb2871ade48bcec",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：重新区分完整PSV移植、中文基础译补与H场景译补。检索绿茶/Ty/H场景后仍未找到可把两个目录版本对应至特定分支的新增资源说明；18+评级不能覆盖PSV移植has_ero=false。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-f71101d6acb2871ade48bcec",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1613,12 +1613,12 @@
       "kind": "version",
       "id": "legacy-1b0a56130aa4fb6a5d073fdf",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "未找到可对应的VNDB/KUNGal标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "audit:local:docs/version-nsfw-review-20261114.md#legacy-1b0a56130aa4fb6a5d073fdf",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：本轮又用死宅天使、日文原名检索VNDB/KUN，仍未找到可确认的作品映射；没有新增内容标记。标题不能替代证据，研究结论继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-1b0a56130aa4fb6a5d073fdf",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1661,48 +1661,48 @@
       "kind": "version",
       "id": "legacy-a045f2a8a2d68503bd00418c",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-a045f2a8a2d68503bd00418c",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis Windows分支确实同时有删减版r120379和成人版r120388，另有成人恢复补丁r120386；中文汉化r107145为成人标记，但没有当前版本采用哪条支线的新资料。旧KUN439作品R18未增加版次信息，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-a045f2a8a2d68503bd00418c",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-0749431b49cb164e3a98470d",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-0749431b49cb164e3a98470d",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis Windows中r118656为删减版、r118657为成人版，r124424为成人补丁；KUN检索仍主要为此前失败的12602/12607资源摘要，无法确认当前Artemis包采用成人原作还是删减版。没有新增正文确证，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-0749431b49cb164e3a98470d",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-7f849d5bf9b1405c681b5df4",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-7f849d5bf9b1405c681b5df4",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：同一Artemis引擎存在r61791删减版及r63067成人版，中文Windows补丁r81886标true，Switch中文补丁r126235标false且平台不同。未取得当前资源成人恢复状态的新正文；原有KUN245的R18是作品级，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-7f849d5bf9b1405c681b5df4",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-5d0fc085f59f8b32b0607d9a",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-5d0fc085f59f8b32b0607d9a",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：新增可读KUN话题385确认社区有ONS移植，另由小鳥遊曉跨引擎移植Tyranor；话题没有成人保留/删减说明。新发现资源246的PC+ONS仅可见搜索摘要，open失败。VNDB中文Windows译补true与主机false仍不能直接锁定本站ONS资源，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-5d0fc085f59f8b32b0607d9a",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1721,36 +1721,36 @@
       "kind": "version",
       "id": "legacy-be3af7162b3b095755065f3f",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-be3af7162b3b095755065f3f",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：同Artemis的Re:BIRTH日文完整版和多语言删减版r113495共存，r123732为对应成人补丁。原作/完全版/重制版还共用作品编号。两个站点版本都未新增具体补丁状态或汉化来源正文，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-be3af7162b3b095755065f3f",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-eb649752b9b3b9ec088e1b24",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-eb649752b9b3b9ec088e1b24",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按VNDB对应Artemis桌面/安卓移植分支的社区标记更新；不再混用Switch版标记。细分既有VNDB索引后发现，原先混合值只来自Switch版r106645；完整Windows/Android的Artemis主游戏r82859/r88669/r100137均hasEro=true，中文Windows译补r95812也为true。未发现同平台删减分支。按用户接受社区标记的口径，可将本站Artemis中文版本推定为present；这是平台/引擎分支推定，未声称包内实测。 本结论为社区版本推定，不是包内逐场景实测或官方年龄认证。",
+        "source": "community:VNDB:docs/version-followup-20261114.md#legacy-eb649752b9b3b9ec088e1b24",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-33474c5ab851410a1da3491a",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-33474c5ab851410a1da3491a",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Windows Artemis成人版r108126与Steam/GOG删减部分版r108187共存，另有成人DLC r122059；中文Artemis Vita移植r125264又为false。站点HD标题不能证明已包含成人DLC，也不能仅因complete过滤排除可能部署的部分删减版。本轮没有新增对应资源正文，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-33474c5ab851410a1da3491a",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1769,108 +1769,108 @@
       "kind": "version",
       "id": "legacy-503f16b56d7c648804d85b51",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-503f16b56d7c648804d85b51",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis安卓r100126标true，Artemis Switch/PS4版r57708/r60261标false；Windows中文原作r56340则为KiriKiri，Steam版r61773也为KiriKiri且false。当前Artemis转换来源没有新标记，不能单凭引擎等同安卓成人版，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-503f16b56d7c648804d85b51",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-8675748d868a788562284aaa",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-8675748d868a788562284aaa",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis安卓r100127标true，而主机Artemis r61855为false；Steam Windows r65571为KiriKiri且false，中文原作译补为true。旧KUN1381正文是KRKR安卓资源，与本站Artemis不直接相同。本轮没有新的成人状态对应，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-8675748d868a788562284aaa",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-b2daa513541305560c3fcbae",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-b2daa513541305560c3fcbae",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：原作中文译补r7558标true，PSP中文译补r10915及Refine中文r134678标false；没有ONS发行记录。新搜到KUN34276的摘要称原作+重制+ONS/TY合集，但open失败且本身混合版次；不能把合集标题当本站ONS内容。继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#legacy-b2daa513541305560c3fcbae",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "legacy-78cfdb60c00f9fe6d0dd1e44",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-78cfdb60c00f9fe6d0dd1e44",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按VNDB对应Artemis桌面/安卓移植分支的社区标记更新；不再混用Switch版标记。细分既有VNDB索引后，唯一false主游戏是Switch版r104712；Artemis Windows/Android完整发行r94944/r100670/r104480/r104965均hasEro=true，中文Windows译补r104941也为true。没有同平台删减分支，按社区引擎/平台分支推定本站Artemis中文版本为present；KUN261本轮超时未作新增佐证。 本结论为社区版本推定，不是包内逐场景实测或官方年龄认证。",
+        "source": "community:VNDB:docs/version-followup-20261114.md#legacy-78cfdb60c00f9fe6d0dd1e44",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "ef49dd01-c904-518f-aba7-50a36d46c596",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#ef49dd01-c904-518f-aba7-50a36d46c596",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis Windows的多语言删减版r112087与成人版r116696并存，另有成人DLC r114252；中文译补r63497为true。WebGAL日期只是迁移标题，不能替代成人补丁状态；旧KUN902作品R18没有提供新版本绑定，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#ef49dd01-c904-518f-aba7-50a36d46c596",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "2db31864-3a96-519e-be67-b75cac750691",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#2db31864-3a96-519e-be67-b75cac750691",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：多语言Windows成人版r120834和删减版r120835并存，成人DLC为r120836；中文原作译补r65252为true。当前Artemis/WebGAL转换没有新增版本/补丁描述，旧KUN903缓存未见独立成人状态，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#2db31864-3a96-519e-be67-b75cac750691",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "8949d767-3c75-5d50-ac5d-1e0693108a6a",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#8949d767-3c75-5d50-ac5d-1e0693108a6a",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：多语言Windows删减版r124632、成人版r124633与成人DLC r124634并存；Artemis安卓r82606虽为true，也不能覆盖当前WebGAL转换。此次KUN检索仍只得到作品聚合标签和旧904索引，无新增正文确证，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#8949d767-3c75-5d50-ac5d-1e0693108a6a",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：逐条复核发现解密移植补丁r96548自身虽false，但备注明确把Steam中文译文移到原始R18游戏；这能证明存在成人中文移植路线，仍不能证明当前目录版本采用此路线还是未打18+补丁的Steam版。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：已核对同为Artemis的日文成人发行和简中Steam剪辑DLC，以及独立18+补丁；KUN的Tyranor资源与合集存在，但没有可把当前两个目录版本对应为已打补丁的新增说明。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1889,24 +1889,24 @@
       "kind": "version",
       "id": "cbc04bd1-9eaa-51db-906e-d434742211f8",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#cbc04bd1-9eaa-51db-906e-d434742211f8",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：针对Artemis、Tyranor、18+ DLC和资源补丁作了定向搜索，结果仍仅作品级R18/引擎资料；发行表有Steam剪辑、主机非色情与原PC/安卓成人分支，两个目录版本均未增加版次或补丁标记。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#cbc04bd1-9eaa-51db-906e-d434742211f8",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "d872fbdb-a9a4-550e-8699-928cacc9750e",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#d872fbdb-a9a4-550e-8699-928cacc9750e",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis Windows成人原作r113440/r125675及完整多语言版r129116为true，但Steam删减部分版r125601为false，成人内容补丁r129115另列；中文译补亦有多条。即使完整发行过滤后只剩true，仍不能排除当前包就是部分删减版。本轮没有补丁状态新证据，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#d872fbdb-a9a4-550e-8699-928cacc9750e",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1937,36 +1937,36 @@
       "kind": "version",
       "id": "933436a8-85f5-5a76-9568-5f29faff9785",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#933436a8-85f5-5a76-9568-5f29faff9785",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：同Artemis的Re:BIRTH日文完整版和多语言删减版r113495共存，r123732为对应成人补丁。原作/完全版/重制版还共用作品编号。两个站点版本都未新增具体补丁状态或汉化来源正文，继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#933436a8-85f5-5a76-9568-5f29faff9785",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "33224257-9a7b-5d77-b690-2c0fd9643a48",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#33224257-9a7b-5d77-b690-2c0fd9643a48",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：本轮只补查仍unknown的Artemis/WebGAL目录版，不重查已决RenPy两版。针对PSV/Artemis/WebGAL后，仍有完整PSV无色情标记、周年成人版及剪辑恢复补丁三路；没有来源指出本站2026-10-27转换采用哪路。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#33224257-9a7b-5d77-b690-2c0fd9643a48",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
       "kind": "version",
       "id": "d6b4fc84-a347-5a28-9184-579085dadfa1",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#d6b4fc84-a347-5a28-9184-579085dadfa1",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：重新区分完整PSV移植、中文基础译补与H场景译补。检索绿茶/Ty/H场景后仍未找到可把两个目录版本对应至特定分支的新增资源说明；18+评级不能覆盖PSV移植has_ero=false。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#d6b4fc84-a347-5a28-9184-579085dadfa1",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {
@@ -1985,12 +1985,12 @@
       "kind": "version",
       "id": "476a1807-cfd5-5e67-8772-5ca53e9b616c",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
-        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#476a1807-cfd5-5e67-8772-5ca53e9b616c",
-        "reviewedAt": "2026-11-13T21:15:19.999Z",
-        "revision": 2
+        "reason": "按用户明确要求“待核实的直接按sfw”，本轮未核实版本默认按SFW处理；不是已确认不含成人性内容或官方年龄评级。研究仍未核实：Artemis主机PS4/Vita/Switch发行r52690/r56201/r89038等均false；原PC成人版、中文译补r60169与后续英文/中文版r146548为true，但原PC并非这些主机Artemis记录。当前WebGAL转换没有明确保留性场景标签，旧KUN408的R18为作品级；继续unknown。",
+        "source": "user-default:sfw-unverified:docs/version-followup-20261114.md#476a1807-cfd5-5e67-8772-5ca53e9b616c",
+        "reviewedAt": "2026-11-13T21:31:02.571Z",
+        "revision": 3
       }
     },
     {

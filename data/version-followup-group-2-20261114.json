@@ -1,0 +1,1559 @@
+{
+  "schemaVersion": 1,
+  "group": 2,
+  "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+  "scope": "只补查原unknown的12个目录版本，不修改主分类或产品。",
+  "researchCounts": {
+    "unknown": 12
+  },
+  "policy": "研究未能唯一确定的保留unknown；产品由父任务按用户指令默认SFW并注明未核实。无需官方hash。",
+  "verificationBatch": {
+    "question": "精确移植/语言/补丁能否排除混合成人状态？",
+    "expected": "带具体引擎的资源帖明确成人恢复或删减状态，或发行索引唯一对应。",
+    "falsifier": "只找到作品R18、引擎名、译本名或单独补丁，而当前版本没有对应信息。",
+    "result": "新增Tyranor理论资源帖和拔作岛双译本移植线索；没有确定当前版本成人状态的新标记。"
+  },
+  "excludedRoutes": [
+    "不重复VNDB网页不可达路线",
+    "不重新查询线上401控制清单",
+    "不确认显示KUN NSFW/年龄登录门页",
+    "不重开旧ID2759索引与正文不一致的入口",
+    "不下载游戏或补丁、不访问网盘链接"
+  ],
+  "records": [
+    {
+      "versionId": "legacy-2a67a4d4f50f9f8b69621a75",
+      "workId": "v12246",
+      "title": "少女理论及其周边",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "新找到2024年安卓/Tyranor资源帖，确认这种移植确实存在，但正文未写成人补丁或删减状态；VNDB简中Artemis本体为false、另有18+补丁true，目录版本无法区分。",
+      "releaseIds": [
+        "r112220",
+        "r116700",
+        "r47964"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r112220",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris-",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r116700",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- 18+ Patch",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r47964",
+          "title": "Shaonü Lilun Jiqi Zhoubian",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/48",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/130",
+          "access": "本轮实际打开，可读正文",
+          "scope": "resource",
+          "label": "安卓/Tyranor移植；未说明成人状态",
+          "observation": "2024-02-09资源帖明确用Tyranor运行；无成人补丁应用说明。"
+        }
+      ],
+      "knownConflicts": [
+        "r112220是简中/繁中/日语Artemis完整发行，has_ero=false。",
+        "r116700为18+恢复补丁has_ero=true；r47964中文翻译补丁亦true，不能据作品R18覆盖所有Artemis。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"少女理论\" \"Tyranor\" \"补丁\"",
+        "site:kungal.com \"少女理论及其周边\" \"18+\"",
+        "site:kungal.com \"少女理论及其周边\" \"tyranor\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "legacy-c89356e75eb8577e08dda1e1",
+      "workId": "v33205",
+      "title": "常规脱离creative凸",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "已核对同为Artemis的日文成人发行和简中Steam剪辑DLC，以及独立18+补丁；KUN的Tyranor资源与合集存在，但没有可把当前两个目录版本对应为已打补丁的新增说明。",
+      "releaseIds": [
+        "r92864",
+        "r118911",
+        "r137422",
+        "r91861",
+        "r99366"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r92864",
+          "title": "Hamidashi Creative: Totsu - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r118911",
+          "title": "Changgui Tuoli Creative Tu",
+          "hasEro": false,
+          "minage": null,
+          "patch": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r137422",
+          "title": "Changgui Tuoli Creative Tu 18+ patch",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r91861",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r99366",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/738",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Artemis/Tyranor port",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/13032",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Steam restoration patch included",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r118911虽patch=true，却是r94751的完整游戏DLC，has_ero=false，不能当普通翻译补丁直接排除。",
+        "r137422为单独18+补丁true；r92864日文原版true。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"常轨脱离Creative\" \"Tyranor\" \"补丁\"",
+        "site:kungal.com/galgame/resource \"常轨脱离Creative\" \"裸绘\"",
+        "site:kungal.com \"常轨脱离Creative凸\" \"18+\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+      "workId": "v33205",
+      "title": "常轨脱离 Creative 凸 · WebGAL 2026-10-27",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "已核对同为Artemis的日文成人发行和简中Steam剪辑DLC，以及独立18+补丁；KUN的Tyranor资源与合集存在，但没有可把当前两个目录版本对应为已打补丁的新增说明。",
+      "releaseIds": [
+        "r92864",
+        "r118911",
+        "r137422",
+        "r91861",
+        "r99366"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r92864",
+          "title": "Hamidashi Creative: Totsu - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r118911",
+          "title": "Changgui Tuoli Creative Tu",
+          "hasEro": false,
+          "minage": null,
+          "patch": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r137422",
+          "title": "Changgui Tuoli Creative Tu 18+ patch",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r91861",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r99366",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/738",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Artemis/Tyranor port",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/13032",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Steam restoration patch included",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r118911虽patch=true，却是r94751的完整游戏DLC，has_ero=false，不能当普通翻译补丁直接排除。",
+        "r137422为单独18+补丁true；r92864日文原版true。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"常轨脱离Creative\" \"Tyranor\" \"补丁\"",
+        "site:kungal.com/galgame/resource \"常轨脱离Creative\" \"裸绘\"",
+        "site:kungal.com \"常轨脱离Creative凸\" \"18+\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "legacy-79060b38748739bd8e64e718",
+      "workId": "v27449",
+      "title": "常轨脱离Creative",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "逐条复核发现解密移植补丁r96548自身虽false，但备注明确把Steam中文译文移到原始R18游戏；这能证明存在成人中文移植路线，仍不能证明当前目录版本采用此路线还是未打18+补丁的Steam版。",
+      "releaseIds": [
+        "r94751",
+        "r96409",
+        "r96548",
+        "r81957",
+        "r74630"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r94751",
+          "title": "Changgui Tuoli Creative - Censored Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r96409",
+          "title": "Changgui Tuoli Creative 18+ DLC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r96548",
+          "title": "Changgui Tuoli Creative decoded patch",
+          "hasEro": false,
+          "minage": 0,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r81957",
+          "title": "Linggan Manyi de Tianmi Chuangxiang",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "and"
+          ]
+        },
+        {
+          "id": "r74630",
+          "title": "Hamidashi Creative - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/738",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Artemis/Tyranor port",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/13032",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Steam restoration patch included",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r94751简中Artemis剪辑版false；r96409为18+ DLC true。",
+        "r96548是解密/文本移植补丁，false不等于其目标R18基础游戏无性内容。",
+        "r81957中文安卓完整移植true，但engine为空，不能单靠Artemis标题唯一对应。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"常轨脱离Creative\" \"Tyranor\" \"补丁\"",
+        "site:kungal.com/galgame/resource \"常轨脱离Creative\" \"裸绘\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+      "workId": "v27449",
+      "title": "常轨脱离Creative · WebGAL 2026-10-27",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "逐条复核发现解密移植补丁r96548自身虽false，但备注明确把Steam中文译文移到原始R18游戏；这能证明存在成人中文移植路线，仍不能证明当前目录版本采用此路线还是未打18+补丁的Steam版。",
+      "releaseIds": [
+        "r94751",
+        "r96409",
+        "r96548",
+        "r81957",
+        "r74630"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r94751",
+          "title": "Changgui Tuoli Creative - Censored Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r96409",
+          "title": "Changgui Tuoli Creative 18+ DLC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r96548",
+          "title": "Changgui Tuoli Creative decoded patch",
+          "hasEro": false,
+          "minage": 0,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r81957",
+          "title": "Linggan Manyi de Tianmi Chuangxiang",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "and"
+          ]
+        },
+        {
+          "id": "r74630",
+          "title": "Hamidashi Creative - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/738",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Artemis/Tyranor port",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/13032",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "resource",
+          "label": "Steam restoration patch included",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r94751简中Artemis剪辑版false；r96409为18+ DLC true。",
+        "r96548是解密/文本移植补丁，false不等于其目标R18基础游戏无性内容。",
+        "r81957中文安卓完整移植true，但engine为空，不能单靠Artemis标题唯一对应。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"常轨脱离Creative\" \"Tyranor\" \"补丁\"",
+        "site:kungal.com/galgame/resource \"常轨脱离Creative\" \"裸绘\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "legacy-156b1273e3d67dc3ec603fd2",
+      "workId": "v22899",
+      "title": "拔作岛1",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "新查到KUN 1&2 PC/Ty移植帖，索引称小鳥遊暁移植、第一部有官中/民汉双版本；原页面本轮超时，不再重试。帖中文字没有成人补丁已应用信息，现有Artemis版本仍无法排除剪辑版。",
+      "releaseIds": [
+        "r106546",
+        "r106550",
+        "r109478",
+        "r74485",
+        "r161402"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r106546",
+          "title": "NUKITASHI - Censored Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r106550",
+          "title": "NUKITASHI",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r109478",
+          "title": "NUKITASHI - 18+ DLC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r74485",
+          "title": "Zhu zai Xiati Shengji Dao shang de Pinru gai Ruhe shi Hao?",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r161402",
+          "title": "NUKITASHI - JP restoration patch with dual language display",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/420",
+          "access": "本轮open超时；仅搜索索引正文可读，未重试",
+          "scope": "resource",
+          "label": "PC/Ty 1&2移植；官中/民汉双版本",
+          "observation": "索引说明移植作者及双译本，但未说明成人补丁状态。"
+        }
+      ],
+      "knownConflicts": [
+        "r106546为约两小时剪辑版false，r106550是Artemis完整成人版true。",
+        "r109478为18+ DLC true；官方中文/民间中文的译本区别不自动代表性内容区别。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com/galgame/resource \"拔作岛1\" \"补丁\"",
+        "site:kungal.com \"拔作岛\" \"Artemis\" \"R18\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "legacy-589e8be3f37d376dd02787fe",
+      "workId": "v23741",
+      "title": "拔作岛2",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "同一KUN PC/Ty 1&2帖子提供新增移植线索，但未说明第二部成人补丁应用；VNDB明确存在约一小时剪辑版和完整成人版且均可关联Artemis，因此继续待核实。",
+      "releaseIds": [
+        "r109469",
+        "r109486",
+        "r119477",
+        "r93808",
+        "r161402"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r109469",
+          "title": "NUKITASHI 2 - Censored Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r109486",
+          "title": "NUKITASHI 2",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r119477",
+          "title": "NUKITASHI 2 - R18 Patch",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r93808",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r161402",
+          "title": "NUKITASHI - JP restoration patch with dual language display",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/topic/420",
+          "access": "本轮open超时；仅搜索索引正文可读，未重试",
+          "scope": "resource",
+          "label": "PC/Ty 1&2移植",
+          "observation": "覆盖两部移植的帖子，未说明第二部成人补丁是否包含。"
+        }
+      ],
+      "knownConflicts": [
+        "r109469是Artemis剪辑版false，只有开篇约一小时；r109486为完整成人版true。",
+        "r119477成人补丁true，目录未附patch名称。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"拔作岛2\" \"删减\"",
+        "site:kungal.com/galgame/resource \"拔作岛1\" \"补丁\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "legacy-3ab8194b66d726bd4279e3b4",
+      "workId": "v22847",
+      "title": "树莓立方体",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "针对Artemis、Tyranor、18+ DLC和资源补丁作了定向搜索，结果仍仅作品级R18/引擎资料；发行表有Steam剪辑、主机非色情与原PC/安卓成人分支，两个目录版本均未增加版次或补丁标记。",
+      "releaseIds": [
+        "r56464",
+        "r61468",
+        "r63257",
+        "r97485",
+        "r97935",
+        "r100133",
+        "r65542"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r56464",
+          "title": "Raspberry Cube - Package Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r61468",
+          "title": "Raspberry Cube - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r63257",
+          "title": "Raspberry Cube - Regular Edition",
+          "hasEro": false,
+          "minage": 17,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ]
+        },
+        {
+          "id": "r97485",
+          "title": "Raspberry Cube",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r97935",
+          "title": "Raspberry Cube - 18+ DLC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r100133",
+          "title": "Raspberry Cube",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ]
+        },
+        {
+          "id": "r65542",
+          "title": "Shumei Lifangti",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/89",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r97485简中Steam发行false，r97935成人DLC true。",
+        "原PC/安卓及Switch等分支共享或兼容Artemis；引擎无法判别补丁。",
+        "成人画廊隐藏提示和作品R18都不足以判断当前两版。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"树莓立方体\" \"Tyranor\"",
+        "site:kungal.com/galgame/resource \"树莓立方体\" \"补丁\"",
+        "site:kungal.com \"树莓立方体\" \"18+ DLC\"",
+        "site:kungal.com \"树莓立方体\" \"Artemis\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "cbc04bd1-9eaa-51db-906e-d434742211f8",
+      "workId": "v22847",
+      "title": "树莓立方体 · WebGAL 2026-10-27",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "针对Artemis、Tyranor、18+ DLC和资源补丁作了定向搜索，结果仍仅作品级R18/引擎资料；发行表有Steam剪辑、主机非色情与原PC/安卓成人分支，两个目录版本均未增加版次或补丁标记。",
+      "releaseIds": [
+        "r56464",
+        "r61468",
+        "r63257",
+        "r97485",
+        "r97935",
+        "r100133",
+        "r65542"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r56464",
+          "title": "Raspberry Cube - Package Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r61468",
+          "title": "Raspberry Cube - Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r63257",
+          "title": "Raspberry Cube - Regular Edition",
+          "hasEro": false,
+          "minage": 17,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ]
+        },
+        {
+          "id": "r97485",
+          "title": "Raspberry Cube",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r97935",
+          "title": "Raspberry Cube - 18+ DLC",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r100133",
+          "title": "Raspberry Cube",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ]
+        },
+        {
+          "id": "r65542",
+          "title": "Shumei Lifangti",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/89",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r97485简中Steam发行false，r97935成人DLC true。",
+        "原PC/安卓及Switch等分支共享或兼容Artemis；引擎无法判别补丁。",
+        "成人画廊隐藏提示和作品R18都不足以判断当前两版。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"树莓立方体\" \"Tyranor\"",
+        "site:kungal.com/galgame/resource \"树莓立方体\" \"补丁\"",
+        "site:kungal.com \"树莓立方体\" \"18+ DLC\"",
+        "site:kungal.com \"树莓立方体\" \"Artemis\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "legacy-f71101d6acb2871ade48bcec",
+      "workId": "v20431",
+      "title": "樱之刻",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "重新区分完整PSV移植、中文基础译补与H场景译补。检索绿茶/Ty/H场景后仍未找到可把两个目录版本对应至特定分支的新增资源说明；18+评级不能覆盖PSV移植has_ero=false。",
+      "releaseIds": [
+        "r49417",
+        "r90502",
+        "r100278",
+        "r124135",
+        "r125266",
+        "r138444"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r49417",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- First Press Limited Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r90502",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r100278",
+          "title": "Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia-",
+          "hasEro": false,
+          "minage": null,
+          "patch": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r124135",
+          "title": "<Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia-> H-scene Chinese Translation Patch",
+          "hasEro": false,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r125266",
+          "title": "Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia- for psvita",
+          "hasEro": false,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "psv"
+          ]
+        },
+        {
+          "id": "r138444",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/169",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r125266简中Artemis完整PSV移植has_ero=false且minage18。",
+        "r100278中文补丁false，另有H场景翻译补丁r124135也false；补丁字段不能证明删H。",
+        "日文原PC和后续官方中文完整成人发行true。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"樱之刻\" \"PSV\"",
+        "site:kungal.com \"樱之刻\" \"H场景\" \"Ty\"",
+        "site:kungal.com \"樱之刻\" \"绿茶\" \"H\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "d6b4fc84-a347-5a28-9184-579085dadfa1",
+      "workId": "v20431",
+      "title": "樱之刻 · WebGAL 2026-10-27",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "重新区分完整PSV移植、中文基础译补与H场景译补。检索绿茶/Ty/H场景后仍未找到可把两个目录版本对应至特定分支的新增资源说明；18+评级不能覆盖PSV移植has_ero=false。",
+      "releaseIds": [
+        "r49417",
+        "r90502",
+        "r100278",
+        "r124135",
+        "r125266",
+        "r138444"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r49417",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- First Press Limited Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r90502",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Download Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r100278",
+          "title": "Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia-",
+          "hasEro": false,
+          "minage": null,
+          "patch": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r124135",
+          "title": "<Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia-> H-scene Chinese Translation Patch",
+          "hasEro": false,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r125266",
+          "title": "Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia- for psvita",
+          "hasEro": false,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "psv"
+          ]
+        },
+        {
+          "id": "r138444",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/169",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "work",
+          "label": "R18",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r125266简中Artemis完整PSV移植has_ero=false且minage18。",
+        "r100278中文补丁false，另有H场景翻译补丁r124135也false；补丁字段不能证明删H。",
+        "日文原PC和后续官方中文完整成人发行true。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"樱之刻\" \"PSV\"",
+        "site:kungal.com \"樱之刻\" \"H场景\" \"Ty\"",
+        "site:kungal.com \"樱之刻\" \"绿茶\" \"H\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    },
+    {
+      "versionId": "33224257-9a7b-5d77-b690-2c0fd9643a48",
+      "workId": "v562",
+      "title": "樱之诗 · WebGAL 2026-10-27",
+      "engine": "Artemis",
+      "checkedAt": "2026-11-13T21:28:20.023031+00:00",
+      "researchDecision": "unknown",
+      "reason": "本轮只补查仍unknown的Artemis/WebGAL目录版，不重查已决RenPy两版。针对PSV/Artemis/WebGAL后，仍有完整PSV无色情标记、周年成人版及剪辑恢复补丁三路；没有来源指出本站2026-10-27转换采用哪路。",
+      "releaseIds": [
+        "r125267",
+        "r139142",
+        "r138443",
+        "r160476",
+        "r160486",
+        "r157916",
+        "r82144"
+      ],
+      "releaseDetails": [
+        {
+          "id": "r125267",
+          "title": "Ying zhi Shi - Zai Yinghua zhi Sen Shang Feiwu - for psvita",
+          "hasEro": false,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "psv"
+          ]
+        },
+        {
+          "id": "r139142",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r138443",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms- - Censored Edition",
+          "hasEro": false,
+          "minage": null,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r160476",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms-",
+          "hasEro": true,
+          "minage": 18,
+          "patch": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r160486",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms- - 18+ Patch",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r157916",
+          "title": "Ying zhi Shi -Wu yu Ying Hua Lin Shang-",
+          "hasEro": false,
+          "minage": null,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        },
+        {
+          "id": "r82144",
+          "title": "Ying zhi Shi",
+          "hasEro": true,
+          "minage": 18,
+          "patch": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "access": "父任务已读取的公开API快照；本轮按精确ID/engine/lang/notes复核本地数据",
+          "scope": "release",
+          "label": "has_ero / patch / engine / language / edition",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/133",
+          "access": "前轮实际打开；本轮复用已读证据，不重复访问",
+          "scope": "work",
+          "label": "R18 / original-versus-censored discussion",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00"
+        }
+      ],
+      "knownConflicts": [
+        "r125267简中Artemis完整PSV移植false/minage18；r139142周年版Artemis true。",
+        "r138443剪辑版false，r160476完整版true，r160486为恢复成人内容补丁。",
+        "H未翻译仅是语言覆盖差异，不是删H。"
+      ],
+      "targetedQueries": [
+        "site:kungal.com \"樱之诗\" \"Artemis\" \"PSV\"",
+        "site:kungal.com \"樱之诗\" \"WebGAL\""
+      ],
+      "displayPolicy": "按用户最新指令：仍待核实的展示按SFW；这不是无性内容研究确证。"
+    }
+  ]
+}

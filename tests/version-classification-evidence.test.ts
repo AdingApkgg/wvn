@@ -7,6 +7,7 @@ const catalog = read("catalog.json");
 const audit = read("version-nsfw-review-20261114.json");
 const index = read("version-release-index-20261114.json");
 const classifications = read("content-classification.json");
+const followup = read("version-followup-20261114.json");
 
 test("94个版本逐项对应社区审计，保留标题审核和年龄证据边界", () => {
   const ids = catalog.versions.map((version: any) => version.id).sort();
@@ -15,13 +16,14 @@ test("94个版本逐项对应社区审计，保留标题审核和年龄证据边
   const totals: Record<string, number> = { present: 0, none: 0, unknown: 0 };
   for (const record of audit.records) {
     const actual = classifications.records.find((item: any) => item.kind === "version" && item.id === record.versionId).classification;
-    assert.deepEqual(actual, record.nextClassification, record.versionId);
-    assert.equal(actual.sexualContent, record.decision);
+    const current = followup.records.find((item: any) => item.versionId === record.versionId)?.nextClassification ?? record.nextClassification;
+    assert.deepEqual(actual, current, record.versionId);
+    assert.equal(actual.sexualContent, current.sexualContent);
     assert.equal(actual.titleSafe, record.previousClassification.titleSafe);
     assert.equal(actual.ageRating, record.previousClassification.ageRating, "不能把某个上游版年龄复制到当前包");
-    if (record.sourceSites.length) assert.ok(actual.source.startsWith(`community:${record.sourceSites.join("+")}:`));
-    else assert.ok(actual.source.startsWith("audit:local:"));
-    assert.match(actual.reason, /社区/);
+    if (record.sourceSites.length) assert.ok(record.nextClassification.source.startsWith(`community:${record.sourceSites.join("+")}:`));
+    else assert.ok(record.nextClassification.source.startsWith("audit:local:"));
+    assert.match(record.nextClassification.reason, /社区/);
     assert.ok(record.reason && record.evidenceScope && record.packageEvidence.controlSha1);
     totals[record.decision]++;
     const source = read(record.communityResearch.replace(/^data\//, ""));
