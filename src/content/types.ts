@@ -1,6 +1,8 @@
 export type EligibilityStatus = "unqualified" | "qualified" | "suspended" | "needs_retest";
 export type DisplayMode = "public" | "restricted";
 export type ContentAccess = {
+  /** 仅SSR快照携带的会话摘要，用于与首次账号确认比较；不能用于认证。 */
+  sessionIdentity?: string;
   authenticated: boolean;
   eligibility: EligibilityStatus;
   displayMode: DisplayMode;

@@ -1,4 +1,5 @@
 import { getConnInfo } from "@hono/node-server/conninfo";
+import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import type { PoolClient } from "pg";
@@ -244,7 +245,8 @@ export async function createAccountService(
     try {
       const { response: session } = await readSessionHeaders(sanitizedAuthHeaders(request.headers));
       if (!session) return content.publicAccess();
-      return await content.getAccess(session.user.id, session.session.id);
+      return { ...await content.getAccess(session.user.id, session.session.id),
+        sessionIdentity: createHash('sha256').update(session.session.id).digest('hex') };
     } catch (error) {
       if (error instanceof AccountError && error.status === 401) return content.publicAccess();
       throw new AccountError(503, 'CONTENT_ACCESS_UNAVAILABLE');
@@ -307,6 +309,7 @@ export async function createAccountService(
     return c.json({
       user: { id: session.user.id, name: session.user.name },
       binding,
+      sessionIdentity: createHash('sha256').update(session.session.id).digest('hex'),
       passkeys: keys.map(key => ({ ...key, createdAt: new Date(key.createdAt).getTime(), backedUp: Number(key.backedUp) })),
       devices: devices.map((d) => ({
         ...d,

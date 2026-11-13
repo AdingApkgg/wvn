@@ -181,10 +181,12 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
     };
     const visible = () => { if (document.visibilityState === "visible") check(); else lock(); };
     const hiding = () => lock();
+    // 首次加载已有本次SSR权限快照；只有缓存恢复会重新展示旧页面，需要先锁定复查。
+    const shown = (event: PageTransitionEvent) => { if (event.persisted) check(); };
     window.addEventListener("wg-account-invalidated", identityChanged);
     window.addEventListener("storage", storage);
     window.addEventListener("focus", check);
-    window.addEventListener("pageshow", check);
+    window.addEventListener("pageshow", shown);
     window.addEventListener("pagehide", hiding);
     document.addEventListener("visibilitychange", visible);
     void refresh();
@@ -196,15 +198,19 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
       window.removeEventListener("wg-account-invalidated", identityChanged);
       window.removeEventListener("storage", storage);
       window.removeEventListener("focus", check);
-      window.removeEventListener("pageshow", check);
+      window.removeEventListener("pageshow", shown);
       window.removeEventListener("pagehide", hiding);
       document.removeEventListener("visibilitychange", visible);
     };
   }, [lock, refresh]);
 
   useEffect(() => {
-    if (!account.loading) void refresh();
-  }, [account.loading, account.me?.binding, refresh]);
+    if (account.loading) return;
+    // 首次账号读取已确认退出或换会话时，不等待另一条资格请求返回才收起SSR旧内容。
+    if (current.current.authenticated && (!account.me ||
+      account.me.sessionIdentity !== initialRef.current.sessionIdentity)) lock(true);
+    void refresh();
+  }, [account.loading, account.me?.binding, account.me?.sessionIdentity, lock, refresh]);
 
   useEffect(() => {
     if (!access.canViewRestricted || loading) return;
