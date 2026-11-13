@@ -68,7 +68,14 @@ async function prepare(){
   WG_SHARE_BACKEND_ORIGIN:origin,WG_SHARE_ACCOUNT_ORIGIN:origin,
   WG_RESOURCE_ROOT:join(privateDir,'empty-games'),WG_PLAYER_MEDIA_ROOT:join(privateDir,'empty-games'),WG_DEPLOYMENT_MODE:'preview',MEILI_INDEX_UID:index,WG_STATE_DIR:join(privateDir,'state'),
   NODE_USE_ENV_PROXY:'1',WG_PREVIEW_CAS_MANIFEST_ORIGIN:'https://wg.saop.cc',
+  WG_PREVIEW_CAS_MANIFEST_DIRECTORY:join(privateDir,'manifests'),
  });
+ // 生产清单可能要求登录；隔离预览只使用事先准备的公开元数据，不继承生产身份。
+ // 清单桥仍校验版本、CAS域名和SHA路径；缺失文件直接失败，不回退到生产。
+ const frozenManifest=join(privateDir,'manifest-clannad.json');
+ if(!await exists(frozenManifest))throw Error('缺少隔离CLANNAD清单：请先准备private/manifest-clannad.json');
+ await mkdir(env.WG_PREVIEW_CAS_MANIFEST_DIRECTORY!,{recursive:true,mode:0o700});
+ execFileSync('rsync',['-a',frozenManifest,join(env.WG_PREVIEW_CAS_MANIFEST_DIRECTORY!,'clannad.json')]);
  const control=process.env.WG_NSFW_CONTROL_SOURCE;
  if(control&&await exists(control)){
   const ownedControl=join(privateDir,'control.json');execFileSync('rsync',['-a',control,ownedControl]);env.WG_B2_CONTROL_FILE=ownedControl;
@@ -105,7 +112,7 @@ if(mode==='serve'){
  try{process.exitCode=await run(process.execPath,['--import','tsx','accounts-server.ts'],env)}finally{await new Promise<void>(yes=>adminServer.close(()=>yes()));await catalog.close()}
 }else if(mode==='verify'||mode==='red'){
  if(!await healthy())throw Error('本任务HTTPS预览尚未运行');
- const env={...process.env,WG_CONTENT_TEST_URL:origin,WG_ACCOUNT_TEST_URL:origin,WG_ACCOUNT_TEST_CERT:join(privateDir,'tls.crt'),WG_TEST_URL:origin};
+ const env={...process.env,WG_NSFW_TEST_URL:origin,WG_CONTENT_TEST_URL:origin,WG_ACCOUNT_TEST_URL:origin,WG_ACCOUNT_TEST_CERT:join(privateDir,'tls.crt'),WG_TEST_URL:origin};
  const native=process.env.WG_CONTENT_NATIVE_CAS==='1';
  const args=['playwright','test','tests/e2e/content.spec.ts',...(mode==='verify'?['tests/e2e/content-boundaries.spec.ts',...(native?['tests/e2e/content-cas-native.spec.ts']:[])]:[]),'--output='+join(base,'reports',native?'browser-cas-native':'browser')];
  if(mode==='red'||process.env.WG_CONTENT_TEST_GREP)args.push('--grep',process.env.WG_CONTENT_TEST_GREP||'游客只得到');

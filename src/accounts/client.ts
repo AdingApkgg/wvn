@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createAuthClient } from "better-auth/client";
 import { passkeyClient } from "@better-auth/passkey/client";
 export type AccountView = {
+  sessionIdentity?: string;
   user: { id: string; name: string };
   binding: string;
   passkeys: { id: string; name: string; createdAt: number; backedUp: number }[];
@@ -66,6 +67,7 @@ export function useAccount() {
     alive = useRef(false),
     ceremony = useRef(false),
     channel = useRef<BroadcastChannel | null>(null);
+  const initialized = useRef(false);
   const guard = () => {
     const start = epoch.current;
     return () => {
@@ -120,8 +122,11 @@ export function useAccount() {
           epoch.current++;
           controller.current.abort();
           controller.current = new AbortController();
-          window.dispatchEvent(new Event("wg-account-invalidated"));
+          // 首次取得会话不是身份失效；SSR已按同一请求确认过浏览权限。
+          // 已完成初始化后的登录、退出和身份切换仍须同步收起旧内容。
+          if (initialized.current) window.dispatchEvent(new Event("wg-account-invalidated"));
         }
+        initialized.current = true;
         current.current = next;
         setMe(next);
         setOptions(available);
