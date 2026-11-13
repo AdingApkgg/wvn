@@ -23,7 +23,7 @@
 | 正文 16px、控件 14–16px、辅助 13px、标签 12px | 字体层级 |
 | 页面最大 1200px、介绍最大 68ch、普通编辑区最大 640px | 阅读与操作宽度 |
 
-深色暖铜是当前产品主题。`--md-sys-color-*` 是唯一颜色角色源，shadcn 语义变量映射到对应的 surface / on / container 配对。surface-container 的五个层级区分页面、卡片、导航和弹窗，outline 用于必要边界，outline-variant 用于分隔。错误容器使用 error-container / on-error-container，filled 危险按钮使用 error / on-error。
+当前主题采用中性石墨底色、柔和暖杏主色、低饱和灰褐选中态与鼠尾草辅助色，避免大面积棕色或偏黄文字。`--md-sys-color-*` 是唯一颜色角色源，shadcn 语义变量映射到对应的 surface / on / container 配对。surface-container 的五个层级区分页面、卡片、导航和弹窗，outline 用于必要边界，outline-variant 用于分隔。错误容器使用 error-container / on-error-container，filled 危险按钮使用 error / on-error。
 
 字阶使用完整的 display / headline / title / body / label 各大中小 15 档，正文使用系统中文字体。形状以 4 / 8 / 12 / 16 / 28px 与 full 为角色；按钮为胶囊，任务卡片 16px，重点面板与弹窗 28px。普通卡片优先使用色调层级，阴影仅用于悬浮和模态层。
 
