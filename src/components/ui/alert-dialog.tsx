@@ -5,6 +5,8 @@ import { cn } from "cn";
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui";
 
 import { Button } from "@/components/ui/button";
+import { motion, useReducedMotion } from "motion/react";
+import { m3Motion } from "../../lib/m3-motion";
 
 function AlertDialog({
   ...props
@@ -47,22 +49,28 @@ function AlertDialogOverlay({
 function AlertDialogContent({
   className,
   size = "default",
+  children,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: "default" | "sm";
 }) {
+  const reduced = useReducedMotion();
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
+        asChild
         data-slot="alert-dialog-content"
         data-size={size}
         className={cn(
-          "group/alert-dialog-content fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 data-[size=sm]:max-w-xs data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[size=default]:sm:max-w-lg",
+          "group/alert-dialog-content fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg data-[size=sm]:max-w-xs data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[size=default]:sm:max-w-lg",
           className,
         )}
         {...props}
-      />
+      >
+        <motion.div initial={reduced ? false : { scale: .94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          transition={{ scale: m3Motion.spatial.default, opacity: m3Motion.effects.fast }}>{children}</motion.div>
+      </AlertDialogPrimitive.Content>
     </AlertDialogPortal>
   );
 }

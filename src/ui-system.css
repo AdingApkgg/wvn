@@ -1,15 +1,8 @@
 /* WVN 任务界面规范。游戏运行区的协议、资源和画布样式由原模块负责。 */
 :root {
-  --success: #95d6b1;
-  --warning: #e2c184;
-  --info: #a5c5ef;
-  --surface-raised: #20242d;
   --space-page: 32px;
   --text-body: 16px;
   --text-help: 13px;
-  --control-height: 44px;
-  --radius: 0.75rem;
-  --input: #6e7888;
 }
 body { font-size: var(--text-body); line-height: 1.6; }
 .container { width: min(1200px, calc(100% - 64px)); }

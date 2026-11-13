@@ -1,4 +1,5 @@
 import { brand } from "../brand";
+import { NativeSelect, NativeSelectOption } from "../components/ui/native-select";
 import {publicProjectionFetch}from"../accounts/public-projection.server.ts";
 import { WorkMetadataPanel } from "../components/work-metadata";
 import { coverKindLabel } from "../metadata-sources.ts";
@@ -143,33 +144,33 @@ export default function Work() {
           </div>
           <form method="get" className="flex flex-wrap gap-3 items-center">
             <label htmlFor="share-version-filter">游戏版本</label>
-            <select
+            <NativeSelect
               id="share-version-filter"
               name="saveVersion"
               key={w.saveVersion}
               defaultValue={w.saveVersion}
             >
-              <option value="">全部版本</option>
+              <NativeSelectOption value="">全部版本</NativeSelectOption>
               {w.versions.map((v) => (
-                <option key={v.id} value={v.id}>
+                <NativeSelectOption key={v.id} value={v.id}>
                   版本 {v.number} · {v.title}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
             <label htmlFor="share-progress-filter">进度类型</label>
-            <select
+            <NativeSelect
               id="share-progress-filter"
               name="saveProgress"
               key={w.saveProgress}
               defaultValue={w.saveProgress}
             >
-              <option value="">全部进度</option>
+              <NativeSelectOption value="">全部进度</NativeSelectOption>
               {Object.entries(SHARE_PROGRESS).map(([value, label]) => (
-                <option key={value} value={value}>
+                <NativeSelectOption key={value} value={value}>
                   {label}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
             <Button type="submit" variant="outline">
               筛选玩家存档
             </Button>

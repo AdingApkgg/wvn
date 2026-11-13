@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router";
 import { BookOpen, Compass, HardDrive, Shield, Settings } from "lucide-react";
 import { useContentAccess } from "../content/client";
 import { accountReturnPath, sectionFor } from "../lib/reader-experience";
+import { LayoutGroup, motion } from "motion/react";
+import { m3Motion } from "../lib/m3-motion";
 
 export function SiteNavigation({ preview }: { preview: boolean }) {
   const location = useLocation();
@@ -21,9 +23,12 @@ export function SiteNavigation({ preview }: { preview: boolean }) {
   ];
   return <header className="site-header site-navigation">
     <Link className="brand" to="/" aria-label={`${brand.shortName} ${brand.translation}首页`}>{brand.shortName}<span>{brand.translation}</span></Link>
-    <nav aria-label="主要导航" className="primary-navigation">
-      {links.map(({ to, label, icon: Icon, active }) => <Link key={to} to={to} aria-current={active ? "page" : undefined}><Icon size={17} aria-hidden="true" /><span>{label}</span></Link>)}
-    </nav>
+    <LayoutGroup id="primary-navigation"><nav aria-label="主要导航" className="primary-navigation">
+      {links.map(({ to, label, icon: Icon, active }) => <Link key={to} to={to} aria-current={active ? "page" : undefined}>
+        {active && <motion.span className="navigation-indicator" layoutId="active-destination" transition={m3Motion.spatial.fast} aria-hidden="true" />}
+        <Icon size={22} aria-hidden="true" /><span className="navigation-label">{label}</span>
+      </Link>)}
+    </nav></LayoutGroup>
     <div className="navigation-account">
       {preview && <span className="preview-badge">远程预览</span>}
       {enabled && <Link to={contentPage ? location.pathname + location.search : contentTarget} className="content-mode-entry"

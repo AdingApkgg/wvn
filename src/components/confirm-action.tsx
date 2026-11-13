@@ -12,9 +12,9 @@ export function useActionConfirmation() {
     window.addEventListener("wg-account-invalidated",cancel);
     return()=>{active.current=false;window.removeEventListener("wg-account-invalidated",cancel);pending.current?.(false);pending.current=null;};
   },[]);
-  function ask(title:string,description:string,label="确认继续") {
+  function ask(title:string,description:string,label="确认继续",source?:HTMLElement) {
     if(!active.current||pending.current)return Promise.resolve(false);
-    trigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;
+    trigger.current=source?.isConnected?source:document.activeElement instanceof HTMLElement?document.activeElement:null;
     setMessage({title,description,label});
     return new Promise<boolean>(resolve=>{pending.current=resolve;});
   }

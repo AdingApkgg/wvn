@@ -14,6 +14,8 @@ import {
 } from "react-router";
 import "./styles.css";
 import "./ui-system.css";
+import "./m3-system.css";
+import { MotionSystem, RouteMotion } from "./components/motion-system";
 import { Button } from "./components/ui/button";
 import { SiteNavigation } from "./components/site-navigation";
 import {Analytics} from './analytics/client';
@@ -30,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <MotionSystem>{children}</MotionSystem>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -75,7 +77,7 @@ export default function Root() {
       {workerError||'如有旧版游戏页面，请先关闭，以便安全使用新版播放器。已有存档可在阅读器中导入。'}
       {notice&&!workerError&&<Button size="sm" variant="outline" className="ml-3" onClick={()=>{localStorage.setItem('wg-isolation-upgrade-20261020','acknowledged');setNotice(false)}}>我已关闭旧版页面</Button>}
     </aside>}
-    <Outlet />
+    <RouteMotion><Outlet /></RouteMotion>
   </ContentProvider>;
 }
 export function ErrorBoundary() {

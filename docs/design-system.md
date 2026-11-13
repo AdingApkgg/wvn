@@ -1,6 +1,6 @@
 # WVN 界面设计系统
 
-本规范对应 `src/ui-system.css` 与现有 `src/components/ui/`，适用于读者界面和私有管理后台。游戏引擎内部菜单保持引擎自身样式。
+本规范对应 `src/m3-tokens.css`、`src/m3-system.css`、现有结构样式和 `src/components/ui/`，适用于读者界面和私有管理后台。组件基于 shadcn/ui 与 Radix，动效使用 Motion。游戏引擎内部菜单保持引擎自身样式。
 
 ## 页面与任务
 
@@ -18,12 +18,24 @@
 | `--muted / --muted-foreground` | 辅助信息与背景 |
 | `--success / --warning / --info / --destructive` | 成功、注意、信息与失败语义；同时有文字说明 |
 | `--input / --ring` | 控件边界与键盘焦点 |
-| `--control-height: 44px` | 常用交互目标最低高度；图标按钮也至少 44px 宽 |
+| `--control-height: 48px` | 常用交互目标最低高度；图标按钮也至少 48px 宽 |
 | 4/8/12/16/24/32/48/64px | 间距尺度 |
 | 正文 16px、控件 14–16px、辅助 13px、标签 12px | 字体层级 |
 | 页面最大 1200px、介绍最大 68ch、普通编辑区最大 640px | 阅读与操作宽度 |
 
-深色暖金是当前产品主题。不要在新组件中临时定义另一套配色或加载外部字体。图片占位不能被描述为图片已通过审核；显示范围由服务端策略与当前内容上下文共同决定。
+深色暖铜是当前产品主题。`--md-sys-color-*` 是唯一颜色角色源，shadcn 语义变量映射到对应的 surface / on / container 配对。surface-container 的五个层级区分页面、卡片、导航和弹窗，outline 用于必要边界，outline-variant 用于分隔。错误容器使用 error-container / on-error-container，filled 危险按钮使用 error / on-error。
+
+字阶使用完整的 display / headline / title / body / label 各大中小 15 档，正文使用系统中文字体。形状以 4 / 8 / 12 / 16 / 28px 与 full 为角色；按钮为胶囊，任务卡片 16px，重点面板与弹窗 28px。普通卡片优先使用色调层级，阴影仅用于悬浮和模态层。
+
+不要在新组件中临时定义另一套配色或加载外部字体。图片占位不能被描述为图片已通过审核；显示范围由服务端策略与当前内容上下文共同决定。
+
+## 动效
+
+`src/lib/m3-motion.ts` 集中管理 M3 Expressive 的六类弹簧：spatial 与 effects，各分 fast / default / slow。空间弹簧用于位置、缩放和形状；颜色与透明度使用无过冲的 effects 弹簧。官方 damping 是阻尼比，转换到 Motion 阻尼系数时使用 `2 * ratio * sqrt(stiffness * mass)`，质量为 1。
+
+`MotionSystem` 设置 `reducedMotion="user"`；导航共享指示、按钮按压、弹窗进场与页面进场使用同一套参数。CSS 为 hover、状态层、详情展开和 Radix 退出提供统一曲线兼容表达，不宣称是物理弹簧。系统减少动效时取消位移、缩放和所有循环装饰。
+
+路由过渡不更换 Outlet 的 key，不为动画卸载表单、账号提供者或游戏。播放器及其祖先不施加变换；iframe 的生命期与原有阅读逻辑一致。SSR 和关闭 JavaScript 时内容直接可见。
 
 ## 操作与反馈
 
@@ -53,6 +65,6 @@
 
 验证 320、390、768、1440px，手机底栏预留安全区。作品首屏的标题、编号、互动和主操作必须有明确网格位置；不允许新增子组件落入封面宽度的隐式列。目录继承[自适应封面墙](cover-gallery.md)：按原图比例等高混排，Logo 和超宽图使用横向卡片，末行不将单张封面撑满。尺寸元数据用于首屏，图片加载后按实际比例更新；不得以统一视觉为由改成固定宽高比。contain 只保证完整显示，不能代替自适应布局。
 
-普通文字对比度至少 4.5:1，大文字至少 3:1。44px 触控目标是本项目采用的增强设计目标，不称为 WCAG AA 的最小要求。支持键盘、可见焦点、状态播报、缩放与 reduced-motion。动态进度仅显示实测数据，无总量时保持不定进度。
+普通文字对比度至少 4.5:1，大文字至少 3:1。48px 触控目标是本项目将 Material 触控建议映射到 Web 的设计目标，不称为 WCAG AA 的最小要求。支持键盘、可见焦点、状态播报、缩放与 reduced-motion。动态进度仅显示实测数据，无总量时保持不定进度。
 
 UI 改动必须在隔离远程预览执行 `npm run test:e2e:ui`，同时覆盖原封面墙比例/横卡/末行约束与阅读体验测试，不得只选择新增用例。具体实现及验收范围见 [UI/UX 验收记录](ui-ux-preview-20261104.md)。对比度依据为 [W3C Contrast Minimum](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)，触控尺寸依据为 [W3C Target Size Enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)。

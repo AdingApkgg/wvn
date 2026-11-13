@@ -6,7 +6,7 @@ import {validateResourceProgress,type ResourceProgress} from "../../public/ons/r
 import {createOnsResourcePlan,openResourceCacheStore,createOnsResourceSession,clearOnsResourceCache,type ResourceSession,type ResourceStore,type CacheStats} from "../../public/ons/resource-cache.mjs";
 import {formatTransferBytes} from "../../public/ons/resource-loading.mjs";
 import { brand } from "../brand";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link, useBlocker, useLocation } from "react-router";
 import { claimStartIntent } from "../lib/reader-experience";
 import {useActionConfirmation} from '../components/confirm-action';
@@ -59,6 +59,13 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
   const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
+  function preserveGameFocus(event: MouseEvent<HTMLElement>) {
+    // 同一活跃页面内先完成按钮点击，再由弹窗移交焦点，避免复查在按下与点击间收起控件。
+    // 真正切回窗口仍执行全局资格复查；键盘、输入框和选择器保持原生焦点行为。
+    if (event.button === 0 && document.visibilityState === "visible" && document.hasFocus() &&
+      document.activeElement === frame.current && event.target instanceof Element && event.target.closest("button"))
+      event.preventDefault();
+  }
   const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean;started:boolean;resourceReady?:boolean;dispose:()=>void;cache?:ResourceSession } | null>(null);
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const downloads=useResourceDownloads({origin:pilot.resourceDelivery==='cas'?resourceCacheOrigin:null,pilot,releaseId,onFile:file=>{const c=channel.current;if(c?.resourceReady)c.port.postMessage({type:'cache-files',pilot:pilot.id,nonce:c.nonce,files:[file]})}});
@@ -255,13 +262,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
         {running&&gameStarted&&<ResourceLoadingBar progress={resources}/>}
         {running&&!gameStarted&&loading&&<LoadingView progress={loading} startedAt={loadStartedAt} onCancel={cancelLoading} />}
       {!running&&inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
-      <div className="reader-toolbar" aria-label="阅读操作" onMouseDown={event => {
-        // 游戏仍持有当前页面焦点时，工具栏保留画布焦点，避免权限复查在按下与点击之间收起按钮。
-        // 真正返回窗口仍走全局 focus 复查；键盘操作保留原生聚焦行为，保存只由 click 执行。
-        if (event.button === 0 && document.visibilityState === "visible" && document.hasFocus() &&
-          document.activeElement === frame.current && event.target instanceof Element && event.target.closest("button"))
-          event.preventDefault();
-      }}>
+      <div className="reader-toolbar" aria-label="阅读操作" onMouseDown={preserveGameFocus}>
         <div className="reader-controls">
           {!running ? <Button {...startButtonPersistence} data-testid="reader-start" data-ready={ready?"true":"false"} disabled={!ready || busy||contentBlocked} onClick={() => run(startReading)}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
@@ -286,7 +287,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
       {error && blocker.state !== "blocked" && <div role="alert" className="reader-error"><p>{error}</p><Button variant="outline" size="sm" onClick={() => setSavePanel(true)}>打开存档管理并导出</Button></div>}
       <p className="reader-tip">游戏进度请在游戏内存档；WVN 备份已有存档文件。本机副本不会自动上传云端。</p>
       <ReadingSession running={running&&gameStarted} />
-      <section id="reader-save-panel" className="reader-save-panel space-y-5" hidden={!savePanel} aria-label="存档管理面板">
+      <section id="reader-save-panel" className="reader-save-panel space-y-5" hidden={!savePanel} aria-label="存档管理面板" onMouseDown={preserveGameFocus}>
         <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档与备份</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,releaseId), "backup"); })}>下载本机备份</Button></div>
         {pilot.runtimeKind === "Tyrano" && <p className="text-sm text-muted-foreground">新存档使用文字缩略图；旧存档中的图片预览继续保留。</p>}
       {cloud&&ready&&<OnsCloud pilot={pilot} targetLabel={targetLabel} running={running} onStatus={setCloudStatus} onBusy={setCloudBusy} capture={async()=>{
