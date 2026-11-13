@@ -74,6 +74,9 @@ test('隔离预览验证真实权限、私有管理、CAS直连和运行实例�
  </script></body></html>`}));
  try{
   await classify('none');await page.bringToFront();await page.goto(origin+'/4/1/');
+  const isolatedManifest=await page.request.get(origin+'/api/player/clannad/resources');
+  expect(isolatedManifest.status()).toBe(200);
+  expect((await isolatedManifest.json()).resourceOrigin).toBe('https://wvn-s3-zi0.saop.cc');
   await expect(page.getByRole('button',{name:'开始阅读',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'开始阅读',exact:true}).click();
   await expect(page.getByRole('button',{name:'游戏菜单',exact:true})).toBeEnabled({timeout:60_000});
