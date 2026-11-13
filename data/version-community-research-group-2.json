@@ -1,0 +1,7155 @@
+{
+  "schemaVersion": 1,
+  "researchGroup": 2,
+  "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+  "policy": "遵循用户新指令接受VNDB/KUNGal社区标记；不要求官方包哈希，不改运行时分类。",
+  "workCount": 24,
+  "versionCount": 34,
+  "summary": {
+    "present": 6,
+    "unknown": 8,
+    "none": 10
+  },
+  "versionSummary": {
+    "present": 12,
+    "unknown": 12,
+    "none": 10
+  },
+  "sourcesNote": "releaseCandidates.url为API返回ID构造的定位链接，没有声称逐条打开网页；真正读取的API及KUN页面在sources中注明。",
+  "works": [
+    {
+      "workId": "v13190",
+      "title": "妹调教日记fd",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/resource/280",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "NSFW resource warning",
+          "observation": "当前页面明确此资源含NSFW；搜索缓存资源备注为ONS本体+FD合集。",
+          "accessStatus": "opened-nsfw-gate",
+          "ambiguity": "未确认显示；ONS/FD详情仅来自索引，非当前正文。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r28499",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r28499",
+          "title": "Imouto Choukyou Nikki√happy end & another",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r33506",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r33506",
+          "title": "Imouto Choukyou Nikki - Complete Box",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r34877",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r34877",
+          "title": "Mei Tiaojiao Riji√happy end & another",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r120127",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r120127",
+          "title": "Mei Tiaojiao Riji √happy end & another",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169557",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r169557",
+          "title": "Imouto Choukyou Nikki√happy end & another - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "present",
+      "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-28ccd8d92b51623f2011170e",
+          "engine": "ONS",
+          "title": "妹调教日记fd",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。"
+        }
+      ]
+    },
+    {
+      "workId": "v14805",
+      "title": "小小的爱情公寓",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/resource/2336",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "R18 (search index)",
+          "observation": "搜索缓存标R18，备注Tyranor直接运行、不用补丁，和目录Artemis方向相符。",
+          "accessStatus": "open-failed-cache-miss",
+          "ambiguity": "当前正文未读取；评级仅索引，不是封面SFW。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r32669",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r32669",
+          "title": "Chiccha Love Apaato - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "EntisGLS",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r34198",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r34198",
+          "title": "Chiccha Love Apaato - Web Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r38793",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r38793",
+          "title": "Chiccha Love Apaato - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "EntisGLS",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r67382",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r67382",
+          "title": "Chiccha Love Apaato - DVDPG",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "dvd"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r117480",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r117480",
+          "title": "Nukicolle vol.50 - Galette Chicchai Koi Set",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "EntisGLS",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r123726",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r123726",
+          "title": "Xiaoxiao de Aiqing Gongyu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "present",
+      "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-7d8b5a9c884b57e6796265c4",
+          "engine": "Artemis",
+          "title": "小小的爱情公寓",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。"
+        }
+      ]
+    },
+    {
+      "workId": "v11071",
+      "title": "万华镜2",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame-resource/5937",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "NSFW resource warning",
+          "observation": "当前重定向资源页明确含NSFW。",
+          "accessStatus": "opened-nsfw-gate",
+          "ambiguity": "该条为应用直装，不是目录ONS；不能以引擎完全匹配描述。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r16198",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r16198",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo- Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r21935",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r21935",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo- Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r27404",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r27404",
+          "title": "Meishaonv Wanhuajing - Wuwangcao yu Yongyuan de Shaonv -",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r44488",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r44488",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "fi"
+          ],
+          "platforms": [
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r59935",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r59935",
+          "title": "Kalejdoskop krasavic -Nezabudka i bessmertnaja devushka-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Ren'Py",
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r65693",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r65693",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r104271",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r104271",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r107839",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r107839",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo- Demosaic Patch",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r137184",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r137184",
+          "title": "Bishoujo Mangekyou -Wasurenagusa to Eien no Shoujo-",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r162137",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r162137",
+          "title": "Bishoujo Mangekyou: Complete Collection -15th Anniversary Edition-",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169137",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r169137",
+          "title": "Bishoujo Mangekyou: Complete Collection -15th Anniversary Edition- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "present",
+      "reason": "VNDB唯一false是英语翻译补丁r137184；排除补丁自身与语言差异后完整原作/中文及移植均为has_ero=true，KUN资源亦明确NSFW。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-46214980e42483df202ceab1",
+          "engine": "ONS",
+          "title": "万华镜系列 · 万华镜2",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB唯一false是英语翻译补丁r137184；排除补丁自身与语言差异后完整原作/中文及移植均为has_ero=true，KUN资源亦明确NSFW。"
+        },
+        {
+          "id": "legacy-67520f0d0345af13ed1be2ec",
+          "engine": "ONS",
+          "title": "万华镜系列 · 万华镜2 修复",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB唯一false是英语翻译补丁r137184；排除补丁自身与语言差异后完整原作/中文及移植均为has_ero=true，KUN资源亦明确NSFW。"
+        },
+        {
+          "id": "legacy-ff6a61f773272d2a1e61609b",
+          "engine": "ONS",
+          "title": "万华镜系列 · 万华镜2 跳kaleidoscope",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB唯一false是英语翻译补丁r137184；排除补丁自身与语言差异后完整原作/中文及移植均为has_ero=true，KUN资源亦明确NSFW。"
+        }
+      ]
+    },
+    {
+      "workId": "v19182",
+      "title": "万华镜4",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r45593",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r45593",
+          "title": "Bishoujo Mangekyou -Tsumi to Batsu no Shoujo- Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r50998",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r50998",
+          "title": "Bishoujo Mangekyou -Tsumi to Batsu no Shoujo- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r52925",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r52925",
+          "title": "Meishaonv Wanhuajing 4 -Zui yu Fa de Shaonv-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r52934",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r52934",
+          "title": "Meishaonv Wanhuajing -Zui yu Fa de Shaonv-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r84041",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r84041",
+          "title": "Bishoujo Mangekyou -Tsumi to Batsu no Shoujo-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97942",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r97942",
+          "title": "Meishaonü Wanhuajing 4 - Demosaic Patch",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r130450",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r130450",
+          "title": "Bishojo Kaleidoscope -Crime and Punishment of the Maiden-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r138903",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r138903",
+          "title": "Bishoujo Mangekyou -Tsumi to Batsu no Shoujo-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r162137",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r162137",
+          "title": "Bishoujo Mangekyou: Complete Collection -15th Anniversary Edition-",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169137",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r169137",
+          "title": "Bishoujo Mangekyou: Complete Collection -15th Anniversary Edition- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "present",
+      "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-dbdae3ca10bd76d1ab998ba6",
+          "engine": "ONS",
+          "title": "万华镜系列 · 万华镜4",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。"
+        },
+        {
+          "id": "legacy-e1e29253c2fd43ddc771365f",
+          "engine": "ONS",
+          "title": "万华镜系列 · 万华镜4 修复",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。"
+        },
+        {
+          "id": "legacy-a378c290085945c2a66a5e1e",
+          "engine": "ONS",
+          "title": "万华镜系列 · 万华镜4 跳kaleidoscope",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB本作已查发行候选的has_ero一致为true，18+；按社区作品/发行标记覆盖当前同名版本。"
+        }
+      ]
+    },
+    {
+      "workId": "v12246",
+      "title": "少女理论及其周边",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/48",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "R18",
+          "observation": "当前正文年龄限制R18；引擎同时有QLIE/Artemis。",
+          "accessStatus": "opened",
+          "ambiguity": "同页有全年龄标签及多种发行分支；作品R18不能区分当前Artemis。"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/resource/463",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "R18 (search index)",
+          "observation": "搜索缓存为R18，相关列表提TY资源。",
+          "accessStatus": "open-failed-cache-miss",
+          "ambiguity": "不能确认精确TY资源的补丁/内容。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r25939",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r25939",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- Limited Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r27691",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r27691",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r32188",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r32188",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- Standard Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r36472",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r36472",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "QLIE",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r46889",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r46889",
+          "title": "Otome Riron to Sono Shuuhen -Bon Voyage- Regular Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r47630",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r47630",
+          "title": "Otome Riron to Sono Shuuhen -Bon Voyage- Limited Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r47964",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r47964",
+          "title": "Shaonü Lilun Jiqi Zhoubian",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r58298",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r58298",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- -FullVoice Edition-",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r70680",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r70680",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- -FullVoice Edition- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r78852",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r78852",
+          "title": "Tsuki ni Yorisou Otome no Sahou - Complete Box",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r96349",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r96349",
+          "title": "Tsuki ni Yorisou Otome no Sahou - 10th GAME COMPLETE BOX",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r96350",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r96350",
+          "title": "Tsuki ni Yorisou Otome no Sahou - 10th Anniversary Box",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r112220",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r112220",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris-",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r116700",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r116700",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris- 18+ Patch",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r159649",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r159649",
+          "title": "Otome Riron to Sono Shuuhen -Ecole de Paris-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-2a67a4d4f50f9f8b69621a75",
+          "engine": "Artemis",
+          "title": "少女理论及其周边",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v33205",
+      "title": "常规脱离creative凸",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/topic/738",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "Artemis/Tyranor port",
+          "observation": "实开正文同时列本篇/凸的Artemis(Tyranor)资源。",
+          "accessStatus": "opened",
+          "ambiguity": "没有在此资源帖正文标明R18或成人补丁已装。"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/resource/13032",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "Steam restoration patch included",
+          "observation": "实开正文有两作合集、PC/安卓及补全Steam删减内容的附加补丁。",
+          "accessStatus": "opened",
+          "ambiguity": "附带补丁不代表目录版本已应用；R18仅搜索缓存显示。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r85757",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r85757",
+          "title": "Hamidashi Creative: Totsu - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r91861",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r91861",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r92864",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r92864",
+          "title": "Hamidashi Creative: Totsu - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r96944",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r96944",
+          "title": "Hamidashi Creative: Totsu - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r98945",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r98945",
+          "title": "Hamidashi Creative Totsu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r99366",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r99366",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r100131",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r100131",
+          "title": "Hamidashi Creative Totsu",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r100276",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r100276",
+          "title": "Linggan Manyi de Tianmi Chuangxiang Tu Trial Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r118911",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r118911",
+          "title": "Changgui Tuoli Creative Tu",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r137422",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r137422",
+          "title": "Changgui Tuoli Creative Tu 18+ patch",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r140037",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r140037",
+          "title": "Hamidashi Creative + Totsu Set",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r157352",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r157352",
+          "title": "Vykhodyashcheye za ramki tvorchestvo: Totsu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r166140",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r166140",
+          "title": "Hamidashi Creative Totsu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-c89356e75eb8577e08dda1e1",
+          "engine": "Artemis",
+          "title": "常规脱离creative凸",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        },
+        {
+          "id": "c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+          "engine": "Artemis",
+          "title": "常轨脱离 Creative 凸 · WebGAL 2026-10-27",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v27449",
+      "title": "常轨脱离Creative",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/topic/738",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "Artemis/Tyranor port",
+          "observation": "实开正文同时列本篇/凸的Artemis(Tyranor)资源。",
+          "accessStatus": "opened",
+          "ambiguity": "没有在此资源帖正文标明R18或成人补丁已装。"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/resource/13032",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "Steam restoration patch included",
+          "observation": "实开正文有两作合集、PC/安卓及补全Steam删减内容的附加补丁。",
+          "accessStatus": "opened",
+          "ambiguity": "附带补丁不代表目录版本已应用；R18仅搜索缓存显示。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r68473",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r68473",
+          "title": "Hamidashi Creative - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r73691",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r73691",
+          "title": "Hamidashi Creative - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r74089",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r74089",
+          "title": "Linggan Manyi de Tianmi Chuangxiang - Trial Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r74391",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r74391",
+          "title": "Hamidashi Creative Prologue",
+          "minage": 17,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r74396",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r74396",
+          "title": "Hamidashi Creative Prologue",
+          "minage": 17,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ios"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r74630",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r74630",
+          "title": "Hamidashi Creative - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r75867",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r75867",
+          "title": "Hamidashi Creative",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r77072",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r77072",
+          "title": "Linggan Manyi de Tianmi Chuangxiang",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r77912",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r77912",
+          "title": "Hamidashi Creative - Regular Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ps4"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r77913",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r77913",
+          "title": "Hamidashi Creative - Regular Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r80667",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r80667",
+          "title": "Hamidashi Creative - Limited Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ps4"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r80668",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r80668",
+          "title": "Hamidashi Creative - Limited  Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r81957",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r81957",
+          "title": "Linggan Manyi de Tianmi Chuangxiang",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r93140",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r93140",
+          "title": "Hamidashi Creative",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r94751",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r94751",
+          "title": "Changgui Tuoli Creative - Censored Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r96409",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r96409",
+          "title": "Changgui Tuoli Creative 18+ DLC",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r96548",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r96548",
+          "title": "Changgui Tuoli Creative decoded patch",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r100132",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r100132",
+          "title": "Hamidashi Creative",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r140037",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r140037",
+          "title": "Hamidashi Creative + Totsu Set",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142799",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r142799",
+          "title": "Hamidashi Creative",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "id"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r155958",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r155958",
+          "title": "Vykhodyashcheye za ramki tvorchestvo",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r164211",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r164211",
+          "title": "Hamidashi Creative",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169224",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r169224",
+          "title": "Hamidashi Creative",
+          "minage": 15,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "id"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169938",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r169938",
+          "title": "Malikhaing Umaalpas",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ta"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-79060b38748739bd8e64e718",
+          "engine": "Artemis",
+          "title": "常轨脱离Creative",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        },
+        {
+          "id": "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+          "engine": "Artemis",
+          "title": "常轨脱离Creative · WebGAL 2026-10-27",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v27457",
+      "title": "徒花异谭",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r68491",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r68491",
+          "title": "Adabana Itan / Adabana Odd Tales",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "Silky Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r71401",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r71401",
+          "title": "Adabana Itan - Trial Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "Silky Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r78546",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r78546",
+          "title": "Adabana Itan - Original Soundtrack - First Press Limited Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "Silky Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r84993",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r84993",
+          "title": "Adabana Itan",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r94418",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r94418",
+          "title": "Adabana Itan",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r94419",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r94419",
+          "title": "Adabana Itan",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "ios"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r98230",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r98230",
+          "title": "Adabana Itan",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "es"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r115317",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r115317",
+          "title": "Đồ Hoa Dị Đàm",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "vi"
+          ],
+          "platforms": [],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r125261",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r125261",
+          "title": "Adabana Itan For PSVista",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-3a6409c0cdde7c72c3f5985d",
+          "engine": "Artemis",
+          "title": "徒花异谭",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v36554",
+      "title": "这份恋情、予以保留、",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r92559",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r92559",
+          "title": "Sono Koi, Horyuu ni Tsuki,",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "TyranoScript",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119045",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119045",
+          "title": "Zhe Fen Lianqing, Yu Yi Baoliu,",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-e421fa9d2b91b91b55c06c99",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 1这份恋情、予以保留、",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v36555",
+      "title": "这份恋情、予以保留、游园会",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r92560",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r92560",
+          "title": "Sono Koi, Horyuu ni Tsuki, Garden Party",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "TyranoScript",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119046",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119046",
+          "title": "Zhe Fen Lianqing, Yu Yi Baoliu Youyuanhui",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-862831b35153b8527b97103b",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 2这份恋情、予以保留、游园会",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v36556",
+      "title": "这份恋情、予以保留、情人节小剧场",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r92561",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r92561",
+          "title": "Sono Koi, Horyuu ni Tsuki, Valentine Situation Voice",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "TyranoScript",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119047",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119047",
+          "title": "Zhe Fen Lianqing, Yu Yi Baoliu Qingren Jie Qingjing Yinsheng",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-6e9fbf4620fbe0a8faac2ea7",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 3这份恋情、予以保留、情人节小剧场",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v36557",
+      "title": "这份恋情、暂时待定、",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r92562",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r92562",
+          "title": "Sono Koi, Zantei ni Tsuki,",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "TyranoScript",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119048",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119048",
+          "title": "Zhe Fen Lianqing, Zanshi Daiding",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-c8c3354e1ad697410f361147",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 4这份恋情、暂时待定、",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v36558",
+      "title": "这份恋情、暂时待定、 情人节小剧场Z",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r92563",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r92563",
+          "title": "Sono Koi, Zantei ni Tsuki, Valentine Situation Voice Z",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "TyranoScript",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119049",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119049",
+          "title": "Zhe Fen Lianqing, Zanshi Daiding Qingren Jie Qingjing Yinsheng Z",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-d59b2445f0f42f0cc649572b",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 5这份恋情、暂时待定、 情人节小剧场Z",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v44249",
+      "title": "这份恋情、迎来終焉。",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r106734",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r106734",
+          "title": "Sono Koi, Shuuen ni Tsuki.",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "TyranoScript",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119050",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119050",
+          "title": "Zhe Fen Lianqing, Yinglai Zhongyan.",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-3aa2e08ae7ef40d85fd49212",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 6这份恋情、迎来終焉。",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v49795",
+      "title": "这份恋情、迎来终焉。情人节小剧场X",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r120231",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r120231",
+          "title": "Sono Koi, Shuuen ni Tsuki. Valentine Situation Voice X",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win",
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r120232",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r120232",
+          "title": "Zhe Fen Lianqing, Yinlai Zhongyan. Qingren Jie Qingjing Yinsheng X",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-512eb028c2f298f534d2de34",
+          "engine": "Tyrano",
+          "title": "情人节小剧场 · 7这份恋情、迎来终焉。情人节小剧场X",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v22899",
+      "title": "拔作岛1",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r56632",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r56632",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? - First Press Limited Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r57518",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r57518",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r58439",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r58439",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? - Regular Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r59346",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r59346",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r62830",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r62830",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Pack - First Press Limited Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r66955",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r66955",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Pack - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r74485",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r74485",
+          "title": "Zhu zai Xiati Shengji Dao shang de Pinru gai Ruhe shi Hao?",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r82678",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r82678",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka?",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97031",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r97031",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka?",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r106546",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r106546",
+          "title": "NUKITASHI - Censored Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r106547",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r106547",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka?",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "es"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r106550",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r106550",
+          "title": "NUKITASHI",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r109478",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r109478",
+          "title": "NUKITASHI - 18+ DLC",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r109561",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r109561",
+          "title": "NUKITASHI",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r109660",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r109660",
+          "title": "NUKITASHI - Improvement Patch",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r115521",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r115521",
+          "title": "NUKITASHI",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r118912",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r118912",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Remaster Pack - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r120943",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r120943",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Remaster Pack - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r126251",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r126251",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Remaster Pack - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r141392",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r141392",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? Remaster",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r141393",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r141393",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? Remaster - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r141668",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r141668",
+          "title": "Nukitashi",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142857",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r142857",
+          "title": "Nukitashi",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r143284",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r143284",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka?",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "vi"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r148142",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r148142",
+          "title": "NUKITASHI - Demo",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r149879",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r149879",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? Remaster",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r159815",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r159815",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? Remaster - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r161402",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r161402",
+          "title": "NUKITASHI - JP restoration patch with dual language display",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-156b1273e3d67dc3ec603fd2",
+          "engine": "Artemis",
+          "title": "拔作岛1",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v23741",
+      "title": "拔作岛2",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/32",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "NSFW work warning",
+          "observation": "当前页面明确Galgame含NSFW；搜索缓存年龄限制R18。",
+          "accessStatus": "opened-nsfw-gate",
+          "ambiguity": "未确认显示；不能判别同为Artemis的剪辑版/成人版。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r58539",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r58539",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 - First Press Limited Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r62830",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r62830",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Pack - First Press Limited Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r64033",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r64033",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r66954",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r66954",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r66955",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r66955",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Pack - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r70634",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r70634",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 - Regular Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Shiina Rio",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r73533",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r73533",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 - Susuko Route Append",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r82679",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r82679",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r85624",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r85624",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 - Hinami Append",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r93808",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r93808",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97203",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r97203",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r109469",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r109469",
+          "title": "NUKITASHI 2 - Censored Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r109486",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r109486",
+          "title": "NUKITASHI 2",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r118912",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r118912",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Remaster Pack - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119008",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r119008",
+          "title": "NUKITASHI 2 - Improvement Patch",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119477",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r119477",
+          "title": "NUKITASHI 2 - R18 Patch",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119511",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r119511",
+          "title": "NUKITASHI 2",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r120943",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r120943",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Remaster Pack - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r121751",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r121751",
+          "title": "Zhuzai Bazuo Dao Shang de Pinru Yinggai Ruhe Shihao? 2",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r123772",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r123772",
+          "title": "NUKITASHI 2 - Name Order/Honorifics Patch",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r126251",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r126251",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 1 + 2 Remaster Pack - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r135307",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r135307",
+          "title": "NUKITASHI 2 - Susuko Route Append + Hinami Append",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r141391",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r141391",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 Remaster",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r141394",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r141394",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 Remaster - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142086",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r142086",
+          "title": "NUKITASHI 2 - Append DLC - SUSUKO ROUTE - Censored Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142174",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r142174",
+          "title": "NUKITASHI 2 - R18 Patch",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142841",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r142841",
+          "title": "NUKITASHI 2",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142881",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r142881",
+          "title": "NUKITASHI 2 - Append DLC - SUSUKO ROUTE",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r144648",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r144648",
+          "title": "Nukitashi 2",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r148479",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r148479",
+          "title": "Nukitashi 2",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "tr"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r149878",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r149878",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 Remaster",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r159817",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r159817",
+          "title": "Nukige Mitai na Shima ni Sunderu Watashi wa Dou Surya Ii Desu ka? 2 Remaster - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r161402",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r161402",
+          "title": "NUKITASHI - JP restoration patch with dual language display",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-589e8be3f37d376dd02787fe",
+          "engine": "Artemis",
+          "title": "拔作岛2",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v50789",
+      "title": "星之终途后日谈：渺茫希望的日记",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/zh-cn/galgame/440",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "unavailable",
+          "observation": "本轮打开失败，使用VNDB RenPy发行版has_ero=false。",
+          "accessStatus": "inaccessible",
+          "ambiguity": ""
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r123021",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r123021",
+          "title": "Tsui no Stella Gojitsudan: Kasukana Kibou no Nikki",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Ren'Py",
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win",
+            "lin",
+            "ios",
+            "and",
+            "psv",
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r123194",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r123194",
+          "title": "Tsui no Stella Gojitsudan: Kasukana Kibou no Nikki",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Ren'Py",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win",
+            "lin",
+            "ios",
+            "and",
+            "psv",
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r160909",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r160909",
+          "title": "Stella iz kontsa vremyon: dnevnik slaboy nadezhdy",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": "Ren'Py",
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-5e3dbea8bde738028caa826d",
+          "engine": "RenPy",
+          "title": "星之旅途 后日谈",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v29443",
+      "title": "星之终途",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r75309",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r75309",
+          "title": "Tsui no Stella - Deluxe Limited Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "SiglusEngine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r91703",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r91703",
+          "title": "Tsui no Stella - First Press Limited Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "SiglusEngine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r91704",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r91704",
+          "title": "Tsui no Stella - Download Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "SiglusEngine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r94965",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r94965",
+          "title": "Tsui no Stella - Trial Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "SiglusEngine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r95800",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r95800",
+          "title": "Tsui no Stella - Trial Edition",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97134",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r97134",
+          "title": "Stella of The End",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97502",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r97502",
+          "title": "Tsui no Stella - Regular Edition",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "SiglusEngine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r101476",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r101476",
+          "title": "Xing zhi Zhongtu",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r102262",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r102262",
+          "title": "Tsui no Stella",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r102330",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r102330",
+          "title": "Jongjeom-ui Stella",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r104128",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r104128",
+          "title": "Stella Mạt Thế",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "vi"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r106392",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r106392",
+          "title": "Tsui no Stella",
+          "minage": 12,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ios"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r106393",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r106393",
+          "title": "Tsui no Stella",
+          "minage": 16,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r106648",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r106648",
+          "title": "Tsui no Stella",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "es"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r107579",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r107579",
+          "title": "Stella of The End",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "ios",
+            "and"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r111860",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r111860",
+          "title": "Stella iz kontsa vremyon",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r119391",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r119391",
+          "title": "Tsui no Stella",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "id"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r125260",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r125260",
+          "title": "Xing zhi Zhongtu for psvita",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r126436",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r126436",
+          "title": "Tsui no Stella - Download Edition",
+          "minage": 17,
+          "official": true,
+          "hasEro": false,
+          "engine": "Luca System",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r126755",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r126755",
+          "title": "Tsui no Stella - Regular Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Luca System",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r126756",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r126756",
+          "title": "Tsui no Stella - First Press Limited Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Luca System",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r129827",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r129827",
+          "title": "Stella of The End",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r134364",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r134364",
+          "title": "Tsui No Stella",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "id"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r140529",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r140529",
+          "title": "Tsui no Stella",
+          "minage": 16,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r140530",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r140530",
+          "title": "Tsui no Stella",
+          "minage": 12,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "ios"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r146393",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r146393",
+          "title": "Stella of The End",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "fr"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r147525",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r147525",
+          "title": "Tsui no Stella",
+          "minage": 0,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "pt-br"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r159671",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r159671",
+          "title": "Stella of The End",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r164370",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r164370",
+          "title": "Stella of The End",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ar"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "none",
+      "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-b6f36b1aa99e3f53dbad46c4",
+          "engine": "Artemis",
+          "title": "星之终途",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB本作已查发行候选的has_ero一致为false；按用户接受的社区分级建议，不再以官方哈希缺失阻挡。"
+        }
+      ]
+    },
+    {
+      "workId": "v8436",
+      "title": "是谁杀了知更鸟",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/109",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "R18",
+          "observation": "当前年龄字段R18，正文资源列表有PC+ONS+安卓直装合集。",
+          "accessStatus": "opened",
+          "ambiguity": "对应ONS资源类别，未声称与部署文件同一份；不再要求哈希。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r17215",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r17215",
+          "title": "Dare ga Koroshita Komadori o - CSA Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "KiriKiri",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r24090",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r24090",
+          "title": "\"Dare ga Koroshita Komadori o\" Hanhua Ceshiban",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r31851",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r31851",
+          "title": "Shi Shei Shale Zhigengniao",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r33134",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r33134",
+          "title": "Dare ga Koroshita Komadori o - Trial Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "KiriKiri",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "present",
+      "reason": "社区完整CSA发行has_ero=true，false候选只是体验版；KUN R18作品页又列ONS合集，符合目录完整ONS方向。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-110fc755bff5f71cb2a6c32c",
+          "engine": "ONS",
+          "title": "是谁杀了知更鸟",
+          "suggestedSexualContent": "present",
+          "reason": "社区完整CSA发行has_ero=true，false候选只是体验版；KUN R18作品页又列ONS合集，符合目录完整ONS方向。"
+        }
+      ]
+    },
+    {
+      "workId": "v2968",
+      "title": "架向星空之桥",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/72",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "R18",
+          "observation": "当前年龄字段R18，资源列表明确ONS本篇及本篇+AA合集。",
+          "accessStatus": "opened",
+          "ambiguity": "以社区ONS资源类别对应，未声称同包。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r5848",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r5848",
+          "title": "Hoshizora e Kakaru Hashi",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Yuka System",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r12956",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r12956",
+          "title": "Hoshizora e Kakaru Hashi - Valentine's Day Patch",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r17719",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r17719",
+          "title": "Jia xiang Xingkong zhi Qiao",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r78976",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r78976",
+          "title": "Hoshizora e Kakaru Hashi",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r78977",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r78977",
+          "title": "Hoshizora e Kakaru Hashi",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r102579",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r102579",
+          "title": "Hoshizora e Kakaru Hashi - Yoyaku tokuten yoidore yukitsuki sake",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "es"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "present",
+      "reason": "KUN当前R18作品页明确列ONS本篇资源；VNDB完整PC成人发行与之相符。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-c0cc212cf2992cc7c3681e85",
+          "engine": "ONS",
+          "title": "架向星空之桥",
+          "suggestedSexualContent": "present",
+          "reason": "KUN当前R18作品页明确列ONS本篇资源；VNDB完整PC成人发行与之相符。"
+        }
+      ]
+    },
+    {
+      "workId": "v22847",
+      "title": "树莓立方体",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/89",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "R18",
+          "observation": "当前年龄字段R18、Artemis；封面SFW没有被当成游戏分级。",
+          "accessStatus": "opened",
+          "ambiguity": "多种平台均Artemis；PC成人版和主机/Steam非成人版仍须区分。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r56464",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r56464",
+          "title": "Raspberry Cube - Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r58553",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r58553",
+          "title": "Raspberry Cube - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r58658",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r58658",
+          "title": "Raspberry Cube - C94 Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r58714",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r58714",
+          "title": "Raspberry Cube \"Prologue\"",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r61468",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r61468",
+          "title": "Raspberry Cube - Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r63256",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r63256",
+          "title": "Raspberry Cube - Regular Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ps4"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r63257",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r63257",
+          "title": "Raspberry Cube - Regular Edition",
+          "minage": 17,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r63258",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r63258",
+          "title": "Raspberry Cube - Download Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ps4"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r63259",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r63259",
+          "title": "Raspberry Cube - Download Edition",
+          "minage": 17,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r63260",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r63260",
+          "title": "Raspberry Cube - First Press Limited Edition",
+          "minage": 15,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "ps4"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r63261",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r63261",
+          "title": "Raspberry Cube - First Press Limited Edition",
+          "minage": 17,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "swi"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r65037",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r65037",
+          "title": "Raspberry Cube - Web Trial Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "web"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r65542",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r65542",
+          "title": "Shumei Lifangti",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r76973",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r76973",
+          "title": "Raspberry Cube",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r93139",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r93139",
+          "title": "Raspberry Cube",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97485",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r97485",
+          "title": "Raspberry Cube",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r97935",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r97935",
+          "title": "Raspberry Cube - 18+ DLC",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ja",
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r100133",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r100133",
+          "title": "Raspberry Cube",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r168392",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r168392",
+          "title": "Raspberry Cube",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-3ab8194b66d726bd4279e3b4",
+          "engine": "Artemis",
+          "title": "树莓立方体",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        },
+        {
+          "id": "cbc04bd1-9eaa-51db-906e-d434742211f8",
+          "engine": "Artemis",
+          "title": "树莓立方体 · WebGAL 2026-10-27",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v20431",
+      "title": "樱之刻",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/169",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "R18",
+          "observation": "当前年龄字段R18、Artemis；全发行表另有简中PSV完整移植has_ero=false/minage18。",
+          "accessStatus": "opened",
+          "ambiguity": "18+与has_ero不等同；PSV完整移植和PC成人版必须分别考虑。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r49417",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r49417",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- First Press Limited Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r82142",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r82142",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Chapter I - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r83884",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r83884",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Trial Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win",
+            "ios",
+            "and",
+            "web"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r86972",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r86972",
+          "title": "Ying zhi Ke - Trial Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r89981",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r89981",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Chapter II - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r90501",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r90501",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Regular Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r90502",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r90502",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r100278",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r100278",
+          "title": "Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia-",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r105207",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r105207",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r107025",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r107025",
+          "title": "Ying zhi Ke",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r110691",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r110691",
+          "title": "Ying zhi ke",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r116330",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r116330",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r121265",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r121265",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r124135",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r124135",
+          "title": "<Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia-> H-scene Chinese Translation Patch",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r125266",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r125266",
+          "title": "Ying zhi Ke -Manbu yu Yinghua zhi Sen Xia- for psvita",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r130060",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r130060",
+          "title": "Sakura no Toki -Walking Beneath the Cherry Blossom Trees-",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win",
+            "and"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r131068",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r131068",
+          "title": "Sakura no Toki",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r138444",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r138444",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r142465",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r142465",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r150584",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r150584",
+          "title": "Vremja Sakury -Stupaja pod lesom sakury-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r164952",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r164952",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "vi"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r166420",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r166420",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169458",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r169458",
+          "title": "Sakura no Toki -Sakura no Mori no Shita o Ayumu-",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169630",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r169630",
+          "title": "Vremja Sakury",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-f71101d6acb2871ade48bcec",
+          "engine": "Artemis",
+          "title": "樱之刻",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        },
+        {
+          "id": "d6b4fc84-a347-5a28-9184-579085dadfa1",
+          "engine": "Artemis",
+          "title": "樱之刻 · WebGAL 2026-10-27",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    },
+    {
+      "workId": "v562",
+      "title": "樱之诗",
+      "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+      "sources": [
+        {
+          "site": "VNDB",
+          "url": "https://api.vndb.org/kana/release",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "scope": "release",
+          "label": "has_ero=[False, True]",
+          "accessStatus": "parent-fetched-public-api;local-cache-read",
+          "observation": "逐条读取公开API发行版的has_ero/minage/engine/languages/platforms；非网页打开声明。",
+          "cachePath": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/133",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "work",
+          "label": "R18 / original-versus-censored discussion",
+          "observation": "当前作品页讨论原版18R与删减版；相关资源说明H场景汉化与未汉化有差异。",
+          "accessStatus": "opened",
+          "ambiguity": "未核实RenPy资源具体分支；H未汉化不是H删减。"
+        },
+        {
+          "site": "KUNGal",
+          "url": "https://www.kungal.com/galgame/resource/6866",
+          "checkedAt": "2026-11-13T21:08:21.085638+00:00",
+          "scope": "resource",
+          "label": "R18; H not translated (index)",
+          "observation": "搜索缓存资源说明高清重制、H未汉化。",
+          "accessStatus": "open-failed-cache-miss",
+          "ambiguity": "不把该安卓直装条目当成目录RenPy精确版。"
+        }
+      ],
+      "releaseCandidates": [
+        {
+          "url": "https://vndb.org/r1160",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r1160",
+          "title": "Sakura no Uta ~Haru no Yuki~",
+          "minage": 0,
+          "official": true,
+          "hasEro": false,
+          "engine": "BGI/Ethornell",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r10022",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r10022",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- Package Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "BGI/Ethornell",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r41408",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r41408",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "BGI/Ethornell",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r51136",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r51136",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "es"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r56154",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r56154",
+          "title": "Stikh Sakury — Vitaya nad lesom sakury —",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r69289",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r69289",
+          "title": "Ying zhi Shi",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r70391",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r70391",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- Download Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "BGI/Ethornell",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r74442",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r74442",
+          "title": "Puisi Sakura",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "id"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r77891",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r77891",
+          "title": "Sakuraui Si -Beotkkot Sup Wie Heunnallida-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r82144",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r82144",
+          "title": "Ying zhi Shi",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r82534",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r82534",
+          "title": "Sakuraui Si -Beotnamu Sup Wie Heunnallida-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ko"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r94025",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r94025",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "pt-br"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r94249",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r94249",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r104939",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r104939",
+          "title": "Ying zhi Shi",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r105004",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r105004",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r110216",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r110216",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau-",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "tr"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r125267",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r125267",
+          "title": "Ying zhi Shi - Zai Yinghua zhi Sen Shang Feiwu - for psvita",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "psv"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r128749",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r128749",
+          "title": "Ying zhi Shi",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Ren'Py",
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "and"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r138443",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r138443",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms- - Censored Edition",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r139142",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r139142",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r143963",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r143963",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition - Trial Edition",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "ja"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r146508",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r146508",
+          "title": "Stikh Sakury — Vitaya nad lesom sakury — 10th Anniversary Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "ru"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r146606",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r146606",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r146836",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r146836",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "es"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r155769",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r155769",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "partial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r157884",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r157884",
+          "title": "Ying zhi Shi - Qiwu yu Yinghua zhi Sen Shang-",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r157916",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r157916",
+          "title": "Ying zhi Shi -Wu yu Ying Hua Lin Shang-",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r160476",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r160476",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms-",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r160486",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r160486",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms- - 18+ Patch",
+          "minage": 18,
+          "official": true,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r160918",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r160918",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau- 10th Anniversary Edition",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": "Artemis Engine",
+          "languages": [
+            "vi"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r167628",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r167628",
+          "title": "Sakura no Uta -To Dance Over the Cherry Blossoms- Demo",
+          "minage": null,
+          "official": true,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en",
+            "zh-Hans",
+            "zh-Hant"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": false,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r168681",
+          "scope": "release",
+          "label": "has_ero=true",
+          "id": "r168681",
+          "title": "Sakura no Uta",
+          "minage": 18,
+          "official": false,
+          "hasEro": true,
+          "engine": null,
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169266",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r169266",
+          "title": "Sakura no Uta -Vũ khúc dưới tán hoa anh đào-",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "vi"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "trial"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169629",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r169629",
+          "title": "Sakura no Uta -Sakura no Mori no Ue o Mau-",
+          "minage": 18,
+          "official": false,
+          "hasEro": false,
+          "engine": "Artemis Engine",
+          "languages": [
+            "en"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        },
+        {
+          "url": "https://vndb.org/r169784",
+          "scope": "release",
+          "label": "has_ero=false",
+          "id": "r169784",
+          "title": "Ying zhi Shi -Qiwu yu Yinghua zhi Sen Shang- 10 Zhounian Jinian Ban",
+          "minage": null,
+          "official": false,
+          "hasEro": false,
+          "engine": null,
+          "languages": [
+            "zh-Hans"
+          ],
+          "platforms": [
+            "win"
+          ],
+          "patch": true,
+          "rtype": [
+            "complete"
+          ]
+        }
+      ],
+      "suggestedSexualContent": "unknown",
+      "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。",
+      "ambiguity": "社区证据覆盖层级已注明。候选集已包含非官方移植。翻译补丁自身has_ero字段不直接当基础游戏状态；完整PSV/Steam剪辑版则是实质分支。",
+      "versions": [
+        {
+          "id": "legacy-b6cc5da681fc717131109dfb",
+          "engine": "RenPy",
+          "title": "樱之诗 · 1",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB r128749 是简中RenPy安卓完整移植，has_ero=true/minage18，直接对应目录RenPy版本；r82144的H未翻译不等于删除H。"
+        },
+        {
+          "id": "legacy-acdb13048e0f27deca44a5ea",
+          "engine": "RenPy",
+          "title": "樱之诗 · 2",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB r128749 是简中RenPy安卓完整移植，has_ero=true/minage18，直接对应目录RenPy版本；r82144的H未翻译不等于删除H。"
+        },
+        {
+          "id": "33224257-9a7b-5d77-b690-2c0fd9643a48",
+          "engine": "Artemis",
+          "title": "樱之诗 · WebGAL 2026-10-27",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB存在has_ero=true与false分支；目录引擎/标题不足以区分成人、剪辑、主机或体验版，当前未找到明确成人状态的对应资源。"
+        }
+      ]
+    }
+  ]
+}

@@ -19,9 +19,18 @@ import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
 import {useLayoutEffect} from 'react';
 import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
+import type { VersionClassification } from "../content/types.ts";
+
 import { splitSynopsis } from "../lib/reader-experience";
 import { ShelfButton } from "../accounts/shelf-button";
 import {useLocalReading} from '../accounts/local-reading';
+
+function versionContentLabel(classification: VersionClassification) {
+  if (classification.source.startsWith("community:") && classification.sexualContent !== "unknown") {
+    return `社区标记：${classification.sexualContent === "none" ? "无" : "含"}成人性内容`;
+  }
+  return { none: "已确认不含成人性内容", present: "含成人性内容", unknown: "内容待核实" }[classification.sexualContent];
+}
 export async function loader({
   params,
   request,
@@ -119,7 +128,7 @@ export default function Work() {
         <div className="version-list">
           {w.versions.map(v => <Card key={v.id} className="version">
             <span className="slot">{String(v.number).padStart(2, "0")}</span>
-            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>{v.classification&&<Badge variant="outline">{({none:'已确认不含成人性内容',present:'含成人性内容',unknown:'内容待核实'})[v.classification.sexualContent]}</Badge>}
+            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>{v.classification&&<Badge variant="outline">{versionContentLabel(v.classification)}</Badge>}
               {v.notes && <p className="muted">{v.notes}</p>}
               <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>

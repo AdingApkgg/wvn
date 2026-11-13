@@ -1,0 +1,1071 @@
+{
+  "schemaVersion": 1,
+  "researchGroup": 2,
+  "checkedAt": "2026-11-13T20:56:27Z",
+  "scope": "公开官方来源研究；不作部署包最终分类、不修改catalog/runtime。",
+  "rules": [
+    "18+年龄评级与明确性内容分开记录。",
+    "未找到说明不等于无内容；相关本篇或品牌入口不得替代精确作品。",
+    "无下载、无登录/年龄墙绕过；失败入口如实保留。"
+  ],
+  "workCount": 24,
+  "catalogVersionCount": 34,
+  "works": [
+    {
+      "workId": "v13190",
+      "title": "妹调教日记fd",
+      "originalTitle": "妹調教日記√happy end & another",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-28ccd8d92b51623f2011170e"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://nanacan.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "403",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "返回403，未取得FD官方说明。"
+        },
+        {
+          "url": "https://www.nanacan.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "inaccessible",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "工具无法访问。"
+        },
+        {
+          "url": "https://www.suruga-ya.jp/product/detail/186037863",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "retailer",
+          "coverage": "exact-work",
+          "observation": "精确FD零售商品页标成人向、18岁以上购买，列Windows及DVD；这是零售证据，不是发行商声明。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/4286110/_/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "related-base-game-only",
+          "observation": "2026年Steam《妹調教日記》开发NANACAN、发行TamaMako；页名未证明是本条FD，不能替代。"
+        }
+      ],
+      "editionObservations": "精确FD只取得零售页；Steam本篇与FD不合并。",
+      "ageRatingObservations": "零售页18+；发行商FD分级未核实。",
+      "explicitSexualContentObservations": "未取得FD官方性场景说明；18+零售标签本身不能证明性行为画面。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows（仅零售页）"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "发行商原FD页不可用；精确FD内容、语言待核实。"
+      ]
+    },
+    {
+      "workId": "v14805",
+      "title": "小小的爱情公寓",
+      "originalTitle": "ちっちゃらぶアパート",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-7d8b5a9c884b57e6796265c4"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://galette-soft.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "inaccessible",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "工具不可访问。"
+        },
+        {
+          "url": "https://caitsith.biz/glace/event/2015_character1.php",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方门户列该作及DL版，并列其角色周边；仅证明作品存在及官方归属。"
+        },
+        {
+          "url": "https://caitsith.biz/glace/products/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "publisher-product-list",
+          "observation": "作品链接落到共享产品页；正文未取得该作的独立分级/内容信息。"
+        }
+      ],
+      "editionObservations": "官方门户能识别作品与DL版，未恢复独立产品说明。",
+      "ageRatingObservations": "unknown：未取得精确作品分级。",
+      "explicitSexualContentObservations": "unknown：周边与作品名称不能证明游戏性场景。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "独立产品页、平台语言和内容分级未核实。"
+      ]
+    },
+    {
+      "workId": "v11071",
+      "title": "万华镜2",
+      "originalTitle": "美少女万華鏡 -忘れな草と永遠の少女-",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-46214980e42483df202ceab1",
+        "legacy-67520f0d0345af13ed1be2ec",
+        "legacy-ff6a61f773272d2a1e61609b"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://www.omega-star.jp/biman2html/index.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "原作页确认2012-07-27发售、Windows，更新明确提及色情CG/影片与官能类型。"
+        },
+        {
+          "url": "https://www.omega-star.jp/biman15thcc/index.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "collection-including-work",
+          "observation": "2026合集明确包含本作；合集18+、Windows，不能等同目录里的旧ONS转换包。"
+        }
+      ],
+      "editionObservations": "原作及2026 Complete Collection均存在；合集与旧ONS并非同一版。",
+      "ageRatingObservations": "合集明确18+；原作该页文字未取得独立年龄字段。",
+      "explicitSexualContentObservations": "原作官方更新明确有H类CG/影片；属于性内容的直接宣传证据，仍未验证转换包保留情况。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "verifiedLanguages": [
+        "合集要求日语环境；不等于已验证所有文本语言"
+      ],
+      "researchGaps": []
+    },
+    {
+      "workId": "v19182",
+      "title": "万华镜4",
+      "originalTitle": "美少女万華鏡 -罪と罰の少女-",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-dbdae3ca10bd76d1ab998ba6",
+        "legacy-e1e29253c2fd43ddc771365f",
+        "legacy-a378c290085945c2a66a5e1e"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://www.omega-star.jp/biman4html/index.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "精确官方页能打开但主要是图片，文字不足以独立核实场景。"
+        },
+        {
+          "url": "https://www.omega-star.jp/biman15thcc/index.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "collection-including-work",
+          "observation": "合集列第4作为2017年7月作品，并包含本作；合集标18+、Windows及官能类型。"
+        }
+      ],
+      "editionObservations": "官方原作页与2026合集均存在。",
+      "ageRatingObservations": "合集18+；不能反推各ONS变体的实际内容。",
+      "explicitSexualContentObservations": "官方合集有官能类型证据；未从可读文本独立确认本作具体性行为画面。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows（合集）"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": []
+    },
+    {
+      "workId": "v12246",
+      "title": "少女理论及其周边",
+      "originalTitle": "乙女理論とその周辺 -Ecole de Paris-",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-2a67a4d4f50f9f8b69621a75"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://project-navel.com/otomeriron/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "存在原作及后续全语音DL版；页面的修正补丁不是成人内容恢复补丁的证明。"
+        },
+        {
+          "url": "https://project-navel.com/otomeriron/products.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方特别警告实体版、DL版存档和补丁不互通。"
+        },
+        {
+          "url": "https://project-navel.com/otomeriron/shopguide_new.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "Standard Edition ver1.2与语音追加ver2.1分列；明确未满18岁不可购买。"
+        },
+        {
+          "url": "https://www.dlsite.com/pro/work/%3D/product_id/VJ011358.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "inaccessible",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "官方链接目标工具不可打开。"
+        }
+      ],
+      "editionObservations": "Standard v1.2、实体语音追加v2.1及DL全语音版须分别绑定。",
+      "ageRatingObservations": "官方精确作品购买说明18+。",
+      "explicitSexualContentObservations": "未取得明确性行为场景的可读官方说明；18+本身不单独定性。",
+      "adultPatchObservations": "官方修正/语音追加补丁已确认；未证明是成人内容恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows（官方规格）"
+      ],
+      "verifiedLanguages": [
+        "日语Windows环境；文本语言未另行核实"
+      ],
+      "researchGaps": []
+    },
+    {
+      "workId": "v33205",
+      "title": "常规脱离creative凸",
+      "originalTitle": "ハミダシクリエイティブ凸",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-c89356e75eb8577e08dda1e1",
+        "c8005fb2-d1bc-5392-b97a-0f305c97fb2b"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://madosoft.net/totsu/product",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方凸产品页确认DVD-ROM和Windows；可读正文未提供明确游戏年龄字段。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/3407830/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "官方Steam列简体中文字幕/界面和日语语音；凸在Steam作为需本篇的DLC。"
+        }
+      ],
+      "editionObservations": "凸日文实体PC与Steam中文发行是不同版本；WebGAL标题不能自动绑定任一版。",
+      "ageRatingObservations": "精确游戏年龄字段本批次未核实；不采用用户标签作发行商分级。",
+      "explicitSexualContentObservations": "官方可读产品页未独立确认具体性行为画面；Steam用户标签不作为内容定论。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows（日本PC版）"
+      ],
+      "verifiedLanguages": [
+        "Steam：简体中文界面/字幕、日语语音"
+      ],
+      "researchGaps": [
+        "凸产品搜索摘要提裸补丁，但打开正文未复现，因此不列作已核实成人恢复补丁。"
+      ]
+    },
+    {
+      "workId": "v27449",
+      "title": "常轨脱离Creative",
+      "originalTitle": "ハミダシクリエイティブ",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-79060b38748739bd8e64e718",
+        "6a43fdcc-d01c-5754-9bd0-dd660ea6d80f"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://madosoft.net/hamidashi/product",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方本篇产品页确认DVD-ROM和Windows；可读正文未提供明确游戏年龄字段。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/1604380/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "官方Steam列简体中文字幕/界面和日语语音；凸在Steam作为需本篇的DLC。"
+        }
+      ],
+      "editionObservations": "本篇日文实体PC与Steam中文发行是不同版本；WebGAL标题不能自动绑定任一版。",
+      "ageRatingObservations": "精确游戏年龄字段本批次未核实；不采用用户标签作发行商分级。",
+      "explicitSexualContentObservations": "官方可读产品页未独立确认具体性行为画面；Steam用户标签不作为内容定论。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows（日本PC版）"
+      ],
+      "verifiedLanguages": [
+        "Steam：简体中文界面/字幕、日语语音"
+      ],
+      "researchGaps": []
+    },
+    {
+      "workId": "v27457",
+      "title": "徒花异谭",
+      "originalTitle": "徒花異譚",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-3a6409c0cdde7c72c3f5985d"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://adabanaitan.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方提供PC/Switch/App发行入口；制作Liar-soft、出品ANIPLEX.EXE。"
+        },
+        {
+          "url": "https://aniplex-exe.com/special/comment/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "发行方评论明确把本作与ATRI列为全年龄对象。"
+        }
+      ],
+      "editionObservations": "已核实官方发行的全年龄版本。",
+      "ageRatingObservations": "发行方明确全年龄。",
+      "explicitSexualContentObservations": "全年龄是版本/年龄证据；未检查部署包全内容，不将其写成包内容验收。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "PC",
+        "Nintendo Switch",
+        "App（官方页列App Store/Google Play）"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": []
+    },
+    {
+      "workId": "v36554",
+      "title": "这份恋情、予以保留、",
+      "originalTitle": "その恋、保留につき、",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-e421fa9d2b91b91b55c06c99"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://sonokoi-horyu.net/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "403-on-direct-open;search-index-readable",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "本篇为免费声音小说，官方列Windows/Mac及浏览器、Android入口；iOS标准备中。 直接open返回403，官方搜索索引可读。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Mac",
+        "浏览器",
+        "Android"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v36555",
+      "title": "这份恋情、予以保留、游园会",
+      "originalTitle": "その恋、保留につき、ガーデンパーティー",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-862831b35153b8527b97103b"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://sonokoi-horyu.net/gardenparty/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "本篇1500下载纪念续篇FD，2019年11月发布；文化祭与接吻传说为剧情介绍。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v36556",
+      "title": "这份恋情、予以保留、情人节小剧场",
+      "originalTitle": "その恋、保留につき、バレンタインシチュエーションボイス",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-6e9fbf4620fbe0a8faac2ea7"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://sonokoi-horyu.net/valentine2020/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "2020-02-14情人节短篇声音企划；Windows/Mac/浏览器下载入口，iOS准备中。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Mac",
+        "浏览器"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v36557",
+      "title": "这份恋情、暂时待定、",
+      "originalTitle": "その恋、暫定につき、",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-c8c3354e1ad697410f361147"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://sonokoi-horyu.net/zantei/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "续作官方页；Windows和浏览器/智能手机入口可见。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows",
+        "浏览器"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v36558",
+      "title": "这份恋情、暂时待定、 情人节小剧场Z",
+      "originalTitle": "その恋、暫定につき、バレンタインシチュエーションボイスＺ",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-d59b2445f0f42f0cc649572b"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://sonokoi-horyu.net/valentine2022/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "2022情人节Z约10分钟短篇，官方明确可脱离本篇游玩并链接发行平台。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v44249",
+      "title": "这份恋情、迎来終焉。",
+      "originalTitle": "その恋、終焉につき。",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-3aa2e08ae7ef40d85fd49212"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://sonokoi-horyu.net/shuen/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "最终篇2023-05-01发布，有恋爱、约会及VTuber客串说明。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v49795",
+      "title": "这份恋情、迎来终焉。情人节小剧场X",
+      "originalTitle": "その恋、終焉につき。バレンタインシチュエーションボイスX",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-512eb028c2f298f534d2de34"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://novelgame.jp/games/show/9220",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "creator-distribution-page",
+          "coverage": "exact-work",
+          "observation": "作者在发行平台发布X短篇，约10分钟；部分路线警告经血和凶器描写。"
+        }
+      ],
+      "editionObservations": "精确作品官方页或作者发行页已识别。",
+      "ageRatingObservations": "未取得明确年龄评级；免费发行或恋爱题材不是全年龄分级证明。",
+      "explicitSexualContentObservations": "未在可读说明中发现明确性行为场景描述；这是证据不足，不能推断内容不存在。经血/凶器警告属于敏感描写，不能等同性行为内容。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows",
+        "浏览器"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "中文Tyrano转换版与日文官方发行之间未绑定；文本语言未通过官方规格核实。"
+      ]
+    },
+    {
+      "workId": "v22899",
+      "title": "拔作岛1",
+      "originalTitle": "抜きゲーみたいな島に住んでる貧乳はどうすりゃいいですか？",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-156b1273e3d67dc3ec603fd2"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://qruppo.com/products/nukitashi/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方日文原作页正文明确描写性行为与裸体的岛屿设定。"
+        },
+        {
+          "url": "https://shiravune.com/archives/4090",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "发行方精确作品页列中/英文文本、日语配音，并链接Patch。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/2399220/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "官方Steam版存在；不能凭用户标签推断是否安装成人补丁。"
+        },
+        {
+          "url": "https://shiravune.wordpress.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "publisher-wide-faq",
+          "observation": "发行方FAQ把Steam称为全年龄剪辑版、R18补丁恢复完整内容，以NUKITASHI路径作安装示例。"
+        },
+        {
+          "url": "https://www.patch.moe/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "403",
+          "sourceKind": "publisher-patch-site",
+          "coverage": "exact-work",
+          "observation": "发行商Patch目标返回403；未下载。"
+        }
+      ],
+      "editionObservations": "存在官方Steam剪辑版与发行方R18补丁路径；日文原版、补丁版须分开。",
+      "ageRatingObservations": "发行方FAQ区分全年龄剪辑版/R18；日文原作独立数字年龄字段未核实。",
+      "explicitSexualContentObservations": "原作设定含明确性行为；但正文设定不代替任一Steam/转换包实际画面核验。",
+      "adultPatchObservations": "精确发行商页链接成人补丁站，发行方FAQ解释R18用途；补丁站403，未核实文件、语言版或适用版本。",
+      "verifiedPlatforms": [
+        "Windows（Steam/官方商店）"
+      ],
+      "verifiedLanguages": [
+        "英文、简体中文、繁体中文文本；日语配音"
+      ],
+      "researchGaps": []
+    },
+    {
+      "workId": "v23741",
+      "title": "拔作岛2",
+      "originalTitle": "抜きゲーみたいな島に住んでる貧乳はどうすりゃいいですか？ 2",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-589e8be3f37d376dd02787fe"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://qruppo.com/products/nukitashi2/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "loading-only",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方日文原作页只返回Loading，不能提取内容。"
+        },
+        {
+          "url": "https://shiravune.com/archives/5457",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "发行方精确作品页列中/英文文本、日语配音，并链接Patch。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/2614070/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "官方Steam版存在；不能凭用户标签推断是否安装成人补丁。"
+        },
+        {
+          "url": "https://shiravune.wordpress.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "publisher-wide-faq",
+          "observation": "发行方FAQ把Steam称为全年龄剪辑版、R18补丁恢复完整内容，以NUKITASHI路径作安装示例。"
+        },
+        {
+          "url": "https://www.patch.moe/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "403",
+          "sourceKind": "publisher-patch-site",
+          "coverage": "exact-work",
+          "observation": "发行商Patch目标返回403；未下载。"
+        },
+        {
+          "url": "https://www.kaguragames.com/product/nukitashi-2/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "发行合作商店标18+、Windows、马赛克修正；通用成人警告不单独证明本作具体场景。"
+        }
+      ],
+      "editionObservations": "存在官方Steam剪辑版与发行方R18补丁路径；日文原版、补丁版须分开。",
+      "ageRatingObservations": "发行方FAQ区分全年龄剪辑版/R18；精确商店页18+。",
+      "explicitSexualContentObservations": "R18版/马赛克商店证据明确；具体性行为画面本批次未检查。",
+      "adultPatchObservations": "精确发行商页链接成人补丁站，发行方FAQ解释R18用途；补丁站403，未核实文件、语言版或适用版本。",
+      "verifiedPlatforms": [
+        "Windows（Steam/官方商店）"
+      ],
+      "verifiedLanguages": [
+        "英文、简体中文、繁体中文文本；日语配音"
+      ],
+      "researchGaps": []
+    },
+    {
+      "workId": "v50789",
+      "title": "星之终途后日谈：渺茫希望的日记",
+      "originalTitle": "終のステラ後日談：微かな希望の日記",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-5e3dbea8bde738028caa826d"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://www.kungal.com/topic/1251",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "creator-post",
+          "coverage": "exact-work",
+          "observation": "署名组长千趣的制作组发布帖明确自称同人、与Key无关系；改编限定版附带后日谈剧本。"
+        },
+        {
+          "url": "https://key.visualarts.gr.jp/kinetic/stella/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "related-base-game-only",
+          "observation": "Key全年龄声明属于本篇，不是该同人改编的分级。"
+        }
+      ],
+      "editionObservations": "需区分官方后日谈文字与星途制作组改编游戏；后者不等于Key官方游戏。",
+      "ageRatingObservations": "未取得该同人游戏年龄分级。",
+      "explicitSexualContentObservations": "本篇全年龄不能迁移为同人包内容结论。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "作者声明Windows/Linux、Android/鸿蒙、iOS/Mac、PSV/Switch"
+      ],
+      "verifiedLanguages": [
+        "中文汉化署名已见；不等于完整语言规格"
+      ],
+      "researchGaps": []
+    },
+    {
+      "workId": "v29443",
+      "title": "星之终途",
+      "originalTitle": "終のステラ",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-b6f36b1aa99e3f53dbad46c4"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://key.visualarts.gr.jp/kinetic/stella/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "Key精确本篇官方规格明确全年龄，2022-09-30发售；后续Steam/智能手机版有公告。"
+        }
+      ],
+      "editionObservations": "Key本篇与后日谈同人作品分开。",
+      "ageRatingObservations": "官方明确全年龄。",
+      "explicitSexualContentObservations": "全年龄版本证据成立；未对部署转换包做内容验收。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "PC",
+        "智能手机（官方公告；未细分OS）"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": []
+    },
+    {
+      "workId": "v8436",
+      "title": "是谁杀了知更鸟",
+      "originalTitle": "誰が殺したコマドリを",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-110fc755bff5f71cb2a6c32c"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://smilesenki.com/komadori/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "精确官方页2011-11-18发售CSA版，并链DLsite/FANZA发行。"
+        },
+        {
+          "url": "https://smilesenki.com/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "publisher-site-only",
+          "observation": "品牌入口提醒部分内容未满18岁不可查看；未进入年龄确认链接。"
+        },
+        {
+          "url": "https://www.dlsite.com/maniax/work/%3D/product_id/RJ083753.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "inaccessible",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "精确官方外链目标不可打开。"
+        }
+      ],
+      "editionObservations": "CSA版及DL发行存在；不将CSA缩写当分级。",
+      "ageRatingObservations": "品牌站部分内容18+，不足以单独确认精确版本评级。",
+      "explicitSexualContentObservations": "可读官方页未取得明确性行为场景描述。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "精确作品分级、内容、平台和语言待补。"
+      ]
+    },
+    {
+      "workId": "v2968",
+      "title": "架向星空之桥",
+      "originalTitle": "星空へ架かる橋",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-c0cc212cf2992cc7c3681e85"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://www.feng.jp/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "age-wall",
+          "sourceKind": "publisher",
+          "coverage": "publisher-site-only",
+          "observation": "官网入口为18岁年龄提醒，未点ENTER；品牌入口不直接证明具体版本内容。"
+        },
+        {
+          "url": "https://www.feng.jp/hoshikaka/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "inaccessible",
+          "sourceKind": "publisher",
+          "coverage": "candidate-path-unverified",
+          "observation": "候选产品路径不可访问，不能确认该路径为实际官方产品页。"
+        }
+      ],
+      "editionObservations": "历史PC原版未取得可读产品页；搜索结果hoshikaka.jp自称粉丝站，已排除官方证据。",
+      "ageRatingObservations": "只看到品牌入口18+，精确作品评级未核实。",
+      "explicitSexualContentObservations": "unknown：未取得精确版本官方性场景说明。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "未跨年龄墙、未以粉丝站补为官方。"
+      ]
+    },
+    {
+      "workId": "v22847",
+      "title": "树莓立方体",
+      "originalTitle": "ラズベリーキューブ",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-3ab8194b66d726bd4279e3b4",
+        "cbc04bd1-9eaa-51db-906e-d434742211f8"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://madosoft.net/raspberry/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方PC站更新提及H语音样本和事件CG；2018-09-28发售，链接主机站。"
+        },
+        {
+          "url": "https://madosoft.net/raspberry/spec.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "日本PC规格页确认DVD-ROM及Windows环境。"
+        },
+        {
+          "url": "https://imel.co.jp/raspberry/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "官方移植站：Switch CERO D(17+)、PS4 CERO C(15+)，2019-08-29。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/2001970/Raspberry_Cube/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "official-storefront",
+          "coverage": "exact-work",
+          "observation": "Steam官方发行Sekai Project，2022-11-04；另一个发行分支。"
+        }
+      ],
+      "editionObservations": "日本PC、Steam、Switch和PS4应分开，不按作品级一个年龄标签覆盖。",
+      "ageRatingObservations": "Switch17+/PS4 15+明确；PC本文未见独立年龄数字字段。",
+      "explicitSexualContentObservations": "PC站明确宣传H语音样本；未试听，也不把主机年龄评级当PC性内容结论。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Nintendo Switch",
+        "PlayStation 4"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": []
+    },
+    {
+      "workId": "v20431",
+      "title": "樱之刻",
+      "originalTitle": "サクラノ刻－櫻の森の下を歩む－",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-f71101d6acb2871ade48bcec",
+        "d6b4fc84-a347-5a28-9184-579085dadfa1"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://www.makura-soft.com/sakuranotoki/index.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "产品规格明确18岁以上、Windows，初回限定/通常版，2023-02-24。"
+        }
+      ],
+      "editionObservations": "确认官方PC初回限定版和通常版。",
+      "ageRatingObservations": "官方18+。",
+      "explicitSexualContentObservations": "年龄本身不证明具体性行为场景；本批次未取得明确场景文字。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [
+        "Windows 8.1/10/11（日语版环境）"
+      ],
+      "verifiedLanguages": [],
+      "researchGaps": []
+    },
+    {
+      "workId": "v562",
+      "title": "樱之诗",
+      "originalTitle": "サクラノ詩－櫻の森の上を舞う－",
+      "checkedAt": "2026-11-13T20:56:27Z",
+      "catalogVersionIds": [
+        "legacy-b6cc5da681fc717131109dfb",
+        "legacy-acdb13048e0f27deca44a5ea",
+        "33224257-9a7b-5d77-b690-2c0fd9643a48"
+      ],
+      "packageBinding": {
+        "status": "unknown",
+        "reason": "仅核查官方公开发行资料；尚无目录版本到官方版次、语言、补丁状态和部署包哈希的绑定证据。"
+      },
+      "sources": [
+        {
+          "url": "https://www.makura-soft.com/sakuranouta/",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "opened",
+          "sourceKind": "publisher",
+          "coverage": "exact-work",
+          "observation": "精确官方页可打开但图片为主，能看到DL发行；未获得产品/年龄文本。"
+        },
+        {
+          "url": "https://www.makura-soft.com/sakuranouta/product.html",
+          "checkedAt": "2026-11-13T20:56:27Z",
+          "accessStatus": "inaccessible",
+          "sourceKind": "publisher",
+          "coverage": "candidate-path-unverified",
+          "observation": "候选产品子页不可访问；不能确认实际路径。"
+        }
+      ],
+      "editionObservations": "官方原作站存在；未核实原版与后续纪念版内容差异。",
+      "ageRatingObservations": "unknown：未取得可读官方年龄字段。",
+      "explicitSexualContentObservations": "unknown：未从可读官方文本核实具体性行为场景。",
+      "adultPatchObservations": "本批次未核实成人补丁；不能据此断言不存在。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "researchGaps": [
+        "候选产品页失败；不得使用樱之刻18+替代樱之诗分级。"
+      ]
+    }
+  ]
+}

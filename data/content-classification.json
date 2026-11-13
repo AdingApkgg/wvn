@@ -869,60 +869,60 @@
       "kind": "version",
       "id": "legacy-22f82f586933328e09f8545a",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-22f82f586933328e09f8545a",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-22f82f586933328e09f8545a",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-a1a835ec6184bfd5142f454f",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-a1a835ec6184bfd5142f454f",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-a1a835ec6184bfd5142f454f",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-37a5c1365c6dec71ede5d1a3",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-37a5c1365c6dec71ede5d1a3",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-37a5c1365c6dec71ede5d1a3",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-ab8ed81c42a7266e3ca6cc61",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-ab8ed81c42a7266e3ca6cc61",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-ab8ed81c42a7266e3ca6cc61",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-caa815636729e8cfa7a09a46",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-caa815636729e8cfa7a09a46",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-caa815636729e8cfa7a09a46",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -931,22 +931,22 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-2bc9744f4a39fda45c162027",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或成人补丁，当前版本的补丁/发行版对应仍不明确，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-2bc9744f4a39fda45c162027",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-fb8b326a69b71beee0e909a0",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-fb8b326a69b71beee0e909a0",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-fb8b326a69b71beee0e909a0",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -955,10 +955,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-0a8a7282eb43a670959e29ae",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或成人补丁，当前版本的补丁/发行版对应仍不明确，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-0a8a7282eb43a670959e29ae",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -967,142 +967,142 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-9eec48bf553b29f80a0cf3b6",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或成人补丁，当前版本的补丁/发行版对应仍不明确，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-9eec48bf553b29f80a0cf3b6",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-2bac9ede31401bad314f5d65",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-2bac9ede31401bad314f5d65",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-2bac9ede31401bad314f5d65",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-163db5b7a02c581d83d546aa",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-163db5b7a02c581d83d546aa",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-163db5b7a02c581d83d546aa",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-51fb3bbaebe819639e1b00cb",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-51fb3bbaebe819639e1b00cb",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-51fb3bbaebe819639e1b00cb",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-34a982d43f20824c615aa356",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-34a982d43f20824c615aa356",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-34a982d43f20824c615aa356",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-91cbd8b181dfcf0b753c104d",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-91cbd8b181dfcf0b753c104d",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-91cbd8b181dfcf0b753c104d",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-434dbf1e3ea7d9835fbff5ec",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-434dbf1e3ea7d9835fbff5ec",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-434dbf1e3ea7d9835fbff5ec",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-4739feefe694a036c750c25c",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-4739feefe694a036c750c25c",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-4739feefe694a036c750c25c",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-a05a24c64b95e9e4c73d69f1",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-a05a24c64b95e9e4c73d69f1",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-a05a24c64b95e9e4c73d69f1",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-16310c7b01d5049f9ffa78ea",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-16310c7b01d5049f9ffa78ea",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-16310c7b01d5049f9ffa78ea",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-9d58bcf41c683470e5771057",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-9d58bcf41c683470e5771057",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-9d58bcf41c683470e5771057",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-032e99675c2271819eea7e73",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-032e99675c2271819eea7e73",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-032e99675c2271819eea7e73",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1111,10 +1111,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-fe2406e269b2dc19be3a75ba",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-fe2406e269b2dc19be3a75ba",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1123,10 +1123,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-c193d7dd6680727121b1f9d6",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-c193d7dd6680727121b1f9d6",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1135,10 +1135,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-ad49d61a350643ebf45d85b5",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-ad49d61a350643ebf45d85b5",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1147,46 +1147,46 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-31cf96913037760bf3f22036",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "目录为demo转换版本，社区完整发行版标记不能唯一对应当前试玩内容，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-31cf96913037760bf3f22036",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-8be91910e078a0119ba298d4",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-8be91910e078a0119ba298d4",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-8be91910e078a0119ba298d4",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-4e9ebe39ce34bffc966cf237",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-4e9ebe39ce34bffc966cf237",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-4e9ebe39ce34bffc966cf237",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-985c76e84a4c4e9380401161",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-985c76e84a4c4e9380401161",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-985c76e84a4c4e9380401161",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1195,22 +1195,22 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-ece0d0fae22a134abcbf8b22",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-ece0d0fae22a134abcbf8b22",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-55842667e349faaaad5daae5",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-55842667e349faaaad5daae5",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-55842667e349faaaad5daae5",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1219,142 +1219,142 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-eec29e88f9c64b1a6ba50d5c",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-eec29e88f9c64b1a6ba50d5c",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-a8c2e67a990feed19dedb3aa",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-a8c2e67a990feed19dedb3aa",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-a8c2e67a990feed19dedb3aa",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-67c9c4a576fcc784c44eafd1",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-67c9c4a576fcc784c44eafd1",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-67c9c4a576fcc784c44eafd1",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-9a1261272a5772ecb5592bcc",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": false,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-9a1261272a5772ecb5592bcc",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-9a1261272a5772ecb5592bcc",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-28ccd8d92b51623f2011170e",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": false,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-28ccd8d92b51623f2011170e",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-28ccd8d92b51623f2011170e",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-7d8b5a9c884b57e6796265c4",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-7d8b5a9c884b57e6796265c4",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-7d8b5a9c884b57e6796265c4",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-46214980e42483df202ceab1",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-46214980e42483df202ceab1",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-46214980e42483df202ceab1",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-67520f0d0345af13ed1be2ec",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-67520f0d0345af13ed1be2ec",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-67520f0d0345af13ed1be2ec",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-ff6a61f773272d2a1e61609b",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-ff6a61f773272d2a1e61609b",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-ff6a61f773272d2a1e61609b",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-dbdae3ca10bd76d1ab998ba6",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-dbdae3ca10bd76d1ab998ba6",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-dbdae3ca10bd76d1ab998ba6",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-e1e29253c2fd43ddc771365f",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-e1e29253c2fd43ddc771365f",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-e1e29253c2fd43ddc771365f",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-a378c290085945c2a66a5e1e",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-a378c290085945c2a66a5e1e",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-a378c290085945c2a66a5e1e",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1363,10 +1363,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-2a67a4d4f50f9f8b69621a75",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-2a67a4d4f50f9f8b69621a75",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1375,10 +1375,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-c89356e75eb8577e08dda1e1",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-c89356e75eb8577e08dda1e1",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1387,106 +1387,106 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-79060b38748739bd8e64e718",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-79060b38748739bd8e64e718",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-3a6409c0cdde7c72c3f5985d",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-3a6409c0cdde7c72c3f5985d",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-3a6409c0cdde7c72c3f5985d",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-e421fa9d2b91b91b55c06c99",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-e421fa9d2b91b91b55c06c99",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-e421fa9d2b91b91b55c06c99",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-862831b35153b8527b97103b",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-862831b35153b8527b97103b",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-862831b35153b8527b97103b",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-6e9fbf4620fbe0a8faac2ea7",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-6e9fbf4620fbe0a8faac2ea7",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-6e9fbf4620fbe0a8faac2ea7",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-c8c3354e1ad697410f361147",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-c8c3354e1ad697410f361147",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-c8c3354e1ad697410f361147",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-d59b2445f0f42f0cc649572b",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-d59b2445f0f42f0cc649572b",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-d59b2445f0f42f0cc649572b",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-3aa2e08ae7ef40d85fd49212",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-3aa2e08ae7ef40d85fd49212",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-3aa2e08ae7ef40d85fd49212",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-512eb028c2f298f534d2de34",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-512eb028c2f298f534d2de34",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-512eb028c2f298f534d2de34",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1495,10 +1495,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-156b1273e3d67dc3ec603fd2",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-156b1273e3d67dc3ec603fd2",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1507,58 +1507,58 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-589e8be3f37d376dd02787fe",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-589e8be3f37d376dd02787fe",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-5e3dbea8bde738028caa826d",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-5e3dbea8bde738028caa826d",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-5e3dbea8bde738028caa826d",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-b6f36b1aa99e3f53dbad46c4",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-b6f36b1aa99e3f53dbad46c4",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-b6f36b1aa99e3f53dbad46c4",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-110fc755bff5f71cb2a6c32c",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-110fc755bff5f71cb2a6c32c",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-110fc755bff5f71cb2a6c32c",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-c0cc212cf2992cc7c3681e85",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-c0cc212cf2992cc7c3681e85",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-c0cc212cf2992cc7c3681e85",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1567,10 +1567,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-3ab8194b66d726bd4279e3b4",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-3ab8194b66d726bd4279e3b4",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1579,34 +1579,34 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-f71101d6acb2871ade48bcec",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-f71101d6acb2871ade48bcec",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-b6cc5da681fc717131109dfb",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-b6cc5da681fc717131109dfb",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-b6cc5da681fc717131109dfb",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-acdb13048e0f27deca44a5ea",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-acdb13048e0f27deca44a5ea",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-acdb13048e0f27deca44a5ea",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1615,46 +1615,46 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-1b0a56130aa4fb6a5d073fdf",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "未找到可对应的VNDB/KUNGal标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "audit:local:docs/version-nsfw-review-20261114.md#legacy-1b0a56130aa4fb6a5d073fdf",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-12af3d99fdc41dfac94fb78f",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-12af3d99fdc41dfac94fb78f",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-12af3d99fdc41dfac94fb78f",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-a9b121de2f7151e661a702c8",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-a9b121de2f7151e661a702c8",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-a9b121de2f7151e661a702c8",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-1f804636a46b7c88786a72d9",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-1f804636a46b7c88786a72d9",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-1f804636a46b7c88786a72d9",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1663,10 +1663,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-a045f2a8a2d68503bd00418c",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-a045f2a8a2d68503bd00418c",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1675,10 +1675,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-0749431b49cb164e3a98470d",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-0749431b49cb164e3a98470d",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1687,10 +1687,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-7f849d5bf9b1405c681b5df4",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-7f849d5bf9b1405c681b5df4",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1699,22 +1699,22 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-5d0fc085f59f8b32b0607d9a",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-5d0fc085f59f8b32b0607d9a",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-6eafd4436274aae8762dc65e",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-6eafd4436274aae8762dc65e",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-6eafd4436274aae8762dc65e",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1723,10 +1723,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-be3af7162b3b095755065f3f",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-be3af7162b3b095755065f3f",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1735,10 +1735,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-eb649752b9b3b9ec088e1b24",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-eb649752b9b3b9ec088e1b24",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1747,22 +1747,22 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-33474c5ab851410a1da3491a",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-33474c5ab851410a1da3491a",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "legacy-2d0044119e0bad2c44e29dff",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-2d0044119e0bad2c44e29dff",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-2d0044119e0bad2c44e29dff",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1771,10 +1771,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-503f16b56d7c648804d85b51",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-503f16b56d7c648804d85b51",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1783,10 +1783,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-8675748d868a788562284aaa",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#legacy-8675748d868a788562284aaa",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1795,10 +1795,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-b2daa513541305560c3fcbae",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-b2daa513541305560c3fcbae",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1807,10 +1807,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-legacy-78cfdb60c00f9fe6d0dd1e44",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#legacy-78cfdb60c00f9fe6d0dd1e44",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1819,10 +1819,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-ef49dd01-c904-518f-aba7-50a36d46c596",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#ef49dd01-c904-518f-aba7-50a36d46c596",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1831,10 +1831,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-2db31864-3a96-519e-be67-b75cac750691",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#2db31864-3a96-519e-be67-b75cac750691",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1843,10 +1843,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-8949d767-3c75-5d50-ac5d-1e0693108a6a",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#8949d767-3c75-5d50-ac5d-1e0693108a6a",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1855,10 +1855,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#6a43fdcc-d01c-5754-9bd0-dd660ea6d80f",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1867,22 +1867,22 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#c8005fb2-d1bc-5392-b97a-0f305c97fb2b",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1891,10 +1891,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-cbc04bd1-9eaa-51db-906e-d434742211f8",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#cbc04bd1-9eaa-51db-906e-d434742211f8",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1903,34 +1903,34 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-d872fbdb-a9a4-550e-8699-928cacc9750e",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#d872fbdb-a9a4-550e-8699-928cacc9750e",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "0b9089be-6d34-5e21-85c4-c2020ac2a913",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-0b9089be-6d34-5e21-85c4-c2020ac2a913",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB+KUNGal作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#0b9089be-6d34-5e21-85c4-c2020ac2a913",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "present",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为含成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1939,10 +1939,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-933436a8-85f5-5a76-9568-5f29faff9785",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#933436a8-85f5-5a76-9568-5f29faff9785",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1951,10 +1951,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-33224257-9a7b-5d77-b690-2c0fd9643a48",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#33224257-9a7b-5d77-b690-2c0fd9643a48",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1963,22 +1963,22 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-d6b4fc84-a347-5a28-9184-579085dadfa1",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#d6b4fc84-a347-5a28-9184-579085dadfa1",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
       "kind": "version",
       "id": "6016ffaf-4448-53d8-a129-b907b13b2d77",
       "classification": {
-        "sexualContent": "unknown",
+        "sexualContent": "none",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-6016ffaf-4448-53d8-a129-b907b13b2d77",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "按VNDB作品、发行或移植资源标记推定为无成人性内容；具体匹配依据见本版本审计条目。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB:docs/version-nsfw-review-20261114.md#6016ffaf-4448-53d8-a129-b907b13b2d77",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {
@@ -1987,10 +1987,10 @@
       "classification": {
         "sexualContent": "unknown",
         "titleSafe": true,
-        "reason": "已审核版本标题。缺少本站实际资源包与具体发行版、补丁状态对应的内容证据；引擎、demo、修复、WebGAL 或作品标签均不构成性内容分级证据。",
-        "source": "manual:docs/nsfw-classification-audit.md#version-476a1807-cfd5-5e67-8772-5ca53e9b616c",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "社区存在不同内容分支或缺少当前移植版的唯一对应标记，继续待核实。 本轮采用用户指定的社区标记口径，不是官方年龄认证或本包逐场景实测；不据此填写年龄分级。",
+        "source": "community:VNDB+KUNGal:docs/version-nsfw-review-20261114.md#476a1807-cfd5-5e67-8772-5ca53e9b616c",
+        "reviewedAt": "2026-11-13T21:15:19.999Z",
+        "revision": 2
       }
     },
     {

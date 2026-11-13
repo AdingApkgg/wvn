@@ -1,0 +1,1155 @@
+{
+  "schemaVersion": 1,
+  "group": 3,
+  "checkedAt": "2026-11-13T20:57:15Z",
+  "scope": "官方发行、年龄、性内容及补丁资料研究；不鉴定部署包，不生成最终分级。",
+  "evidenceBoundary": [
+    "年龄18禁不等同已核验性场景。",
+    "官方上游版本信息不能证明站点所部署的移植包来源。",
+    "来源URL均实际执行open或click；失败与正文不可读分别记录；不下载游戏或补丁，不越过年龄/登录/地区限制。"
+  ],
+  "works": [
+    {
+      "workId": "b315601",
+      "title": "尼特与天使与色色家族",
+      "originalTitle": "にーとと天使とえっちな家族",
+      "versions": [
+        {
+          "id": "legacy-1b0a56130aa4fb6a5d073fdf",
+          "number": 1,
+          "title": "死宅天使",
+          "engine": "Tyrano"
+        }
+      ],
+      "researchStatus": "official_source_unavailable",
+      "editionObservations": "给定本体商品及2026 DLC入口均没有可读正文。",
+      "ageRatingObservations": "未知",
+      "sexualContentObservations": "未知",
+      "patchObservations": "DLC存在的搜索线索未从正文证实，不能视作成人补丁。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://072project.com/r18/jp/shop/RA24086637",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher_store",
+          "accessStatus": "no_readable_body",
+          "observation": "给定商品页可打开但没有可读正文；URL中的r18路径不单独证明游戏内容。"
+        },
+        {
+          "url": "https://072project.com/widget/RC26085508?locale=en&style=horizontal",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher_store",
+          "accessStatus": "no_readable_body",
+          "observation": "DLC组件可打开但正文不可读；未从DLC推断本体内容。"
+        }
+      ],
+      "limitations": [
+        "不能确认当前译版、引擎转换或本体/DLC关系。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v15637",
+      "title": "永不落幕的前奏诗",
+      "originalTitle": "ソレヨリノ前奏詩",
+      "versions": [
+        {
+          "id": "legacy-a9b121de2f7151e661a702c8",
+          "number": 1,
+          "title": "永不落幕的前奏诗",
+          "engine": "ONS"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "2015年原PC版已核验发行资料。",
+      "ageRatingObservations": "官方奖项资料为18岁以下禁止。",
+      "sexualContentObservations": "仅年龄限制；本次没有直接性场景说明。",
+      "patchObservations": "未核验成人补丁。",
+      "verifiedPlatforms": [
+        "Windows Vista",
+        "Windows 7",
+        "Windows 8"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://den-gaku.org/works/soreyorino/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "credited_creator",
+          "accessStatus": "readable",
+          "observation": "作曲家官网确认2015-02-27发行及Windows Vista/7/8；未说明性内容。"
+        },
+        {
+          "url": "https://moe-gameaward.com/title/detail.html?id=1061",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_industry_award",
+          "accessStatus": "readable",
+          "observation": "奖项参评资料列2015-02-27、Windows Vista/7/8、DVD及18岁以下禁止；这是年龄资料。"
+        },
+        {
+          "url": "https://www.minori.ph/lineup/_yorino/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "http_403",
+          "observation": "作曲家官网指向的原厂页面返回403；未绕过。"
+        }
+      ],
+      "limitations": [
+        "原厂旧站403；ONS移植未绑定该发行。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v45247",
+      "title": "爱语 -Silver Snow Sister-",
+      "originalTitle": "アイコトバ-Silver Snow Sister-",
+      "versions": [
+        {
+          "id": "legacy-1f804636a46b7c88786a72d9",
+          "number": 1,
+          "title": "爱语",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_explicit_sexual_content",
+      "editionObservations": "2023年日文PC实体及下载版。",
+      "ageRatingObservations": "NEXTON逐项18岁以上购买。",
+      "sexualContentObservations": "官方概念页明确性场景。",
+      "patchObservations": "未发现或核验成人补丁。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/product.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "2023-10-27发行，实体及FANZA下载，支持Windows10/11日文操作系统。"
+        },
+        {
+          "url": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/concept.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "官方概念页明确宣传两种风格的性场景；这比单独18禁标签更直接。"
+        },
+        {
+          "url": "https://nexton-net.jp/nexton-passport/service_azarasi.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "readable",
+          "observation": "逐项列出爱语SSS、甜蜜夏日、绘缘蜜恋、飞鸟会长的发行版和18岁以上购买限制；甜蜜夏日另有Perfect及Limited版本。"
+        }
+      ],
+      "limitations": [
+        "Windows日文OS要求不等于验证所有文本语言。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v34848",
+      "title": "甜蜜夏日",
+      "originalTitle": "アマナツ",
+      "versions": [
+        {
+          "id": "legacy-a045f2a8a2d68503bd00418c",
+          "number": 1,
+          "title": "甜蜜夏日",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_explicit_sexual_content",
+      "editionObservations": "2022本体与Perfect/Limited命名版本需分别对照。",
+      "ageRatingObservations": "原PC本体官方18岁以上购买。",
+      "sexualContentObservations": "原厂人物资料列H场景数量。",
+      "patchObservations": "未核验补丁或Perfect Edition内容差异。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://azarashi-soft.nexton-net.jp/amanatu/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "2022-08-26实体及下载发行，Windows10/11；人物资料分别列5段H场景，属于明确性内容说明。"
+        },
+        {
+          "url": "https://nexton-net.jp/nexton-passport/service_azarasi.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "readable",
+          "observation": "逐项列出爱语SSS、甜蜜夏日、绘缘蜜恋、飞鸟会长的发行版和18岁以上购买限制；甜蜜夏日另有Perfect及Limited版本。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v27436",
+      "title": "真实动漫情境体验2",
+      "originalTitle": "リアルエロゲシチュエーション！2",
+      "versions": [
+        {
+          "id": "legacy-0749431b49cb164e3a98470d",
+          "number": 1,
+          "title": "真实动漫情境体验2",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_explicit_sexual_content",
+      "editionObservations": "官方十周年合集收录2020年第二作。",
+      "ageRatingObservations": "合集网页有18岁警告。",
+      "sexualContentObservations": "厂商对第二作类型和简介直接描述性场景。",
+      "patchObservations": "未核验Steam版或成人恢复补丁。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://10thbox.j-studio.net/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "十周年合集列入真实动漫情境体验2并注明2020-04-24发行；类型及介绍明确以性场景为内容。页面含18岁警告，未点击年龄按钮。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v25170",
+      "title": "神社里的猫巫女",
+      "originalTitle": "ねこみこ",
+      "versions": [
+        {
+          "id": "legacy-7f849d5bf9b1405c681b5df4",
+          "number": 1,
+          "title": "神社里的猫巫女",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "开发商确认Steam与Switch产品；本次未取得补丁正文。",
+      "ageRatingObservations": "Steam打开后要求登录/年龄检查，未继续。",
+      "sexualContentObservations": "开发商文案只证实轻微情色题材；具体性场景未知。",
+      "patchObservations": "社区发现R18补丁线索，但官方当前正文未核验，GOG补丁入口重定向。",
+      "verifiedPlatforms": [
+        "Nintendo Switch",
+        "Steam"
+      ],
+      "verifiedLanguages": [
+        "Japanese text",
+        "English text",
+        "Japanese voice"
+      ],
+      "sources": [
+        {
+          "url": "https://qureate.co.jp/nekomiko/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "官方页确认Nintendo Switch及Steam，日文/英文文本、日文语音；只称带有轻微情色的同居喜剧，未直接展示成人补丁说明。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/969700/NekoMiko/?curator_clanid=44869323&l=english",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "login_redirect",
+          "observation": "打开后跳至Steam登录/年龄检查；搜索索引有成人内容摘录，但本次没有可读商品正文，不把摘录当直接核验。"
+        },
+        {
+          "url": "https://www.gog.com/en/game/nekomiko_unrated_patch",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "unrelated_redirect",
+          "observation": "成人补丁URL跳转到通用游戏列表，没有核验到商品或补丁内容。"
+        }
+      ],
+      "limitations": [
+        "不可把搜索摘录或第三方补丁镜像当正文证据。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v3770",
+      "title": "秽翼的尤斯蒂娅",
+      "originalTitle": "穢翼のユースティア",
+      "versions": [
+        {
+          "id": "legacy-5d0fc085f59f8b32b0607d9a",
+          "number": 1,
+          "title": "秽翼的尤斯蒂娅",
+          "engine": "ONS"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "2011原版、2016新装版及Vita/PS4/Switch移植不同。",
+      "ageRatingObservations": "原厂PC/Android标R18；主机版CERO D。",
+      "sexualContentObservations": "本次只取得R18产品线标识，无直接性场景说明。",
+      "patchObservations": "未核验成人补丁。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Android",
+        "PlayStation Vita",
+        "PlayStation 4",
+        "Nintendo Switch"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://august-soft.com/product/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "原厂目录分别标注秽翼原PC及新装PC/Android版R18、千桃PC/Android版R18；另列各作品主机移植版。R18只按年龄/产品线资料记录。"
+        },
+        {
+          "url": "https://www.entergram.co.jp/eustia/product/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "console_publisher",
+          "accessStatus": "readable",
+          "observation": "2022-06-23 PS4/Switch版，CERO D；不得据此反推PC版或ONS移植内容。"
+        },
+        {
+          "url": "https://www.dramaticcreate.com/eustia/product/index.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "console_publisher",
+          "accessStatus": "readable",
+          "observation": "Angel’s blessing为PS Vita版，CERO D。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v3144",
+      "title": "素晴日",
+      "originalTitle": "素晴らしき日々～不連続存在～",
+      "versions": [
+        {
+          "id": "legacy-6eafd4436274aae8762dc65e",
+          "number": 1,
+          "title": "素晴日",
+          "engine": "RenPy"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "Steam Down the Rabbit-Hole与JAST完整独立版分别发行。",
+      "ageRatingObservations": "未以年龄条目作性场景结论。",
+      "sexualContentObservations": "Steam开发商说明部分裸露和暴力；Frontwing公告说明完整不删减版但未把裸露直接等同性交。",
+      "patchObservations": "Frontwing官方公告说明Steam本体更新须搭配对应版本补丁；JAST旧补丁入口403。",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "verifiedLanguages": [
+        "English release"
+      ],
+      "sources": [
+        {
+          "url": "https://store.steampowered.com/app/658620/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "readable",
+          "observation": "Steam发行Wonderful Everyday Down the Rabbit-Hole；开发商内容说明为遮掩/部分裸露及暴力。"
+        },
+        {
+          "url": "https://subahibi.backerkit.com/hosted_preorders/project_updates?page=7",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher_campaign",
+          "accessStatus": "readable",
+          "observation": "Frontwing官方项目公告说明JAST独立完整版无DRM且除一个已说明改动外不删减。"
+        },
+        {
+          "url": "https://subahibi.backerkit.com/hosted_preorders/project_updates?page=8",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher_campaign",
+          "accessStatus": "readable",
+          "observation": "Frontwing官方公告说明Steam本体更新后必须配套使用新版本补丁，链接至JAST官方页；没有下载文件。"
+        },
+        {
+          "url": "https://jastusa.com/page/frontwing-steam-patches",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "http_403",
+          "observation": "官方补丁旧入口403；未下载，当前补丁文件可用性未知。"
+        }
+      ],
+      "limitations": [
+        "RenPy转换包未绑定英文完整版、日文版或Steam补丁状态。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v1115",
+      "title": "繁花落舞恋如樱",
+      "originalTitle": "それは舞い散る桜のように",
+      "versions": [
+        {
+          "id": "legacy-be3af7162b3b095755065f3f",
+          "number": 1,
+          "title": "繁花落舞恋如樱",
+          "engine": "Artemis"
+        },
+        {
+          "id": "933436a8-85f5-5a76-9568-5f29faff9785",
+          "number": 2,
+          "title": "繁花落舞恋如樱 · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "至少区分2002原作、2023 Re:BIRTH和2024中文发行；部署的两版本都未绑定。",
+      "ageRatingObservations": "本次未核验年龄。",
+      "sexualContentObservations": "本次未核验性场景。",
+      "patchObservations": "本次未核验成人补丁。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://project-navel.com/sorechiru/intro.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "Navel介绍2023年的Re:BIRTH来自2002年原作与原始制作人员；至少存在原作和重制版区别。"
+        },
+        {
+          "url": "https://project-navel.com/sorechiru/spec.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "Re:BIRTH有豪华/通常/Sofmap包装，要求Windows10/11日文操作系统；正文未给性场景或年龄结论。"
+        },
+        {
+          "url": "https://store.hikarifield.co.jp/shop/sorechiru",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "localized_publisher_store",
+          "accessStatus": "readable_region_unavailable",
+          "observation": "中文发行2024-05-31、品牌Navel、发行HIKARI FIELD；页面提示本地区暂不销售，未绕过。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/2754170/?l=english",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "unavailable",
+          "observation": "Steam商品入口不可访问；未推断Steam版内容。"
+        }
+      ],
+      "limitations": [
+        "HIKARI商店地区不可售；Steam商品正文不可达；不得把重制版资料覆盖原作。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v32183",
+      "title": "绘缘蜜恋",
+      "originalTitle": "アマエミ-longing for you-",
+      "versions": [
+        {
+          "id": "legacy-eb649752b9b3b9ec088e1b24",
+          "number": 1,
+          "title": "绘缘蜜恋",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_explicit_sexual_content",
+      "editionObservations": "2022日文PC实体版及官方产品页面。",
+      "ageRatingObservations": "NEXTON逐项18岁以上购买。",
+      "sexualContentObservations": "厂商人物资料及功能说明明确性场景。",
+      "patchObservations": "未核验恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://azarashi-soft.nexton-net.jp/amaemi/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "2022-06-24发行，Windows10/11；人物资料列性场景数，特色明确说明性场景及相关显示设置。"
+        },
+        {
+          "url": "https://nexton-net.jp/nexton-passport/service_azarasi.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "readable",
+          "observation": "逐项列出爱语SSS、甜蜜夏日、绘缘蜜恋、飞鸟会长的发行版和18岁以上购买限制；甜蜜夏日另有Perfect及Limited版本。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v5922",
+      "title": "虚之少女HD",
+      "originalTitle": "虚ノ少女",
+      "versions": [
+        {
+          "id": "legacy-33474c5ab851410a1da3491a",
+          "number": 1,
+          "title": "虚之少女HD",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "2015 MangaGamer版可读；NEW CAST REMASTER EDITION原厂商店502。",
+      "ageRatingObservations": "本次正文没有可用数字年龄结论。",
+      "sexualContentObservations": "MangaGamer列无马赛克/血腥；没有用血腥反推性内容。",
+      "patchObservations": "未核验HD/重制版成人补丁。",
+      "verifiedPlatforms": [
+        "Linux",
+        "OS X",
+        "Windows XP",
+        "Windows Vista",
+        "Windows 7"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://gungnir.dchd-ecshop.net/products/detail.php?product_id=99",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer_store",
+          "accessStatus": "http_502",
+          "observation": "原厂商店的NEW CAST REMASTER EDITION商品URL返回502；搜索发现的重制说明不替代正文核验。"
+        },
+        {
+          "url": "https://www.mangagamer.com/detail.php?goods_type=1&product_code=139",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "localized_publisher_store",
+          "accessStatus": "readable",
+          "observation": "2015-10-30英文发行条目列Linux、OS X及Windows，标记无马赛克及血腥分类；与HD/新声优重制版并非已绑定同一版本。"
+        }
+      ],
+      "limitations": [
+        "目录标题含HD不能证明来自2020新声优重制版，也不能与2015英文版等同。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v10680",
+      "title": "近月少女的礼仪",
+      "originalTitle": "月に寄りそう乙女の作法",
+      "versions": [
+        {
+          "id": "legacy-2d0044119e0bad2c44e29dff",
+          "number": 1,
+          "title": "近月少女的礼仪",
+          "engine": "ONS"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "Steam FHD FullVoice版含本篇、After Story及特别故事。",
+      "ageRatingObservations": "角色年龄声明与游戏年龄分级分开；未核验原版分级。",
+      "sexualContentObservations": "Steam开发商称少量裸露，主要情节功能并非性暗示。",
+      "patchObservations": "本次未核验官方成人恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows"
+      ],
+      "verifiedLanguages": [
+        "Japanese text",
+        "Simplified Chinese text",
+        "Traditional Chinese text",
+        "Japanese voice"
+      ],
+      "sources": [
+        {
+          "url": "https://store.steampowered.com/app/1776970/?l=japanese",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "readable",
+          "observation": "Steam FHD FullVoice版发行2022-06-17，日文/简繁中文文本、日文语音；开发商说明只有少量裸露且该情节主要功能并非性暗示。"
+        }
+      ],
+      "limitations": [
+        "部署ONS版并无Steam来源绑定，不能据Steam内容覆盖它。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v18148",
+      "title": "野良与皇女与流浪猫之心1",
+      "originalTitle": "ノラと皇女と野良猫ハート",
+      "versions": [
+        {
+          "id": "legacy-503f16b56d7c648804d85b51",
+          "number": 1,
+          "title": "野良与皇女与流浪猫之心1",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "原厂PC/Android产品与2019 Steam商品不同入口。",
+      "ageRatingObservations": "原厂网站18岁内容警告。",
+      "sexualContentObservations": "本次没有直接性场景说明；Steam商品也不能直接推出无性内容。",
+      "patchObservations": "未核验成人恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Android",
+        "Steam"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://harukaze-soft.com/nora/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "原厂网页含18岁以上内容警告，确认PC本体及Android发行信息。警告本身未给性场景范围。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/1010600/The_Princess_the_Stray_Cat_and_Matters_of_the_Heart/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "readable",
+          "observation": "Steam独立条目2019-06-17，发行TOKYOTOON/Fruitbat Factory；未由普通商店文案断定无性内容。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v19841",
+      "title": "野良与皇女与流浪猫之心2",
+      "originalTitle": "ノラと皇女と野良猫ハート2",
+      "versions": [
+        {
+          "id": "legacy-8675748d868a788562284aaa",
+          "number": 1,
+          "title": "野良与皇女与流浪猫之心2",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "2017日文PC本体/组合包与Steam发行分别记录。",
+      "ageRatingObservations": "原厂公告明确DMM.R18通道。",
+      "sexualContentObservations": "Steam开发商只说明轻度CG裸露、暴力、粗俗语言与成人话题。",
+      "patchObservations": "官网修正文件是一般修复，不据此认定成人恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Steam"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://harukaze-soft.com/nora2/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "2017-10-27 PC实体/下载版，与前作组合包分别列明；介绍为前作后日谈及新增路线。"
+        },
+        {
+          "url": "https://harukaze-soft.com/nora2/install/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "官方安装故障公告明确DMM.R18购买品的下载路径；这是成人发行通道证据，不等同实际本地包鉴定。"
+        },
+        {
+          "url": "https://store.steampowered.com/app/1128260?l=english",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_storefront",
+          "accessStatus": "readable",
+          "observation": "Steam开发商内容说明列轻度CG裸露、轻度暴力、粗俗用语和成人话题；不等同日文成人版内容。"
+        }
+      ],
+      "limitations": [
+        "不得用Steam版描述代表日文成人版或当前Artemis移植。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v182",
+      "title": "青空下的约定",
+      "originalTitle": "この青空に約束を―",
+      "versions": [
+        {
+          "id": "legacy-b2daa513541305560c3fcbae",
+          "number": 1,
+          "title": "青空下的约定",
+          "engine": "ONS"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "Refine是2024完整重制，区别于原作。",
+      "ageRatingObservations": "Refine官方CERO C。",
+      "sexualContentObservations": "未核验原作或当前ONS包性内容。",
+      "patchObservations": "未核验补丁。",
+      "verifiedPlatforms": [
+        "Nintendo Switch",
+        "PlayStation 4",
+        "WindowsPC"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://www.entergram.co.jp/aozora_refine/product/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "readable",
+          "observation": "Refine版发行2024-12-19，Switch/PS4/WindowsPC，CERO C；这是独立重制版，不能覆盖原作。"
+        },
+        {
+          "url": "https://www.entergram.co.jp/aozora_refine/point/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "readable",
+          "observation": "官方说明Refine为完整重制，美术、音乐和界面均更新。"
+        }
+      ],
+      "limitations": [
+        "Refine资料不能推断2006原作内容；本次原作官方证据不足。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v37843",
+      "title": "飞鸟会长不肯认输",
+      "originalTitle": "アスカさんはなびかない",
+      "versions": [
+        {
+          "id": "legacy-78cfdb60c00f9fe6d0dd1e44",
+          "number": 1,
+          "title": "飞鸟会长不肯认输",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_explicit_sexual_content",
+      "editionObservations": "2022实体及FANZA下载版。",
+      "ageRatingObservations": "NEXTON逐项18岁以上购买。",
+      "sexualContentObservations": "厂商概念页明确讨论性行为相关内容。",
+      "patchObservations": "未核验补丁。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://azarashi-soft.nexton-net.jp/asunabi/product.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "2022-12-23实体/FANZA版，Windows10/11日文操作系统。"
+        },
+        {
+          "url": "https://azarashi-soft.nexton-net.jp/asunabi/concept.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "官方概念介绍明确讨论恋爱与性行为探索，但没有本次移植包或补丁状态资料。"
+        },
+        {
+          "url": "https://nexton-net.jp/nexton-passport/service_azarasi.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher",
+          "accessStatus": "readable",
+          "observation": "逐项列出爱语SSS、甜蜜夏日、绘缘蜜恋、飞鸟会长的发行版和18岁以上购买限制；甜蜜夏日另有Perfect及Limited版本。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v22880",
+      "title": "宿星Girlfriend",
+      "originalTitle": "宿星のガールフレンド -the destiny star of girlfriend-",
+      "versions": [
+        {
+          "id": "ef49dd01-c904-518f-aba7-50a36d46c596",
+          "number": 1,
+          "title": "宿星Girlfriend · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "官方奖项确认第一作及三部曲起点；厂商站不可达。",
+      "ageRatingObservations": "奖项页面指向DMM.R18购买；无直接数字分级正文。",
+      "sexualContentObservations": "未知。",
+      "patchObservations": "未核验补丁或合集成人内容差异。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://www.mirai-soft.net/syukugar/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "http_502",
+          "observation": "第一作官网入口返回502，未绕过。"
+        },
+        {
+          "url": "https://moe-gameaward.com/prize/2018/song.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "official_industry_award",
+          "accessStatus": "readable",
+          "observation": "主办方页面收录mirai第一作获奖及厂商寄语，并链接DMM.R18购买；未给具体性场景。"
+        },
+        {
+          "url": "https://www.mirai-soft.net/syukugar-as/index.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "unavailable",
+          "observation": "合集官网不可达；社区所述合集内容未作为官方结论。"
+        }
+      ],
+      "limitations": [
+        "奖项获奖和DMM.R18链接均不能证明当前包内容。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v23290",
+      "title": "宿星Girlfriend2",
+      "originalTitle": "宿星のガールフレンド2 -the destiny star of girlfriend-",
+      "versions": [
+        {
+          "id": "2db31864-3a96-519e-be67-b75cac750691",
+          "number": 1,
+          "title": "宿星Girlfriend2 · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_source_unavailable",
+      "editionObservations": "第二作与合集官方页面本次不可达。",
+      "ageRatingObservations": "未知",
+      "sexualContentObservations": "未知",
+      "patchObservations": "未知",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://www.mirai-soft.net/syukugar2/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "unavailable",
+          "observation": "第二作官网入口不可达；本次未取得官方正文。"
+        },
+        {
+          "url": "https://www.mirai-soft.net/syukugar-as/index.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "unavailable",
+          "observation": "合集官网不可达；社区所述合集内容未作为官方结论。"
+        }
+      ],
+      "limitations": [
+        "不把社区资料替代厂商正文。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v23772",
+      "title": "宿星Girlfriend3",
+      "originalTitle": "宿星のガールフレンド3 -the destiny star of girlfriend-",
+      "versions": [
+        {
+          "id": "8949d767-3c75-5d50-ac5d-1e0693108a6a",
+          "number": 1,
+          "title": "宿星Girlfriend3 · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_source_unavailable",
+      "editionObservations": "第三作与合集官方页面本次不可达。",
+      "ageRatingObservations": "未知",
+      "sexualContentObservations": "未知",
+      "patchObservations": "未知",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://www.mirai-soft.net/syukugar3/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "http_502",
+          "observation": "第三作官网入口返回502；本次未取得官方正文。"
+        },
+        {
+          "url": "https://www.mirai-soft.net/syukugar-as/index.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "unavailable",
+          "observation": "合集官网不可达；社区所述合集内容未作为官方结论。"
+        }
+      ],
+      "limitations": [
+        "不把社区资料替代厂商正文。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v53590",
+      "title": "常轨脱离Creative Re:Re:call",
+      "originalTitle": "ハミダシクリエイティブRe:Re:call",
+      "versions": [
+        {
+          "id": "a7b73d5e-7412-5654-87a2-d71f51a0b3a8",
+          "number": 1,
+          "title": "常轨脱离Creative Re:Re:call · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_explicit_sexual_content",
+      "editionObservations": "2025 PC通常/豪华版。",
+      "ageRatingObservations": "原厂18禁PC板块收录。",
+      "sexualContentObservations": "原厂明确H场景。",
+      "patchObservations": "附裸体立绘切换补丁卡；此补丁不是已证实的性场景恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://madosoft.net/rerecall/product",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "2025-04-25 PC DVD通常/豪华版，Windows10/11日文操作系统；附可把普通场景立绘改为裸体的特典补丁卡。"
+        },
+        {
+          "url": "https://madosoft.net/rerecall/introduction",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "官方作品介绍明确宣传大量H场景。"
+        },
+        {
+          "url": "https://www.madosoft.net/products",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "Re:Re:call列在18禁PC游戏板块；同时另设全年龄主机板块。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v47175",
+      "title": "SELECT OBLIGE",
+      "originalTitle": "セレクトオブリージュ",
+      "versions": [
+        {
+          "id": "d872fbdb-a9a4-550e-8699-928cacc9750e",
+          "number": 1,
+          "title": "SELECT OBLIGE · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "2024 PC与2026 Switch分开记录。",
+      "ageRatingObservations": "Switch官方CERO D。",
+      "sexualContentObservations": "PC有裸体立绘特典补丁；这证明该补丁提供裸露，不单独证明性行为场景。",
+      "patchObservations": "首发PC特典可切换普通场景立绘为裸体；未核验海外Steam恢复补丁。",
+      "verifiedPlatforms": [
+        "Windows 10",
+        "Windows 11",
+        "Nintendo Switch"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://selectoblige.com/product",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "PC版发行2024-07-26，DVD及下载卡，Windows10/11；首发附普通场景裸体立绘补丁，不应误称性场景恢复补丁。"
+        },
+        {
+          "url": "https://imel.co.jp/selectoblige/product",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "console_publisher",
+          "accessStatus": "readable",
+          "observation": "Switch版发行2026-04-30，CERO D（17岁以上）；与PC条目分开。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v37021",
+      "title": "FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜",
+      "originalTitle": "FLIP＊FLOP ~INNOCENCE OVERCLOCK~",
+      "versions": [
+        {
+          "id": "0b9089be-6d34-5e21-85c4-c2020ac2a913",
+          "number": 1,
+          "title": "FLIP＊FLOP 〜INNOCENCE OVERCLOCK〜 · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "官方自发稿及厂商发布信息确认独立副标题及PC发行。",
+      "ageRatingObservations": "未知",
+      "sexualContentObservations": "官方可读文字没有年龄或性场景信息。",
+      "patchObservations": "未核验补丁。",
+      "verifiedPlatforms": [
+        "PC"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://www.fanzagames-digination.com/flipflop_io/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "http_403",
+          "observation": "INNOCENCE OVERCLOCK原厂页403，未绕过。"
+        },
+        {
+          "url": "https://prtimes.jp/main/html/rd/p/000004490.000032953.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher_press_release",
+          "accessStatus": "readable",
+          "observation": "EXNOA自发新闻稿将两个副标题列为已发行的独立作品，给品牌与创作信息；未给成人分级、性场景或补丁说明。"
+        },
+        {
+          "url": "https://moe-gameaward.com/media/2022/10/28/8270/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "manufacturer_release_republication",
+          "accessStatus": "readable",
+          "observation": "媒体明确标注下文为厂商发布信息；确认INNOCENCE OVERCLOCK于2022-10-28发售，PC实体及下载形式，未核验性内容。"
+        }
+      ],
+      "limitations": [
+        "原厂产品页403；新闻稿没有成人内容说明。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v39197",
+      "title": "FLIP＊FLOP ～RAMBLING OVERRUN～",
+      "originalTitle": "FLIP＊FLOP ~RAMBLING OVERRUN~",
+      "versions": [
+        {
+          "id": "7c7c87f6-1afd-549b-ab5b-5af40f40ec93",
+          "number": 1,
+          "title": "FLIP＊FLOP ～RAMBLING OVERRUN～ · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "EXNOA官方稿确认独立第二副标题已发行。",
+      "ageRatingObservations": "未知",
+      "sexualContentObservations": "官方可读文字没有年龄或性场景信息。",
+      "patchObservations": "未核验补丁。",
+      "verifiedPlatforms": [],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://www.fanzagames-digination.com/flipflop_ran/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "http_403",
+          "observation": "RAMBLING OVERRUN原厂页403，未绕过。"
+        },
+        {
+          "url": "https://prtimes.jp/main/html/rd/p/000004490.000032953.html",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "publisher_press_release",
+          "accessStatus": "readable",
+          "observation": "EXNOA自发新闻稿将两个副标题列为已发行的独立作品，给品牌与创作信息；未给成人分级、性场景或补丁说明。"
+        }
+      ],
+      "limitations": [
+        "原厂产品页403；新闻稿没有成人内容说明。"
+      ],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    },
+    {
+      "workId": "v15708",
+      "title": "千之刃涛，桃花染之皇姬",
+      "originalTitle": "千の刃濤、桃花染の皇姫",
+      "versions": [
+        {
+          "id": "476a1807-cfd5-5e67-8772-5ca53e9b616c",
+          "number": 1,
+          "title": "千之刃涛，桃花染之皇姬 · WebGAL 2026-10-27",
+          "engine": "Artemis"
+        }
+      ],
+      "researchStatus": "official_release_or_age_only",
+      "editionObservations": "PC/Android版、2017 PS4/Vita版与2022 Switch版分别列明。",
+      "ageRatingObservations": "PC/Android原厂目录R18。",
+      "sexualContentObservations": "仅年龄/产品线证据；本次未取得直接性场景说明。",
+      "patchObservations": "未核验补丁。",
+      "verifiedPlatforms": [
+        "Windows",
+        "Android",
+        "PlayStation 4",
+        "PlayStation Vita",
+        "Nintendo Switch"
+      ],
+      "verifiedLanguages": [],
+      "sources": [
+        {
+          "url": "https://august-soft.com/product/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "developer",
+          "accessStatus": "readable",
+          "observation": "原厂目录分别标注秽翼原PC及新装PC/Android版R18、千桃PC/Android版R18；另列各作品主机移植版。R18只按年龄/产品线资料记录。"
+        },
+        {
+          "url": "https://www.entergram.co.jp/senmomo/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "console_publisher",
+          "accessStatus": "readable",
+          "observation": "官方Switch页确认2022-07-28发行。"
+        },
+        {
+          "url": "https://aria-soft.com/senmomo/",
+          "checkedAt": "2026-11-13T20:57:15Z",
+          "authority": "console_publisher",
+          "accessStatus": "readable",
+          "observation": "官方PlayStation页面列PS4/PS Vita版及其2017年公告；与PC版分别记录。"
+        }
+      ],
+      "limitations": [],
+      "deployedPackageBinding": "unknown_not_audited_by_this_research",
+      "finalClassification": "not_assigned"
+    }
+  ],
+  "summary": {
+    "works": 24,
+    "versions": 25,
+    "researchStatusCounts": {
+      "official_source_unavailable": 3,
+      "official_release_or_age_only": 15,
+      "official_explicit_sexual_content": 6
+    },
+    "allDeployedPackageBindingsUnknown": true,
+    "finalClassificationsAssigned": 0
+  }
+}
