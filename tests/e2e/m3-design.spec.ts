@@ -65,6 +65,7 @@ test("浏览器后退保持导航语义且阅读器祖先没有变换", async ({
   await expect(page.locator(".reader-surface")).toBeVisible();
   await page.getByRole("button", { name: "开始阅读", exact: true }).click();
   await expect(page.getByRole("button", { name: "全屏", exact: true })).toBeEnabled({ timeout: 30000 });
+  await expect(page.locator(".reader-surface iframe")).toHaveAttribute("aria-busy", "false", { timeout: 30000 });
   const frame = page.frames().find(frame => frame.url().includes("/__ons/runtime/clannad"))!;
   await expect(frame.locator("#fixture-input")).toBeVisible();
   const identity = await frame.evaluate(() => (window as unknown as { instanceId: string }).instanceId);
@@ -74,7 +75,6 @@ test("浏览器后退保持导航语义且阅读器祖先没有变换", async ({
   await page.getByRole("button", { name: "存档与备份", exact: true }).click();
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
   const trigger = page.getByRole("button", { name: "备份到云端", exact: true });
-  await expect(page.locator(".reader-surface iframe")).toHaveAttribute("aria-busy", "false");
   await trigger.click();
   const dialog = page.getByRole("alertdialog", { name: "备份到当前账号？" });
   await expect(dialog).toBeVisible();

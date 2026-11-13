@@ -91,6 +91,7 @@ body { font: var(--md-sys-typescale-body-large); letter-spacing: .02em; }
 .primary-navigation a[aria-current="page"] { background: var(--secondary); color: var(--secondary-foreground); }
 .navigation-indicator { position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: var(--secondary); }
 .content-mode-entry { min-height: 48px; color: var(--muted-foreground); border-color: var(--input); font: var(--md-sys-typescale-label-medium); }
+.content-mode-short-label { display: none; }
 .eyebrow { color: var(--primary); font: var(--md-sys-typescale-label-medium); letter-spacing: .08em; }
 .catalog-page { padding-top: 48px; }
 .catalog-heading { align-items: center; margin-bottom: 32px; }
@@ -179,6 +180,42 @@ footer { color: var(--muted-foreground); font: var(--md-sys-typescale-body-small
   .story-card:hover .card-art { translate: 0 -3px; }
 }
 @media (max-width: 1050px) { .primary-navigation a { padding-inline: 16px; } }
+/* 通过页面留白适配侧栏，不更换路由容器或播放器的挂载位置。 */
+@media (width > 720px) {
+  :root { --site-navigation-width: 96px; }
+  body:has(.site-navigation) { padding-inline-start: var(--site-navigation-width); }
+  .site-navigation {
+    position: fixed; z-index: 30; inset: 0 auto 0 0;
+    width: var(--site-navigation-width); height: 100dvh; min-height: 0;
+    display: flex; flex-direction: column; align-items: stretch; justify-content: start;
+    padding: 32px 16px 24px; gap: 32px;
+    border-right: 1px solid var(--border); overflow-y: auto; overscroll-behavior: contain;
+  }
+  .site-navigation .brand { flex-shrink: 0; flex-direction: column; align-items: start; gap: 8px; font-size: 28px; line-height: 1.2; }
+  .site-navigation .brand span { display: block; padding: 0; border: 0; font-size: 12px; line-height: 20px; letter-spacing: .08em; }
+  .site-navigation .primary-navigation { flex-shrink: 0; flex-direction: column; align-items: stretch; justify-content: start; gap: 8px; margin: 0; }
+  .site-navigation .primary-navigation a { width: 100%; min-height: 56px; justify-content: start; gap: 16px; padding: 12px 20px; }
+  .site-navigation .primary-navigation svg { width: 24px; height: 24px; }
+  .site-navigation .navigation-account { flex-shrink: 0; flex-direction: column; align-items: stretch; gap: 16px; margin-top: auto; }
+  .site-navigation .preview-badge { display: block; padding-inline: 16px; }
+  .site-navigation .content-mode-entry { justify-content: start; padding: 12px 16px; }
+  .site-navigation .content-mode-entry[data-restricted] { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: transparent; }
+}
+@media (720px < width < 1200px) {
+  .site-navigation { padding-inline: 16px; gap: 40px; }
+  .site-navigation .brand { align-items: center; font-size: 21px; letter-spacing: .08em; }
+  .site-navigation .brand span, .site-navigation .preview-badge, .site-navigation .content-mode-label { display: none; }
+  .site-navigation .primary-navigation a { min-height: 72px; padding: 8px 0; flex-direction: column; justify-content: center; gap: 4px; font: var(--md-sys-typescale-label-medium); }
+  .site-navigation .primary-navigation a[aria-current="page"] { background: transparent; }
+  .site-navigation .primary-navigation svg { margin-bottom: 4px; }
+  .site-navigation .navigation-indicator { inset: 6px auto auto 50%; width: 64px; height: 32px; margin-left: -32px; border-radius: var(--md-sys-shape-full); }
+  .site-navigation .content-mode-entry { width: 64px; min-height: 72px; padding: 8px 0; flex-direction: column; gap: 4px; justify-content: center; align-self: center; }
+  .site-navigation .content-mode-entry svg { width: 22px; height: 22px; }
+  .site-navigation .content-mode-short-label { display: block; font: var(--md-sys-typescale-label-small); white-space: nowrap; }
+}
+@media (min-width: 1200px) {
+  :root { --site-navigation-width: 256px; }
+}
 @media (max-width: 720px) {
   .site-navigation { height: 72px; }
   .primary-navigation { background: var(--md-sys-color-surface-container); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); border-top: 0; }

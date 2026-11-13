@@ -32,8 +32,10 @@ export function SiteNavigation({ preview }: { preview: boolean }) {
     <div className="navigation-account">
       {preview && <span className="preview-badge">远程预览</span>}
       {enabled && <Link to={contentPage ? location.pathname + location.search : contentTarget} className="content-mode-entry"
-        aria-label={contentLabel} title={access.eligibility === "qualified" ? "已取得资格，可管理当前会话的显示" : "查看浏览规则与测试"} aria-current={contentPage ? "page" : undefined}>
-        <Shield size={16} aria-hidden="true" /><span>{contentLabel}</span>
+        data-restricted={access.canViewRestricted || undefined}
+        aria-label={contentLabel} title={`${contentLabel} · ${access.eligibility === "qualified" ? "已取得资格，可管理当前会话的显示" : "查看浏览规则与测试"}`} aria-current={contentPage ? "page" : undefined}>
+        <Shield size={16} aria-hidden="true" /><span className="content-mode-label">{contentLabel}</span>
+        <span className="content-mode-short-label">{access.canViewRestricted ? "NSFW 开启" : "公共浏览"}</span>
         {access.eligibility === "qualified" && !access.canViewRestricted && <small>已取得资格</small>}
       </Link>}
     </div>
