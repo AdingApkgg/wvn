@@ -3,6 +3,13 @@ import urllib.request,urllib.parse,json,pathlib,os,concurrent.futures,time,subpr
 ROOT=pathlib.Path(__file__).resolve().parents[1];MEDIA=ROOT/'media';MEDIA.mkdir(exist_ok=True)
 PROXY=os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy') or 'http://127.0.0.1:11090'
 REVIEWED={url for s in json.loads((ROOT/'data/metadata-official-sources.json').read_text()).values() for url in s['images']}
+PINNED={r['sourceUrl']:r for r in json.loads((ROOT/'data/cover-review-20261114.json').read_text())['records'] if r['selected']}
+def verify_reviewed(url,raw):
+ record=PINNED.get(url)
+ if record:
+  import hashlib
+  if len(raw)!=record['bytes'] or hashlib.sha256(raw).hexdigest()!=record['sha256']:
+   raise ValueError('Image differs from reviewed bytes; independent review required')
 def trusted(url):
  u=urllib.parse.urlsplit(url)
  return u.scheme=='https' and not u.username and not u.password and not u.port and (u.hostname in ['t.vndb.org','lain.bgm.tv'] or url in REVIEWED)
@@ -15,7 +22,10 @@ def download(image):
  if not trusted(url):return url,None,'Untrusted source'
  for ext in ['jpg','png','webp']:
   file=MEDIA/(name+'.'+ext)
-  if file.exists() and file.stat().st_size>0:return url,'/media/'+file.name,None
+  if file.exists() and file.stat().st_size>0:
+   try:verify_reviewed(url,file.read_bytes())
+   except ValueError as error:return url,None,str(error)
+   return url,'/media/'+file.name,None
  for attempt in range(2):
   try:
    if url in REVIEWED:
@@ -28,6 +38,7 @@ def download(image):
     with op.open(urllib.request.Request(url,headers={'User-Agent':'WG-Catalog-Metadata/0.1 (https://wg.saop.cc)'}),timeout=35) as res:
      raw=res.read(3*1024*1024+1)
    if len(raw)>3*1024*1024:raise ValueError('Image exceeds 3 MiB')
+   verify_reviewed(url,raw)
    ext='jpg' if raw.startswith(b'\xff\xd8\xff') else 'png' if raw.startswith(b'\x89PNG\r\n\x1a\n') else 'webp' if raw[:4]==b'RIFF' and raw[8:12]==b'WEBP' else None
    if not ext:raise ValueError('Unsupported image bytes')
    file=MEDIA/(name+'.'+ext);file.write_bytes(raw);return url,'/media/'+file.name,None

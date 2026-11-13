@@ -102,12 +102,12 @@
       "id": "v32805",
       "classification": {
         "pageSuitability": "sfw",
-        "reason": "便利店相遇与忍者同居；fanservice 提示未展开性行为。 图片仅展示独立分类通过的安全素材；不证明具体游玩版本。",
+        "reason": "便利店相遇与忍者同居；fanservice 提示未展开性行为。 图片仅展示独立分类通过的安全素材；不证明具体游玩版本。 本轮仅新增qureate官方素材来源，复核页面原文未变；图片另行AI视觉审核。",
         "source": "manual:docs/nsfw-classification-audit.md#v32805",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 3
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 4
       },
-      "fingerprint": "02fdaaa4aa73c8fe0812aaa522bd4436d8744abba6c19c36f2f828d23d40f8a2"
+      "fingerprint": "24c395024c3a89571072f0d5decd1c41b9740d6b2becf4f1c4c183bf02d007a2"
     },
     {
       "kind": "work",
@@ -2727,13 +2727,13 @@
       "kind": "image",
       "id": "/media/b880fc3c9f2238cebb0a191a03bb8a83935962574da076b1adf7c096587a9bea.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "suggestive",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。原宣传图服装暴露并突出胸部与臀腿，存在性暗示；不满足公共封面要求，已用发行方纯标题图替换。 文件SHA256：5c6494182ee6e37b76e0b64b005041a62b2daf1bcbd3f7205a2634019652a6c9。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v32805",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -3118,13 +3118,13 @@
       "kind": "image",
       "id": "/media/54dd909d6935a4ffb72fd551978f593719d3d1bbc47b8149bba4a0c7b73c1522.png",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://www.omega-star.jp/biman3html/topmenugrp.png",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。横幅仅含两名角色的面部、肩部与作品标题，无裸露、性行为或血腥画面。 文件SHA256：63f7a8503b3ea2c8103bf209f06da00ceb5770f930ea092a953f25e638a251ae。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v14365",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -3227,13 +3227,13 @@
       "kind": "image",
       "id": "/media/06f86318a5cb77df907fce68b187550f8c407fea4fd94853d7b299c60eabe032.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://t.vndb.org/cv/73/144973.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。角色穿完整和服、露出小腿，画面无内衣、性行为或暴力；包装18标识属于游戏年龄提示，不作为这张图片的视觉分级。 文件SHA256：e76ba006485e631f5362ed0190467a8965bd38f4bc5051e122af96dd6eaeec5b。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v27057",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -3336,13 +3336,13 @@
       "kind": "image",
       "id": "/media/dbe73a43c377b4e3510dd75cde2422cb2f830359977578663da3bc8c63d5715a.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3449440/header.jpg?t=1746617201",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。横幅为角色头肩与雪花标题，无裸露、性行为或暴力。 文件SHA256：8cf74ee4d91537fa13e7eea7eea957d8a313d52e79e3b169d553628965a61d4a。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v44184",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -3381,13 +3381,13 @@
       "kind": "image",
       "id": "/media/d5ddedad3760136d06fbd4f6547845389c6b5d15eb335e6f29a9f86969c35846.png",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://citrus-soft.net/product/hokeloli/images/common/logo.png",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。纯标题图，包含文字、蝴蝶结、玫瑰等装饰，无人物或暴力。 文件SHA256：0488839c2b55ceb5e4b563bf3e80921f6d9b5fe82e59a3a7d00c7a3f042d5b74。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v33099",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -3490,13 +3490,13 @@
       "kind": "image",
       "id": "/media/7ee6d98c63df9488576e18db4bc8753e317f6389eb25e2389438684dbe48538a.png",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://citrus-soft.net/product/hokecho/images/common/logo.png",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。纯标题图，包含文字与花卉装饰，无人物或暴力。 文件SHA256：72e0c6698694a40f4f7beb14084c03f5b9af6c3e1277916f60b24df81e66b971。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v33969",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -4188,13 +4188,13 @@
       "kind": "image",
       "id": "/media/c3c7c4fba391444d47b62b9463702ebdf67fef54d6629ddd288481ea007e9666.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://t.vndb.org/cv/73/135273.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。五名着日常服装的角色站立合影，无内衣、裸露、性行为或暴力。 文件SHA256：d5f6d401da406003b59571dd1cad4dd52df5569bd237d61517b8c89dfa9d1cac。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v14805",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -4233,13 +4233,13 @@
       "kind": "image",
       "id": "/media/7b0a4d3181f60858d6d62cceb95541ed0a05e94364a7b7267facf1a330af7074.webp",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://www.omega-star.jp/biman15thcc/img/movie-title-02.webp",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。纯文字标题与蝴蝶装饰，无人物或暴力。 文件SHA256：b88cbc2c98af008f2c910aee05a80fc378ea1928507b0c6844def40a327e0564。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v11071",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -4342,13 +4342,13 @@
       "kind": "image",
       "id": "/media/94811dcffe3ac6dcadc89a219ff7143475c4cb196219a5a148f89efeb910ebeb.png",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://www.omega-star.jp/biman4html/topmenugrp.png",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。横幅为角色面部、头发、手部与作品标题，无裸露、性行为或暴力。 文件SHA256：4b27ca0fb5eda7bfea8303b5bec3e92058d6f9bb8d9706aa113e37e4baa8b008。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v19182",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -5946,13 +5946,13 @@
       "kind": "image",
       "id": "/media/a90d667fc959e2f8082429689612caca4f7f162bae846e888c7ae4c5d0c578c3.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/ogp.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。穿完整制服的角色头肩宣传图，表情与手势不含性行为，无裸露或暴力。 文件SHA256：0c048aeff270578213a13acef3744627b0fcf4a8e20c6507bd9d27be743c9c2f。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v45247",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -6532,13 +6532,13 @@
       "kind": "image",
       "id": "/media/e4cacf2a6ac7fcc8df1d596aa49e4bddfbdc034195538eb917616053ba66fadc.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://t.vndb.org/cv/92/102792.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。三名着制服的角色上半身与作品标题，无裸露、性行为或暴力。 文件SHA256：4c2a5d9de814fe9c7b9b7ad128aeff6892c202c2a4d5785b51be125ae212c8b9。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v32183",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -7211,13 +7211,13 @@
       "kind": "image",
       "id": "/media/eb0ba97b79afa684f6837d045d66e3368333531639770c8cd6440008a4cfbab9.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://t.vndb.org/cv/59/78359.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。角色穿长袖连帽上衣与短裤、手持玩偶，无内衣、裸露、性行为或暴力。 文件SHA256：67c030b4e246916b9f44b717f923ebc9e7c02c249cab10fe722392c2ab2f29e0。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v22880",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -7320,13 +7320,13 @@
       "kind": "image",
       "id": "/media/a2120b383eba7b37b59525eb6a808e07799b9bfc453cc1e024a909aef33e434b.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://t.vndb.org/cv/10/91210.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。角色穿完整长袖衬衣、手持玩偶，无裸露、性行为或暴力。 文件SHA256：e986bc697aab7d0977b952bf16b9a416deb3126e85749b73c60afae774aa6901。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v23290",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -7413,13 +7413,13 @@
       "kind": "image",
       "id": "/media/cd5b26c33748372262162253545bdd2cb1e3b6cb6302dfdf0675c2e78df1b2f1.jpg",
       "classification": {
-        "sexual": "unknown",
-        "violence": "unknown",
+        "sexual": "safe",
+        "violence": "tame",
         "spoiler": false,
-        "reason": "已逐项核对来源 URL 与目录归属；无对应的原始逐图评分及有效票数，亦未执行视觉人工审查。历史安全筛选或官方宣传图身份不能代替审核。",
-        "source": "https://t.vndb.org/cv/99/86899.jpg",
-        "reviewedAt": "2026-11-03T17:13:15.178919Z",
-        "revision": 1
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。角色穿完整短袖衬衣与裙装、手持玩偶，无裸露、性行为或暴力。 文件SHA256：6c56667c5317ffda1cfa6717b3be995d2dc2024aa6962166f9ce95a9a6a871d1。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v23772",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 2
       }
     },
     {
@@ -7996,6 +7996,19 @@
         "rawSexual": 0,
         "rawViolence": 0,
         "voteCount": 14
+      }
+    },
+    {
+      "kind": "image",
+      "id": "/media/0225f65c94e96987b4ca8dda3bbf033eeec5b62dbc7c522c9f250fb54d820aa2.png",
+      "classification": {
+        "sexual": "safe",
+        "violence": "tame",
+        "spoiler": false,
+        "reason": "AI逐图视觉复核（非人工、非官方年龄评级）。纯标题图，只有文字、卷轴与花纹，无人物、裸露或暴力。 文件SHA256：fc7dd5aadac5e27d4d49caaa3a9c093c5145bead97b6f5785ea0ae5430e701d3。仅对应本文件，不推断游戏内容。",
+        "source": "manual:ai-visual-review:docs/cover-review-20261114.md#v32805",
+        "reviewedAt": "2026-11-13T20:35:02.565Z",
+        "revision": 1
       }
     }
   ]

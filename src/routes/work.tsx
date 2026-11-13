@@ -18,6 +18,7 @@ import {projectWork,accessError} from '../content/policy.ts';
 import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
 import {useLayoutEffect} from 'react';
+import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
 import { splitSynopsis } from "../lib/reader-experience";
 import { ShelfButton } from "../accounts/shelf-button";
 import {useLocalReading} from '../accounts/local-reading';
@@ -95,21 +96,12 @@ export default function Work() {
       <section
         className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
       >
-        {w.metadata?.cover && (
-          <img
-            className={
-              "work-cover" + (w.metadata.cover.kind ? " cover-fit" : "")
-            }
-            src={w.metadata.cover.url}
-            alt={w.title + " " + coverKindLabel(w.metadata.cover.kind)}
-            width={w.metadata.cover.width}
-            height={w.metadata.cover.height}
-          />
-        )}
+        {w.metadata?.cover && <div className="work-cover-frame"><CoverImage key={w.metadata.cover.url} cover={w.metadata.cover} className="work-cover" alt={w.title + " " + coverKindLabel(w.metadata.cover.kind)} /></div>}
         <div className="work-heading-body">
           <p className="eyebrow">{providerName(w.id)} / {w.id.replace(/^v/, "")}</p>
           <h1>{w.title}</h1>
           <p className="original">{w.originalTitle}</p>
+          {!w.metadata?.cover && <p className="work-cover-reason"><CoverPlaceholder status={w.coverStatus} /></p>}
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
             <Button asChild size="lg"><Link to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>

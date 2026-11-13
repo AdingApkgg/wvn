@@ -1,0 +1,542 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-11-13T20:35:02.565Z",
+  "scope": "隔离预览的14张缺失封面；原图15张（含1张替代Logo）逐张视觉复核。",
+  "records": [
+    {
+      "id": "v32805",
+      "title": "NinNinDays2",
+      "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
+      "source": "official",
+      "kind": "promotion",
+      "url": "/media/b880fc3c9f2238cebb0a191a03bb8a83935962574da076b1adf7c096587a9bea.jpg",
+      "sha256": "5c6494182ee6e37b76e0b64b005041a62b2daf1bcbd3f7205a2634019652a6c9",
+      "bytes": 75299,
+      "fetchedAt": "2026-11-13T20:28:26.317052+00:00",
+      "width": 460,
+      "height": 215,
+      "selected": false,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "suggestive",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "原宣传图服装暴露并突出胸部与臀腿，存在性暗示；不满足公共封面要求，已用发行方纯标题图替换。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v14365",
+      "title": "万华镜3",
+      "sourceUrl": "https://www.omega-star.jp/biman3html/topmenugrp.png",
+      "source": "official",
+      "kind": "promotion",
+      "url": "/media/54dd909d6935a4ffb72fd551978f593719d3d1bbc47b8149bba4a0c7b73c1522.png",
+      "sha256": "63f7a8503b3ea2c8103bf209f06da00ceb5770f930ea092a953f25e638a251ae",
+      "bytes": 251846,
+      "fetchedAt": "2026-11-13T20:28:27.157339+00:00",
+      "width": 950,
+      "height": 146,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "横幅仅含两名角色的面部、肩部与作品标题，无裸露、性行为或血腥画面。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v27057",
+      "title": "万华镜5",
+      "url": "/media/06f86318a5cb77df907fce68b187550f8c407fea4fd94853d7b299c60eabe032.jpg",
+      "sourceUrl": "https://t.vndb.org/cv/73/144973.jpg",
+      "source": "vndb",
+      "width": 1782,
+      "height": 2516,
+      "sha256": "e76ba006485e631f5362ed0190467a8965bd38f4bc5051e122af96dd6eaeec5b",
+      "bytes": 1019272,
+      "fetchedAt": "2026-11-13T20:28:27.975472+00:00",
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "角色穿完整和服、露出小腿，画面无内衣、性行为或暴力；包装18标识属于游戏年龄提示，不作为这张图片的视觉分级。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v44184",
+      "title": "万华镜6",
+      "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3449440/header.jpg?t=1746617201",
+      "source": "official",
+      "kind": "promotion",
+      "url": "/media/dbe73a43c377b4e3510dd75cde2422cb2f830359977578663da3bc8c63d5715a.jpg",
+      "sha256": "8cf74ee4d91537fa13e7eea7eea957d8a313d52e79e3b169d553628965a61d4a",
+      "bytes": 33873,
+      "fetchedAt": "2026-11-13T20:28:26.807356+00:00",
+      "width": 460,
+      "height": 215,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "横幅为角色头肩与雪花标题，无裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v33099",
+      "title": "保健室的老师与哥特萝莉的校医",
+      "sourceUrl": "https://citrus-soft.net/product/hokeloli/images/common/logo.png",
+      "source": "official",
+      "kind": "logo",
+      "url": "/media/d5ddedad3760136d06fbd4f6547845389c6b5d15eb335e6f29a9f86969c35846.png",
+      "sha256": "0488839c2b55ceb5e4b563bf3e80921f6d9b5fe82e59a3a7d00c7a3f042d5b74",
+      "bytes": 188478,
+      "fetchedAt": "2026-11-13T20:28:28.363568+00:00",
+      "width": 362,
+      "height": 512,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "纯标题图，包含文字、蝴蝶结、玫瑰等装饰，无人物或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v33969",
+      "title": "保健室的老师与恶魔般的会长",
+      "sourceUrl": "https://citrus-soft.net/product/hokecho/images/common/logo.png",
+      "source": "official",
+      "kind": "logo",
+      "url": "/media/7ee6d98c63df9488576e18db4bc8753e317f6389eb25e2389438684dbe48538a.png",
+      "sha256": "72e0c6698694a40f4f7beb14084c03f5b9af6c3e1277916f60b24df81e66b971",
+      "bytes": 197548,
+      "fetchedAt": "2026-11-13T20:28:28.770132+00:00",
+      "width": 384,
+      "height": 512,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "纯标题图，包含文字与花卉装饰，无人物或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v14805",
+      "title": "小小的爱情公寓",
+      "url": "/media/c3c7c4fba391444d47b62b9463702ebdf67fef54d6629ddd288481ea007e9666.jpg",
+      "sourceUrl": "https://t.vndb.org/cv/73/135273.jpg",
+      "source": "vndb",
+      "width": 488,
+      "height": 700,
+      "sha256": "d5f6d401da406003b59571dd1cad4dd52df5569bd237d61517b8c89dfa9d1cac",
+      "bytes": 150044,
+      "fetchedAt": "2026-11-13T20:28:29.930936+00:00",
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "五名着日常服装的角色站立合影，无内衣、裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v11071",
+      "title": "万华镜2",
+      "sourceUrl": "https://www.omega-star.jp/biman15thcc/img/movie-title-02.webp",
+      "source": "official",
+      "kind": "logo",
+      "url": "/media/7b0a4d3181f60858d6d62cceb95541ed0a05e94364a7b7267facf1a330af7074.webp",
+      "sha256": "b88cbc2c98af008f2c910aee05a80fc378ea1928507b0c6844def40a327e0564",
+      "bytes": 84056,
+      "fetchedAt": "2026-11-13T20:28:29.391698+00:00",
+      "width": 617,
+      "height": 275,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "纯文字标题与蝴蝶装饰，无人物或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v19182",
+      "title": "万华镜4",
+      "sourceUrl": "https://www.omega-star.jp/biman4html/topmenugrp.png",
+      "source": "official",
+      "kind": "promotion",
+      "url": "/media/94811dcffe3ac6dcadc89a219ff7143475c4cb196219a5a148f89efeb910ebeb.png",
+      "sha256": "4b27ca0fb5eda7bfea8303b5bec3e92058d6f9bb8d9706aa113e37e4baa8b008",
+      "bytes": 203907,
+      "fetchedAt": "2026-11-13T20:28:30.465517+00:00",
+      "width": 950,
+      "height": 146,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "横幅为角色面部、头发、手部与作品标题，无裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v45247",
+      "title": "爱语 -Silver Snow Sister-",
+      "sourceUrl": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/ogp.jpg",
+      "source": "official",
+      "kind": "promotion",
+      "url": "/media/a90d667fc959e2f8082429689612caca4f7f162bae846e888c7ae4c5d0c578c3.jpg",
+      "sha256": "0c048aeff270578213a13acef3744627b0fcf4a8e20c6507bd9d27be743c9c2f",
+      "bytes": 183176,
+      "fetchedAt": "2026-11-13T20:28:30.489893+00:00",
+      "width": 1200,
+      "height": 630,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "穿完整制服的角色头肩宣传图，表情与手势不含性行为，无裸露或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v32183",
+      "title": "绘缘蜜恋",
+      "url": "/media/e4cacf2a6ac7fcc8df1d596aa49e4bddfbdc034195538eb917616053ba66fadc.jpg",
+      "sourceUrl": "https://t.vndb.org/cv/92/102792.jpg",
+      "source": "vndb",
+      "width": 1368,
+      "height": 770,
+      "sha256": "4c2a5d9de814fe9c7b9b7ad128aeff6892c202c2a4d5785b51be125ae212c8b9",
+      "bytes": 304193,
+      "fetchedAt": "2026-11-13T20:28:32.260755+00:00",
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "三名着制服的角色上半身与作品标题，无裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v22880",
+      "title": "宿星Girlfriend",
+      "url": "/media/eb0ba97b79afa684f6837d045d66e3368333531639770c8cd6440008a4cfbab9.jpg",
+      "sourceUrl": "https://t.vndb.org/cv/59/78359.jpg",
+      "source": "vndb",
+      "width": 600,
+      "height": 900,
+      "sha256": "67c030b4e246916b9f44b717f923ebc9e7c02c249cab10fe722392c2ab2f29e0",
+      "bytes": 170048,
+      "fetchedAt": "2026-11-13T20:28:32.288261+00:00",
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "角色穿长袖连帽上衣与短裤、手持玩偶，无内衣、裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v23290",
+      "title": "宿星Girlfriend2",
+      "url": "/media/a2120b383eba7b37b59525eb6a808e07799b9bfc453cc1e024a909aef33e434b.jpg",
+      "sourceUrl": "https://t.vndb.org/cv/10/91210.jpg",
+      "source": "vndb",
+      "width": 600,
+      "height": 900,
+      "sha256": "e986bc697aab7d0977b952bf16b9a416deb3126e85749b73c60afae774aa6901",
+      "bytes": 161351,
+      "fetchedAt": "2026-11-13T20:28:32.819937+00:00",
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "角色穿完整长袖衬衣、手持玩偶，无裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v23772",
+      "title": "宿星Girlfriend3",
+      "url": "/media/cd5b26c33748372262162253545bdd2cb1e3b6cb6302dfdf0675c2e78df1b2f1.jpg",
+      "sourceUrl": "https://t.vndb.org/cv/99/86899.jpg",
+      "source": "vndb",
+      "width": 600,
+      "height": 900,
+      "sha256": "6c56667c5317ffda1cfa6717b3be995d2dc2024aa6962166f9ce95a9a6a871d1",
+      "bytes": 157156,
+      "fetchedAt": "2026-11-13T20:28:33.797269+00:00",
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "角色穿完整短袖衬衣与裙装、手持玩偶，无裸露、性行为或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    },
+    {
+      "id": "v32805",
+      "sourceUrl": "https://qureate.co.jp/ninnindays2/wp-content/themes/ninnindays2-theme/images/logo.png",
+      "url": "/media/0225f65c94e96987b4ca8dda3bbf033eeec5b62dbc7c522c9f250fb54d820aa2.png",
+      "source": "official",
+      "kind": "logo",
+      "sha256": "fc7dd5aadac5e27d4d49caaa3a9c093c5145bead97b6f5785ea0ae5430e701d3",
+      "bytes": 321564,
+      "fetchedAt": "2026-11-13T20:30:22.490885+00:00",
+      "width": 648,
+      "height": 387,
+      "selected": true,
+      "reviewer": "Codex AI visual review",
+      "reviewedAt": "2026-11-13T20:35:02.565Z",
+      "sexual": "safe",
+      "violence": "tame",
+      "spoiler": false,
+      "observation": "纯标题图，只有文字、卷轴与花纹，无人物、裸露或暴力。",
+      "evidenceScope": "实际下载的图片文件；非人工审核、非官方年龄评级；不推断游戏版本内容。"
+    }
+  ],
+  "vndbCrossCheck": {
+    "fetchedAt": "2026-11-13T20:28:34.767857+00:00",
+    "source": "https://api.vndb.org/kana/vn",
+    "query": {
+      "filters": [
+        "or",
+        [
+          "id",
+          "=",
+          "v32805"
+        ],
+        [
+          "id",
+          "=",
+          "v14365"
+        ],
+        [
+          "id",
+          "=",
+          "v27057"
+        ],
+        [
+          "id",
+          "=",
+          "v44184"
+        ],
+        [
+          "id",
+          "=",
+          "v33099"
+        ],
+        [
+          "id",
+          "=",
+          "v33969"
+        ],
+        [
+          "id",
+          "=",
+          "v14805"
+        ],
+        [
+          "id",
+          "=",
+          "v11071"
+        ],
+        [
+          "id",
+          "=",
+          "v19182"
+        ],
+        [
+          "id",
+          "=",
+          "v45247"
+        ],
+        [
+          "id",
+          "=",
+          "v32183"
+        ],
+        [
+          "id",
+          "=",
+          "v22880"
+        ],
+        [
+          "id",
+          "=",
+          "v23290"
+        ],
+        [
+          "id",
+          "=",
+          "v23772"
+        ]
+      ],
+      "fields": "id,image.id,image.url,image.sexual,image.violence,image.votecount",
+      "results": 100
+    },
+    "response": {
+      "more": false,
+      "results": [
+        {
+          "id": "v11071",
+          "image": {
+            "id": "cv94549",
+            "sexual": 1.4,
+            "url": "https://t.vndb.org/cv/49/94549.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v14365",
+          "image": {
+            "id": "cv94547",
+            "sexual": 0.93,
+            "url": "https://t.vndb.org/cv/47/94547.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v14805",
+          "image": {
+            "id": "cv107253",
+            "sexual": 1,
+            "url": "https://t.vndb.org/cv/53/107253.jpg",
+            "violence": 0,
+            "votecount": 13
+          }
+        },
+        {
+          "id": "v19182",
+          "image": {
+            "id": "cv94546",
+            "sexual": 0.87,
+            "url": "https://t.vndb.org/cv/46/94546.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v22880",
+          "image": {
+            "id": "cv95453",
+            "sexual": 0.93,
+            "url": "https://t.vndb.org/cv/53/95453.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v23290",
+          "image": {
+            "id": "cv95400",
+            "sexual": 1,
+            "url": "https://t.vndb.org/cv/00/95400.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v23772",
+          "image": {
+            "id": "cv95393",
+            "sexual": 0.79,
+            "url": "https://t.vndb.org/cv/93/95393.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v27057",
+          "image": {
+            "id": "cv81093",
+            "sexual": 0.13,
+            "url": "https://t.vndb.org/cv/93/81093.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v32183",
+          "image": {
+            "id": "cv89368",
+            "sexual": 0.07,
+            "url": "https://t.vndb.org/cv/68/89368.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v32805",
+          "image": {
+            "id": "cv83334",
+            "sexual": 1,
+            "url": "https://t.vndb.org/cv/34/83334.jpg",
+            "violence": 0,
+            "votecount": 14
+          }
+        },
+        {
+          "id": "v33099",
+          "image": {
+            "id": "cv102217",
+            "sexual": 1.4,
+            "url": "https://t.vndb.org/cv/17/102217.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v33969",
+          "image": {
+            "id": "cv102222",
+            "sexual": 0.86,
+            "url": "https://t.vndb.org/cv/22/102222.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v44184",
+          "image": {
+            "id": "cv94553",
+            "sexual": 0.87,
+            "url": "https://t.vndb.org/cv/53/94553.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        },
+        {
+          "id": "v45247",
+          "image": {
+            "id": "cv116182",
+            "sexual": 1.13,
+            "url": "https://t.vndb.org/cv/82/116182.jpg",
+            "violence": 0,
+            "votecount": 15
+          }
+        }
+      ]
+    }
+  },
+  "note": "VNDB返回的是各作品当前主图，URL均不等于本轮14张历史/官方素材；其评分未套用到不同图片。manual: 前缀表示显式维护的覆盖记录，本轮为AI视觉复核，不表示真人或官方认证。"
+}

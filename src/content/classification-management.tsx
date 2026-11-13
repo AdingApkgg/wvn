@@ -165,9 +165,9 @@ function ClassificationEditor({ record, busy, save }: { record: ClassificationRe
       {record.kind === "image" && <><div className="grid gap-3 sm:grid-cols-2">{select("sexual", "图片性内容", record.classification.sexual, ["unknown", "safe", "suggestive", "explicit"])}{select("violence", "图片暴力内容", record.classification.violence, ["unknown", "tame", "violent", "brutal"])}</div>
         <Label className="flex items-center gap-2"><input type="checkbox" name="spoiler" defaultChecked={record.classification.spoiler} />可能涉及剧透，或尚未核实</Label>
         <div className="grid gap-3 sm:grid-cols-3"><Label className="field">原始性内容平均分<Input name="rawSexual" type="number" min={0} max={2} step="any" defaultValue={record.classification.rawSexual ?? ""} /></Label><Label className="field">原始暴力平均分<Input name="rawViolence" type="number" min={0} max={2} step="any" defaultValue={record.classification.rawViolence ?? ""} /></Label><Label className="field">原始评分票数<Input name="voteCount" type="number" min={0} step={1} defaultValue={record.classification.voteCount ?? ""} /></Label></div>
-        <p className="muted">保留来源中的 0–2 小数与票数。无票、缺字段或非 VNDB 素材需明确人工审核；“可信来源”本身不等于图片安全。</p></>}
+        <p className="muted">保留来源中的 0–2 小数与票数。自动安全导入需对应图片的双零分与有效票数；独立覆盖记录必须注明审核方式与文件证据。AI 视觉复核不等同人工审核或官方年龄评级；“可信来源”本身不等于图片安全。</p></>}
       <Label className="field">审核理由<Textarea name="reason" required maxLength={4000} defaultValue={record.classification.reason} placeholder="记录检查范围、判定依据和仍缺少的证据" /></Label>
-      <Label className="field">证据来源<Input name="source" required maxLength={2000} defaultValue={record.classification.source} placeholder="对应来源链接或人工审核记录" /></Label>
+      <Label className="field">证据来源<Input name="source" required maxLength={2000} defaultValue={record.classification.source} placeholder="对应来源链接或独立复核记录" /></Label>
       <p className="muted">保存时记录本次核实时间。页面审核只批准上方所见的文案快照；文案已变化时请刷新分类并重新核对。</p>
       <Button type="submit">{busy ? "正在保存…" : "保存审核"}</Button>
     </fieldset>

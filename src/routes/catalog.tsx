@@ -13,6 +13,7 @@ import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
 import { data, Form, Link, useLoaderData, useLocation } from "react-router";
 import { coverLayout } from "../lib/cover-layout";
+import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
 import { withoutFilter } from "../lib/reader-experience";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
@@ -136,24 +137,8 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
       className={"story-card" + (wide ? " story-card-wide" : "")}
       style={{ "--cover-ratio": ratio } as CSSProperties}
     >
-      <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
-        {cover && (
-          <img
-            className={"cover-image" + (cover.kind ? " cover-fit" : "")}
-            src={cover.url}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width={cover.width}
-            height={cover.height}
-            ref={updateRatio}
-            onLoad={(e) => updateRatio(e.currentTarget)}
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-        )}
-        <span className="art-line" />
-        <span className="art-symbol">{["✦", "◌", "✧", "◇", "⋆"][i % 5]}</span>
-        <span className="art-word">STORY / {w.versions[0].engine.toUpperCase()}</span>
+      <div className={"card-art tone-" + (i % 5)}>
+        {cover ? <CoverImage key={cover.url} cover={cover} onDimensions={updateRatio} /> : <CoverPlaceholder status={w.coverStatus} />}
       </div>
       <div className="card-body">
         <div className="card-meta">
