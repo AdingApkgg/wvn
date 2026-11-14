@@ -207,7 +207,12 @@ export function useAccount() {
       if (start !== epoch.current)
         throw new AccountClientError("IDENTITY_CHANGED");
       if (!response.ok) {
-        if (response.status === 401 || data.code === "IDENTITY_CHANGED")
+        // 匿名访客的 401（SIGN_IN_REQUIRED）是正常的门禁态，不是身份失效；
+        // 若无条件刷新，分享页会因 401 → 身份失效 → 内容锁 → 重发而自旋。
+        if (
+          data.code === "IDENTITY_CHANGED" ||
+          (response.status === 401 && current.current)
+        )
           await refresh(true);
         throw new AccountClientError(data.code ?? "NETWORK", data);
       }

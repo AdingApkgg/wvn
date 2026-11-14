@@ -58,11 +58,12 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   const [head, setHead] = useState<SavedRevision | null>(null);
   const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
-  const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null), backButton = useRef<HTMLAnchorElement>(null);
   const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean;started:boolean;resourceReady?:boolean;dispose:()=>void;cache?:ResourceSession } | null>(null);
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const downloads=useResourceDownloads({origin:pilot.resourceDelivery==='cas'?resourceCacheOrigin:null,pilot,releaseId,onFile:file=>{const c=channel.current;if(c?.resourceReady)c.port.postMessage({type:'cache-files',pilot:pilot.id,nonce:c.nonce,files:[file]})}});
   const active = useRef(true);
+  const restoreFocus = useRef(false);
   const runningNow = useRef(false);
   const blockedNow=useRef(contentBlocked);blockedNow.current=contentBlocked;
   useEffect(()=>{const c=channel.current;if(c)c.port.postMessage({type:'content-visibility',pilot:pilot.id,nonce:c.nonce,visible:!contentBlocked})},[contentBlocked,pilot.id]);
@@ -119,6 +120,11 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
     bootstrapDeadline.current=deadline;
     return()=>{deadline.close();if(bootstrapDeadline.current===deadline)bootstrapDeadline.current=null};
   },[running,gameStarted,downloads.enabled,pilot.id,pilot.runtimeKind,releaseId]);
+  useEffect(() => {
+    if (blocker.state !== "unblocked" || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    backButton.current?.focus();
+  }, [blocker.state]);
   async function run(action: () => Promise<void>) {
     setError(""); setBusy(true);
     try { await action(); } catch (e) { if (active.current&&(e as Error).name!=="AbortError") setError(e instanceof Error ? e.message : "操作失败，原备份保留"); }
@@ -246,7 +252,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   return (
     <main className="reader-shell">
       <header className="reader-heading">
-        <Link to={workUrl} className="brand" aria-label="返回作品">← {pilot.title}</Link>
+        <Link to={workUrl} className="brand" aria-label="返回作品" ref={backButton}>← {pilot.title}</Link>
         <Link to="/" className="text-sm text-muted-foreground">发现更多故事</Link>
       </header>
       <p className="reader-context text-sm text-muted-foreground">{targetLabel}</p>
@@ -322,8 +328,13 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
         <a href="https://github.com/YuriSizuku/OnscripterYuri" target="_blank" rel="noreferrer" className="text-xs underline">ONScripterYuri 源码与 GPL-2.0 许可</a>
       </CardContent></Card>
       </section>
-      <AlertDialog open={blocker.state === "blocked"} onOpenChange={open => { if (!open && blocker.state === "blocked" && !busy) blocker.reset(); }}>
-        <AlertDialogContent>
+      <AlertDialog open={blocker.state === "blocked"} onOpenChange={open => {
+        if (open || blocker.state !== "blocked" || busy) return;
+        // 取消后把焦点还给触发离开的入口，键盘用户不必从页首重新 Tab。
+        restoreFocus.current = true;
+        blocker.reset();
+      }}>
+        <AlertDialogContent onCloseAutoFocus={event => event.preventDefault()}>
           <AlertDialogHeader>
             <AlertDialogTitle>保存后离开故事？</AlertDialogTitle>
             <AlertDialogDescription>请先在游戏中保存进度。离开前，{brand.shortName} 会等待本机备份写入成功；保存失败时会保留此页。</AlertDialogDescription>

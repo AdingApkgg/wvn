@@ -135,7 +135,10 @@ const snapshot = () => ({ schema: 1, pilot: "clannad", files: [{ path: "save1.da
   const { trustedOnsPaths } = await import("../src/ons/pilots.server.ts");
   const paths = trustedOnsPaths();
   for (const p of pilots) for (const suffix of ["", "/", ".data", "/_.data"]) assert(paths.includes(p.route.slice(0,-1) + suffix), p.route.slice(0,-1) + suffix);
-  assert(paths.includes("/14365/3/")); assert(!paths.includes("/14365/4/")); assert(!paths.includes("/27448/1/"));
+  assert(paths.includes("/14365/3/")); assert(!paths.includes("/14365/4/"));
+  // 只有 ONS pilot 时其他引擎路线不进白名单；开了全部引擎（预览/生产）时则必须进。
+  if (process.env.WG_ALL_ENGINES === "1") assert(paths.includes("/27448/1/"));
+  else assert(!paths.includes("/27448/1/"));
 }));
 (test("projected game audio permits encoded hash names and listed hidden OGG, without weakening saves or hidden-file denial", async () => {
   const root=mkdtempSync(join(tmpdir(),'wg-ons-media-'));

@@ -37,7 +37,9 @@ export function mountShares(service: AccountService) {
     return c.json((await sharing.inspect(c.req.param("id"))));
   });
   app.post("/api/share-links/:id/inspect", async (c) => {
-    (await sharing.limit("inspect:" + peer(c), 120, 600_000));
+    // 一次分享页访问会先以未就绪的 scope 发一次，再在 scope 就绪后重发，成本是 2；
+    // 预览环境所有请求又共用同一个回环 peer，120 个令牌很快被打满。
+    (await sharing.limit("inspect:" + peer(c), 240, 600_000));
     (await sharing.limit("inspect-global", 3000, 600_000));
     await sharing.catalog.refresh();
     const body = await c.req.json();

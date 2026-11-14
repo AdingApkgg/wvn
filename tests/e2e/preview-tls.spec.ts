@@ -30,15 +30,22 @@ test("preview browser and API trust the fixture certificate without ignoring HTT
     );
     await page.goto(origin! + "/account");
     expect((await stylesheet).status()).toBe(200);
+    // 只证明样式表真的生效，不钉死主题色：`--background` 现在由 `--paper`
+    // 的 oklch 令牌转一层，写死十六进制会在每次调色时误报。
     await expect
-      .poll(() =>
-        page.evaluate(() =>
-          getComputedStyle(document.documentElement)
+      .poll(async () =>
+        page.evaluate(() => ({
+          token: getComputedStyle(document.documentElement)
             .getPropertyValue("--background")
             .trim(),
-        ),
+          painted: getComputedStyle(document.body).backgroundColor,
+        })),
       )
-      .toBe("#13151b");
+      // Chromium 对 oklch 令牌的计算值原样返回 oklch(...)，不一律折成 rgb(...)。
+      .toEqual({
+        token: expect.stringMatching(/\S/),
+        painted: expect.stringMatching(/^(?:rgb|oklch)\(/),
+      });
     expect((await context.request.get(origin! + "/health")).status()).toBe(200);
   } finally {
     await browser.close();

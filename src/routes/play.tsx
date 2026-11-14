@@ -118,7 +118,7 @@ function LegacyPlay({version,work,requiresConfirmation}:{version:import('../type
         >
           ← {work.title}
         </Button>
-        <span>
+        <span className="player-bar-meta">
           版本 {version.number} · {version.engine}
         </span>
         <Button
@@ -131,7 +131,12 @@ function LegacyPlay({version,work,requiresConfirmation}:{version:import('../type
           {expanded ? "显示工具栏" : "展开画面"}
         </Button>
       </header>
-      {!confirmed?<Button onClick={()=>setConfirmed(true)}>确认内容提示，开始阅读</Button>:<iframe
+      {!confirmed?<section className="reader-gate">
+        <p className="eyebrow">内容提示</p>
+        <h2>{work.title}</h2>
+        <p className="reader-gate-note">引擎画面会在浏览器内加载，操作方式随引擎而定。存档保存在当前浏览器，与在线备份分开。</p>
+        <Button size="lg" onClick={()=>setConfirmed(true)}>确认内容提示，开始阅读</Button>
+      </section>:<iframe
         key={version.id}
         title={version.title}
         src={version.launchPath}

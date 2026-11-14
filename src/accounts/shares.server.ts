@@ -371,7 +371,7 @@ export class ShareStore {
     }
     const selected = visible.slice(0, 20);
     return {
-      items: (await Promise.all(selected.map(async (r) => (await this.view(r))))),
+      items: await Promise.all(selected.map(async (r) => (await this.view(r)))),
       next:
         visible.length > 20
           ? String(selected.at(-1)!.id)

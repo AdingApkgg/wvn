@@ -104,7 +104,12 @@ export async function api(
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
-      return { status: response.status, data: await response.json() };
+      // 账号接口不在当前 origin 时（平台启动器把公共站与账号站分在不同端口），
+      // 打到公共站会返回 HTML；这里按文本解析，调用方按 status 判断即可。
+      const text = await response.text();
+      let data: any = text;
+      try { data = JSON.parse(text); } catch { /* 非 JSON 保持原文 */ }
+      return { status: response.status, data };
     },
     { path, body, method },
   );
