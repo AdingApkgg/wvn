@@ -5,14 +5,14 @@ async function ready(page: import('@playwright/test').Page) {
   await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   await page.waitForFunction(() => ['/api/me', '/api/me/content'].every(path => performance.getEntriesByType('resource').some(entry => new URL(entry.name).pathname === path && (entry as PerformanceResourceTiming).responseEnd > 0)));
   // 首次账号绑定可能再次复查权限；命中用例需等公共快照实际播种完成。
-  await page.waitForFunction(async () => {
+  await expect.poll(() => page.evaluate(async () => {
     const path = (window as any).__reactRouterManifest.routes['routes/work']?.imports?.find((path: string) => path.includes('/catalog-body-cache-'));
     if (!path) return false;
     const module = await import(path);
     const cache = Object.values(module).find((value: any) => typeof value?.get === 'function') as { get: (url: URL) => unknown } | undefined;
     const card = document.querySelector<HTMLAnchorElement>('.story-card');
     return !!card && !!cache?.get(new URL(card.href));
-  });
+  }), { timeout: 10000 }).toBe(true);
 }
 
 test('暂停最新主体响应时目录主体已出现，确认后替换且不重载文档', async ({ page }) => {
