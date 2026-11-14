@@ -9,9 +9,11 @@ export type ShareReview={suitability:'sfw'|'nsfw'|'unknown';versionId?:string;ti
 type Options={enabled:boolean;access?:(request:Request)=>Promise<ContentAccess>;shareReview?:(id:string)=>Promise<ShareReview>;ownWorkIds?:(request:Request)=>Promise<Set<string>>};
 type Fetcher=(request:Request)=>Response|Promise<Response>;
 function failure(code:string,status=403){return Response.json({code},{status,headers:{'Cache-Control':'private, no-store','Vary':'Cookie'}})}
+// 内容资格响应保持私有；保留运行页声明的no-transform，避免边缘注入破坏opaque沙箱。
+function privateCacheControl(headers:Headers){return headers.get('Cache-Control')?.split(',').some(value=>value.trim().toLowerCase()==='no-transform')?'private, no-store, no-transform':'private, no-store'}
 function replace(response:Response,value:unknown){
  const headers=new Headers(response.headers);for(const name of ['Content-Length','Content-Encoding','ETag'])headers.delete(name);
- headers.set('Cache-Control','private, no-store');headers.set('Vary','Cookie');return Response.json(value,{status:response.status,headers});
+ headers.set('Cache-Control',privateCacheControl(headers));headers.set('Vary','Cookie');return Response.json(value,{status:response.status,headers});
 }
 async function transferBody(request:Request){
  const limit=64*1024;
@@ -71,7 +73,7 @@ export function createContentFetch(next:Fetcher,store:Store,options:Options):Fet
    if(!work||!item||versionAccessError(work,item,access)||(!restrictedAllowed(access)&&review?.suitability!=='sfw'))return failure(accessError(access),access.authenticated?403:401);
   }
   const response=await next(request);
-  const headers=new Headers(response.headers);headers.set('Cache-Control','private, no-store');
+  const headers=new Headers(response.headers);headers.set('Cache-Control',privateCacheControl(headers));
   const vary=headers.get('Vary');if(!vary?.split(',').some(v=>v.trim().toLowerCase()==='cookie'))headers.set('Vary',[vary,'Cookie'].filter(Boolean).join(', '));
   const result=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
   if(request.method==='HEAD'||!response.ok||!response.headers.get('Content-Type')?.includes('application/json'))return result;
