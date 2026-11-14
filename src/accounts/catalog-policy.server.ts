@@ -1,3 +1,5 @@
+import { createContractClient } from "../api/client-base.ts";
+import { catalogContract } from "../api/contracts/catalog.ts";
 import { AccountError } from "./errors.server.ts";
 import type { CatalogItem } from "./library.server.ts";
 export function validateCatalog(data: unknown): CatalogItem[] {
@@ -63,19 +65,21 @@ export function catalogProvider(origin: string) {
   const url = new URL(origin);
   if (url.origin !== origin || !["http:", "https:"].includes(url.protocol))
     throw new Error("Exact catalog origin required");
+  const client = createContractClient({ publicCatalog: catalogContract.publicCatalog }, {
+    baseUrl: origin,
+    fetch: async (input, init) => {
+      const request = new Request(input, init);
+      const response = await fetch(request, { redirect: "error", signal: request.signal });
+      if (!response.ok || Number(response.headers.get("content-length") ?? 0) > 8 * 1024 ** 2)
+        throw new Error("Catalog unavailable");
+      const text = await response.text();
+      if (text.length > 8 * 1024 ** 2) throw new Error("Catalog too large");
+      return new Response(text, { status: response.status, statusText: response.statusText, headers: response.headers });
+    },
+  });
   return async (): Promise<CatalogItem[]> => {
-    const response = await fetch(origin + "/api/catalog", {
-      redirect: "error",
-      signal: AbortSignal.timeout(2000),
-    });
-    if (
-      !response.ok ||
-      Number(response.headers.get("content-length") ?? 0) > 8 * 1024 ** 2
-    )
-      throw new Error("Catalog unavailable");
-    const text = await response.text();
-    if (text.length > 8 * 1024 ** 2) throw new Error("Catalog too large");
-    return JSON.parse(text).map((w: CatalogItem) => ({
+    const works = await client.publicCatalog({}, { signal: AbortSignal.timeout(2000) });
+    return works.map(w => ({
       id: w.id,
       title: w.title,
       url: w.url,

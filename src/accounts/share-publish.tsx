@@ -1,4 +1,4 @@
-import { SHARE_PROGRESS } from "./share-metadata";
+import { SHARE_PROGRESS, type ShareProgress } from "./share-metadata";
 import { useEffect, useRef, useState } from "react";
 import type { useAccount } from "./client";
 import { errorCopy, AccountClientError } from "./client";
@@ -35,8 +35,8 @@ export function SharePublish({
   const owner = account.me!.user.id;
   const [title, setTitle] = useState(""),
     [description, setDescription] = useState(""),
-    [progress, setProgress] = useState("chapter"),
-    [mode, setMode] = useState("link"),
+    [progress, setProgress] = useState<ShareProgress>("chapter"),
+    [mode, setMode] = useState<"link" | "public">("link"),
     [days, setDays] = useState("30"),
     [spoiler, setSpoiler] = useState(true),
     [confirmed, setConfirmed] = useState(false),
@@ -100,17 +100,7 @@ export function SharePublish({
               if (capture.current.payload !== payload)
                 capture.current = { payload, id: crypto.randomUUID() };
               try {
-                const result = await account.request<{
-                  id: string;
-                  secret?: string;
-                  state: string;
-                  duplicate?: boolean;
-                }>(
-                  "/api/me/save-shares",
-                  { ...body, requestId: capture.current.id },
-                  undefined,
-                  owner,
-                );
+                const result = await account.api.shareCreate({ body: { ...body, requestId: capture.current.id } }, { context: { owner } });
                 if (result.duplicate)
                   setMessage(
                     mode === "link"
@@ -178,7 +168,7 @@ export function SharePublish({
               <NativeSelect
                 id="share-progress"
                 value={progress}
-                onChange={(e) => setProgress(e.target.value)}
+                onChange={(e) => setProgress(e.target.value as ShareProgress)}
               >
                 {Object.entries(SHARE_PROGRESS).map(([v, t]) => (
                   <NativeSelectOption key={v} value={v}>
@@ -192,7 +182,7 @@ export function SharePublish({
               <NativeSelect
                 id="share-mode"
                 value={mode}
-                onChange={(e) => setMode(e.target.value)}
+                onChange={(e) => setMode(e.target.value as "link" | "public")}
               >
                 <NativeSelectOption value="link">
                   链接分享 · 不公开列出

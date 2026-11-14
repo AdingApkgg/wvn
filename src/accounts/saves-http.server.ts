@@ -1,3 +1,5 @@
+import { savesContract } from "../api/contracts/saves";
+import { registerJsonRoute } from "../api/route.server";
 import type { AccountService } from "./service.server.ts";
 import { AccountError } from "./errors.server.ts";
 export function mountSaves({
@@ -10,7 +12,7 @@ export function mountSaves({
   withLock,
   sharing,
 }: AccountService) {
-  app.get("/api/cloud-options", (c) =>
+  registerJsonRoute(app, savesContract.cloudOptions, (c) =>
     c.json({
       manual: !!saves,
       sharing: !!sharing,
@@ -21,11 +23,11 @@ export function mountSaves({
     }),
   );
   if (!saves) return;
-  app.get("/api/me/save-profiles", async (c) => {
+  registerJsonRoute(app, savesContract.saveProfilesList, async (c) => {
     const { session } = await player(c);
     return c.json((await saves.profiles(session.user.id, c.req.query("versionId"), c.req.query("engineReleaseId"))));
   });
-  app.post("/api/me/save-profiles", async (c) => {
+  registerJsonRoute(app, savesContract.saveProfileCreate, async (c) => {
     const { session } = await player(c);
     const { versionId, engineReleaseId } = await c.req.json();
     if(engineReleaseId !== undefined && !config.engineCloud?.some(b=>b.versionId===versionId && b.releaseId===engineReleaseId)) throw new AccountError(400,"ENGINE_NOT_COMPATIBLE");
@@ -35,20 +37,20 @@ export function mountSaves({
       throw new AccountError(404, "VERSION_NOT_FOUND");
     return c.json((await saves.createProfile(session.user.id, versionId,engineReleaseId)), 201);
   });
-  app.get("/api/me/save-profiles/:id/revisions", async (c) => {
+  registerJsonRoute(app, savesContract.saveHistory, async (c) => {
     const { session } = await player(c);
     return c.json(
       (await saves.historyPage(
         session.user.id,
-        c.req.param("id"),
+        c.req.param("id")!,
         c.req.query("cursor"),
       )),
     );
   });
-  app.post("/api/me/save-profiles/:id/uploads", async (c) => {
+  registerJsonRoute(app, savesContract.saveUploadReserve, async (c) => {
     const { session } = await player(c);
     return c.json(
-      await saves.reserve(session.user.id, c.req.param("id"), await c.req.json()),
+      await saves.reserve(session.user.id, c.req.param("id")!, await c.req.json()),
     );
   });
   app.put("/api/me/uploads/:id/files/:file", async (c) => {
@@ -56,8 +58,8 @@ export function mountSaves({
     if (!c.req.raw.body) throw new AccountError();
     await saves.write(
       session.user.id,
-      c.req.param("id"),
-      c.req.param("file"),
+      c.req.param("id")!,
+      c.req.param("file")!,
       c.req.raw.body,
       async (fn) =>
         (await withLock(async () => {
@@ -69,9 +71,9 @@ export function mountSaves({
     );
     return c.json({ ok: true });
   });
-  app.post("/api/me/uploads/:id/commit", async (c) => {
+  registerJsonRoute(app, savesContract.saveUploadCommit, async (c) => {
     const { session } = await player(c);
-    const result = await saves.commit(session.user.id, c.req.param("id"));
+    const result = await saves.commit(session.user.id, c.req.param("id")!);
     return c.json(
       { ...result, ...(result.conflict ? { code: "CONTENT_CONFLICT" } : {}) },
       result.conflict ? 409 : 200,
@@ -82,8 +84,8 @@ export function mountSaves({
     const name = c.req.query("name") ?? "";
     const bytes = await saves.read(
       session.user.id,
-      c.req.param("id"),
-      c.req.param("rev"),
+      c.req.param("id")!,
+      c.req.param("rev")!,
       name,
     );
     c.header("Content-Type", "application/octet-stream");
@@ -93,25 +95,25 @@ export function mountSaves({
     );
     return c.body(new Uint8Array(bytes));
   });
-  app.post("/api/me/save-profiles/:id/restore", async (c) => {
+  registerJsonRoute(app, savesContract.saveRestore, async (c) => {
     const { session } = await player(c);
     const body = await c.req.json();
     return c.json(
       await saves.restore(
         session.user.id,
-        c.req.param("id"),
+        c.req.param("id")!,
         body.sourceId,
         body.expectedHead,
         body.generation,
       ),
     );
   });
-  app.delete("/api/me/save-profiles/:id", async (c) => {
+  registerJsonRoute(app, savesContract.saveProfileDelete, async (c) => {
     const { session } = await player(c);
     const body = await c.req.json();
     (await saves.remove(
       session.user.id,
-      c.req.param("id"),
+      c.req.param("id")!,
       body.expectedHead,
       body.generation,
     ));

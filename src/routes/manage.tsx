@@ -1,3 +1,5 @@
+import { adminErrorCopy, createManagementClient } from "../api/admin-client";
+import { createWorkInput, versionInput, versionPatch } from "../api/contracts/admin";
 import {EngineManagement} from '../engines/management';
 import { ContentClassificationManagement } from '../content/classification-management';
 import { brand } from "../brand";
@@ -71,30 +73,15 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
   useEffect(()=>{const saved=(event:Event)=>{if(event.target instanceof HTMLFormElement){dirtyForms.current.delete(event.target);setDirty(dirtyForms.current.size>0)}};root.current?.addEventListener("wvn-form-saved",saved);return()=>root.current?.removeEventListener("wvn-form-saved",saved)},[]);
   const matches=items.filter(work=>(work.title+work.id+work.aliases.join(" ")).toLowerCase().includes(query.toLowerCase()));
   const currentWork=matches.some(work=>work.id===selectedWork)?selectedWork:matches[0]?.id??"";
-  async function api(path: string, method = "GET", body?: unknown) {
-    const r = await fetch(apiPrefix + "/" + path, {
-      method,
-      headers: { ...(body ? { "content-type": "application/json" } : {}), ...(binding ? { "x-wg-binding": binding } : {}) },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const data = await r.json();
-    if (!r.ok)
-      throw Error(
-        r.status === 409
-          ? "记录已变化，请刷新列表后重新应用编辑；输入已保留。"
-          : (data.error ?? "请求失败"),
-      );
-    const edited=/^(?:works|versions)\/([^/]+)(?:\/reassign)?$/.exec(path);
-    if(edited&&typeof data.revision==="number")baselines.current.set(edited[1],data.revision);
-    return data;
-  }
+  const api = createManagementClient(apiPrefix, { fetch: (input, init) => fetch(input, { ...init, headers: { ...Object.fromEntries(new Headers(input instanceof Request ? input.headers : undefined)), ...Object.fromEntries(new Headers(init?.headers)), ...(binding ? { "x-wg-binding": binding } : {}) } }) });
+  async function edited<T extends {revision:number}>(id:string, result:Promise<T>) {const value=await result;baselines.current.set(id,value.revision);return value;}
   async function reload() {
     setLoadingCatalog(true);
     try {
     const [catalog, data, unresolved] = await Promise.all([
-      api("catalog"),
-      api("sources"),
-      api("pending"),
+      api.manageCatalog({}),
+      api.manageSources({}),
+      api.managePending({}),
     ]);
     for(const work of catalog){if(!baselines.current.has(work.id))baselines.current.set(work.id,work.revision);for(const version of work.versions)if(!baselines.current.has(version.id))baselines.current.set(version.id,version.revision)}
     setItems(catalog);
@@ -113,9 +100,10 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
       await fn();
       if(form){dirtyForms.current.delete(form);setDirty(dirtyForms.current.size>0)}
       setMessage("已保存");
-      await reload();
+      try {await reload();}
+      catch {setMessage("已保存，但列表刷新失败，请点击刷新列表重试。");}
     } catch (e) {
-      setMessage((e as Error).message);
+      setMessage(adminErrorCopy(e));
     } finally {
       setBusy(false);
     }
@@ -152,7 +140,7 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                 const form = e.currentTarget;
                 const token = new FormData(form).get("token");
                 await act(async () => {
-                  await api("login", "POST", { token });
+                  await api.manageLogin({ body: { token: String(token ?? "") } });
                   form.reset();
                 });
               }}
@@ -222,7 +210,7 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                   />
                 </Label>
                 <Button
-                  onClick={() => reload().catch((e) => setMessage(e.message))}
+                  onClick={() => reload().catch((e) => setMessage(adminErrorCopy(e)))}
                 >
                   刷新列表
                 </Button>
@@ -260,17 +248,17 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                             e.preventDefault();
                             const f = new FormData(e.currentTarget);
                             act(() =>
-                              api("works/" + w.id, "PATCH", {
+                              edited(w.id, api.manageEditWork({params:{id:w.id}, body: {
                                 revision: baselines.current.get(w.id)??w.revision,
                                 patch: {
-                                  title: f.get("title"),
+                                  title: String(f.get("title") ?? ""),
                                   aliases: String(f.get("aliases"))
                                     .split("\n")
                                     .map((x) => x.trim())
                                     .filter(Boolean),
-                                  defaultVersionId: f.get("default") || null,
+                                  defaultVersionId: String(f.get("default") ?? "") || null,
                                 },
-                              }),
+                              }})),
                             );
                           }}
                         >
@@ -338,18 +326,18 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                             busy={busy}
                             save={(patch) =>
                               act(() =>
-                                api("versions/" + v.id, "PATCH", {
+                                edited(v.id, api.manageEditVersion({params:{id:v.id},body:{
                                   revision: baselines.current.get(v.id)??v.revision,
-                                  patch,
-                                }),
+                                  patch:versionPatch.parse(patch),
+                                }})),
                               )
                             }
                             reassign={(id) =>
                               act(() =>
-                                api("versions/" + v.id + "/reassign", "POST", {
+                                edited(v.id, api.manageReassignVersion({params:{id:v.id},body:{
                                   revision: baselines.current.get(v.id)??v.revision,
                                   workId: id,
-                                }),
+                                }})),
                               )
                             }
                           />
@@ -361,11 +349,7 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                               e.preventDefault();
                               const f = new FormData(e.currentTarget);
                               act(() =>
-                                api(
-                                  "works/" + w.id + "/versions",
-                                  "POST",
-                                  Object.fromEntries(f),
-                                ),
+                                api.manageAddVersion({params:{id:w.id},body:versionInput.parse(Object.fromEntries(f))}),
                               );
                             }}
                           >
@@ -418,9 +402,7 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                         e.preventDefault();
                         const f = new FormData(e.currentTarget);
                         act(() =>
-                          api("pending/" + p.id + "/assign", "POST", {
-                            workId: f.get("workId"),
-                          }),
+                          api.manageAssignPending({params:{id:p.id},body:{workId:String(f.get("workId") ?? "")}}),
                         );
                       }}
                     >
@@ -447,13 +429,13 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                       e.preventDefault();
                       const f = new FormData(e.currentTarget);
                       act(() =>
-                        api("works", "POST", {
-                          id: f.get("id"),
-                          title: f.get("title"),
-                          originalTitle: f.get("originalTitle"),
+                        api.manageCreateWork({body:createWorkInput.parse({
+                          id: String(f.get("id") ?? ""),
+                          title: String(f.get("title") ?? ""),
+                          originalTitle: String(f.get("originalTitle") ?? ""),
                           aliases: [],
                           evidence: providerLink(String(f.get("id"))),
-                        }),
+                        })}),
                       );
                     }}
                   >
@@ -545,7 +527,7 @@ export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { a
                       } catch {
                         throw Error("JSON 格式无效");
                       }
-                      await api("reports", "POST", value);
+                      await api.manageImportReport({body:value});
                     });
                   }}
                 >
@@ -612,7 +594,7 @@ function VersionEditor({
           e.preventDefault();
           const f = new FormData(e.currentTarget);
           const patch = {
-            title: f.get("title"),
+            title: String(f.get("title") ?? ""),
             status: f.get("status"),
             language: f.get("language"),
             notes: f.get("notes"),

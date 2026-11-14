@@ -1,10 +1,12 @@
+import { registerJsonRoute } from "../api/route.server.ts";
+import { catalogContract } from "../api/contracts/catalog.ts";
 import type {Hono} from 'hono';
 import type {Store} from '../server/store.ts';
 import {parseWorkSlug,workSlug} from '../identity.ts';
 
 export function registerTrustedCatalog(app:Hono,store:Store,render:(req:Request)=>Promise<Response>){
-  app.get('/api/catalog',async c=>c.json((await store.list()).filter(w=>w.versions.length)));
-  app.get('/api/works/:id',async c=>{const id=parseWorkSlug(c.req.param('id')),work=id?(await store.get(id)):null;return work?.versions.length?c.json(work):c.notFound()});
+  registerJsonRoute(app,catalogContract.publicCatalog,async c=>c.json((await store.list()).filter(w=>w.versions.length)));
+  registerJsonRoute(app,catalogContract.publicWork,async c=>{const id=parseWorkSlug(c.req.param('id')!),work=id?(await store.get(id)):null;return work?.versions.length?c.json(work):c.notFound()});
   app.on(['GET','HEAD'],'*',async c=>{
     let path:string;try{path=decodeURIComponent(new URL(c.req.url).pathname)}catch{return c.notFound()}
     const versions=(await Promise.all((await store.list()).flatMap(w=>w.versions).map(async v=>(await store.raw(v.id))!))).sort((a,b)=>b.legacyPath.length-a.legacyPath.length);

@@ -1,3 +1,5 @@
+import { managementContract } from '../api/contracts/admin.ts';
+import { registerJsonRoute } from '../api/route.server.ts';
 import type { Hono } from "hono";
 import { z } from "zod";
 import type { Store } from "../server/store.ts";
@@ -17,11 +19,12 @@ const update = z.object({
 
 /** 仅挂载于已有管理员登录与 Origin 中间件之后。 */
 export function registerContentClassificationAdmin(app: Hono, store: Store, path = "/api/manage/content-classification") {
-  app.get(path, async c => {
+  const contract = managementContract(path.replace(/\/content-classification$/, ""));
+  registerJsonRoute(app, contract.manageClassifications, async c => {
     c.header("Cache-Control", "private, no-store");
     return c.json(await store.classifications.reviewList());
   });
-  app.patch(path, async c => {
+  registerJsonRoute(app, contract.manageSetClassification, async c => {
     c.header("Cache-Control", "private, no-store");
     const body = update.parse(await c.req.json());
     try {

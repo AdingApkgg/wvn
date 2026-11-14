@@ -7,13 +7,14 @@ import { SHARE_PROGRESS } from '../accounts/share-metadata';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { brand } from '../brand';
-type PublicProfile={uid:string;name:string;bio:string;joinedAt:string};
+import { createApiClient, ApiResponseError } from '../api/client';
+const api = createApiClient();
 export async function loader({request,params}:LoaderFunctionArgs) {
   const fetcher=publicProjectionFetch(request);
   if(!fetcher)throw new Response('个人主页暂不可用',{status:503});
-  const response=await fetcher(new URL('/api/public/users/'+encodeURIComponent(params.uid??''),request.url));
-  if(!response.ok)throw new Response('主页未公开或不存在',{status:response.status});
-  return await response.json() as PublicProfile;
+  const client=createApiClient({baseUrl:new URL(request.url).origin,fetch:fetcher});
+  try { return await client.publicProfileGet({params:{uid:params.uid??''}},{signal:request.signal}); }
+  catch(error) { if(error instanceof ApiResponseError)throw new Response('主页未公开或不存在',{status:error.status});throw error; }
 }
 export function meta(){return [{title:`个人主页 · ${brand.shortName}`},{name:'robots',content:'noindex,nofollow'}]}
 export default function UserPage(){
@@ -24,7 +25,7 @@ export default function UserPage(){
   useEffect(()=>{setPage(1)},[profile.uid]);
   useEffect(()=>{
     if(!ready)return;const controller=new AbortController();setError('');
-    void fetch('/api/public/users/'+profile.uid+'/save-shares?page='+page,{cache:'no-store',signal:controller.signal}).then(async response=>{if(!response.ok)throw Error();return response.json()}).then(value=>{if(!controller.signal.aborted)setResult({uid:profile.uid,scope,page,...value})}).catch(()=>{if(!controller.signal.aborted)setError('公开分享加载失败，请重试。')});
+    void api.publicProfileShares({params:{uid:profile.uid},query:{page:String(page)}},{signal:controller.signal}).then(value=>{if(!controller.signal.aborted)setResult({uid:profile.uid,scope,page,...value})}).catch(()=>{if(!controller.signal.aborted)setError('公开分享加载失败，请重试。')});
     return()=>controller.abort();
   },[profile.uid,scope,ready,page,reload]);
   const visible=ready&&result?.uid===profile.uid&&result.scope===scope&&result.page===page?result:null;

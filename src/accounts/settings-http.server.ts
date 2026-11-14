@@ -1,3 +1,5 @@
+import { accountContract } from "../api/contracts/account.ts";
+import { registerJsonRoute } from "../api/route.server.ts";
 import { deleteAccountRows } from "./deletion.server.ts";
 import { deleteCookie } from "hono/cookie";
 import type { AccountService } from "./service.server.ts";
@@ -14,7 +16,7 @@ export function mountSettings({
   content,
   profiles,
 }: AccountService) {
-  app.patch("/api/me/passkeys/:id", async (c) => {
+  registerJsonRoute(app, accountContract.passkeyRename, async (c) => {
     const { session } = await player(c);
     const { name } = await c.req.json();
     if (
@@ -29,8 +31,8 @@ export function mountSettings({
       .run(name.trim(), session.user.id, c.req.param("id")));
     if (!change.changes) throw new AccountError(404, "NOT_FOUND");
     return c.json({ ok: true });
-  });
-  app.get("/api/me/export", async (c) => {
+  }, { invalidCode: "NAME_INVALID" });
+  registerJsonRoute(app, accountContract.accountExport, async (c) => {
     const { session } = await player(c, true);
     return c.json({
       format: "wg-account-export-v1",
@@ -50,7 +52,7 @@ export function mountSettings({
         .all(session.user.id)),
     });
   });
-  app.delete("/api/me", async (c) => {
+  registerJsonRoute(app, accountContract.accountDelete, async (c) => {
     const { session } = await player(c, true);
     const body = await c.req.json();
     if (body.confirmation !== "DELETE")
@@ -67,5 +69,5 @@ export function mountSettings({
       sameSite: "Lax",
     });
     return c.json({ ok: true });
-  });
+  }, { invalidCode: "CONFIRMATION_REQUIRED" });
 }

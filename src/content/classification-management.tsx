@@ -1,3 +1,5 @@
+import { adminErrorCopy, type ManagementClient } from "../api/admin-client";
+import { classificationUpdateSchema } from "../api/contracts/admin";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ClassificationRecord, ClassificationReviewRecord, WorkReviewSnapshot } from "./classification.server.ts";
 import type { PublicWork } from "../types.ts";
@@ -11,7 +13,7 @@ import { Card, CardHeader, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../components/ui/table";
 
-type Api = (path: string, method?: string, body?: unknown) => Promise<any>;
+type Api = ManagementClient;
 const labels: Record<string, string> = {
   work: "作品页面", version: "游玩版本", image: "单张图片", unknown: "待核实", sfw: "SFW 页面", nsfw: "NSFW 页面",
   none: "SFW（含默认）", present: "含成人性内容", safe: "无性内容", suggestive: "含性暗示", explicit: "露骨性内容",
@@ -62,8 +64,8 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
   const [message, setMessage] = useState("");
   const editor = useRef<HTMLDivElement>(null);
   const drafts=useRef(new Map<string,ClassificationReviewRecord>());
-  async function refresh() { setRecords(await api("content-classification")); setLoaded(true); }
-  useEffect(() => { void refresh().catch(error => setMessage((error as Error).message)); }, []);
+  async function refresh() { setRecords(await api.manageClassifications({})); setLoaded(true); }
+  useEffect(() => { void refresh().catch(error => setMessage(adminErrorCopy(error))); }, []);
   useEffect(() => { if (selected) editor.current?.scrollIntoView({ block: "start" }); }, [selected]);
   const listed = entries(records, loaded ? catalog : []);
   const record = listed.values.find(value => keyOf(value) === selected);
@@ -92,19 +94,19 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
     }
     setBusy(true); setMessage("");
     try {
-      const result = await api("content-classification", "PATCH", { kind: record.kind, id: record.id, expectedRevision: record.classification.revision,
-        ...(record.kind === "work" ? { expectedFingerprint: record.reviewFingerprint } : {}), payload });
+      const result = await api.manageSetClassification({ body:classificationUpdateSchema.parse({ kind: record.kind, id: record.id, expectedRevision: record.classification.revision,
+        ...(record.kind === "work" ? { expectedFingerprint: record.reviewFingerprint } : {}), payload }) });
       await refresh();
       await onSaved();
       drafts.current.delete(keyOf(record));
       form.dispatchEvent(new Event("wvn-form-saved",{bubbles:true}));
       setMessage("审核已保存，修订 " + result.revision + "。人工审核将优先于后续批量导入。");
-    } catch (error) { setMessage((error as Error).message); }
+    } catch (error) { setMessage(adminErrorCopy(error)); }
     finally { setBusy(false); }
   }
   return <section aria-label="内容分类管理" className="space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h2>内容分类与证据</h2><p className="muted">分别审核页面、实际游玩版本和单张图片。文案变更会要求页面复审。</p></div>
-      <Button variant="outline" disabled={busy} onClick={() => void refresh().then(onSaved).catch(error => setMessage(error.message))}>刷新分类</Button></div>
+      <Button variant="outline" disabled={busy} onClick={() => void refresh().then(onSaved).catch(error => setMessage(adminErrorCopy(error)))}>刷新分类</Button></div>
     <div role="status" aria-live="polite">{message}</div>
     {!loaded && <p role="status">正在读取分类记录…</p>}
     <div className="grid gap-3 md:grid-cols-3">

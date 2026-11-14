@@ -91,7 +91,7 @@ export function ContentSettings({ returnTo: suppliedReturnTo, embedded = false }
 
   function start() {
     void run(async check => {
-      const next = await content.request<QuizAttempt>("/api/me/content/attempts", {});
+      const next = await content.api.contentAttemptCreate({});
       if (!check()) return;
       setAttempt(next);
       setAnswers({});
@@ -108,7 +108,7 @@ export function ContentSettings({ returnTo: suppliedReturnTo, embedded = false }
       return;
     }
     void run(async check => {
-      const next = await content.request<QuizResult>(`/api/me/content/attempts/${encodeURIComponent(attempt.id)}/submit`, { answers });
+      const next = await content.api.contentAttemptSubmit({ params: { id: attempt.id }, body: { answers } });
       if (!check()) return;
       setResult(next);
       setAnswers({});

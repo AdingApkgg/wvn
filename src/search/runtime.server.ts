@@ -1,3 +1,5 @@
+import { registerJsonRoute } from "../api/route.server.ts";
+import { catalogContract } from "../api/contracts/catalog.ts";
 import { Hono } from 'hono';
 import { projectWorkCounts } from '../analytics/projection.server.ts';
 import { migrate } from '../database/migrations.ts';
@@ -25,7 +27,7 @@ export type SearchRuntime = {
 };
 function unavailableApp() {
   const app = new Hono();
-  app.get('/api/search', c => {
+  registerJsonRoute(app, catalogContract.searchQuery, c => {
     c.header('Retry-After', '5');
     c.header('Cache-Control', 'no-store');
     return c.json({ error: 'search_unavailable' }, 503);

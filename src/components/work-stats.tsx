@@ -14,18 +14,18 @@ export function WorkInteractions({workId,workUrl,counts}:{workId:string;workUrl:
  return <AccountConsumer>{account=><InteractionActions account={account} workId={workId} workUrl={workUrl} counts={counts}/>}</AccountConsumer>;
 }
 function InteractionActions({account,workId,workUrl,counts}:{account:ReaderAccount;workId:string;workUrl:string;counts:WorkCounts|null}){
- const owner=account.me?.user.id,{request}=account;
+ const owner=account.me?.user.id,{api}=account;
  const [total,setTotal]=useState(counts),[mine,setMine]=useState({liked:false,favorited:false}),[known,setKnown]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  useEffect(()=>{setTotal(counts)},[counts]);
  useEffect(()=>{
   let live=true;setKnown(false);setMine({liked:false,favorited:false});setError('');
-  if(owner)void request<{liked:boolean;favorited:boolean}>('/api/me/work-stats/'+workId,undefined,undefined,owner).then(x=>{if(live){setMine(x);setKnown(true)}}).catch(()=>{if(live)setError('个人状态暂时无法读取，请刷新重试。')});
+  if(owner)void api.statsMine({params:{id:workId}},{context:{owner}}).then(x=>{if(live){setMine(x);setKnown(true)}}).catch(()=>{if(live)setError('个人状态暂时无法读取，请刷新重试。')});
   return()=>{live=false};
- },[owner,workId,request]);
+ },[owner,workId,api]);
  async function react(kind:'like'|'favorite'){
   if(!owner||!known||busy)return;const check=account.guard();const enabled=kind==='like'?!mine.liked:!mine.favorited;setBusy(true);setError('');
   try{
-   const next=await request<{liked:boolean;favorited:boolean;stats:WorkCounts}>('/api/me/work-stats/'+workId+'/'+kind,{enabled},'PUT',owner);check();setMine(next);setTotal(next.stats);trackPublicEvent(kind,enabled,workUrl);
+   const next=await api.statsReact({params:{id:workId,kind},body:{enabled}},{context:{owner}});check();setMine(next);setTotal(next.stats);trackPublicEvent(kind,enabled,workUrl);
   }catch(e){setError(errorCopy(e instanceof AccountClientError?e.code:'NETWORK'))}finally{setBusy(false)}
  }
  return <section className="work-interactions space-y-2" aria-label="阅读与作品互动" data-work-stats={workId}>

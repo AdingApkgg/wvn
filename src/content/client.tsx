@@ -1,11 +1,15 @@
+import { createContractClient, ApiResponseError } from "../api/client-base.ts";
+import { accountContract } from "../api/contracts/account.ts";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRevalidator } from "react-router";
 import { AccountClientError, errorCopy, useAccount } from "../accounts/client";
 import { PUBLIC_CONTENT_ACCESS } from "./policy";
 import type { ContentAccess, DisplayMode } from "./types";
 
+// 权限探测由本组件自己的 epoch 管理，不能被首次账号绑定确认的 AbortController 打断。
+const contentReadApi = createContractClient({ contentGet: accountContract.contentGet });
 type Account = ReturnType<typeof useAccount>;
-type ContentRequest = <T = Record<string, unknown>>(path: string, body?: unknown, method?: string) => Promise<T>;
+type ContentApi = Pick<Account["api"], "contentAttemptCreate" | "contentAttemptSubmit">;
 type ContentContextValue = {
   access: ContentAccess;
   enabled: boolean;
@@ -14,14 +18,14 @@ type ContentContextValue = {
   pendingPublic: boolean;
   account: Account | null;
   refresh: (silent?: boolean) => Promise<ContentAccess>;
-  request: ContentRequest;
+  api: ContentApi;
   setMode: (mode: DisplayMode) => Promise<ContentAccess>;
 };
 
 function unavailable(): never { throw new AccountClientError("CONTENT_DISABLED"); }
 const ContentContext = createContext<ContentContextValue>({
   access: PUBLIC_CONTENT_ACCESS, enabled: false, loading: false, error: "", pendingPublic: false, account: null,
-  refresh: async () => PUBLIC_CONTENT_ACCESS, request: async () => unavailable(), setMode: async () => unavailable(),
+  refresh: async () => PUBLIC_CONTENT_ACCESS, api: { contentAttemptCreate: async () => unavailable(), contentAttemptSubmit: async () => unavailable() }, setMode: async () => unavailable(),
 });
 
 export function contentErrorCopy(error: unknown) {
@@ -59,7 +63,7 @@ export function ContentProvider({ initial, enabled, children }: { initial: Conte
   return enabled ? <EnabledContentProvider initial={initial}>{children}</EnabledContentProvider> :
     <ContentContext.Provider value={{
       access: PUBLIC_CONTENT_ACCESS, enabled: false, loading: false, error: "", pendingPublic: false, account: null,
-      refresh: async () => PUBLIC_CONTENT_ACCESS, request: async () => unavailable(), setMode: async () => unavailable(),
+      refresh: async () => PUBLIC_CONTENT_ACCESS, api: { contentAttemptCreate: async () => unavailable(), contentAttemptSubmit: async () => unavailable() }, setMode: async () => unavailable(),
     }}>{children}</ContentContext.Provider>;
 }
 
@@ -116,9 +120,9 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
       setLoading(true);
     }
     try {
-      const response = await fetch("/api/me/content", { cache: "no-store", credentials: "same-origin", signal: AbortSignal.timeout(5_000) });
-      const next = response.status === 401 ? { ...PUBLIC_CONTENT_ACCESS } :
-        response.ok ? checkedAccess(await response.json()) : (() => { throw new AccountClientError("NETWORK"); })();
+      const result = await contentReadApi.contentGet({}, { signal: AbortSignal.timeout(5_000) })
+        .catch((error: unknown) => { if (error instanceof ApiResponseError && error.status === 401) return { ...PUBLIC_CONTENT_ACCESS }; throw error; });
+      const next = checkedAccess(result);
       if (!alive.current || start !== epoch.current || seq !== sequence.current) return current.current;
       setError("");
       return accept(next);
@@ -229,18 +233,26 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
     void refresh();
   }, [initial, lock, refresh]);
 
-  const request: ContentRequest = useCallback(async <T,>(path: string, body?: unknown, method?: string) => {
-    const owner = accountRef.current.me?.user.id;
-    if (!owner) throw new AccountClientError("SIGN_IN_REQUIRED");
-    const start = epoch.current;
-    const result = await accountRef.current.request<T>(path, body, method, owner);
-    if (!alive.current || start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
-    if (result && typeof result === "object" && "access" in result) {
+  const api = useMemo<ContentApi>(() => ({
+    contentAttemptCreate: async (input, options) => {
+      const owner = accountRef.current.me?.user.id;
+      if (!owner) throw new AccountClientError("SIGN_IN_REQUIRED");
+      const start = epoch.current;
+      const result = await accountRef.current.api.contentAttemptCreate(input, { ...options, context: { ...options?.context, owner } });
+      if (!alive.current || start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
+      return result;
+    },
+    contentAttemptSubmit: async (input, options) => {
+      const owner = accountRef.current.me?.user.id;
+      if (!owner) throw new AccountClientError("SIGN_IN_REQUIRED");
+      const start = epoch.current;
+      const result = await accountRef.current.api.contentAttemptSubmit(input, { ...options, context: { ...options?.context, owner } });
+      if (!alive.current || start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
       sequence.current++;
       accept(result.access);
-    }
-    return result;
-  }, [accept]);
+      return result;
+    },
+  }), [accept]);
 
   const setMode = useCallback(async (mode: DisplayMode) => {
     const owner = accountRef.current.me?.user.id;
@@ -254,7 +266,7 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
     } else lock();
     const start = epoch.current;
     try {
-      const result = await accountRef.current.request<ContentAccess>("/api/me/content/mode", { mode }, "PATCH", owner);
+      const result = await accountRef.current.api.contentModeSet({ body: { mode } }, { context: { owner } });
       if (!alive.current || start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
       forcePublic.current = false;
       publicRequested.current = false;
@@ -272,8 +284,8 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
   }, [accept, announce, lock]);
 
   const value = useMemo<ContentContextValue>(() => ({
-    access, enabled: true, loading, error, pendingPublic, account, refresh, request, setMode,
-  }), [access, loading, error, pendingPublic, account, refresh, request, setMode]);
+    access, enabled: true, loading, error, pendingPublic, account, refresh, api, setMode,
+  }), [access, loading, error, pendingPublic, account, refresh, api, setMode]);
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 }
 

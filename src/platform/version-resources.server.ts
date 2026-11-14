@@ -1,3 +1,5 @@
+import { registerJsonRoute } from "../api/route.server.ts";
+import { catalogContract } from "../api/contracts/catalog.ts";
 import { Hono } from 'hono';
 import { migrate } from '../database/migrations.ts';
 import type { Store } from '../server/store.ts';
@@ -80,19 +82,19 @@ export class VersionResources {
 export function createVersionResourceApp(bridge: VersionResources) {
   const app = new Hono();
   app.onError((error, c) => error instanceof ResourceRequestError ? c.json({ error: 'invalid_request' }, 400) : c.json({ error: 'resource_unavailable' }, 503));
-  app.get('/api/versions/:id/resources', async c => {
+  registerJsonRoute(app, catalogContract.versionResources, async c => {
     const query = new URL(c.req.url).searchParams;
     if ([...query.keys()].some(key => !['limit', 'cursor'].includes(key) || query.getAll(key).length !== 1)) throw new ResourceRequestError();
     const limit = query.get('limit');
     if (limit !== null && !/^[1-9]\d{0,2}$/.test(limit)) throw new ResourceRequestError();
-    const page = await bridge.manifest(c.req.param('id'), { limit: limit === null ? undefined : Number(limit), cursor: query.get('cursor') ?? undefined });
+    const page = await bridge.manifest(c.req.param('id')!, { limit: limit === null ? undefined : Number(limit), cursor: query.get('cursor') ?? undefined });
     return page ? c.json(page) : c.json({ error: 'not_found' }, 404);
-  });
-  app.get('/api/versions/:id/resource', async c => {
+  }, { invalidResponse: c => c.json({ error: "invalid_request" }, 400) });
+  registerJsonRoute(app, catalogContract.versionResource, async c => {
     const query = new URL(c.req.url).searchParams;
     if ([...query.keys()].some(key => key !== 'path') || query.getAll('path').length !== 1) throw new ResourceRequestError();
-    const resource = await bridge.find(c.req.param('id'), query.get('path')!);
+    const resource = await bridge.find(c.req.param('id')!, query.get('path')!);
     return resource ? c.json(resource) : c.json({ error: 'not_found' }, 404);
-  });
+  }, { invalidResponse: c => c.json({ error: "invalid_request" }, 400) });
   return app;
 }

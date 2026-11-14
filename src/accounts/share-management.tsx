@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useContentAccess } from "../content/client";
 import type { useAccount } from "./client";
-import type { OwnShare, SharePage } from "./share-types";
+import type { OwnShare } from "./share-types";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -52,13 +52,7 @@ export function ShareManagement({
   async function load(cursor?: string) {
     const captured = current.current;
     if (!captured.ready) return;
-    const page = await account.request<SharePage<OwnShare>>(
-      "/api/me/save-shares" +
-        (cursor ? "?cursor=" + encodeURIComponent(cursor) : ""),
-      undefined,
-      undefined,
-      owner,
-    );
+    const page = await account.api.sharesOwn({ query: { cursor } }, { context: { owner } });
     if (!current.current.ready || current.current.scope !== captured.scope || current.current.binding !== captured.binding) return;
     setItems((old) => (cursor ? [...old, ...page.items] : page.items));
     setNext(page.next);
@@ -69,7 +63,7 @@ export function ShareManagement({
     if (!ready) return;
     let live = true;
     void account
-      .request<{ sharing: boolean }>("/api/cloud-options")
+      .api.cloudOptions({})
       .then(async (options) => {
         if (!live) return;
         setEnabled(options.sharing);
@@ -80,7 +74,7 @@ export function ShareManagement({
       })
       .catch(() => {});
     return () => { live = false; };
-  }, [owner, binding, scope, ready, account.request]);
+  }, [owner, binding, scope, ready, account.api]);
   if (!enabled) return null;
   // 直接移除整个旧展示子树（包括 Portal），不等待 effect 或对话框退场动画。
   if (!visible) return <Card className="account-sharing" id="my-shares"><CardHeader><CardTitle><h2>我的分享</h2></CardTitle></CardHeader><CardContent><p role="status">正在更新分享显示…</p></CardContent></Card>;
@@ -182,12 +176,7 @@ export function ShareManagement({
                   setRevoke(null);
                   if (selected)
                     void run(async () => {
-                      await account.request(
-                        `/api/me/save-shares/${selected.id}/revoke`,
-                        {},
-                        undefined,
-                        owner,
-                      );
+                      await account.api.shareRevoke({ params: { id: selected.id } }, { context: { owner } });
                       await load();
                     });
                 }}
@@ -253,18 +242,13 @@ export function ShareManagement({
                 const selected = edit;
                 if (selected)
                   void run(async () => {
-                    await account.request(
-                      `/api/me/save-shares/${selected.id}`,
-                      {
+                    await account.api.shareEdit({ params: { id: selected.id }, body: {
                         title,
                         description,
                         progress,
                         spoiler,
                         revision: selected.metadataRevision,
-                      },
-                      "PATCH",
-                      owner,
-                    );
+                      } }, { context: { owner } });
                     await load();
                     setEdit(null);
                   });

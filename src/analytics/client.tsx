@@ -1,3 +1,4 @@
+import {createApiClient} from '../api/client.ts';
 import {useEffect,useRef} from 'react';
 import {useLocation} from 'react-router';
 import {PublicTracker} from './tracker.ts';
@@ -22,10 +23,9 @@ export async function recordReading(workId:string,versionId:string){
  try{
   await navigator.locks.request('wvn-reading-visitor',async()=>{
    for(let i=0;i<2;i++){
-    const r=await fetch('/api/public/works/'+encodeURIComponent(workId)+'/read',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({versionId}),keepalive:true,signal:AbortSignal.timeout(15000)});
-    // Drain the terminal response too, before its timeout can abort an unread body.
-    const body=await r.json();
-    if(r.status===202&&i===0&&body.visitorRequired)continue;
+    const api=createApiClient({fetch:(request,init)=>fetch(request,{...init,keepalive:true})});
+    const body=await api.statsRead({params:{id:workId},body:{versionId}},{signal:AbortSignal.timeout(15000)});
+    if(i===0&&'visitorRequired' in body&&body.visitorRequired)continue;
     return;
    }
   });

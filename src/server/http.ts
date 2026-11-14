@@ -1,3 +1,6 @@
+import { catalogContract } from "../api/contracts/catalog.ts";
+import { managementContract } from '../api/contracts/admin.ts';
+import { registerJsonRoute } from '../api/route.server.ts';
 import {managementSummary} from '../engines/status.ts';
 import { parseWorkSlug } from "../identity.ts";
 import { Hono } from "hono";
@@ -54,7 +57,7 @@ export function createPublicApp(
     ),
   );
   app.on(["GET", "HEAD"], "/media/:file", async (c) => {
-    const file = c.req.param("file");
+    const file = c.req.param("file")!;
     if (
       !mediaRoot ||
       !/^([a-f0-9]{64})\.(jpg|png|webp)$/.test(file) ||
@@ -72,11 +75,11 @@ export function createPublicApp(
   app.all("/api/manage/*", (c) => c.notFound());
   app.all("/manage", (c) => c.notFound());
   app.all("/manage/*", (c) => c.notFound());
-  app.get("/api/catalog", async (c) =>
+  registerJsonRoute(app, catalogContract.publicCatalog, async (c) =>
     c.json((await store.list()).filter((w) => w.versions.length)),
   );
-  app.get("/api/works/:id", async (c) => {
-    const id = parseWorkSlug(c.req.param("id"));
+  registerJsonRoute(app, catalogContract.publicWork, async (c) => {
+    const id = parseWorkSlug(c.req.param("id")!);
     if (!id) return c.notFound();
     const w = (await store.get(id));
     return w?.versions.length ? c.json(w) : c.notFound();
@@ -158,7 +161,7 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
       return c.json({ error: "需要登录" }, 401);
     return (await next());
   });
-  app.post("/api/manage/login", async (c) => {
+  registerJsonRoute(app, managementContract().manageLogin, async (c) => {
     const body = await c.req.json();
     if (typeof body.token !== "string" || body.token.length > 128)
       return c.json({ error: "凭据无效" }, 401);
@@ -174,36 +177,37 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
 /** 由调用方先验证管理员；站内后台与私有监听器共用业务校验。 */
 export function registerManagementRoutes(parent: Hono, store: Store, sourceData: unknown, prefix = "/api/manage") {
   const app = base();
-  app.get(`${prefix}/engines`, c=>c.json(managementSummary()));
-  app.get(`${prefix}/catalog`, async (c) => c.json((await store.list(true))));
-  app.get(`${prefix}/pending`, async (c) => c.json((await store.pending())));
-  app.post(`${prefix}/works`, async (c) =>
+  const contract = managementContract(prefix);
+  registerJsonRoute(app, contract.manageEngines, c=>c.json(managementSummary()));
+  registerJsonRoute(app, contract.manageCatalog, async (c) => c.json((await store.list(true))));
+  registerJsonRoute(app, contract.managePending, async (c) => c.json((await store.pending())));
+  registerJsonRoute(app, contract.manageCreateWork, async (c) =>
     c.json((await store.createWork(await c.req.json())), 201),
   );
-  app.post(`${prefix}/pending/:id/assign`, async (c) => {
+  registerJsonRoute(app, contract.manageAssignPending, async (c) => {
     const b = await c.req.json();
-    return c.json((await store.bindPending(c.req.param("id"), b.workId)), 201);
+    return c.json((await store.bindPending(c.req.param("id")!, b.workId)), 201);
   });
-  app.get(`${prefix}/sources`, (c) => c.json(sourceData));
+  registerJsonRoute(app, contract.manageSources, (c) => c.json(sourceData));
   registerContentClassificationAdmin(app, store, `${prefix}/content-classification`);
-  app.patch(`${prefix}/works/:id`, async (c) => {
+  registerJsonRoute(app, contract.manageEditWork, async (c) => {
     const b = await c.req.json();
-    return c.json((await store.editWork(c.req.param("id"), b.revision, b.patch)));
+    return c.json((await store.editWork(c.req.param("id")!, b.revision, b.patch)));
   });
-  app.post(`${prefix}/works/:id/versions`, async (c) =>
-    c.json((await store.addVersion(c.req.param("id"), await c.req.json())), 201),
+  registerJsonRoute(app, contract.manageAddVersion, async (c) =>
+    c.json((await store.addVersion(c.req.param("id")!, await c.req.json())), 201),
   );
-  app.patch(`${prefix}/versions/:id`, async (c) => {
+  registerJsonRoute(app, contract.manageEditVersion, async (c) => {
     const b = await c.req.json();
-    return c.json((await store.editVersion(c.req.param("id"), b.revision, b.patch)));
+    return c.json((await store.editVersion(c.req.param("id")!, b.revision, b.patch)));
   });
-  app.post(`${prefix}/versions/:id/reassign`, async (c) => {
+  registerJsonRoute(app, contract.manageReassignVersion, async (c) => {
     const b = await c.req.json();
     return c.json(
-      (await store.reassignVersion(c.req.param("id"), b.workId, b.revision)),
+      (await store.reassignVersion(c.req.param("id")!, b.workId, b.revision)),
     );
   });
-  app.post(`${prefix}/reports`, async (c) =>
+  registerJsonRoute(app, contract.manageImportReport, async (c) =>
     c.json((await store.importReport(await c.req.json())), 201),
   );
   parent.route("/", app);

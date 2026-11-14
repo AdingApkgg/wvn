@@ -1,3 +1,5 @@
+import { moderationContract } from '../api/contracts/admin.ts';
+import { registerJsonRoute } from '../api/route.server.ts';
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { bodyLimit } from "hono/body-limit";
@@ -44,7 +46,7 @@ export function createShareAdminApp(
       return c.json({ code: "SIGN_IN_REQUIRED" }, 401);
     return (await service.withLock(next));
   });
-  app.post("/api/share-admin/login", async (c) => {
+  registerJsonRoute(app, moderationContract().shareAdminLogin, async (c) => {
     await service.sharing?.limit("admin-login", 20, 600_000);
     const { token } = await c.req.json();
     if (
@@ -78,11 +80,12 @@ export function createShareAdminApp(
 
 /** 调用方负责管理员认证、同源和请求体限制。 */
 export function registerShareAdminRoutes(app: Hono, service: AccountService, prefix = "/api/share-admin") {
-  app.get(`${prefix}/queue`, async (c) => {
+  const contract = moderationContract(prefix);
+  registerJsonRoute(app, contract.shareAdminQueue, async (c) => {
     await service.sharing?.catalog.refresh().catch(() => {});
     return c.json(await service.sharing?.queue() ?? []);
   });
-  app.get(`${prefix}/audit`, async (c) =>
+  registerJsonRoute(app, contract.shareAdminAudit, async (c) =>
     c.json(
       (await service.db
         .prepare(
@@ -91,12 +94,12 @@ export function registerShareAdminRoutes(app: Hono, service: AccountService, pre
         .all()),
     ),
   );
-  app.post(`${prefix}/:id/moderate`, async (c) => {
+  registerJsonRoute(app, contract.shareAdminModerate, async (c) => {
     if (!service.sharing) throw new AccountError(404);
     const body = await c.req.json();
     if (body.action === "approve") await service.sharing.catalog.refresh(true);
     (await service.sharing.moderate(
-      c.req.param("id"),
+      c.req.param("id")!,
       body.revision,
       body.action,
       body.reason,

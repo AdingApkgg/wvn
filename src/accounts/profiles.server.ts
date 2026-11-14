@@ -1,3 +1,5 @@
+import { accountContract } from "../api/contracts/account.ts";
+import { registerJsonRoute } from "../api/route.server.ts";
 import { z } from 'zod';
 import type { PgDatabase } from '../database/postgres.ts';
 import type { AccountService } from './service.server.ts';
@@ -44,11 +46,11 @@ export class ProfileStore {
 }
 export function mountProfiles(service: AccountService) {
   const { app, profiles, player, sharing, db } = service;
-  app.get('/api/me/profile',async c => c.json(await profiles.readOwn((await player(c)).session.user.id)));
-  app.patch('/api/me/profile',async c => c.json(await profiles.update((await player(c)).session.user.id,await c.req.json())));
-  app.get('/api/public/users/:uid',async c => c.json(await profiles.publicProfile(c.req.param('uid'))));
-  app.get('/api/public/users/:uid/save-shares',async c => {
-    const uid = c.req.param('uid');
+  registerJsonRoute(app, accountContract.profileGet,async c => c.json(await profiles.readOwn((await player(c)).session.user.id)));
+  registerJsonRoute(app, accountContract.profileUpdate,async c => c.json(await profiles.update((await player(c)).session.user.id,await c.req.json())), { invalidCode: "PROFILE_INVALID" });
+  registerJsonRoute(app, accountContract.publicProfileGet,async c => c.json(await profiles.publicProfile(c.req.param('uid')!)));
+  registerJsonRoute(app, accountContract.publicProfileShares,async c => {
+    const uid = c.req.param('uid')!;
     await profiles.publicProfile(uid);
     const page = Number(c.req.query('page') ?? 1);
     if (!Number.isSafeInteger(page) || page < 1 || page > 10000) throw new AccountError(400,'PAGE_INVALID');
@@ -63,5 +65,5 @@ export function mountProfiles(service: AccountService) {
       catch (error) { if (!(error instanceof AccountError && error.status===404)) throw error; }
     }
     return c.json({items,next:rows.length>20?page+1:null});
-  });
+  }, { invalidCode: "PAGE_INVALID" });
 }

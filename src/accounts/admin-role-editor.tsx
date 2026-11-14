@@ -14,7 +14,7 @@ export function AdminRoleEditor({user,account,onSaved,onCancel}:{user:AdminUser;
  async function submit(){
   setBusy(true);setError('');setReauth(false);
   try{
-   await account.request('/api/dash/users/'+user.uid+'/admin',{action,revision:user.adminRevision,reason},'POST',account.me?.user.id);
+   await account.api.dashAdminChange({params:{uid:user.uid},body:{action,revision:user.adminRevision,reason}},{context:{owner:account.me?.user.id}});
    onSaved();
   }catch(e){
    const code=e instanceof AccountClientError?e.code:'';

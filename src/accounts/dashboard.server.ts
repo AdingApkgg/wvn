@@ -1,3 +1,6 @@
+import { mountApiReference } from "../api/reference.server.ts";
+import { dashboardContract } from '../api/contracts/admin.ts';
+import { registerJsonRoute } from '../api/route.server.ts';
 import type { AccountService } from './service.server.ts';
 import type { Store } from '../server/store.ts';
 import { registerManagementRoutes } from '../server/http.ts';
@@ -43,13 +46,14 @@ export function mountDashboard(service: AccountService, catalog?: {store: Store;
     }
     await db.prepare('UPDATE wg_dashboard_audit SET status=$1,target=$2 WHERE id=$3').run(c.res.status,target,row!.id);
   });
-  app.get('/api/dash/overview',async c => {
+  mountApiReference(app);
+  registerJsonRoute(app, dashboardContract.dashOverview,async c => {
     const users = await db.prepare('SELECT count(*) AS n FROM "user"').get();
     const pending = await db.prepare("SELECT count(*) AS n FROM wg_save_shares WHERE state IN ('pending','active') AND pending IS NOT NULL AND (expires IS NULL OR expires>$1)").get(Date.now());
     const works = catalog ? await catalog.store.list(true) : null;
     return c.json({users:Number(users!.n),pendingShares:Number(pending!.n),works:works?.length ?? null,versions:works?.reduce((sum,w)=>sum+w.versions.length,0) ?? null,catalogAvailable:!!catalog,contentEnabled:!!service.config.contentGate});
   });
-  app.get('/api/dash/users',async c => {
+  registerJsonRoute(app, dashboardContract.dashUsers,async c => {
     const q = (c.req.query('q') ?? '').trim(), page = Number(c.req.query('page') ?? 1);
     if (q.length>100 || !Number.isSafeInteger(page) || page<1 || page>10000) throw new AccountError(400,'PAGE_INVALID');
     const pattern = '%' + q.replace(/[\\%_]/g,'\\$&') + '%';
@@ -58,24 +62,24 @@ export function mountDashboard(service: AccountService, catalog?: {store: Store;
       WHERE u.id ILIKE $1 OR u.name ILIKE $1 OR p.uid::text=$2
       ORDER BY p.uid LIMIT 21 OFFSET $3`).all(pattern,q,(page-1)*20);
     return c.json({items:rows.slice(0,20).map(row=>({id:String(row.id),uid:String(row.uid),name:String(row.name),published:!!row.published,joinedAt:new Date(row.joined_at as string).toISOString(),eligibility:row.eligibility ?? 'unqualified',admin:admins.protected(String(row.id))||row.admin===true,adminProtected:admins.protected(String(row.id)),adminRevision:Number(row.admin_revision??0)})),next:rows.length>20?page+1:null});
-  });
-  app.get('/api/dash/audit',async c => c.json(await db.prepare('SELECT id,actor,action,target,reason,status,created_at FROM wg_dashboard_audit ORDER BY id DESC LIMIT 100').all()));
-  app.get('/api/dash/users/:uid',async c => {
-    if (!validUid(c.req.param('uid'))) throw new AccountError(404,'NOT_FOUND');
-    const row = await db.prepare('SELECT user_id FROM wg_public_profiles WHERE uid=$1').get(c.req.param('uid'));
+  }, {invalidCode:'PAGE_INVALID'});
+  registerJsonRoute(app, dashboardContract.dashAudit,async c => c.json(await db.prepare('SELECT id,actor,action,target,reason,status,created_at FROM wg_dashboard_audit ORDER BY id DESC LIMIT 100').all()));
+  registerJsonRoute(app, dashboardContract.dashUser,async c => {
+    if (!validUid(c.req.param('uid')!)) throw new AccountError(404,'NOT_FOUND');
+    const row = await db.prepare('SELECT user_id FROM wg_public_profiles WHERE uid=$1').get(c.req.param('uid')!);
     if (!row) throw new AccountError(404,'NOT_FOUND');
     return c.json({id:String(row.user_id),...await service.profiles.readOwn(String(row.user_id)),...await admins.describe(String(row.user_id))});
   });
-  app.post('/api/dash/users/:uid/admin',async c => {
+  registerJsonRoute(app, dashboardContract.dashAdminChange,async c => {
     const current=await player(c,true);
-    const uid=c.req.param('uid');
+    const uid=c.req.param('uid')!;
     if(!validUid(uid))throw new AccountError(404,'NOT_FOUND');
     const body=await c.req.json();
     if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).sort().join(',')!=='action,reason,revision')throw new AccountError(400,'ADMIN_CHANGE_INVALID');
     const row=await db.prepare('SELECT user_id FROM wg_public_profiles WHERE uid=$1').get(uid);
     if(!row)throw new AccountError(404,'NOT_FOUND');
     return c.json(await admins.change(current.session.user.id,String(row.user_id),body.action,body.revision,body.reason));
-  });
+  }, {invalidCode:'ADMIN_CHANGE_INVALID'});
   if (catalog) registerManagementRoutes(app,catalog.store,catalog.sources,'/api/dash/manage');
   registerShareAdminRoutes(app,service,'/api/dash/shares');
 }

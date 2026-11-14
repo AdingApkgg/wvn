@@ -79,13 +79,9 @@ function SharePage({account}:{account:ReaderAccount}) {
     setGate("");
     setView(null);
     setMessage(""); setReport(""); claimKey.current = { owner: "", id: "" };
-    void account
-      .request<ShareView>(
-        secret
-          ? `/api/share-links/${encodeURIComponent(shareId)}/inspect`
-          : `/api/public/save-shares/${encodeURIComponent(shareId)}`,
-        secret ? { secret } : undefined,
-      )
+    void (secret
+      ? account.api.shareInspect({ params: { id: shareId }, body: { secret } })
+      : account.api.publicShareGet({ params: { id: shareId } }))
       .then((data) => {
         if (accepts()) { setView(data); setLoaded(captured); }
       })
@@ -98,7 +94,7 @@ function SharePage({account}:{account:ReaderAccount}) {
     return () => {
       live = false;
     };
-  }, [shareId, secret, ready, binding, account.request, scope, scopeReady]);
+  }, [shareId, secret, ready, binding, account.api, scope, scopeReady]);
   async function action(fn: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -288,12 +284,7 @@ function SharePage({account}:{account:ReaderAccount}) {
                               owner,
                               id: crypto.randomUUID(),
                             };
-                          await account.request(
-                            "/api/me/share-claims",
-                            { shareId, secret, requestId: claimKey.current.id },
-                            undefined,
-                            owner,
-                          );
+                          await account.api.shareClaim({ body: { shareId, secret, requestId: claimKey.current.id } }, { context: { owner } });
                           setMessage(
                             "已保存独立副本，当前备份与游戏内存档未改变。",
                           );
@@ -330,12 +321,7 @@ function SharePage({account}:{account:ReaderAccount}) {
                         disabled={busy || !report.trim()}
                         onClick={() =>
                           action(async () => {
-                            await account.request(
-                              "/api/me/share-reports",
-                              { shareId, secret, reason: report },
-                              undefined,
-                              account.me!.user.id,
-                            );
+                            await account.api.shareReport({ body: { shareId, secret, reason: report } }, { context: { owner: account.me!.user.id } });
                             setReport("");
                             setMessage("举报已提交，等待管理员处理。");
                           })

@@ -19,7 +19,7 @@ type BookDraft = { editing: boolean; status: string; note: string; revision: num
 export function Library({ account, run, view = "library" }: { account: Account; view?: string; run: (fn: () => Promise<void>) => Promise<void> }) {
   const [storedCatalog, setCatalog] = useState<CatalogItem[]>([]), [storedEntries, setEntries] = useState<LibraryEntry[]>([]), [storedFavorites, setFavorites] = useState<string[]>([]);
   const [query, setQuery] = useState(""), [filter, setFilter] = useState("all"), [addQuery, setAddQuery] = useState(""), [selected, setSelected] = useState("");
-  const navigate = useNavigate(), { request } = account, content = useContentAccess();
+  const navigate = useNavigate(), { api } = account, content = useContentAccess();
   const scope = content.enabled ? content.access : null, scopeReady = !content.enabled || (!content.loading && !content.pendingPublic), binding = account.me?.binding ?? "";
   const latest = useRef({ scope, binding, ready: scopeReady }); latest.current = { scope, binding, ready: scopeReady };
   const [loaded, setLoaded] = useState<{ scope: typeof scope; binding: string } | null>(null), [loadError, setLoadError] = useState("");
@@ -40,18 +40,18 @@ export function Library({ account, run, view = "library" }: { account: Account; 
   useEffect(() => {
     if (!scopeReady) return;
     let live = true; setSelected(""); setLoadError("");
-    void Promise.all([request<CatalogItem[]>("/api/account-catalog"), request<LibraryEntry[]>("/api/me/library"), request<string[]>("/api/me/favorites")])
+    void Promise.all([api.catalogList({}), api.libraryList({}), api.favoritesList({})])
       .then(([works, items, ids]) => {
         if (live && latest.current.scope === scope && latest.current.binding === binding && latest.current.ready) {
           setCatalog(works); setEntries(items); setFavorites(ids); setLoaded({ scope, binding });
         }
       }).catch(() => { if (live) setLoadError("书架暂时无法读取，请刷新重试。"); });
     return () => { live = false; };
-  }, [request, scope, binding, scopeReady]);
+  }, [api, scope, binding, scopeReady]);
 
   async function save(workId: string, revision: number, status: string, note?: string) {
     const check = account.guard(), captured = latest.current;
-    const result = await request<LibraryEntry>(`/api/me/library/${workId}`, { revision, status, ...(note === undefined ? {} : { note }) }, "PATCH");
+    const result = await api.libraryEdit({ params: { id: workId }, body: { revision, status, ...(note === undefined ? {} : { note }) } });
     check();
     if (latest.current.scope !== captured.scope || latest.current.binding !== captured.binding || !latest.current.ready) throw new AccountClientError("IDENTITY_CHANGED");
     setEntries(current => [...current.filter(item => item.workId !== workId), result]); return result;
@@ -60,7 +60,7 @@ export function Library({ account, run, view = "library" }: { account: Account; 
     await run(async()=>{
       const check=account.guard(),captured=latest.current;
       if(!captured.ready)throw new AccountClientError("IDENTITY_CHANGED");
-      const session=await request<{id:string}>("/api/me/play-sessions",{versionId:target.versionId,eventId:crypto.randomUUID()});check();
+      const session=await api.playStart({ body: {versionId:target.versionId,eventId:crypto.randomUUID()} });check();
       if(latest.current.scope!==captured.scope||latest.current.binding!==captured.binding||!latest.current.ready)throw new AccountClientError("IDENTITY_CHANGED");
       navigate(`${target.url}?session=${encodeURIComponent(session.id)}`,{state:{startReading:target.versionId}});
     });

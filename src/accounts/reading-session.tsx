@@ -20,19 +20,19 @@ function Session({ id, running,account }: { id: string; running: boolean;account
     const pulse = () => {
       const paused = Date.now() - renewed.current >= 300_000;
       setIdle(paused);
-      void account.request(`/api/me/play-sessions/${id}/heartbeat`, {
+      void account.api.playHeartbeat({ params: { id }, body: {
         seq: ++sequence.current,
         active: running && !paused && document.visibilityState === "visible" && document.hasFocus(),
-      }, undefined, owner).then(() => { if (live) setOnline(true); }).catch(() => { if (live) setOnline(false); });
+      } }, { context: { owner } }).then(() => { if (live) setOnline(true); }).catch(() => { if (live) setOnline(false); });
     };
     pulse();
     const timer = setInterval(pulse, 30_000);
     document.addEventListener("visibilitychange", pulse);
     return () => {
       live = false; clearInterval(timer); document.removeEventListener("visibilitychange", pulse);
-      void account.request(`/api/me/play-sessions/${id}/heartbeat`, { seq: ++sequence.current, active: false }, undefined, owner).catch(() => {});
+      void account.api.playHeartbeat({ params: { id }, body: { seq: ++sequence.current, active: false } }, { context: { owner } }).catch(() => {});
     };
-  }, [owner, id, running, account.request]);
+  }, [owner, id, running, account.api]);
   return <div className="reading-session text-xs text-muted-foreground" role="status">
     {!online ? "阅读计时连接中断，离线时长暂未计入；存档单独保留。" : !owner ? "登录后可继续记录阅读时间。" : !running ? "本次阅读记录已保留。" : idle ? "阅读计时已暂停。" : "正在估算前台阅读时长，每 5 分钟需确认继续。"}
     {running && idle && <Button size="sm" variant="ghost" onClick={() => { renewed.current = Date.now(); setIdle(false); }}>继续记录时间</Button>}

@@ -1,3 +1,5 @@
+import { registerJsonRoute, configureJsonRouteAuth } from "../api/route.server.ts";
+import { sessionContract } from "../api/contracts/session.ts";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
@@ -103,6 +105,7 @@ export async function createAccountService(
   if (sharing) await sharing.replay();
   await deletions.replay(db, saves);
   const app = new Hono();
+  configureJsonRouteAuth(app, c => player(c));
   // 写操作在各进程先排队，再取得数据库会话锁；读取可并行，跨进程也保护通行密钥等组合操作。
   let tail = Promise.resolve();
   async function withLock<T>(fn: () => T | Promise<T>): Promise<T> {
@@ -301,10 +304,10 @@ export async function createAccountService(
       revision: config.revision ?? null,
     }),
   );
-  app.get("/api/login-options", (c) =>
+  registerJsonRoute(app, sessionContract.loginOptions, (c) =>
     c.json({ passkey: true, signup: "open", password: false, mode:config.deployment??"preview", isolated:config.isolated===true }),
   );
-  app.get("/api/me", async (c) => {
+  registerJsonRoute(app, sessionContract.sessionGet, async (c) => {
     const { session, binding } = await player(c);
     const keys = (await db
       .prepare(
@@ -400,9 +403,9 @@ export async function createAccountService(
       });
     return response;
   });
-  app.post("/api/me/passkeys/:id/delete", async (c) => {
+  registerJsonRoute(app, sessionContract.passkeyDelete, async (c) => {
     const { session } = await player(c, true);
-    const id = c.req.param("id");
+    const id = c.req.param("id")!;
     await db.transaction(async () => {
       const owned = (await db
         .prepare("SELECT id FROM passkey WHERE \"userId\"=$1 AND id=$2")
@@ -427,11 +430,11 @@ export async function createAccountService(
     }, { lock: 'wvn:account-write' });
     return c.json({ ok: true });
   });
-  app.post("/api/me/devices/:id/revoke", async (c) => {
+  registerJsonRoute(app, sessionContract.deviceRevoke, async (c) => {
     const { session } = await player(c, true);
     (await db.prepare("DELETE FROM session WHERE \"userId\"=$1 AND id=$2").run(
       session.user.id,
-      c.req.param("id"),
+      c.req.param("id")!,
     ));
     return c.json({ ok: true });
   });

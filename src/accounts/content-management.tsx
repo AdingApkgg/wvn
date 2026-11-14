@@ -1,3 +1,4 @@
+import { adminErrorCopy, type ModerationClient } from "../api/admin-client";
 import { useState } from 'react';
 import type { EligibilityStatus } from '../content/types.ts';
 import { Button } from '../components/ui/button';
@@ -6,7 +7,7 @@ import { Label } from '../components/ui/label';
 import { NativeSelect, NativeSelectOption } from '../components/ui/native-select';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 
-export type ContentAdminRequest = <T>(path: string, method?: string, body?: unknown) => Promise<T>;
+export type ContentAdminRequest = ModerationClient;
 type Action = 'suspend' | 'unsuspend' | 'revoke' | 'require_retest';
 type Suitability = 'sfw' | 'nsfw' | 'unknown';
 type AccountContent = {
@@ -42,7 +43,7 @@ export function ContentManagement({ request }: { request: ContentAdminRequest })
     setBusy(true);
     report('');
     try { await task(); }
-    catch (error) { report(error instanceof Error ? error.message : '操作未完成，输入已保留。'); }
+    catch (error) { report(adminErrorCopy(error, 'content')); }
     finally { setBusy(false); }
   }
 
@@ -57,7 +58,7 @@ export function ContentManagement({ request }: { request: ContentAdminRequest })
           <form className="space-y-2" onSubmit={event => {
             event.preventDefault();
             void run(async () => {
-              const data = await request<AccountContent>('content/users/' + encodeURIComponent(userId.trim()));
+              const data = await request.contentAdminUser({params:{userId:userId.trim()}});
               setAccount(data);
               setAction(data.eligibility.status === 'suspended' ? 'unsuspend' : 'suspend');
             }, setAccountMessage);
@@ -78,9 +79,7 @@ export function ContentManagement({ request }: { request: ContentAdminRequest })
             <form className="space-y-3" onSubmit={event => {
               event.preventDefault();
               void run(async () => {
-                const data = await request<AccountContent>('content/users/' + encodeURIComponent(account.userId) + '/moderate', 'POST', {
-                  action, reason: accountReason,
-                });
+                const data = await request.contentAdminModerate({params:{userId:account.userId},body:{action,reason:accountReason}});
                 setAccount(data);
                 setAction(data.eligibility.status === 'suspended' ? 'unsuspend' : 'suspend');
                 setAccountMessage('账号资格已更新。');
@@ -129,8 +128,7 @@ export function ContentManagement({ request }: { request: ContentAdminRequest })
             const metadataRevision = Number(revision);
             if (!Number.isSafeInteger(metadataRevision) || metadataRevision < 1) { setShareMessage('请填写有效的正整数文案修订号。'); return; }
             void run(async () => {
-              const result = await request<{ id: string; suitability: Suitability; revision: number }>(
-                'content/shares/' + encodeURIComponent(shareId.trim()), 'PATCH', { suitability, revision: metadataRevision, reason: shareReason });
+              const result = await request.contentAdminClassifyShare({params:{id:shareId.trim()},body:{suitability,revision:metadataRevision,reason:shareReason}});
               setShareMessage(`分享文案分级已保存：${suitabilityLabels[result.suitability]}，文案修订 ${result.revision}。`);
             }, setShareMessage);
           }}>

@@ -75,6 +75,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
     error,
     setError,
     request,
+    api,
     passkey,
     refresh,
     announce,
@@ -363,11 +364,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                               new FormData(e.currentTarget).get("name") ?? "",
                             );
                             void run(async () => {
-                              await request(
-                                `/api/me/passkeys/${key.id}`,
-                                { name },
-                                "PATCH",
-                              );
+                              await api.passkeyRename({ params: { id: key.id }, body: { name } }, { context: { owner: me.user.id } });
                               await refresh();
                             });
                           }}
@@ -428,12 +425,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                       run(async () => {
                         const owner = me.user.id;
                         const check = account.guard();
-                        const result = await request<RecoveryKit>(
-                          "/api/me/recovery-codes",
-                          {},
-                          undefined,
-                          owner,
-                        );
+                        const result = await api.recoveryCodes({}, { context: { owner } });
                         check();
                         const refreshed = await refresh();
                         if (
@@ -476,10 +468,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                         disabled={busy}
                         onClick={() =>
                           run(async () => {
-                            await request(
-                              `/api/me/devices/${device.id}/revoke`,
-                              {},
-                            );
+                            await api.deviceRevoke({ params: { id: device.id } }, { context: { owner: me.user.id } });
                             announce();
                             await refresh();
                           })
@@ -498,7 +487,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                 disabled={busy}
                 onClick={() =>
                   run(async () => {
-                    const data = await request("/api/me/export");
+                    const data = await api.accountExport({}, { context: { owner: me.user.id } });
                     const blob = new Blob([JSON.stringify(data, null, 2)], {
                       type: "application/json",
                     });
@@ -590,7 +579,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                 setRemove(null);
                 if (id)
                   void run(async () => {
-                    await request(`/api/me/passkeys/${id}/delete`, {});
+                    await api.passkeyDelete({ params: { id } }, { context: { owner: me?.user.id } });
                     announce();
                     await refresh();
                   });
@@ -615,11 +604,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
               onClick={() => {
                 setDeleteAccount(false);
                 void run(async () => {
-                  await request(
-                    "/api/me",
-                    { confirmation: "DELETE" },
-                    "DELETE",
-                  );
+                  await api.accountDelete({ body: { confirmation: "DELETE" } }, { context: { owner: me?.user.id } });
                   setKit(null);
                   announce();
                   await refresh(true);
