@@ -6,8 +6,8 @@ export function createResourcePort(port,{pilot,nonce}){
    if(closed)return Promise.reject(new DOMException('Resource port closed','AbortError'));
    if(!/^[a-f0-9]{64}$/.test(sha256))return Promise.reject(Error('Invalid public resource key'));signal?.throwIfAborted();if(pending.size>=64)return Promise.reject(Error('Too many public resource requests'));
    const requestId=crypto.randomUUID();return new Promise((resolve,reject)=>{
-    const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);pending.delete(requestId)},abort=()=>{cleanup();port.postMessage({type:'cache-resource-cancel',pilot,nonce,requestId});reject(signal.reason)},timer=setTimeout(()=>{cleanup();reject(Error('公共资源读取超时'))},180000);
-    pending.set(requestId,{sha256,resolve,reject,cleanup});signal?.addEventListener('abort',abort,{once:true});port.postMessage({type:'cache-resource',pilot,nonce,requestId,sha256});if(signal?.aborted)abort();
+    const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);pending.delete(requestId)},abort=()=>{cleanup();port.postMessage({type:'cache-resource-cancel',pilot,nonce,requestId});reject(signal.reason)},timer=setTimeout(()=>{cleanup();port.postMessage({type:'cache-resource-cancel',pilot,nonce,requestId});reject(Error('公共资源读取超时'))},180000);
+    pending.set(requestId,{requestId,sha256,resolve,reject,cleanup});signal?.addEventListener('abort',abort,{once:true});port.postMessage({type:'cache-resource',pilot,nonce,requestId,sha256});if(signal?.aborted)abort();
    });
   },
   receive(data){
@@ -16,6 +16,6 @@ export function createResourcePort(port,{pilot,nonce}){
    if(!data.ok){item.reject(Object.assign(Error(String(data.error??'公共资源暂不可用').slice(0,240)),{name:data.name??'Error'}));return true}
    if(data.sha256!==item.sha256||!(data.blob instanceof Blob)&&data.direct!==true){item.reject(Error('Invalid public resource receipt'));return true}item.resolve(data.direct===true?{sha256:data.sha256,direct:true}:{sha256:data.sha256,blob:data.blob});return true;
   },
-  close(){if(closed)return;closed=true;for(const item of [...pending.values()]){item.cleanup();item.reject(new DOMException('Resource port closed','AbortError'))}},
+  close(){if(closed)return;closed=true;for(const item of [...pending.values()]){item.cleanup();port.postMessage({type:'cache-resource-cancel',pilot,nonce,requestId:item.requestId});item.reject(new DOMException('Resource port closed','AbortError'))}},
  };
 }

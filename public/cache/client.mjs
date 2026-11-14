@@ -14,7 +14,7 @@ export function createCacheClient({origin,parentOrigin=location.origin,manifest,
   if(data.type==='file'){
    const row=allowed.get(data.sha256);if(!row||!(data.blob instanceof Blob)||data.blob.size!==row.bytes){rejectReady(Error('Invalid cache file proof'));return}onFile({sha256:row.sha256,blob:data.blob});return;
   }
-  if(data.type==='response'&&!data.id&&!data.ok){clearTimeout(timer);rejectReady(Error(data.error??'资源缓存连接失败'));return}
+  if(data.type==='response'&&!data.id&&!data.ok){clearTimeout(timer);const error=Error(data.error??'资源缓存连接失败');error.name=data.name??'Error';rejectReady(error);return}
   const job=pending.get(data.id);if(!job)return;pending.delete(data.id);job.stop();
   if(data.ok){
    if(job.sha256){const row=allowed.get(job.sha256),value=data.value;if(value?.sha256!==row.sha256||!(value.blob instanceof Blob)||value.blob.size!==row.bytes){job.reject(Error('Invalid cache file proof'));return}onFile(value)}

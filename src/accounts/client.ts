@@ -22,6 +22,7 @@ export function errorCopy(code: string) {
   return (
     (
       {
+        AUTH_BUSY: "设备验证正在进行，请先完成或取消。",
         NICKNAME_INVALID: "昵称需要 1–40 个可见字符。",
         REAUTH_REQUIRED: "请再使用通行密钥验证一次，然后重试。",
         IDENTITY_CHANGED: "账号状态已变化，请重新操作。",
@@ -76,6 +77,7 @@ export function useAccount() {
     };
   };
   const withCeremony = async <T>(fn: () => Promise<T>) => {
+    if(ceremony.current)throw new AccountClientError('AUTH_BUSY');
     ceremony.current = true;
     try {
       return await fn();
@@ -304,6 +306,7 @@ export function useAccount() {
     kind: "signup" | "login" | "add",
     nickname = "",
   ) => {
+    if(ceremony.current)throw new AccountClientError('AUTH_BUSY');
     ceremony.current = true;
     const start = epoch.current,
       client = authClient();

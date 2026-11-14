@@ -1,3 +1,4 @@
+import {passkeyFeedback,validNickname} from '../accounts/auth-feedback';
 import { brand } from "../brand";
 import { useEffect, useRef, useState } from "react";
 import {Link, useLoaderData, useNavigate, useSearchParams} from "react-router";
@@ -77,6 +78,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
     refresh,
     announce,
   } = account;
+  const actionPending=useRef(false),[notice,setNotice]=useState('');
   const [busy, setBusy] = useState(false),
     [supported, setSupported] = useState(false),
     [nickname, setNickname] = useState("");
@@ -99,17 +101,18 @@ function AccountPage({account}:{account:ReaderAccount}) {
     return () => window.removeEventListener("wg-account-invalidated", clear);
   }, []);
   async function run(action: () => Promise<void>) {
+    if(actionPending.current)return;
+    actionPending.current=true;
     setBusy(true);
-    setError("");
+    setError("");setNotice('');
     try {
       await action();
     } catch (e) {
-      if (!(e instanceof DOMException && e.name === "AbortError"))
-        setError(
-          errorCopy(e instanceof AccountClientError ? e.code : "NETWORK"),
-        );
+      const feedback=passkeyFeedback({code:e instanceof AccountClientError?e.code:undefined,name:e instanceof Error?e.name:undefined});
+      if(feedback.kind==='notice')setNotice(authMode==='recover'?'恢复未完成；若恢复码已验证，请换一枚恢复码重试。':feedback.message??'验证未完成，可以重试。');
+      else setError(feedback.message??errorCopy(e instanceof AccountClientError?e.code:'NETWORK'));
     } finally {
-      setBusy(false);
+      actionPending.current=false;setBusy(false);
     }
   }
   async function recover() {
@@ -183,41 +186,46 @@ function AccountPage({account}:{account:ReaderAccount}) {
             <Card className="account-login">
               <CardHeader>
                 <CardTitle>
-                  <h2>登录 {brand.shortName}</h2>
+                  <h2>{authMode==='signup'?'创建账号':authMode==='recover'?'恢复账号':`登录 ${brand.shortName}`}</h2>
                 </CardTitle>
                 <CardDescription>
-                  通行密钥由你的设备或密码管理器保管。
+                  {authMode==='signup'?'输入昵称，再由设备创建通行密钥。无需设置密码。':authMode==='recover'?'使用离线保存的账号标识和恢复码。':'使用指纹、面容或设备 PIN 登录；也可在系统弹窗中选择其他设备。'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6" aria-busy={busy}>
                 {loading ? (
                   <p role="status">正在确认账号状态…</p>
                 ) : (
                   <>
-                    <Tabs value={authMode} onValueChange={setAuthMode}>
-                      <TabsList aria-label="账号入口"><TabsTrigger value="login">登录</TabsTrigger><TabsTrigger value="signup">创建账号</TabsTrigger></TabsList>
+                    <Tabs value={authMode} onValueChange={value=>{if(!actionPending.current){setAuthMode(value);setError('');setNotice('')}}}>
+                      <TabsList aria-label="账号入口"><TabsTrigger disabled={busy} value="login">登录</TabsTrigger><TabsTrigger disabled={busy} value="signup">创建账号</TabsTrigger></TabsList>
                       <TabsContent value="login" className="space-y-4 pt-4">
                         <p className="text-sm text-muted-foreground">登录后继续管理书架、云存档和分享。</p>
-                        <Button className="w-full" disabled={busy || !supported || !options?.passkey} onClick={() => run(() => passkey("login"))}><Fingerprint />使用通行密钥登录</Button>
+                        <Button className="w-full" disabled={busy || !supported || !options?.passkey} onClick={() => run(() => passkey("login"))}><Fingerprint />{busy?'等待设备验证…':'使用通行密钥登录'}</Button>
                       </TabsContent>
                       <TabsContent value="signup">
                         <form
                           className="space-y-4 pt-4"
                           onSubmit={(e) => {
                             e.preventDefault();
-                            void run(() => passkey("signup", nickname));
+                            if(!validNickname(nickname)){setError(errorCopy('NICKNAME_INVALID'));return}void run(() => passkey("signup", nickname.trim()));
                           }}
                         >
                           <div className="space-y-2">
                             <Label htmlFor="account-nickname">昵称</Label>
                             <Input
                               id="account-nickname"
+                              disabled={busy}
+                              placeholder="怎么称呼你"
+                              aria-invalid={!!error&&!validNickname(nickname)}
+                              aria-describedby={error?"nickname-hint account-auth-error":"nickname-hint"}
                               autoComplete="nickname"
                               maxLength={40}
                               required
                               value={nickname}
-                              onChange={(e) => setNickname(e.target.value)}
+                              onChange={(e) => {setNickname(e.target.value);if(error===errorCopy('NICKNAME_INVALID'))setError('')}}
                             />
+                            <p id="nickname-hint" className="text-sm text-muted-foreground">昵称用于显示，不是登录账号。</p>
                           </div>
                           <Button
                             variant="outline"
@@ -225,7 +233,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                             className="w-full"
                             disabled={busy || !supported || !options?.passkey}
                           >
-                            创建通行密钥并注册
+                            {busy?'等待设备创建通行密钥…':'创建通行密钥并注册'}
                           </Button>
                           <p className="text-sm text-muted-foreground">
                             {release?"每账号提供 512 MiB 云存档空间，请妥善保管通行密钥与恢复码。":"预览账号与正式账号分开。请勿把测试凭据当作正式备份。"}
@@ -244,6 +252,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                             <Label htmlFor="recovery-id">恢复账号标识</Label>
                             <Input
                               id="recovery-id"
+                              disabled={busy}
                               autoComplete="off"
                               required
                               value={recoveryId}
@@ -254,6 +263,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
                             <Label htmlFor="recovery-code">一次性恢复码</Label>
                             <Input
                               id="recovery-code"
+                              disabled={busy}
                               type="password"
                               autoComplete="off"
                               required
@@ -274,9 +284,13 @@ function AccountPage({account}:{account:ReaderAccount}) {
                         </form>
                       </TabsContent>
                     </Tabs>
-                    <Button variant="link" size="sm" onClick={() => setAuthMode(authMode === "recover" ? "login" : "recover")}>{authMode === "recover" ? "返回登录" : "丢失通行密钥？恢复账号"}</Button>
+                    <Button variant="link" size="sm" disabled={busy} onClick={() => {setAuthMode(authMode === 'recover' ? 'login' : 'recover');setError('');setNotice('')}}>{authMode === "recover" ? "返回登录" : "丢失通行密钥？恢复账号"}</Button>
                   </>
                 )}
+                {busy&&<p role="status" aria-live="polite" className="text-sm text-muted-foreground">请在系统弹窗中完成验证；取消后可以重新尝试。</p>}
+                {notice&&<p role="status" aria-live="polite" className="text-sm">{notice}</p>}
+                {error&&<Alert id="account-auth-error" variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+                {!loading&&!options&&<Button variant="outline" disabled={busy} onClick={()=>run(async()=>{await refresh()})}>重新连接</Button>}
                 {!loading && !supported && (
                   <Alert>
                     <AlertDescription>
@@ -509,7 +523,8 @@ function AccountPage({account}:{account:ReaderAccount}) {
             </Tabs>
           </>
         )}
-        {error && (
+        {me&&notice&&<p role="status" className="mt-6">{notice}</p>}
+        {me&&error && (
           <Alert variant="destructive" className="mt-6">
             <AlertDescription>{error}</AlertDescription>
           </Alert>

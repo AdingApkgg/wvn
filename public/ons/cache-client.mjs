@@ -6,7 +6,7 @@ export function createOnsResourceClient(port,{pilot,nonce,loading,resources}){
   read(key){
    if(closed)return Promise.reject(Error('播放器已关闭'));
    const requestId=crypto.randomUUID(),kind=key==='engine:wasm'?'engine':'game',progress=resources.begin(),meter=createTransferMeter();loading.phase('checking',kind);
-   return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);progress.end(true);reject(Error('资源读取超时'))},180000);pending.set(requestId,{resolve,reject,timer,progress,meter,kind});port.postMessage({type:'ons-resource',pilot,nonce,requestId,key})});
+   return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);port.postMessage({type:'ons-resource-cancel',pilot,nonce,requestId});progress.end(true);reject(Error('资源读取超时'))},180000);pending.set(requestId,{requestId,resolve,reject,timer,progress,meter,kind});port.postMessage({type:'ons-resource',pilot,nonce,requestId,key})});
   },
   receive(data){
    if(data?.pilot!==pilot||data.nonce!==nonce||!['ons-resource-progress','ons-resource-result'].includes(data.type))return false;
@@ -17,6 +17,6 @@ export function createOnsResourceClient(port,{pilot,nonce,loading,resources}){
    clearTimeout(row.timer);pending.delete(data.requestId);row.progress.end(!data.ok);
    if(!data.ok)row.reject(Error(typeof data.error==='string'?data.error:'资源读取失败'));else if(data.direct)row.resolve(null);else if(data.blob instanceof Blob)void data.blob.arrayBuffer().then(value=>row.resolve(new Uint8Array(value)),row.reject);else if(data.data instanceof Uint8Array&&data.data.byteLength<=32*1024*1024)row.resolve(data.data);else row.reject(Error('资源内容无效'));return true;
   },
-  close(){closed=true;for(const row of pending.values()){clearTimeout(row.timer);row.progress.end();row.reject(Error('播放器已关闭'))}pending.clear()},
+  close(){closed=true;for(const row of pending.values()){clearTimeout(row.timer);port.postMessage({type:'ons-resource-cancel',pilot,nonce,requestId:row.requestId});row.progress.end();row.reject(Error('播放器已关闭'))}pending.clear()},
  };
 }

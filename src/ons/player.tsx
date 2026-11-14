@@ -1,3 +1,4 @@
+import {createReaderFullscreen,type FullscreenMode} from './fullscreen.mjs';
 import {ResourceDownloads,useResourceDownloads} from "./resource-downloads";
 import {readCasManifest} from '../../public/player/cas-resources.mjs';
 import {LoadingView,ResourceLoadingBar} from "./loading";
@@ -59,6 +60,9 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
   const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
+  const fullscreen=useRef<ReturnType<typeof createReaderFullscreen>|null>(null),[fullscreenMode,setFullscreenMode]=useState<FullscreenMode>('none');
+  useEffect(()=>{if(!surface.current)return;const controller=createReaderFullscreen(surface.current,{onChange:setFullscreenMode});fullscreen.current=controller;return()=>{controller.close();if(fullscreen.current===controller)fullscreen.current=null}},[]);
+  useEffect(()=>{if(contentBlocked)void fullscreen.current?.exit().catch(()=>{})},[contentBlocked]);
   function preserveGameFocus(event: MouseEvent<HTMLElement>) {
     // 同一活跃页面内先完成按钮点击，再由弹窗移交焦点，避免复查在按下与点击间收起控件。
     // 真正切回窗口仍执行全局资格复查；键盘、输入框和选择器保持原生焦点行为。
@@ -83,7 +87,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
     window.addEventListener('wg-content-save-exit',exit);return()=>window.removeEventListener('wg-content-save-exit',exit);
   },[pilot.id,workUrl]);
   const bootstrapAcknowledged=useRef(false),bootstrapExpired=useRef(false),startupAttempt=useRef(0),bootstrapDeadline=useRef<ReturnType<typeof watchBootstrap>|null>(null);
-  function changeRunning(value: boolean) { startupAttempt.current++;bootstrapDeadline.current?.close();bootstrapDeadline.current=null;bootstrapAcknowledged.current=false;bootstrapExpired.current=false;runningNow.current = value; setRunning(value);setGameStarted(false);setResources(null);setLoading(value?{stage:"connecting"}:null);if(value)setLoadStartedAt(Date.now()); }
+  function changeRunning(value: boolean) { if(!value)void fullscreen.current?.exit().catch(()=>{});startupAttempt.current++;bootstrapDeadline.current?.close();bootstrapDeadline.current=null;bootstrapAcknowledged.current=false;bootstrapExpired.current=false;runningNow.current = value; setRunning(value);setGameStarted(false);setResources(null);setLoading(value?{stage:"connecting"}:null);if(value)setLoadStartedAt(Date.now()); }
   function cancelLoading(){
     if(channel.current?.started)return;
     channel.current?.dispose();channel.current=null;void downloads.cancel();changeRunning(false);setError("");setStatus("已取消加载，本机存档和历史备份保留");
@@ -155,10 +159,10 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
     const connection:{port:MessagePort;nonce:string;seq:number;writing:boolean;started:boolean;resourceReady?:boolean;dispose:()=>void;cache?:ResourceSession}={port:ports.port1,nonce,seq:0,writing:false,started:false,dispose(){controller.abort();if(downloads.enabled)void downloads.cancel();cache?.close();resourceStore?.close();ports.port1.close()}};channel.current=connection;
     const isCurrent=()=>active.current&&runningNow.current&&!bootstrapExpired.current&&startupAttempt.current===attempt&&frame.current===target&&target.contentWindow===targetWindow&&channel.current===connection&&!controller.signal.aborted;
     const resourceRequests=new Map<string,AbortController>();
-    const requests=new Set<string>(),resourceQueue:{requestId:string;key:string}[]=[];let fetching=0;
+    const requests=new Map<string,AbortController>(),resourceQueue:{requestId:string;key:string;controller:AbortController;detach:()=>void}[]=[];let fetching=0;
     const sendResource=(value:object,bytes?:Uint8Array)=>{if(channel.current!==connection||controller.signal.aborted)return;try{ports.port1.postMessage({...value,pilot:pilot.id,nonce},bytes?[bytes.buffer as ArrayBuffer]:[])}catch{/* 退出后的资源回执无需送达。 */}};
     const wholeKeys=new Map<string,string>(),wholeAllowed=new Set<string>();
-    const pumpResources=()=>{while((cache||downloads.client.current)&&fetching<2&&resourceQueue.length&&!controller.signal.aborted){const job=resourceQueue.shift()!;fetching++;const loading:Promise<{blob?:Blob;data?:Uint8Array;direct?:boolean}>=downloads.client.current?(wholeKeys.has(job.key)?downloads.read(wholeKeys.get(job.key)!,{signal:controller.signal}):Promise.reject(Error('资源键不属于当前清单'))):cache!.load(job.key,progress=>sendResource({type:'ons-resource-progress',requestId:job.requestId,...progress}));void loading.then(value=>sendResource({type:'ons-resource-result',requestId:job.requestId,ok:true,...(value.direct?{direct:true}:value.blob?{blob:value.blob}:{data:value.data})},value.data)).catch(error=>sendResource({type:'ons-resource-result',requestId:job.requestId,ok:false,error:String(error.message??'资源读取失败').slice(0,200)})).finally(()=>{fetching--;requests.delete(job.requestId);pumpResources()})}};
+    const pumpResources=()=>{while((cache||downloads.client.current)&&fetching<2&&resourceQueue.length&&!controller.signal.aborted){const job=resourceQueue.shift()!;if(job.controller.signal.aborted)continue;fetching++;const loading:Promise<{blob?:Blob;data?:Uint8Array;direct?:boolean}>=downloads.client.current?(wholeKeys.has(job.key)?downloads.read(wholeKeys.get(job.key)!,{signal:job.controller.signal}):Promise.reject(Error('资源键不属于当前清单'))):cache!.load(job.key,progress=>sendResource({type:'ons-resource-progress',requestId:job.requestId,...progress}));void loading.then(value=>{job.controller.signal.throwIfAborted();return value}).then(value=>sendResource({type:'ons-resource-result',requestId:job.requestId,ok:true,...(value.direct?{direct:true}:value.blob?{blob:value.blob}:{data:value.data})},value.data)).catch(error=>{if(!job.controller.signal.aborted)sendResource({type:'ons-resource-result',requestId:job.requestId,ok:false,error:String(error.message??'资源读取失败').slice(0,200)})}).finally(()=>{fetching--;job.detach();if(requests.get(job.requestId)===job.controller)requests.delete(job.requestId);pumpResources()})}};
     try{
     const { protocol } = await runCurrentStep(isCurrent,modules);
     ports.port1.onmessage = async ({ data }) => {
@@ -173,10 +177,11 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
         const request=new AbortController(),cancel=()=>request.abort();resourceRequests.set(data.requestId,request);controller.signal.addEventListener('abort',cancel,{once:true});
         void downloads.read(data.sha256,{signal:request.signal}).then(file=>sendResource({type:'cache-resource-result',requestId:data.requestId,ok:true,...file})).catch(error=>sendResource({type:'cache-resource-result',requestId:data.requestId,ok:false,name:error.name,error:String(error.message).slice(0,240)})).finally(()=>{controller.signal.removeEventListener('abort',cancel);resourceRequests.delete(data.requestId)});return;
       }
+      if(data.type==='ons-resource-cancel'){requests.get(data.requestId)?.abort();requests.delete(data.requestId);const queued=resourceQueue.findIndex(job=>job.requestId===data.requestId);if(queued>=0)resourceQueue.splice(queued,1);return;}
       if(data.type==='ons-resource'){
         if(!cache&&!downloads.client.current&&downloads.directOnly.current&&typeof data.key==='string'&&wholeKeys.has(data.key)&&/^[a-f0-9-]{36}$/.test(data.requestId??'')){sendResource({type:'ons-resource-result',requestId:data.requestId,ok:true,direct:true});return;}
         if((!cache&&!downloads.client.current)||typeof data.key!=='string'||data.key.length>300||!/^[-a-f0-9]{36}$/.test(data.requestId??'')||requests.has(data.requestId)||requests.size>=64){sendResource({type:'ons-resource-result',requestId:data.requestId,ok:false,error:'资源请求无效'});return;}
-        requests.add(data.requestId);resourceQueue.push({requestId:data.requestId,key:data.key});pumpResources();return;
+        const request=new AbortController(),abort=()=>request.abort(),detach=()=>controller.signal.removeEventListener('abort',abort);controller.signal.addEventListener('abort',abort,{once:true});request.signal.addEventListener('abort',detach,{once:true});requests.set(data.requestId,request);resourceQueue.push({requestId:data.requestId,key:data.key,controller:request,detach});pumpResources();return;
       }
       if(data.type==="resource-progress"){if(connection.started){const value=validateResourceProgress(data);if(value){setResources(value);if(downloads.enabled)void downloads.foregroundBusy(value.active>0).catch(downloads.reportError)}}return;}
       if(data.type==="loading-progress"){if(!connection.started){const value=validateLoadingProgress(data);if(value){bootstrapAcknowledged.current=true;bootstrapDeadline.current?.acknowledge();setLoading(value)}}return;}
@@ -259,7 +264,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
       <p className="reader-context text-sm text-muted-foreground">{targetLabel}</p>
       <div ref={surface} className="reader-surface" style={{ minHeight: running ? "min(72vh, 850px)" : "min(50vh, 520px)" }}>
         {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen *; gamepad *" allowFullScreen aria-busy={!gameStarted} onLoad={event => { const element=event.currentTarget;if(bootstrapExpired.current||startupAttempt.current!==renderedStartupAttempt||frame.current!==element)return;void connect(element,renderedStartupAttempt).catch(e=>{if(active.current&&runningNow.current&&!bootstrapExpired.current&&startupAttempt.current===renderedStartupAttempt&&frame.current===element&&e.name!=="AbortError")setLoading({stage:"failed",message:e.message});}); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
-        {running&&gameStarted&&<ResourceLoadingBar progress={resources}/>}
+        {running&&gameStarted&&<ResourceLoadingBar progress={resources} onManage={()=>{void run(async()=>{await fullscreen.current?.exit();const tools=surface.current?.parentElement?.querySelector<HTMLDetailsElement>('.advanced-tools');if(tools){tools.open=true;tools.scrollIntoView({block:'nearest'})}})}}/>}
         {running&&!gameStarted&&loading&&<LoadingView progress={loading} startedAt={loadStartedAt} onCancel={cancelLoading} />}
       {!running&&inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
       <div className="reader-toolbar" aria-label="阅读操作" onMouseDown={preserveGameFocus}>
@@ -267,13 +272,14 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
           {!running ? <Button {...startButtonPersistence} data-testid="reader-start" data-ready={ready?"true":"false"} disabled={!ready || busy||contentBlocked} onClick={() => run(startReading)}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.dispose(); channel.current = null; changeRunning(false); setStatus("阅读已结束，本机副本已保留"); })}>结束阅读</Button>
-            <Button variant="ghost" onClick={() => run(async () => { await surface.current?.requestFullscreen(); })}>全屏</Button>
+            <Button variant="ghost" aria-pressed={fullscreenMode!=='none'} onClick={() => run(async () => { await fullscreen.current?.toggle(); })}>{fullscreenMode==='none'?'全屏':'退出全屏'}</Button>
           </>}
         </div>
-        <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => {if(document.fullscreenElement)void document.exitFullscreen();setSavePanel(open => !open)}}>存档与备份</Button>
+        <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => {void run(async()=>{await fullscreen.current?.exit();setSavePanel(open => !open)})}}>存档与备份</Button>
       </div>
+      {fullscreenMode==='page'&&<p className="reader-fullscreen-note" role="status">已铺满页面；Safari 地址栏由浏览器控制。</p>}
       </div>
-      <details className="advanced-tools" open={downloads.preparing||!!downloads.problem||!!error||undefined}><summary>加载与高级工具</summary><div>
+      <details className="advanced-tools" open={downloads.preparing||!!downloads.problem||!!downloads.notice||!!error||undefined}><summary>加载与高级工具</summary><div>
       <ResourceDownloads downloads={downloads} running={running}/>
       {!pilot.runtimeKind&&!downloads.enabled&&<div className="reader-cache-info" data-testid="ons-cache-status" data-hits={cacheStats?.hits??0} data-downloads={cacheStats?.downloads??0} data-preloaded={cacheStats?.preloaded??0} data-bytes={cacheStats?.bytes??0}>
         <p>{cacheStats?(cacheStats.available?`资源缓存：本次复用 ${cacheStats.hits} 项 · 已用 ${formatTransferBytes(cacheStats.bytes)}`:'浏览器缓存暂不可用，本次仍可正常阅读'):'读过的资源会保留在浏览器中；空闲时少量预加载。'}{cacheStats?.prefetching?' · 正在预加载':cacheStats?.preloaded?` · 已预加载 ${cacheStats.preloaded} 项`:''}</p>
