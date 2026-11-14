@@ -53,21 +53,21 @@ stop_owned(){
 sharing_backup="$sharing_state/before-$(date +%Y%m%d-%H%M%S)-$RANDOM"
 export WG_ACCOUNT_BLOBS="$account_state/blobs" WG_ACCOUNT_DELETION_LEDGER="$account_state/deletions.jsonl"
 if test -f "$account_state/share-revocations.jsonl"; then export WG_ACCOUNT_SHARE_LEDGER="$account_state/share-revocations.jsonl"; else unset WG_ACCOUNT_SHARE_LEDGER; fi
-WG_ACCOUNT_BACKUP_DIR="$sharing_backup" node --import tsx scripts/account-backup.ts > "$sharing_backup-receipt.json"
+WG_ACCOUNT_BACKUP_DIR="$sharing_backup" node --import @oxc-node/core/register scripts/account-backup.ts > "$sharing_backup-receipt.json"
 stop_owned "$account_state/pid" accounts-server.ts
 stop_owned "$sharing_state/catalog.pid" server.ts
 for sharing_port in 18283 18284 18285 18286; do test -z "$(ss -H -ltn "sport = :$sharing_port")" || { echo "Unowned or lingering listener; no further process changed"; exit 1; }; done
 export NODE_EXTRA_CA_CERTS="$account_state/tls.crt"
 export WG_PORT=18284 WG_ADMIN_PORT=18286 WG_STATE_DIR="$sharing_state/catalog-admin"
-if test "${WG_PREVIEW_SEED_CATALOG:-0}" = 1; then node --import tsx scripts/seed.ts > "$sharing_state/seed.log" 2>&1; fi
+if test "${WG_PREVIEW_SEED_CATALOG:-0}" = 1; then node --import @oxc-node/core/register scripts/seed.ts > "$sharing_state/seed.log" 2>&1; fi
 export WG_SHARE_BACKEND_ORIGIN=https://localhost:18283 WG_SHARE_ACCOUNT_ORIGIN=https://localhost:18283
-nohup node --import tsx server.ts > "$sharing_state/catalog.log" 2>&1 < /dev/null &
+nohup node --import @oxc-node/core/register server.ts > "$sharing_state/catalog.log" 2>&1 < /dev/null &
 printf '%s\n' "$!" > "$sharing_state/catalog.pid"
 export WG_ACCOUNT_ORIGIN=https://localhost:18283 WG_ACCOUNT_PORT=18283 WG_ACCOUNT_UI=1 WG_ACCOUNT_REVISION=$(cat reports/sharing-source-revision)
 export WG_ACCOUNT_SHARE_LEDGER="$account_state/share-revocations.jsonl" WG_ACCOUNT_CATALOG_ORIGIN=http://127.0.0.1:18284
 export WG_ACCOUNT_SECRET_FILE="$account_state/secret" WG_ACCOUNT_TLS_KEY="$account_state/tls.key" WG_ACCOUNT_TLS_CERT="$account_state/tls.crt"
 export WG_SHARE_ADMIN_ORIGIN=https://localhost:18285 WG_SHARE_ADMIN_PORT=18285 WG_SHARE_ADMIN_TOKEN_FILE="$account_state/share-admin-token"
-nohup node --import tsx accounts-server.ts > "$account_state/server.log" 2>&1 < /dev/null &
+nohup node --import @oxc-node/core/register accounts-server.ts > "$account_state/server.log" 2>&1 < /dev/null &
 printf '%s\n' "$!" > "$account_state/pid"
 for i in {1..30}; do
  if ! kill -0 "$(cat "$account_state/pid")" 2>/dev/null || ! kill -0 "$(cat "$sharing_state/catalog.pid")" 2>/dev/null; then echo 'Owned preview exited; inspect its logs'; exit 1; fi

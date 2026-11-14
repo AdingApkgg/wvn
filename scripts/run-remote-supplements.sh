@@ -26,8 +26,8 @@ test "$(hostname)" = localhost
 export HTTPS_PROXY=http://127.0.0.1:11090 HTTP_PROXY=http://127.0.0.1:11090
 mkdir -p reports
 cp -p data/metadata.json "reports/before-supplements-$(date +%Y%m%d-%H%M%S).json"
-node --import tsx --test tests/metadata.test.ts
-node --import tsx scripts/prepare-metadata-supplements.ts
+node --import @oxc-node/core/register --test tests/metadata.test.ts
+node --import @oxc-node/core/register scripts/prepare-metadata-supplements.ts
 python3 scripts/cache-metadata-media.py
 python3 - <<'PY'
 import json

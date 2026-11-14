@@ -1,4 +1,5 @@
 import { mountApiReference } from "../api/reference.server.ts";
+import {mountInternalStatistics} from './dashboard-statistics.server.ts';
 import { dashboardContract } from '../api/contracts/admin.ts';
 import { registerJsonRoute } from '../api/route.server.ts';
 import type { AccountService } from './service.server.ts';
@@ -47,6 +48,7 @@ export function mountDashboard(service: AccountService, catalog?: {store: Store;
     await db.prepare('UPDATE wg_dashboard_audit SET status=$1,target=$2 WHERE id=$3').run(c.res.status,target,row!.id);
   });
   mountApiReference(app);
+  mountInternalStatistics(service,catalog?.store);
   registerJsonRoute(app, dashboardContract.dashOverview,async c => {
     const users = await db.prepare('SELECT count(*) AS n FROM "user"').get();
     const pending = await db.prepare("SELECT count(*) AS n FROM wg_save_shares WHERE state IN ('pending','active') AND pending IS NOT NULL AND (expires IS NULL OR expires>$1)").get(Date.now());

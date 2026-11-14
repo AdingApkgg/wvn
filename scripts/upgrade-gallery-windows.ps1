@@ -33,7 +33,7 @@ function Stop-Live {
  $listener=Get-NetTCPConnection -LocalPort 8381 -State Listen
  if($listener.LocalAddress -ne '127.0.0.1'){throw 'Unexpected production listener'}
  $process=Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)"
- if($process.Name -ne 'node.exe' -or $process.CommandLine -notlike '*--import tsx server.ts*'){throw 'Unexpected production process'}
+ if($process.Name -ne 'node.exe' -or $process.CommandLine -notmatch '--import (?:tsx|@oxc-node/core/register|"@oxc-node/core/register") server\.ts(?:\s|$)'){throw 'Unexpected production process'}
  $parent=Get-CimInstance Win32_Process -Filter "ProcessId=$($process.ParentProcessId)"
  if($parent.CommandLine -notlike "*$live\scripts\launch-production.cmd*"){throw 'Production process ancestry differs'}
  Stop-ScheduledTask -TaskName $taskName
@@ -63,7 +63,7 @@ function Stop-Candidate {
  if(!$parent){return}
  if($parent.CommandLine -notlike "*$inbox\launch-candidate.cmd*"){throw 'Candidate process identity differs'}
  foreach($child in @(Get-CimInstance Win32_Process -Filter "ParentProcessId=$($record.pid)")){
-  if($child.Name -eq 'node.exe' -and $child.CommandLine -like '*--import tsx server.ts*'){Stop-Process -Id $child.ProcessId}
+  if($child.Name -eq 'node.exe' -and $child.CommandLine -match '--import (?:tsx|@oxc-node/core/register|"@oxc-node/core/register") server\.ts(?:\s|$)'){Stop-Process -Id $child.ProcessId}
  }
  Stop-Process -Id $parent.ProcessId -ErrorAction SilentlyContinue
 }
@@ -158,7 +158,7 @@ set WG_PORT=8481
 set WG_ADMIN_PORT=8482
 set NODE_ENV=production
 set PATH=C:\nvm4w\nodejs;%PATH%
-"$node" --import tsx server.ts > "$inbox\candidate.stdout.log" 2> "$inbox\candidate.stderr.log"
+"$node" --import "@oxc-node/core/register" server.ts > "$inbox\candidate.stdout.log" 2> "$inbox\candidate.stderr.log"
 "@ | Set-Content -Encoding ASCII "$inbox\launch-candidate.cmd"
  $r=@{upgradeId=$UpgradeId;root=$live;task=$taskName;status='staging';oldBuildHash=$expectedOldBuild;newBuildHash=$manifest.buildHash;caddyHash=$expectedConfig}
  Save $r

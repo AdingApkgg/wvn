@@ -38,7 +38,7 @@ export WG_ACCOUNT_UI=1
 export WG_ACCOUNT_TEST_URL="$WG_ACCOUNT_ORIGIN"
 export WG_ACCOUNT_TEST_CERT="$PWD/state/accounts-test/tls.crt"
 if test -n "$(ss -H -ltn 'sport = :8393')"; then echo "Account test port already in use"; exit 1; fi
-node --import tsx accounts-server.ts > state/accounts-test/server.log 2>&1 &
+node --import @oxc-node/core/register accounts-server.ts > state/accounts-test/server.log 2>&1 &
 account_pid=$!
 cleanup(){ kill "$account_pid" 2>/dev/null || true; wait "$account_pid" 2>/dev/null || true; }
 trap cleanup EXIT

@@ -20,8 +20,8 @@ import {fileResponse} from '../src/server/resources.ts';
 const root=resolve('.'),base=resolve(root,'..'),privateDir=join(base,'private');
 // 部署侧必须显式指定远程主机、隔离预览地址和绑定地址。
 const task=process.env.WG_UI_UX_TASK??'ui-ux-20261104';
-if(!['ui-ux-20261104','m3-20261114','ios-reader-auth-20261114','dashboard-20261114','dashboard-release-20261114','orpc-20261114','scalar-20261115'].includes(task))throw Error('未知的隔离预览任务');
-const port=task==='scalar-20261115'?25683:task==='orpc-20261114'?25583:task==='dashboard-release-20261114'?25483:task==='dashboard-20261114'?25383:task==='ios-reader-auth-20261114'?25283:task==='m3-20261114'?24883:24683;
+if(!['ui-ux-20261104','m3-20261114','ios-reader-auth-20261114','dashboard-20261114','dashboard-release-20261114','orpc-20261114','scalar-20261115','internal-stats-20261114','oxc-runtime-20261115'].includes(task))throw Error('未知的隔离预览任务');
+const port=task==='scalar-20261115'?25683:task==='oxc-runtime-20261115'?26883:task==='internal-stats-20261114'?26783:task==='orpc-20261114'?25583:task==='dashboard-release-20261114'?25483:task==='dashboard-20261114'?25383:task==='ios-reader-auth-20261114'?25283:task==='m3-20261114'?24883:24683;
 const preview=new URL(process.env.WG_UI_UX_TEST_URL??`https://build.example.test:${port}`);
 const origin=preview.origin,bind=process.env.WG_UI_UX_BIND??'127.0.0.1';
 if(preview.protocol!=='https:'||preview.port!==String(port)||preview.username||preview.password||!/^[-a-zA-Z0-9.]+$/.test(preview.hostname)||!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(bind))throw Error('需要有效的隔离HTTPS预览配置');
@@ -74,7 +74,7 @@ async function prepare(){
   WG_DATABASE_URL:database,WG_DATABASE_SCHEMA:schemas.catalog,
   WG_ACCOUNT_DATABASE_URL:database,WG_ACCOUNT_DATABASE_SCHEMA:schemas.accounts,
   WG_RESOURCE_DATABASE_URL:database,WG_RESOURCE_DATABASE_SCHEMA:schemas.resources,
-  WG_ACCOUNT_ORIGIN:origin,WG_ACCOUNT_BIND:bind,WG_ACCOUNT_PORT:String(port),WG_ACCOUNT_UI:'1',WG_ACCOUNT_COOKIE_PREFIX:task==='scalar-20261115'?'__Host-wg-scalar-20261115':task==='orpc-20261114'?'__Host-wg-orpc-20261114':task==='ios-reader-auth-20261114'?'__Host-wg-ios-reader-auth-20261114':task==='m3-20261114'?'__Host-wg-m3-20261114':task==='dashboard-20261114'?'__Host-wg-dashboard-20261114':task==='dashboard-release-20261114'?'__Host-wg-dashboard-release-20261114':'__Host-wg-ui-ux-preview',
+  WG_ACCOUNT_ORIGIN:origin,WG_ACCOUNT_BIND:bind,WG_ACCOUNT_PORT:String(port),WG_ACCOUNT_UI:'1',WG_ACCOUNT_COOKIE_PREFIX:task==='scalar-20261115'?'__Host-wg-scalar-20261115':task==='oxc-runtime-20261115'?'__Host-wg-oxc-runtime-20261115':task==='internal-stats-20261114'?'__Host-wg-internal-stats-20261114':task==='orpc-20261114'?'__Host-wg-orpc-20261114':task==='ios-reader-auth-20261114'?'__Host-wg-ios-reader-auth-20261114':task==='m3-20261114'?'__Host-wg-m3-20261114':task==='dashboard-20261114'?'__Host-wg-dashboard-20261114':task==='dashboard-release-20261114'?'__Host-wg-dashboard-release-20261114':'__Host-wg-ui-ux-preview',
   WG_ACCOUNT_SECRET_FILE:secret,WG_ACCOUNT_DELETION_LEDGER:join(privateDir,'deletions.jsonl'),WG_ACCOUNT_BLOBS:join(privateDir,'blobs'),WG_ACCOUNT_SHARE_LEDGER:join(privateDir,'shares.jsonl'),
   WG_SHARE_ADMIN_ORIGIN:`https://localhost:${port+2}`,WG_SHARE_ADMIN_PORT:String(port+2),WG_SHARE_ADMIN_TOKEN_FILE:join(privateDir,'share-admin-token'),
   WG_ACCOUNT_TLS_KEY:tlsKey,WG_ACCOUNT_TLS_CERT:tlsCert,WG_CONTENT_GATE:'1',WG_ALL_ENGINES:'1',WG_ONS_PILOT:'1',WG_ONS_CLOUD:'1',WG_MEDIA_ROOT:media,
@@ -82,7 +82,7 @@ async function prepare(){
   WG_RESOURCE_ROOT:join(privateDir,'empty-games'),WG_PLAYER_MEDIA_ROOT:join(privateDir,'empty-games'),WG_DEPLOYMENT_MODE:'preview',MEILI_INDEX_UID:index,WG_STATE_DIR:join(privateDir,'state'),
   NODE_USE_ENV_PROXY:'1',WG_PREVIEW_CAS_MANIFEST_ORIGIN:'https://wg.saop.cc',WG_PREVIEW_CAS_MANIFEST_DIRECTORY:join(privateDir,'manifests'),
  });
- if(['dashboard-20261114','dashboard-release-20261114','orpc-20261114','scalar-20261115'].includes(task)&&await exists(join(privateDir,'admin-ids')))env.WG_ADMIN_USER_IDS=(await readFile(join(privateDir,'admin-ids'),'utf8')).trim();
+ if(['dashboard-20261114','dashboard-release-20261114','orpc-20261114','internal-stats-20261114','oxc-runtime-20261115','scalar-20261115'].includes(task)&&await exists(join(privateDir,'admin-ids')))env.WG_ADMIN_USER_IDS=(await readFile(join(privateDir,'admin-ids'),'utf8')).trim();
  if(process.env.WG_UI_UX_CACHE_ORIGIN){
   const cache=new URL(process.env.WG_UI_UX_CACHE_ORIGIN);
   if(task!=='ios-reader-auth-20261114'||cache.origin!=='https://localhost:25286')throw Error('拒绝未知的缓存预览来源');
@@ -121,7 +121,7 @@ if(mode==='serve'){
  const adminServer=serve({fetch:admin.fetch,hostname:'127.0.0.1',port:port+1,createServer,serverOptions:{key:await readFile(join(privateDir,'tls.key')),cert:await readFile(join(privateDir,'tls.crt'))}});
  await writeFile(join(privateDir,'preview-process.json'),JSON.stringify({root,pid:process.pid,origin,admin:`https://localhost:${port+1}`,startedAt:new Date().toISOString()}),{mode:0o600});
  console.log(JSON.stringify({任务:task,预览:origin,schemas,index}));
- try{process.exitCode=await run(process.execPath,['--import','tsx','accounts-server.ts'],env)}finally{await new Promise<void>(yes=>adminServer.close(()=>yes()));await catalog.close()}
+ try{process.exitCode=await run(process.execPath,['--import','@oxc-node/core/register','accounts-server.ts'],env)}finally{await new Promise<void>(yes=>adminServer.close(()=>yes()));await catalog.close()}
 }else if(mode==='verify'||mode==='red'){
  if(!await healthy())throw Error('本任务HTTPS预览尚未运行');
  const env={...process.env,WG_UI_UX_TEST_URL:origin,WG_CONTENT_TEST_URL:origin,WG_ACCOUNT_TEST_URL:origin,WG_ACCOUNT_TEST_CERT:join(privateDir,'tls.crt'),WG_TEST_URL:origin};

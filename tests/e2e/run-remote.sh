@@ -7,4 +7,4 @@ if [ -z "${TMUX:-}" ]; then
   echo '请通过本任务remote.py job/tmux运行，断线后先查询原任务状态。' >&2
   exit 1
 fi
-exec node --import tsx scripts/platform-qa.ts "$@"
+exec node --import @oxc-node/core/register scripts/platform-qa.ts "$@"

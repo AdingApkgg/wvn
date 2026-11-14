@@ -1,5 +1,6 @@
 import {AdminRoleEditor,type AdminUser} from "../accounts/admin-role-editor";
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+const StatisticsOverview=lazy(()=>import('../accounts/dashboard-statistics-view'));
 import { Link, useParams } from 'react-router';
 import { LayoutDashboard, Library, ShieldCheck, Users, ClipboardCheck, ArrowLeft, ScrollText } from 'lucide-react';
 import { AccountConsumer, type ReaderAccount } from '../accounts/account-consumer';
@@ -39,13 +40,8 @@ function DashboardPage({account}:{account:ReaderAccount}) {
     </div>
   </div>;
 }
-type OverviewData={users:number;pendingShares:number;works:number|null;versions:number|null;contentEnabled:boolean};
 function Overview({account}:{account:ReaderAccount}) {
-  const [data,setData]=useState<OverviewData|null>(null),[error,setError]=useState(''),[version,refresh]=useState(0);
-  useEffect(()=>{let active=true;setError('');void account.api.dashOverview({}).then(value=>{if(active)setData(value)}).catch(()=>{if(active)setError('概览加载失败，请重试。')});return()=>{active=false}},[account.api,version]);
-  return <main className="container"><p className="eyebrow">{brand.shortName} ADMIN</p><h1>全站概览</h1><p className="text-muted-foreground">目录、审核与用户，集中在这里管理。</p><Button variant="outline" onClick={()=>refresh(n=>n+1)}>刷新概览</Button>
-    <p role="status">{error||(!data?'正在读取数据…':'')}</p>{data&&<><div className="dashboard-stats">{[['作品',data.works],['版本',data.versions],['用户',data.users],['待审分享',data.pendingShares]].map(([label,value])=><Card key={String(label)}><CardHeader><CardTitle>{label}</CardTitle></CardHeader><CardContent><strong>{value??'暂不可用'}</strong></CardContent></Card>)}</div><div className="dashboard-shortcuts">{sections.filter(item=>item.id).map(({id,label,icon:Icon})=><Link key={id} to={'/dash/'+id}><Icon aria-hidden="true"/><span>{label}</span><span aria-hidden="true">→</span></Link>)}</div></>}
-  </main>;
+ return <Suspense fallback={<main className="container" role="status">正在加载统计概览…</main>}><StatisticsOverview account={account}/></Suspense>;
 }
 type UserRow=AdminUser & {id:string;uid:string;name:string;published:boolean;joinedAt:string;eligibility:string};
 const eligibility:Record<string,string>={unqualified:'未取得资格',qualified:'已取得资格',suspended:'资格暂停',needs_retest:'需要重测'};

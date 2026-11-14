@@ -17,4 +17,4 @@ cd "${WG_CATALOG_PREVIEW_ROOT:-/home/wvn/wg-manager-preview}"
 test "$(hostname)" = localhost
 export NODE_ENV=production
 export WG_PORT=8281 WG_ADMIN_PORT=8282 WG_HOST=127.0.0.1
-exec node --import tsx server.ts
+exec node --import @oxc-node/core/register server.ts

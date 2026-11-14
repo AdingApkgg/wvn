@@ -16,7 +16,7 @@ console.log(JSON.stringify({sourceFilesVerified:Object.keys(m.files).length}));
 '@ | & 'C:\nvm4w\nodejs\node.exe' --input-type=module
 if($LASTEXITCODE -ne 0){throw 'Source verification failed'}
 $env:Path='C:\nvm4w\nodejs;'+$env:Path
-foreach($check in @(@{name='ons-contract';command='node --import tsx --test tests/ons-pilot.test.ts'},@{name='npm-run-typecheck';command='npm run typecheck'},@{name='npm-run-build';command='npm run build'})){
+foreach($check in @(@{name='ons-contract';command='node --import "@oxc-node/core/register" --test tests/ons-pilot.test.ts'},@{name='npm-run-typecheck';command='npm run typecheck'},@{name='npm-run-build';command='npm run build'})){
  $name=$check.name
  & cmd.exe /d /c "$($check.command) > reports\$name.log 2>&1"
  if($LASTEXITCODE -ne 0){Get-Content "reports\$name.log" -Tail 45;throw "Failed: $($check.command)"}
@@ -45,7 +45,7 @@ set WG_ONS_PILOT=1
 set WG_PORT=18481
 set WG_ADMIN_PORT=18482
 set NODE_ENV=production
-C:\nvm4w\nodejs\node.exe --import tsx server.ts > reports\preview.log 2>&1
+C:\nvm4w\nodejs\node.exe --import "@oxc-node/core/register" server.ts > reports\preview.log 2>&1
 '@|Set-Content launch-preview.cmd -Encoding ASCII
 $p=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine="C:\Windows\System32\cmd.exe /d /c $root\launch-preview.cmd";CurrentDirectory=$root}
 if($p.ReturnValue -ne 0){throw 'Launch failed'}

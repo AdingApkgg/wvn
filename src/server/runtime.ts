@@ -1,6 +1,6 @@
 import { PgDatabase } from "../database/postgres.ts";
 import { Store } from "./store.ts";
-// Vite SSR 与 tsx listener 会分别加载本模块；同进程必须共用一个连接池并一起关闭。
+// Vite SSR 与 TypeScript listener 会分别加载本模块；同进程必须共用一个连接池并一起关闭。
 const runtimeKey = Symbol.for('wvn.catalog.runtime.v1');
 const runtime = globalThis as typeof globalThis & { [runtimeKey]?: Store };
 export function getStore() {

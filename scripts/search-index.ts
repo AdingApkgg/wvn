@@ -7,7 +7,7 @@ import { SearchIndexer } from '../src/search/indexer.server.ts';
 
 const [command = 'consume', batch = '100', ...extra] = process.argv.slice(2);
 if (!['init', 'rebuild', 'consume', 'worker'].includes(command) || !/^\d{1,4}$/.test(batch) || Number(batch) < 1 || Number(batch) > 1000 || extra.length)
-  throw new Error('Usage: tsx scripts/search-index.ts [init|rebuild|consume|worker] [1..1000]');
+  throw new Error('Usage: node --import @oxc-node/core/register scripts/search-index.ts [init|rebuild|consume|worker] [1..1000]');
 const databaseUrl = process.env.WG_DATABASE_URL || process.env.DATABASE_URL;
 const { MEILISEARCH_URL, MEILI_WRITE_KEY, MEILI_MASTER_KEY } = process.env;
 if (!databaseUrl || !MEILISEARCH_URL || !(MEILI_WRITE_KEY || MEILI_MASTER_KEY))

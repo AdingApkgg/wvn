@@ -236,7 +236,7 @@ test("two independent PostgreSQL writers converge on one snapshot/mode publicati
       ["writer-a", "writer-b"].map((requestId) =>
         run(process.execPath, [
           "--import",
-          "tsx",
+          "@oxc-node/core/register",
           "--input-type=module",
           "-e",
           code,

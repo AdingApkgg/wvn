@@ -109,7 +109,7 @@ if(mode==='serve'){
  const adminServer=serve({fetch:admin.fetch,hostname:'127.0.0.1',port:24484,createServer,serverOptions:{key:await readFile(join(privateDir,'tls.key')),cert:await readFile(join(privateDir,'tls.crt'))}});
  await writeFile(join(privateDir,'preview-process.json'),JSON.stringify({root,pid:process.pid,origin,admin:'https://localhost:24484',startedAt:new Date().toISOString()}),{mode:0o600});
  console.log(JSON.stringify({任务:'nsfw-20261104',预览:origin,schemas,index}));
- try{process.exitCode=await run(process.execPath,['--import','tsx','accounts-server.ts'],env)}finally{await new Promise<void>(yes=>adminServer.close(()=>yes()));await catalog.close()}
+ try{process.exitCode=await run(process.execPath,['--import','@oxc-node/core/register','accounts-server.ts'],env)}finally{await new Promise<void>(yes=>adminServer.close(()=>yes()));await catalog.close()}
 }else if(mode==='verify'||mode==='red'){
  if(!await healthy())throw Error('本任务HTTPS预览尚未运行');
  const env={...process.env,WG_NSFW_TEST_URL:origin,WG_CONTENT_TEST_URL:origin,WG_ACCOUNT_TEST_URL:origin,WG_ACCOUNT_TEST_CERT:join(privateDir,'tls.crt'),WG_TEST_URL:origin};
