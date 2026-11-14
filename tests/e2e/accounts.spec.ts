@@ -13,8 +13,9 @@ import {
 
 async function allowPrivateNames(page: Page) {
   await expect.poll(async()=>(await api(page,"/api/me")).status).toBe(200);
+  // 平台启动器不开内容门禁时没有 /api/me/content，此时受限内容本就直接可见。
   const access=await api(page,"/api/me/content");
-  expect(access.status).toBe(200);
+  if(access.status!==200)return;
   if(access.data.canViewRestricted)return;
   const attempt=(await api(page,"/api/me/content/attempts",{})).data;
   const answers=Object.fromEntries(attempt.questions.map((question:any)=>[question.id,RULE_QUESTIONS.find(rule=>rule.id===question.id)!.correctChoiceId]));

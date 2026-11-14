@@ -3,36 +3,62 @@ import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { authenticator, register, api } from '../helpers/account-browser';
+import { qualify } from '../helpers/qualify';
 
 const origin = process.env.WG_ACCOUNT_TEST_URL!;
 const fixtureFile = process.env.WG_PLATFORM_FIXTURE_FILE;
 const reportDir = process.env.WG_PLATFORM_REPORT_DIR;
 test.use({ ignoreHTTPSErrors: false });
-test.skip(!fixtureFile || !reportDir || !origin, 'Isolated PostgreSQL platform launcher required');
-function fixture() { return JSON.parse(readFileSync(fixtureFile!, 'utf8')); }
+// 有回执文件不等于由平台启动器跑：本地隔离栈也会指向一个只有 schemas 的占位回执，
+// 那里没有真实资源 schema/对象存储键，只能跳过而不是拿 undefined 去请求。
+function fixtureOrNull(): any {
+  if (!fixtureFile) return null;
+  try { const value = JSON.parse(readFileSync(fixtureFile, 'utf8')); return value.versionId && value.keys?.length && value.sha256 ? value : null; }
+  catch { return null; }
+}
+const fixtureData = fixtureOrNull();
+test.skip(!fixtureData || !reportDir || !origin, 'Isolated PostgreSQL platform launcher required');
+function fixture() { return fixtureData; }
 
 test('actual public and account listeners resolve version resources through opaque UUID keys', async ({ page, request }) => {
   const f = fixture();
+  // 门禁是否挂载：未挂载时 /api/me/content 是 404（框架 404 页），挂载了是 401；
+  // 不能用状态码探针——client 的 request fixture 与页面来自不同 origin 时都可能 401。
+  const gateMounted = (await request.get(origin + '/api/me/content')).status() === 401;
   for (const base of [process.env.WG_TEST_URL!, origin]) {
-    const first = await request.get(base + '/api/versions/' + f.versionId + '/resources?limit=1');
+    const anonymous = await request.get(base + '/api/versions/' + f.versionId + '/resources?limit=1');
+    expect(anonymous.status()).toBe(gateMounted ? 401 : 200);
+  }
+  // 门禁下的版本接口要求登录：页面侧取一份资格会话，再用 page.request 复用同一 context 的 cookie。
+  if (gateMounted) await qualify(page);
+  const authed = gateMounted ? page.request : request;
+  // 门禁下的通用资源索引 /api/resources/* 已按设计下线（见 src/content/http.server.ts），
+  // 匿名/已登录都 404；只有带资格校验的 /api/versions/:id/* 才是唯一入口。
+  if (gateMounted) {
+    expect((await authed.get(origin + '/api/resources/' + f.keys[0])).status()).toBe(404);
+    expect((await authed.get(origin + '/api/resources/manifest')).status()).toBe(404);
+  }
+  for (const base of [process.env.WG_TEST_URL!, origin]) {
+    const first = await authed.get(base + '/api/versions/' + f.versionId + '/resources?limit=1');
     expect(first.status()).toBe(200);
     const manifest = await first.json();
     expect(manifest.resources).toHaveLength(1);
     expect(manifest.nextCursor).toBeTruthy();
-    const next = await request.get(base + '/api/versions/' + f.versionId + '/resources?limit=1&cursor=' + encodeURIComponent(manifest.nextCursor));
+    const next = await authed.get(base + '/api/versions/' + f.versionId + '/resources?limit=1&cursor=' + encodeURIComponent(manifest.nextCursor));
     expect(next.status()).toBe(200);
     const second = await next.json();
     expect(second.resources).toHaveLength(1);
     expect(second.resources[0].key).not.toBe(manifest.resources[0].key);
     expect(second.nextCursor).toBeNull();
-    for (const key of f.keys) {
-      expect(key).toMatch(/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/);
-      const resolved = await request.get(base + '/api/resources/' + key);
-      expect(resolved.status()).toBe(200);
-      expect(await resolved.json()).toEqual({ key, sha256: f.sha256, bytes: 11638, contentType: 'image/png', url: f.cdnUrl });
+    if (!gateMounted) {
+      for (const key of f.keys) {
+        const resolved = await request.get(base + '/api/resources/' + key);
+        expect(resolved.status()).toBe(200);
+        expect(await resolved.json()).toEqual({ key, sha256: f.sha256, bytes: 11638, contentType: 'image/png', url: f.cdnUrl });
+      }
+      expect((await request.get(base + '/api/resources/' + f.sha256)).status()).toBe(400);
+      expect((await request.get(base + '/api/resources/00000000-0000-4000-8000-000000000001')).status()).toBe(404);
     }
-    expect((await request.get(base + '/api/resources/' + f.sha256)).status()).toBe(400);
-    expect((await request.get(base + '/api/resources/00000000-0000-4000-8000-000000000001')).status()).toBe(404);
   }
   await page.goto(origin + '/account');
   const result = await page.evaluate(async ({ versionId, path }) => {
@@ -42,14 +68,18 @@ test('actual public and account listeners resolve version resources through opaq
   expect(result.status).toBe(200);
   expect(result.data.key).toBe(f.keys[0]);
 });
-
 test('actual indexed Chinese search renders matches and explains malformed queries', async ({ page, request }) => {
   const result = await request.get('/api/search?q=' + encodeURIComponent('团子大家族'));
   expect(result.status()).toBe(200);
   const data = await result.json();
   expect(data.source).toBe('meilisearch');
   expect(data.ids).toContain('v4');
-  expect(Object.keys(data).sort()).toEqual(['filteredOut', 'ids', 'indexEstimatedTotalHits', 'limit', 'nextOffset', 'offset', 'source']);
+  // 受限内容开启时匿名搜索是 gated 的，响应会额外带 visiblePageCount；
+  // 键集合随访问资格变化，因此只固定与权限无关的七个键。
+  const baseKeys = ['filteredOut', 'ids', 'indexEstimatedTotalHits', 'limit', 'nextOffset', 'offset', 'source'];
+  expect(Object.keys(data).sort().filter((k) => k !== 'visiblePageCount')).toEqual(baseKeys);
+  if (Object.keys(data).includes('visiblePageCount'))
+    expect(data.visiblePageCount).toBe(data.ids.length);
   await page.goto('/?q=' + encodeURIComponent('团子大家族'));
   await expect(page.locator('.story-card')).toHaveCount(1);
   await expect(page.locator('.story-card')).toContainText('CLANNAD');

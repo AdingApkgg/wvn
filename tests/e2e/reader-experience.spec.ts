@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { authenticator, register, api } from "../helpers/account-browser";
+import { cssColorInPage, composite, contrastRatio, type Rgba } from "../helpers/css-color";
 import { RULE_QUESTIONS } from "../../src/content/quiz";
 test.afterEach(async({page},info)=>{await page.screenshot({path:info.outputPath("screen.png"),fullPage:false});});
 
@@ -190,19 +191,28 @@ test("目录在各断点保持自适应布局、触控尺寸和完整搜索条�
 });
 
 test("普通文字、主要操作和导航达到文字对比度目标",async({page})=>{
-  await page.goto("/");
-  const contrasts=await page.evaluate(()=>{
-    function rgba(value:string){const values=value.match(/[\d.]+/g)?.map(Number)??[];return [values[0]??0,values[1]??0,values[2]??0,values[3]??1];}
-    function over(fg:number[],bg:number[]){return [0,1,2].map(i=>fg[i]*fg[3]+bg[i]*(1-fg[3])).concat(1);}
-    function luminance(rgb:number[]){const v=rgb.slice(0,3).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4});return v[0]*.2126+v[1]*.7152+v[2]*.0722;}
-    return [...document.querySelectorAll('.catalog-description,.primary-navigation a,.search-row button,.content-mode-entry')].map(element=>{
-      const layers:number[][]=[];for(let node:Element|null=element;node;node=node.parentElement)layers.push(rgba(getComputedStyle(node).backgroundColor));
-      const bg=layers.reverse().reduce((bg,layer)=>over(layer,bg),[255,255,255,1]);
-      const text=over(rgba(getComputedStyle(element).color),bg),a=luminance(text),b=luminance(bg);
-      return {label:element.textContent,ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+  const samples=[
+    ["/",".catalog-description,.primary-navigation a,.search-row button,.content-mode-entry"],
+    ["/10597/",".work-breadcrumb a,.work-heading p,.card-meta,[data-slot=button][data-variant=link]"],
+    ["/account",".account-sections a,.account-sections p,.primary-navigation a"],
+  ];
+  let total=0;
+  for(const [path,selector] of samples){
+    await page.goto(path);
+    const sampled=await page.evaluate(([selector,pagePath,parseColorSource])=>{const parseColor=new Function(`return (${parseColorSource})()`)();
+      return [...document.querySelectorAll(selector)].filter(element=>element.textContent?.trim()).map(element=>{
+        const layers:Rgba[]=[];for(let node:Element|null=element;node;node=node.parentElement)layers.push(parseColor(getComputedStyle(node).backgroundColor));
+        return {label:`${pagePath} ${element.textContent?.trim().slice(0,20)}`,text:parseColor(getComputedStyle(element).color),layers};
+      });
+    },[selector,path,cssColorInPage.toString()]);
+    const contrasts=sampled.map(({label,text,layers})=>{
+      const bg=layers.reverse().reduce<Rgba>((base,layer)=>composite(layer,base),[255,255,255,1]);
+      return {label,ratio:contrastRatio(composite(text,bg),bg)};
     });
-  });
-  expect(contrasts.length).toBeGreaterThan(5);for(const item of contrasts)expect(item.ratio,item.label??"").toBeGreaterThanOrEqual(4.5);
+    total+=contrasts.length;
+    for(const item of contrasts)expect(item.ratio,item.label??"").toBeGreaterThanOrEqual(4.5);
+  }
+  expect(total).toBeGreaterThan(15);
 });
 
 test("登录后回到原作品，加入书架仍由用户主动执行",async({page})=>{

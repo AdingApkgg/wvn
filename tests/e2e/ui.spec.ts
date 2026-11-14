@@ -1,8 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { qualify } from "../helpers/qualify";
 
 test("exit confirmation traps focus and cancel restores the story control", async ({
   page,
 }) => {
+  await qualify(page);
   await page.route("**/atri/**", (route) =>
     route.fulfill({
       body: "<title>ATRI resource fixture</title>",
@@ -10,9 +12,15 @@ test("exit confirmation traps focus and cancel restores the story control", asyn
     }),
   );
   await page.goto("/27448/1/");
-  const back = page.locator(".player-bar button").first();
+  const start = page.locator('[data-testid="reader-start"]');
+  await expect(start).toBeVisible({ timeout: 15_000 });
+  await start.click();
+  await expect(
+    page.locator(".reader-controls").getByRole("button", { name: "结束阅读" }),
+  ).toBeVisible({ timeout: 20_000 });
+  const back = page.getByRole("link", { name: "返回作品" });
   await back.click();
-  const dialog = page.getByRole("alertdialog", { name: "离开当前故事？" });
+  const dialog = page.getByRole("alertdialog", { name: "保存后离开故事？" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "继续阅读" })).toBeFocused();
   for (let i = 0; i < 5; i++) {

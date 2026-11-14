@@ -28,3 +28,6 @@ __pycache__/
 data/metadata-sources/
 data/metadata-collected.json
 data/metadata-plan.json
+
+# 本机/构建机自备的引擎资源夹具（体积大，按 README 由使用者自行准备）
+fixtures/

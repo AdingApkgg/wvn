@@ -9,9 +9,16 @@ import { Auth } from "./src/server/auth.ts";
 import { fileResponse } from "./src/server/resources.ts";
 import { mountPublicPlatform } from "./src/platform/public.server.ts";
 import {createContentFetch} from './src/content/http.server.ts';
-import {contentGateEnabled} from './src/content/access.server.ts';
+import {configureContentAccessProxy,contentGateEnabled} from './src/content/access.server.ts';
+import {contentAccessProxy} from './src/content/access-proxy.server.ts';
 const store = getStore();
 await store.ready;
+// 账号入口与公开入口分开部署时（平台QA、双栈预览）资格只能回源账号服务；
+// 单 origin 生产不设它，仍旧走账号进程内的同进程读取器。
+const accountOrigin = process.env.WG_ACCOUNT_ORIGIN?.trim() || '';
+if (contentGateEnabled() && accountOrigin) {
+  configureContentAccessProxy(contentAccessProxy(accountOrigin));
+}
 const auth = new Auth();
 const stateDir = resolve(process.env.WG_STATE_DIR ?? "state");
 mkdirSync(stateDir, { recursive: true });
@@ -24,6 +31,7 @@ const pub = createPublicApp(
   root,
   resolve(process.env.WG_MEDIA_ROOT ?? "media"),
   publicApi,
+  accountOrigin || undefined,
 );
 const admin = createAdminApp(
   store,

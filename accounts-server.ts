@@ -88,6 +88,11 @@ if (process.env.WG_ACCOUNT_UI === "1") {
   service.app.get("/s/:shareId", (c) =>
     handler(c.req.raw, new RouterContextProvider()),
   );
+  // 路由发现端点：懒加载的 s/:shareId 组件靠它取 manifest。它属于框架能力，
+  // 不能只在云播放器开关下挂，否则没开 WG_ONS_CLOUD 的预览栈一进 /s/… 就 404。
+  service.app.get("/__manifest", (c) =>
+    handler(c.req.raw, new RouterContextProvider()),
+  );
   if(process.env.WG_ONS_CLOUD==='1'){
     if(process.env.WG_ONS_PILOT!=='1')throw new Error('Cloud player requires the sandbox pilot');
     if(process.env.WG_B2_CONTROL_FILE){
@@ -102,7 +107,6 @@ if (process.env.WG_ACCOUNT_UI === "1") {
       registerOnsPilot(service.app,required('WG_RESOURCE_ROOT'));
       if(process.env.WG_ALL_ENGINES==='1')registerOtherPlayers(service.app,required('WG_RESOURCE_ROOT'));
     }
-    service.app.get('/__manifest',c=>handler(c.req.raw,new RouterContextProvider()));
     // This credentialed listener never mounts the legacy static-game server.
     // Only the audited sandbox versions and their trusted work pages are allowed.
     for(const path of trustedOnsPaths())service.app.get(path,c=>handler(c.req.raw,new RouterContextProvider()));

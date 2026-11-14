@@ -16,7 +16,7 @@ import {contentGateEnabled,getContentAccess} from '../content/access.server.ts';
 import {projectWork,accessError} from '../content/policy.ts';
 import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
-import {useLayoutEffect} from 'react';
+import {useLayoutEffect,useRef,useState} from 'react';
 import { splitSynopsis } from "../lib/reader-experience";
 import { ShelfButton } from "../accounts/shelf-button";
 import {useLocalReading} from '../accounts/local-reading';
@@ -68,6 +68,19 @@ export default function Work() {
   const content = useContentAccess();
   const projected = 'restricted' in loaded ? null : content.enabled ? projectWork(loaded,content.access) : loaded;
   const localReading=useLocalReading(projected?.versions??[]);
+  // 原生 select 的 defaultValue 只在挂载时生效：提交筛选后 loader 数据更新、组件不重建，
+  // 控件会回落到「全部版本」，与 URL 脱节。用 key 强制重建并保留用户当前选择。
+  const [filters,setFilters]=useState(()=>
+    'restricted' in loaded?{version:'',progress:''}:{version:loaded.saveVersion,progress:loaded.saveProgress});
+  const filterKey=useRef('');
+  if(!('restricted' in loaded)){
+    const next=JSON.stringify([loaded.saveVersion,loaded.saveProgress]);
+    if(filterKey.current!==next){
+      filterKey.current=next;
+      if(next!==JSON.stringify([filters.version,filters.progress]))
+        setFilters({version:loaded.saveVersion,progress:loaded.saveProgress});
+    }
+  }
   const title = projected?.title ?? '受限内容';
   const blocked = !projected;
   useLayoutEffect(()=>{
@@ -146,8 +159,8 @@ export default function Work() {
             <select
               id="share-version-filter"
               name="saveVersion"
-              key={w.saveVersion}
-              defaultValue={w.saveVersion}
+              value={filters.version}
+              onChange={(e) => setFilters((f) => ({ ...f, version: e.target.value }))}
             >
               <option value="">全部版本</option>
               {w.versions.map((v) => (
@@ -160,8 +173,8 @@ export default function Work() {
             <select
               id="share-progress-filter"
               name="saveProgress"
-              key={w.saveProgress}
-              defaultValue={w.saveProgress}
+              value={filters.progress}
+              onChange={(e) => setFilters((f) => ({ ...f, progress: e.target.value }))}
             >
               <option value="">全部进度</option>
               {Object.entries(SHARE_PROGRESS).map(([value, label]) => (

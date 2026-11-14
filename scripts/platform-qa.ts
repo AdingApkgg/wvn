@@ -15,7 +15,9 @@ import { VersionResources } from '../src/platform/version-resources.server.ts';
 import { MeiliClient } from '../src/search/meili.server.ts';
 
 const source = resolve('.');
-if (process.platform !== 'linux' || hostname() !== 'localhost' || source !== '/home/i/wvn-platform-20261029/source' || !process.env.TMUX)
+// 本任务目录是该套件的默认归属目录；换目录（例如在重设计分支上跑）时用 WG_PLATFORM_SOURCE 显式声明。
+const ownSource = process.env.WG_PLATFORM_SOURCE ?? '/home/i/wvn-platform-20261029/source';
+if (process.platform !== 'linux' || hostname() !== 'localhost' || source !== ownSource || !process.env.TMUX)
   throw new Error('平台QA只能在已授权构建机本任务目录的持久化tmux中运行');
 const extra = process.argv.slice(2);
 if (extra.length && !(extra.length === 2 && extra[0] === '--grep')) throw new Error('Only an optional --grep pattern is supported');
@@ -172,6 +174,13 @@ try {
     WG_RESOURCE_CACHE_PREFIX: prefix + 'resources:', WG_ROOMS_REDIS_PREFIX: prefix + 'rooms:', REDIS_URL: redisUrl,
     MEILISEARCH_URL: meiliUrl, MEILI_INDEX_UID: indexUid, MEILI_MASTER_KEY: meiliKey, MEILI_SEARCH_KEY: meiliKey, MEILI_WRITE_KEY: meiliKey, SEARCH_WORKER_IDLE_MS: '200',
     WG_PORT: '4281', WG_ADMIN_PORT: '4282', WG_STATE_DIR: join(state, 'catalog-state'),
+    // 只注入本轮 WG_*，所以引擎开关必须在这里显式给：目录用例要走播放器而不是旧版 iframe。
+    WG_ALL_ENGINES: '1', WG_ONS_PILOT: '1',
+    // 内容门禁开着才挂 /api/me/content/*、/api/share-admin/content/*：分享分级用例
+    // 需要它，而 qualify 在门禁关闭时才退化成 404 直通。
+    WG_CONTENT_GATE: '1',
+    // 一轮要注册二十多个账号，better-auth 默认 40 次/60 秒必然 429；生产默认不变。
+    WG_AUTH_RATE_MAX: '1000', WG_AUTH_RATE_WINDOW: '60',
     WG_RESOURCE_ROOT: join(source, 'fixtures/resources'), WG_MEDIA_ROOT: join(source, 'media'), WG_INVENTORY_FILE: join(source, 'data/sources.json'),
     WG_ACCOUNT_BIND: '127.0.0.1', WG_ACCOUNT_PORT: '4283', WG_ACCOUNT_ORIGIN: 'https://localhost:4283', WG_ACCOUNT_UI: '1', WG_ROOMS_ENABLED: '1',
     WG_ACCOUNT_BLOBS: join(state, 'blobs'), WG_ACCOUNT_DELETION_LEDGER: join(state, 'deletions.jsonl'), WG_ACCOUNT_SHARE_LEDGER: join(state, 'share-revocations.jsonl'),
@@ -190,6 +199,9 @@ try {
   await chmod(tlsKey, 0o600); await chmod(tlsCert, 0o600);
   await step('initialize-schemas', ['--import', 'tsx', 'scripts/initialize-platform.ts']);
   await step('seed-qa-catalog', ['--import', 'tsx', 'scripts/seed.ts']);
+  // 门禁开着时 /api/account-catalog 会按分级投影；没导入分级就全是 unknown，
+  // 存档页的版本下拉会是空的。这里用真实分级数据补上。
+  await step('import-content-classification', ['--import', 'tsx', 'scripts/import-content-classification.ts', 'data/content-classification.json', '--apply']);
   const catalog = new Store(new PgDatabase(databaseUrl, { schema: schemas.catalog }));
   const resources = new PgDatabase(databaseUrl, { schema: schemas.resources });
   try {

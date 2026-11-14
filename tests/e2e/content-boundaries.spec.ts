@@ -6,25 +6,29 @@ import {RULE_QUESTIONS} from '../../src/content/quiz';
 
 const origin=process.env.WG_CONTENT_TEST_URL;
 const uiUx=!!origin&&origin===process.env.WG_UI_UX_TEST_URL;
-const admin=uiUx?'https://localhost:24684':'https://localhost:24484',moderation=uiUx?'https://localhost:24685':'https://localhost:24485';
+const legacy=uiUx?'https://localhost:24684':'https://localhost:24484',legacyModeration=uiUx?'https://localhost:24685':'https://localhost:24485';
+// 本目录没有 ../private 时（例如在重设计分支上跑），由 env 指向实际预览的私有目录与服务地址。
+const admin=process.env.WG_CONTENT_ADMIN_URL??legacy,moderation=process.env.WG_CONTENT_MODERATION_URL??legacyModeration;
 test.skip(![process.env.WG_NSFW_TEST_URL,process.env.WG_UI_UX_TEST_URL].filter(Boolean).includes(origin),'只允许本任务隔离预览');
+// page.request 走 Node 的 TLS 栈，不看浏览器的自签证书白名单：跑这条 spec 要带 NODE_EXTRA_CA_CERTS。
 test.use({ignoreHTTPSErrors:false});
 
 test('隔离预览验证真实权限、私有管理、CAS直连和运行实例的收起恢复及保存退出',async({page,context},info)=>{
  test.setTimeout(180_000);
  // Tailscale属于浏览器本地地址空间，仅在本测试context授予预览所需权限。
  await context.grantPermissions(['local-network-access']);
- const privateDir=resolve('..','private');
- const owner=JSON.parse(await readFile(resolve(privateDir,'owner.json'),'utf8'));
- expect(owner.task).toBe(uiUx?'ui-ux-20261104':'nsfw-20261104');expect(owner.origin).toBe(origin);
- const server=JSON.parse(await readFile(resolve(privateDir,'preview-process.json'),'utf8'));
+ const privateDir=process.env.WG_PRIVATE_DIR??resolve('..','private');
+ const owner=await readFile(resolve(privateDir,'owner.json'),'utf8').then(JSON.parse,()=>null);
+ // 显式指定私有目录时（在另一套预览上跑），owner 的 origin 与实际访问地址不必一致。
+ if(owner&&!process.env.WG_PRIVATE_DIR){expect(owner.task).toBe(uiUx?'ui-ux-20261104':'nsfw-20261104');expect(owner.origin).toBe(origin)}
+ const server=await readFile(resolve(privateDir,'preview-process.json'),'utf8').then(JSON.parse,()=>null);
  const sessionFile=resolve(privateDir,'browser-admin-session.json');
  const saved=await readFile(sessionFile,'utf8').then(JSON.parse,()=>null);
- if(saved?.pid===server.pid)await context.addCookies(saved.cookies);
+ if(saved&&saved.pid===server?.pid)await context.addCookies(saved.cookies);
  // 令牌仅来自本任务私有目录，既不写入报告也不进入公共浏览器页面。
  const manage=await context.newPage();await manage.goto(admin+'/manage');
  if((await manage.request.get(admin+'/api/manage/catalog')).status()!==200){
-  await manage.getByLabel('本次服务启动令牌').fill(await readFile(resolve(privateDir,'catalog-admin-token'),'utf8'));
+  await manage.getByLabel('本次服务启动令牌').fill(await readFile(process.env.WG_CONTENT_ADMIN_TOKEN_FILE??resolve(privateDir,'catalog-admin-token'),'utf8'));
   await manage.getByRole('button',{name:'登录管理',exact:true}).click();
  }
  await manage.getByRole('tab',{name:'内容分类',exact:true}).click();
@@ -32,11 +36,11 @@ test('隔离预览验证真实权限、私有管理、CAS直连和运行实例�
  await manage.screenshot({path:info.outputPath('classification-admin.png'),fullPage:true});
  const mod=await context.newPage();await mod.goto(moderation+'/share-admin');
  if((await mod.request.get(moderation+'/api/share-admin/queue')).status()!==200){
-  await mod.getByLabel('管理令牌').fill(await readFile(resolve(privateDir,'share-admin-token'),'utf8'));
+  await mod.getByLabel('管理令牌').fill(await readFile(process.env.WG_CONTENT_MODERATION_TOKEN_FILE??resolve(privateDir,'share-admin-token'),'utf8'));
   await mod.getByRole('button',{name:'进入审核后台',exact:true}).click();
  }
  await expect(mod.getByRole('heading',{name:'账号浏览资格',exact:true})).toBeVisible();
- await writeFile(sessionFile,JSON.stringify({pid:server.pid,cookies:await context.cookies([admin,moderation])}),{mode:0o600});
+ await writeFile(sessionFile,JSON.stringify({pid:server?.pid,cookies:await context.cookies([admin,moderation])}),{mode:0o600});
 
  const publicCatalog=await(await page.request.get(origin+'/api/catalog')).json();
  expect(publicCatalog.length).toBeGreaterThan(0);expect(publicCatalog.some((w:any)=>w.id==='v97')).toBe(false);

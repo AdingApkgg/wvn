@@ -7,9 +7,11 @@ import { Conflict, Store } from "./store.ts";
 import { Auth } from "./auth.ts";
 import { fileResponse } from "./resources.ts";
 import { registerOnsPilot } from "../ons/http.server.ts";
+import { registerOtherPlayers } from "../player/http.server.ts";
 import { pilotForVersion } from "../ons/pilots.server.ts";
 import { registerContentClassificationAdmin } from "../content/classification-admin.server.ts";
 import {contentGateEnabled,getContentAccess} from '../content/access.server.ts';
+import {mountContentProxy} from '../content/access-proxy.server.ts';
 import {versionAccessError} from '../content/policy.ts';
 function base() {
   const app = new Hono();
@@ -40,9 +42,15 @@ export function createPublicApp(
   root: string,
   mediaRoot?: string,
   publicApi?: Hono,
+  // 与账号入口分开部署时公开站自己没有会话，/api/me* 需要回源账号服务。
+  accountOrigin?: string,
 ) {
   const app = base();
   if (process.env.WG_ONS_PILOT === "1") registerOnsPilot(app, root);
+  // 打开全部引擎时，公开监听也要自带播放器运行时：阅读页会在同源 iframe 里加载
+  // `/__player/runtime/…`，否则只有账号监听有这套路由，预览就只剩 404。
+  if (process.env.WG_ALL_ENGINES === "1")
+    registerOtherPlayers(app, root, { mediaRoot });
   app.get("/favicon.ico", (c) =>
     c.body(
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#13151b"/><text x="32" y="42" fill="#d3b9a1" text-anchor="middle" font-family="serif" font-size="30">W</text></svg>',
@@ -82,6 +90,8 @@ export function createPublicApp(
     return w?.versions.length ? c.json(w) : c.notFound();
   });
   if (publicApi) app.route("/", publicApi);
+  // 必须在下面的通配中间件之前注册：它会把 /api/* 直接 404 掉，不再 next()。
+  if (accountOrigin) mountContentProxy(app, accountOrigin);
   app.use("*", async (c, next) => {
     if (c.req.method !== "GET" && c.req.method !== "HEAD") return c.notFound();
     const path = new URL(c.req.url).pathname;

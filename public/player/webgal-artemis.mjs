@@ -41,12 +41,17 @@ export async function prepareWebgalResolver(resolver,{fetcher=fetch}={}){
   const url=new URL(String(value),resolver.base);url.pathname=url.pathname.replace(/\/+$/,'');
   const base=new URL(resolver.base);
   if(url.origin===base.origin&&(url.pathname==='/'||url.pathname===base.pathname.replace(/\/$/,'')))return true;
+  // 包内核心文件没有独立对象。仅降级源清单登记过的包内路径（scenario/、system/、system.ini…），
+  // 其余未登记路径（引擎二进制等）继续拒绝，避免把真实错误静默成 404。
+  const local=url.origin===base.origin&&url.pathname.startsWith(base.pathname)?url.pathname.slice(base.pathname.length):null;
   let path;try{path=resolver.path(url.href)}catch(error){
    // 目录探测可带重复斜线；仅当前游戏 res/ 范围返回不存在，不能放宽 URL 边界。
    if(url.origin===base.origin&&url.pathname.startsWith(base.pathname+'res/'))return true;
+   if(local&&hashes.has(local))return true;
    throw Error(error.message+' ['+String(value).slice(0,300)+']',{cause:error});
   }
-  return (path==='res'||path.startsWith('res/'))&&!resolver.files.has(path)&&!aliases.has(path);
+  if(path==='res'||path.startsWith('res/'))return !resolver.files.has(path)&&!aliases.has(path);
+  return local!==null&&hashes.has(path)&&!resolver.files.has(path)&&!aliases.has(path);
  }};
 }
 export function installWebgalProbeFallback(win,resolver){

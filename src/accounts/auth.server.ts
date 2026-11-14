@@ -42,7 +42,14 @@ export function makeAuth(
       disableOriginCheck: false,
       disableCSRFCheck: false,
     },
-    rateLimit: { enabled: true, storage: "database", window: 60, max: 40 },
+    // 全量 e2e 会在同一回环 peer 上连发 passkey 注册，40 次/60 秒在生产够用，
+    // 但一次跑完二十多个注册用例必然 429；预览可用 env 放宽，生产保持默认。
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      window: Number(process.env.WG_AUTH_RATE_WINDOW ?? 60),
+      max: Number(process.env.WG_AUTH_RATE_MAX ?? 40),
+    },
     logger: { disabled: true },
     databaseHooks: {
       user: {

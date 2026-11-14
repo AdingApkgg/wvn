@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { authenticator, register, api } from "../helpers/account-browser";
+import { qualifyOnly, qualifySession } from "../helpers/qualify";
 const origin = process.env.WG_SHARING_TEST_URL,
   publicOrigin = process.env.WG_SHARING_PUBLIC_URL,
   adminOrigin = process.env.WG_SHARING_ADMIN_URL;
@@ -9,14 +10,18 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
   page,
   browser,
 }) => {
+  test.setTimeout(180_000);
   await page.goto(origin + "/account");
   await authenticator(page);
   expect((await register(page, "Sharing Author")).status).toBe(200);
+  // 未取得受限内容资格时存档名会脱敏（显示「文件 1」），分享按钮也不渲染。
+  await qualifySession(page);
   await page.goto(origin + "/account?tab=saves");
   const select = page.getByRole("combobox", { name: "存档所属版本" });
   await expect(select).toBeVisible();
   const versionId = await select.locator("option").nth(1).getAttribute("value");
   await select.selectOption(versionId!);
+  await page.locator(".backup-upload > summary").click();
   await page.getByLabel("游戏导出的存档文件").setInputFiles({
     name: "slot.dat",
     mimeType: "application/octet-stream",
@@ -46,12 +51,24 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
   const other = await browser.newContext({ ignoreHTTPSErrors: false });
   try {
     const recipient = await other.newPage();
+    recipient.on("pageerror", (e) => console.log("[recipient pageerror]", (e.stack || e.message).slice(0, 3000)));
+    recipient.on("console", (m) => { if (m.type() === "error") console.log("[recipient console]", m.text().slice(0, 1500)); });
+    recipient.on("response", (r) => { if (r.status() >= 400) console.log("[recipient fail]", r.status(), r.url()); });
     await recipient.goto(url);
     await authenticator(recipient);
     await recipient.getByText("还没有账号？", {exact:true}).click();
     await expect(recipient.locator("#share-signup-invite")).toHaveCount(0);
     await recipient.getByLabel("昵称", {exact:true}).fill("Sharing Recipient");
     await recipient.getByRole("button", {name:"创建通行密钥并注册", exact:true}).click();
+    // 注册是客户端 fetch，click 立即返回；先把会话等到真的生效，
+    // 否则下面 qualifyOnly 的 404（门禁关闭）会把「还没登录」误判成「无需登录」。
+    await expect
+      .poll(async () => (await api(recipient, "/api/me")).status, { timeout: 15_000 })
+      .toBe(200);
+    // 分享内容属受限等级，受赠方注册后仍需自行取得资格并主动开启显示，
+    // 否则分享页只渲染 ContentGate 而看不到存档卡片。
+    await qualifyOnly(recipient);
+    await recipient.reload();
     await expect(recipient.getByRole("button", {name:"保存到我的备份", exact:true})).toBeVisible();
     await expect(
       recipient.getByRole("heading", { name: "A quiet chapter", exact: true }),
@@ -91,12 +108,17 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
         .getByLabel("管理令牌")
         .fill(process.env.WG_SHARING_ADMIN_TOKEN!);
       await manager.getByRole("button", { name: "进入审核后台" }).click();
+      // 登录是 fetch，click 不会等响应；必须先看到队列渲染，cookie 才一定已落地。
       await expect(
-        manager.getByText("Public chapter", { exact: true }),
+        manager.getByText("Public chapter", { exact: true }).first(),
       ).toBeVisible();
+      moderationCookie = (await admin.cookies())
+        .map((c) => `${c.name}=${c.value}`)
+        .join("; ");
       const reviewCard = manager
         .locator("[data-share-id]")
-        .filter({ hasText: "Public chapter" });
+        .filter({ hasText: "Public chapter" })
+        .first();
       await expect(
         reviewCard.getByText("slot.dat", { exact: true }),
       ).toBeVisible();
@@ -196,6 +218,23 @@ test("link and public shares can be published, moderated, claimed and withdrawn 
       const afterEdit = await after.json();
       expect(afterEdit.progress).toBe("complete");
       expect(afterEdit.spoiler).toBe(false);
+      // 文案分级独立于发布审核：未分级的分享（unknown）对匿名访客一律不可见，
+      // 公开列表只剩空态。必须先按当前文案修订显式判为 SFW。
+      const revised = (
+        await api(page, "/api/me/save-shares")
+      ).data.items.find((x: { id: string }) => x.id === ownPublic.id);
+      const classified = await page.request.patch(
+        adminOrigin + "/api/share-admin/content/shares/" + ownPublic.id,
+        {
+          headers: { origin: adminOrigin!, cookie: moderationCookie },
+          data: {
+            suitability: "sfw",
+            revision: revised.metadataRevision,
+            reason: "Synthetic text classification",
+          },
+        },
+      );
+      expect(classified.status()).toBe(200);
     } finally {
       moderationCookie=(await admin.cookies()).map(c=>`${c.name}=${c.value}`).join("; ");
       await admin.close();
@@ -322,6 +361,11 @@ test("anonymous invalid links and public moderation endpoints stay isolated on n
 test("public version and progress filters persist through the next page and reset its cursor on submit", async ({
   page,
 }) => {
+  // 该用例直连隔离库里造 70 条分页样本，只有平台启动器会准备好这套库与回执文件。
+  test.skip(
+    !process.env.WG_PLATFORM_FIXTURE_FILE || !process.env.WG_ACCOUNT_DATABASE_URL,
+    "Needs the isolated account database from the platform launcher",
+  );
   const { PgDatabase } = await import('../../src/database/postgres.ts');
   const { readFileSync } = await import('node:fs');
   const database = process.env.WG_ACCOUNT_DATABASE_URL!;
@@ -344,10 +388,12 @@ test("public version and progress filters persist through the next page and rese
   await page.goto(origin + "/account");
   await authenticator(page);
   expect((await register(page, "Filter Fixture Author")).status).toBe(200);
+  await qualifySession(page);
   await page.goto(origin + "/account?tab=saves");
   await page
     .getByRole("combobox", { name: "存档所属版本" })
     .selectOption(one.id);
+  await page.locator(".backup-upload > summary").click();
   await page.getByLabel("游戏导出的存档文件").setInputFiles({
     name: "filter-fixture.dat",
     mimeType: "application/octet-stream",
@@ -387,7 +433,7 @@ test("public version and progress filters persist through the next page and rese
       const v = n % 3 === 0 ? two : one;
       const progress = n % 3 === 1 ? "route" : "complete";
       await db.prepare(
-        "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload) SELECT $1,owner,profile,generation,revision,$2,$3,'public',NULL,'active',NULL,files,$4,NULL,1,$5,$6,payload FROM wg_save_shares WHERE id=$7",
+        "INSERT INTO wg_save_shares (id,owner,profile,generation,revision,version,work,mode,secret_hash,state,expires,files,approved,pending,metadata_revision,created,request_id,payload,content_suitability,content_reviewed_revision) SELECT $1,owner,profile,generation,revision,$2,$3,'public',NULL,'active',NULL,files,$4,NULL,1,$5,$6,payload,'sfw',1 FROM wg_save_shares WHERE id=$7",
       ).run(
         id,
         v.id,

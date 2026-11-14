@@ -10,20 +10,38 @@
 
 ## 视觉变量
 
-| 变量或规则 | 用途 |
-| --- | --- |
-| `--background / --foreground` | 页面与正文 |
-| `--card / --card-foreground` | 任务卡片、独立编辑区 |
-| `--primary / --primary-foreground` | 当前主要操作与强调 |
-| `--muted / --muted-foreground` | 辅助信息与背景 |
-| `--success / --warning / --info / --destructive` | 成功、注意、信息与失败语义；同时有文字说明 |
-| `--input / --ring` | 控件边界与键盘焦点 |
-| `--control-height: 44px` | 常用交互目标最低高度；图标按钮也至少 44px 宽 |
-| 4/8/12/16/24/32/48/64px | 间距尺度 |
-| 正文 16px、控件 14–16px、辅助 13px、标签 12px | 字体层级 |
-| 页面最大 1200px、介绍最大 68ch、普通编辑区最大 640px | 阅读与操作宽度 |
+设计语汇是「暖纸 / 发丝线」：层级靠明度差和半透明发丝线建立，不靠阴影和厚描边；暖金只承担一个角色（当前可操作的主路径）；元数据用等宽字体与字距，和正文区分。衬线只用于站点名、页面标题与作品名，界面文字一律无衬线。
 
-深色暖金是当前产品主题。不要在新组件中临时定义另一套配色或加载外部字体。图片占位不能被描述为图片已通过审核；显示范围由服务端策略与当前内容上下文共同决定。
+令牌正本在 `src/ui-system.css` 的 `:root`，本节只列语义：
+
+| 变量 | 用途 |
+| --- | --- |
+| `--paper / --paper-raised / --paper-field / --paper-wash` | 四级纸张：页底、任务卡片、输入与占位场、悬停与选中 |
+| `--ink / --ink-soft / --ink-faint` | 正文、辅助说明、元数据与标签 |
+| `--hairline / --hairline-strong` | 发丝线；默认 12% 墨色，强调 20% |
+| `--gold / --gold-bright / --gold-dim / --gold-veil` | 主操作、悬停、弱化强调、选中底色 |
+| `--success / --warning / --info / --destructive` | 语义色；必须同时有文字说明，不单独承载含义 |
+| `--background / --foreground / --card / --popover / --primary / --secondary / --muted / --accent / --border / --input / --ring` | shadcn 令牌，全部映射到上面几组，不要另设色值 |
+| `--control-height: 44px` | 常用交互目标最低高度；图标按钮也至少 44px 宽 |
+| `--chrome-height: 61px` | 页头高度，与 `scroll-padding-top` 共用 |
+| `--shell-gutter / --pane-inset / --measure` | 页边距、卡片内衬、正文测量宽度（68ch） |
+| `--radius / --radius-card / --radius-cover / --radius-pill` | 控件、任务卡片、封面、胶囊 |
+| `--text-display / --text-title / --text-section / --text-body / --text-help / --text-micro` | 文字层级；界面最小 11px（等宽元数据） |
+| `--font-sans / --font-serif / --font-mono` | 无衬线正文、标题衬线、等宽元数据 |
+
+间距尺度为 4/8/12/16/24/32/48/64px；页面容器不超过 1200px，介绍文字不超过 `--measure`，普通编辑区不超过 640px。
+
+深色暖金是当前产品主题，暂不提供浅色主题。不要在新组件中临时定义另一套配色或加载外部字体；`MiSans` 只作为 `--font-sans` 的第二 fallback 存在，实际以 `Inter` 与系统中文字体为准。图片占位不能被描述为图片已通过审核；显示范围由服务端策略与当前内容上下文共同决定。
+
+### 组件规范
+
+- **按钮**：高度由 `--control-height` 决定（`min-h-*` + `padding-block`，不用固定 `h-*`），标签允许换行；一屏只保留一个实心主操作。`size="icon"` 为 44×44。
+- **封面墙**：`.story-card` 以 `--cover-ratio` 参与等高排布，`.card-art` 的 `aspect-ratio` 跟随原图，封面 `object-fit: contain`；横卡（Logo/超宽图）用 `.story-card-wide`。规则见[自适应封面墙](cover-gallery.md)。
+- **元数据**：`.card-meta`、`.metadata-facts span`、`.player-bar-meta` 用 `--font-mono` + 字距，最小 11px，颜色不低于 `--ink-faint`。
+- **阅读器**：`.player` 专用壳层，`.player-bar` 与页头同高；未确认内容提示时渲染 `.reader-gate` 一页纸，而不是孤立按钮。菜单、存档面板沿用引擎自身界面。
+- **作品首屏**：`.work-heading` 为封面 + 文字两列网格（有封面才加 `.has-cover`），标题、编号、互动、主操作各占明确网格位置。
+- **空状态与错误**：`.empty` 用短句 + 一个可达操作；`.reader-error` 用左侧 2px `--destructive` 竖线配文字。
+
 
 ## 操作与反馈
 
@@ -53,6 +71,6 @@
 
 验证 320、390、768、1440px，手机底栏预留安全区。作品首屏的标题、编号、互动和主操作必须有明确网格位置；不允许新增子组件落入封面宽度的隐式列。目录继承[自适应封面墙](cover-gallery.md)：按原图比例等高混排，Logo 和超宽图使用横向卡片，末行不将单张封面撑满。尺寸元数据用于首屏，图片加载后按实际比例更新；不得以统一视觉为由改成固定宽高比。contain 只保证完整显示，不能代替自适应布局。
 
-普通文字对比度至少 4.5:1，大文字至少 3:1。44px 触控目标是本项目采用的增强设计目标，不称为 WCAG AA 的最小要求。支持键盘、可见焦点、状态播报、缩放与 reduced-motion。动态进度仅显示实测数据，无总量时保持不定进度。
+普通文字对比度至少 4.5:1，大文字至少 3:1；不接受肉眼判断，用脚本实测。`node audit-design.mjs` 会在 1440px 打开目录、作品、账号三页，用 canvas 把每个前景/背景色真的画一笔再读回 sRGB 像素，按 WCAG 公式算合成后的比值，同时对三个页面 × 320/390/768/1440px 检查横向溢出与小于 44px 的控件；任一项不过就以非零码退出。`node shots.mjs` 生成同一组断点的交付截图到 `shots/`（JPEG，`type: jpeg` 带 `quality`），并输出每页的 `overflowX` 与 `below44` 清单。两个脚本都需先起预览，预置环境见下节。44px 触控目标是本项目采用的增强设计目标，不称为 WCAG AA 的最小要求。支持键盘、可见焦点、状态播报、缩放与 reduced-motion。动态进度仅显示实测数据，无总量时保持不定进度。
 
-UI 改动必须在隔离远程预览执行 `npm run test:e2e:ui`，同时覆盖原封面墙比例/横卡/末行约束与阅读体验测试，不得只选择新增用例。具体实现及验收范围见 [UI/UX 验收记录](ui-ux-preview-20261104.md)。对比度依据为 [W3C Contrast Minimum](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)，触控尺寸依据为 [W3C Target Size Enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)。
+UI 改动必须在隔离远程预览执行 `npm run test:e2e:ui`，同时覆盖原封面墙比例/横卡/末行约束与阅读体验测试，不得只选择新增用例。具体实现及验收范围见 [UI/UX 验收记录](ui-ux-preview-20261104.md)，2026-11-14 的全面重设计见 [重设计记录](ui-ux-redesign-20261114.md)。对比度依据为 [W3C Contrast Minimum](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)，触控尺寸依据为 [W3C Target Size Enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)。

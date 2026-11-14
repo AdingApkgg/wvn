@@ -61,6 +61,14 @@ test('unmapped package-local probes retain HTTP 404 semantics without hiding reg
  const f=fixture('debug/lua/index.lua,'+'c'.repeat(40)+'\nimage/a.png,'+'a'.repeat(40));
  const r=await prepareWebgalResolver(f.resolver,{fetcher:f.fetcher});assert(r.optionalMissing('res/debug/lua/index.lua'));assert(!r.optionalMissing('res/image/a.png'));assert(!r.optionalMissing('artemis.data'));assert(!r.optionalMissing('api/me'));
 });
+test('package-local core files without objects fall back to the archive instead of throwing',async()=>{
+ const f=fixture('system.ini,'+'d'.repeat(40)+'\nscenario/A01.ast,'+'e'.repeat(40)+'\nsystem/init.lua,'+'f'.repeat(40));
+ const r=await prepareWebgalResolver(f.resolver,{fetcher:f.fetcher});
+ for(const path of ['system.ini','scenario/A01.ast','system/init.lua','scenario/A01.ast?v=1','./scenario/A01.ast'])assert(r.optionalMissing(path),path);
+ assert(!r.optionalMissing('artemis.wasm'));
+ assert.throws(()=>r.optionalMissing('https://evil.invalid/scenario/A01.ast'));
+ assert.throws(()=>r.optionalMissing('https://wvn-s3-zi0.saop.cc/__player/resource/other/scenario/A01.ast'));
+});
 test('optional media errors stay scoped and cannot replace registered video objects',async()=>{
  const f=fixture(),r=await prepareWebgalResolver(f.resolver,{fetcher:f.fetcher});assert(r.missingMedia('movie_bai/logo.mp4'));assert(!r.missingMedia('res/image/a.png'));assert.throws(()=>r.missingMedia('https://evil.invalid/movie/logo.mp4'));
  f.resolver.files.set('movie/real.mp4',{path:'movie/real.mp4'});assert(!r.missingMedia('movie/real.mp4'));
