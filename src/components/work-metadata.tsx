@@ -73,7 +73,7 @@ export function WorkMetadataPanel({
       {!!m.tags.length && (
         <div className="metadata-tags" aria-label="作品标签">
           {m.tags.map((t) => (
-            <Link
+            <Link prefetch="intent"
               key={t.source + t.name}
               to={"/?tag=" + encodeURIComponent(t.name)}
               title={"来源：" + (t.source === "bgm" ? "BGM" : "VNDB")}

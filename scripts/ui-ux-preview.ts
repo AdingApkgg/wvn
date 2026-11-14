@@ -20,8 +20,8 @@ import {fileResponse} from '../src/server/resources.ts';
 const root=resolve('.'),base=resolve(root,'..'),privateDir=join(base,'private');
 // 部署侧必须显式指定远程主机、隔离预览地址和绑定地址。
 const task=process.env.WG_UI_UX_TASK??'ui-ux-20261104';
-if(!['ui-ux-20261104','m3-20261114','ios-reader-auth-20261114','dashboard-20261114','dashboard-release-20261114','orpc-20261114','scalar-20261115','internal-stats-20261114','oxc-runtime-20261115'].includes(task))throw Error('未知的隔离预览任务');
-const port=task==='scalar-20261115'?25683:task==='oxc-runtime-20261115'?26883:task==='internal-stats-20261114'?26783:task==='orpc-20261114'?25583:task==='dashboard-release-20261114'?25483:task==='dashboard-20261114'?25383:task==='ios-reader-auth-20261114'?25283:task==='m3-20261114'?24883:24683;
+if(!['ui-ux-20261104','m3-20261114','ios-reader-auth-20261114','dashboard-20261114','dashboard-release-20261114','orpc-20261114','scalar-20261115','internal-stats-20261114','oxc-runtime-20261115','navigation-20261115'].includes(task))throw Error('未知的隔离预览任务');
+const port=task==='navigation-20261115'?27083:task==='scalar-20261115'?25683:task==='oxc-runtime-20261115'?26883:task==='internal-stats-20261114'?26783:task==='orpc-20261114'?25583:task==='dashboard-release-20261114'?25483:task==='dashboard-20261114'?25383:task==='ios-reader-auth-20261114'?25283:task==='m3-20261114'?24883:24683;
 const preview=new URL(process.env.WG_UI_UX_TEST_URL??`https://build.example.test:${port}`);
 const origin=preview.origin,bind=process.env.WG_UI_UX_BIND??'127.0.0.1';
 if(preview.protocol!=='https:'||preview.port!==String(port)||preview.username||preview.password||!/^[-a-zA-Z0-9.]+$/.test(preview.hostname)||!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(bind))throw Error('需要有效的隔离HTTPS预览配置');
@@ -74,7 +74,7 @@ async function prepare(){
   WG_DATABASE_URL:database,WG_DATABASE_SCHEMA:schemas.catalog,
   WG_ACCOUNT_DATABASE_URL:database,WG_ACCOUNT_DATABASE_SCHEMA:schemas.accounts,
   WG_RESOURCE_DATABASE_URL:database,WG_RESOURCE_DATABASE_SCHEMA:schemas.resources,
-  WG_ACCOUNT_ORIGIN:origin,WG_ACCOUNT_BIND:bind,WG_ACCOUNT_PORT:String(port),WG_ACCOUNT_UI:'1',WG_ACCOUNT_COOKIE_PREFIX:task==='scalar-20261115'?'__Host-wg-scalar-20261115':task==='oxc-runtime-20261115'?'__Host-wg-oxc-runtime-20261115':task==='internal-stats-20261114'?'__Host-wg-internal-stats-20261114':task==='orpc-20261114'?'__Host-wg-orpc-20261114':task==='ios-reader-auth-20261114'?'__Host-wg-ios-reader-auth-20261114':task==='m3-20261114'?'__Host-wg-m3-20261114':task==='dashboard-20261114'?'__Host-wg-dashboard-20261114':task==='dashboard-release-20261114'?'__Host-wg-dashboard-release-20261114':'__Host-wg-ui-ux-preview',
+  WG_ACCOUNT_ORIGIN:origin,WG_ACCOUNT_BIND:bind,WG_ACCOUNT_PORT:String(port),WG_ACCOUNT_UI:'1',WG_ACCOUNT_COOKIE_PREFIX:task==='navigation-20261115'?'__Host-wg-navigation-20261115':task==='scalar-20261115'?'__Host-wg-scalar-20261115':task==='oxc-runtime-20261115'?'__Host-wg-oxc-runtime-20261115':task==='internal-stats-20261114'?'__Host-wg-internal-stats-20261114':task==='orpc-20261114'?'__Host-wg-orpc-20261114':task==='ios-reader-auth-20261114'?'__Host-wg-ios-reader-auth-20261114':task==='m3-20261114'?'__Host-wg-m3-20261114':task==='dashboard-20261114'?'__Host-wg-dashboard-20261114':task==='dashboard-release-20261114'?'__Host-wg-dashboard-release-20261114':'__Host-wg-ui-ux-preview',
   WG_ACCOUNT_SECRET_FILE:secret,WG_ACCOUNT_DELETION_LEDGER:join(privateDir,'deletions.jsonl'),WG_ACCOUNT_BLOBS:join(privateDir,'blobs'),WG_ACCOUNT_SHARE_LEDGER:join(privateDir,'shares.jsonl'),
   WG_SHARE_ADMIN_ORIGIN:`https://localhost:${port+2}`,WG_SHARE_ADMIN_PORT:String(port+2),WG_SHARE_ADMIN_TOKEN_FILE:join(privateDir,'share-admin-token'),
   WG_ACCOUNT_TLS_KEY:tlsKey,WG_ACCOUNT_TLS_CERT:tlsCert,WG_CONTENT_GATE:'1',WG_ALL_ENGINES:'1',WG_ONS_PILOT:'1',WG_ONS_CLOUD:'1',WG_MEDIA_ROOT:media,
