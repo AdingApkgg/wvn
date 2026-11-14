@@ -6,7 +6,7 @@ import { coverKindLabel } from "../metadata-sources.ts";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
-import { Link, useLoaderData } from "react-router";
+import { Await, Form, Link, useLoaderData } from "react-router";
 import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { projectShares } from "../server/share-projection";
@@ -17,7 +17,9 @@ import {contentGateEnabled,getContentAccess} from '../content/access.server.ts';
 import {projectWork,accessError} from '../content/policy.ts';
 import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
-import {useLayoutEffect} from 'react';
+import {Suspense,useLayoutEffect} from 'react';
+import type {PublicWork} from '../types';
+import type {PublicShareProjection} from '../server/share-projection';
 import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
 import { versionContentLabel } from "../content/version-label";
 
@@ -44,9 +46,10 @@ export async function loader({
   const progress = url.searchParams.get("saveProgress") ?? "";
   const saveVersion = w.versions.some((v) => v.id === version) ? version : "";
   const saveProgress = isShareProgress(progress) ? progress : "";
+  // 权限与主体已确定；附属数据独立流式返回，不进入切页的关键路径。
   const shares =
     process.env.WG_SHARE_BACKEND_ORIGIN && process.env.WG_SHARE_ACCOUNT_ORIGIN
-      ? await projectShares(
+      ? projectShares(
           w.id,
           new Set(w.versions.map((v) => v.id)),
           {
@@ -61,8 +64,8 @@ export async function loader({
           publicProjectionFetch(request),
         )
       : null;
-  const counts=await projectWorkCounts([w.id],request);
-  return { ...w, shares, saveVersion, saveProgress,counts:counts?.[w.id]??null,
+  const counts=projectWorkCounts([w.id],request).then(result=>result?.[w.id]??null);
+  return { ...w, shares: null, counts: null, deferredShares: shares, deferredCounts: counts, saveVersion, saveProgress,
     contentVisibility:access?(access.canViewRestricted?'restricted':'public'):null };
 }
 export function meta({ loaderData: data }: { loaderData?: { title: string;restricted?:unknown } }) {
@@ -87,7 +90,7 @@ export default function Work() {
   if(!projected)return <ContentGate code={accessError(content.access)} returnTo={loaded.url}/>;
   // 版本备注和图片立即按当前权限重投影；旧受限快照的分享原文须等公共 SSR 快照后才恢复。
   const staleShares=content.enabled&&!content.access.canViewRestricted&&loaded.contentVisibility==='restricted';
-  const w={...loaded,...projected,shares:staleShares?null:loaded.shares};
+  const w={...loaded,...projected,shares:staleShares?null:loaded.deferredShares};
   const previous=localReading.items.flatMap(item=>w.versions.filter(version=>version.id===item.id&&!('contentRestricted' in version&&version.contentRestricted)))[0];
   const primary = previous ?? w.versions.find(v => v.id === w.defaultVersionId) ?? w.versions[0];
   const description = w.metadata?.description ?? "";
@@ -95,7 +98,7 @@ export default function Work() {
   const readLabel = (version: typeof primary) => 'contentRestricted' in version && version.contentRestricted ? content.access.authenticated && content.access.eligibility === 'qualified' ? '开启显示后阅读' : '取得资格后阅读' : localReading.items.some(item=>item.id===version.id)?'继续阅读':'开始阅读';
   return (
     <main className="container work">
-      <nav className="work-breadcrumb" aria-label="面包屑"><Link to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
+      <nav className="work-breadcrumb" aria-label="面包屑"><Link prefetch="intent" to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
       <section
         className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
       >
@@ -107,12 +110,16 @@ export default function Work() {
           {!w.metadata?.cover && <p className="work-cover-reason"><CoverPlaceholder status={w.coverStatus} /></p>}
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
-            <Button asChild size="lg"><Link to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
+            <Button asChild size="lg"><Link prefetch="intent" to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
             <ShelfButton key={w.id} workId={w.id} workUrl={w.url}/>
             {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
           <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>
-          <WorkInteractions key={w.id} workId={w.id} workUrl={w.url} counts={w.counts}/>
+          <Suspense key={w.id} fallback={<p className="text-sm text-muted-foreground" role="status">正在加载作品统计…</p>}>
+            <Await resolve={w.deferredCounts} errorElement={<WorkInteractions workId={w.id} workUrl={w.url} counts={null}/>}>
+              {counts=><WorkInteractions workId={w.id} workUrl={w.url} counts={counts}/>}
+            </Await>
+          </Suspense>
           <div className="work-section-links"><a href="#story-description">故事简介</a><a href="#player-saves">玩家存档</a><a href={providerLink(w.id)} target="_blank" rel="noreferrer">{providerName(w.id)} ↗</a></div>
         </div>
       </section>
@@ -126,129 +133,137 @@ export default function Work() {
               {v.notes && <p className="muted">{v.notes}</p>}
               <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>
-            <Button asChild variant="outline"><Link to={v.url} state={{startReading:v.id}}>{readLabel(v)} · 版本 {v.number}</Link></Button>
+            <Button asChild variant="outline"><Link prefetch="intent" to={v.url} state={{startReading:v.id}}>{readLabel(v)} · 版本 {v.number}</Link></Button>
           </Card>)}
         </div>
         {!!w.aliases.length && <details className="metadata-titles"><summary>别名 · {w.aliases.length}</summary><div className="aliases">{w.aliases.map(x => <Badge key={x} variant="secondary">{x}</Badge>)}</div></details>}
       </details>
-      {w.shares && (
-        <section className="share-gallery space-y-5" id="player-saves">
-          <div className="section-title">
-            <h2>玩家存档</h2>
-            <span>固定快照 · 按版本选择</span>
-          </div>
-          <form method="get" className="flex flex-wrap gap-3 items-center">
-            <label htmlFor="share-version-filter">游戏版本</label>
-            <NativeSelect
-              id="share-version-filter"
-              name="saveVersion"
-              key={w.saveVersion}
-              defaultValue={w.saveVersion}
-            >
-              <NativeSelectOption value="">全部版本</NativeSelectOption>
-              {w.versions.map((v) => (
-                <NativeSelectOption key={v.id} value={v.id}>
-                  版本 {v.number} · {v.title}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-            <label htmlFor="share-progress-filter">进度类型</label>
-            <NativeSelect
-              id="share-progress-filter"
-              name="saveProgress"
-              key={w.saveProgress}
-              defaultValue={w.saveProgress}
-            >
-              <NativeSelectOption value="">全部进度</NativeSelectOption>
-              {Object.entries(SHARE_PROGRESS).map(([value, label]) => (
-                <NativeSelectOption key={value} value={value}>
-                  {label}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-            <Button type="submit" variant="outline">
-              筛选玩家存档
-            </Button>
-          </form>
-          {!w.shares.available ? (
-            <p className="text-muted-foreground">
-              玩家存档暂时无法读取，游戏入口仍可使用。
-            </p>
-          ) : !w.shares.items.length ? (
-            <p className="text-muted-foreground">
-              这个版本还没有公开分享。可从自己的云端备份发布。
-            </p>
-          ) : (
-            w.shares.items.map((s) => (
-              <Card
-                className="p-5 space-y-3"
-                key={s.id}
-                data-public-share-id={s.id}
-              >
-                <h3>
-                  <a
-                    href={`${w.shares!.account}/s/${s.id}`}
-                    className="underline"
-                  >
-                    {s.title}
-                  </a>
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {s.author} · 版本 {s.version.number} · {s.version.title} ·{" "}
-                  {(s.bytes / 1024).toFixed(1)} KiB ·{" "}
-                  {SHARE_PROGRESS[s.progress]}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {s.contentRedacted?'受限文字已隐藏，版本归属保持不变':s.metadataBasis === "published"
-                    ? "发布时版本信息"
-                    : "旧分享 · 当前目录信息"}
-                </p>
-                {s.publicSource && (
-                  <a
-                    className="underline text-sm"
-                    href={`${w.shares!.account}/s/${s.publicSource.id}`}
-                    aria-label="查看公开来源"
-                  >
-                    公开来源：{s.publicSource.title}
-                  </a>
-                )}
-                {s.spoiler ? (
-                  <details>
-                    <summary className="cursor-pointer text-sm">
-                      展开剧透说明
-                    </summary>
-                    <p className="whitespace-pre-wrap break-words mt-2">
-                      {s.description}
-                    </p>
-                  </details>
-                ) : (
-                  <p className="whitespace-pre-wrap break-words">
-                    {s.description}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  版本由作者标注；文件完整性校验不等于游戏内读档验证。
-                </p>
-              </Card>
-            ))
-          )}
-          {w.shares.next && (
-            <Button variant="outline" asChild>
-              <Link
-                to={`?${new URLSearchParams({ ...(w.saveVersion ? { saveVersion: w.saveVersion } : {}), ...(w.saveProgress ? { saveProgress: w.saveProgress } : {}), saveCursor: w.shares.next })}#player-saves`}
-              >
-                更多玩家存档
-              </Link>
-            </Button>
-          )}
-          <Button variant="link" asChild>
-            <a href={w.shares.account + "/account"}>从我的云备份分享</a>
-          </Button>
-        </section>
-      )}
+      {w.shares && <Suspense key={w.id + ":" + w.saveVersion + ":" + w.saveProgress} fallback={<section id="player-saves" className="share-gallery"><h2>玩家存档</h2><p role="status">正在加载玩家存档…</p></section>}>
+        <Await resolve={w.shares} errorElement={<section id="player-saves"><h2>玩家存档</h2><p>玩家存档暂时无法读取，游戏入口仍可使用。</p></section>}>
+          {shares=>shares?<PlayerShares work={w} shares={shares}/>:null}
+        </Await>
+      </Suspense>}
       <p className="note">
         启动检查与完整游玩体验分别记录。旧版执行入口暂时保留，以兼容已有的存档命名。
       </p>
     </main>
+  );
+}
+
+function PlayerShares({work:w,shares}:{work:PublicWork & {saveVersion:string;saveProgress:string};shares:PublicShareProjection}) {
+  return (
+    <section className="share-gallery space-y-5" id="player-saves">
+      <div className="section-title">
+        <h2>玩家存档</h2>
+        <span>固定快照 · 按版本选择</span>
+      </div>
+      <Form method="get" className="flex flex-wrap gap-3 items-center">
+        <label htmlFor="share-version-filter">游戏版本</label>
+        <NativeSelect
+          id="share-version-filter"
+          name="saveVersion"
+          key={w.saveVersion}
+          defaultValue={w.saveVersion}
+        >
+          <NativeSelectOption value="">全部版本</NativeSelectOption>
+          {w.versions.map((v) => (
+            <NativeSelectOption key={v.id} value={v.id}>
+              版本 {v.number} · {v.title}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+        <label htmlFor="share-progress-filter">进度类型</label>
+        <NativeSelect
+          id="share-progress-filter"
+          name="saveProgress"
+          key={w.saveProgress}
+          defaultValue={w.saveProgress}
+        >
+          <NativeSelectOption value="">全部进度</NativeSelectOption>
+          {Object.entries(SHARE_PROGRESS).map(([value, label]) => (
+            <NativeSelectOption key={value} value={value}>
+              {label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+        <Button type="submit" variant="outline">
+          筛选玩家存档
+        </Button>
+      </Form>
+      {!shares.available ? (
+        <p className="text-muted-foreground">
+          玩家存档暂时无法读取，游戏入口仍可使用。
+        </p>
+      ) : !shares.items.length ? (
+        <p className="text-muted-foreground">
+          这个版本还没有公开分享。可从自己的云端备份发布。
+        </p>
+      ) : (
+        shares.items.map((s) => (
+          <Card
+            className="p-5 space-y-3"
+            key={s.id}
+            data-public-share-id={s.id}
+          >
+            <h3>
+              <a
+                href={`${shares.account}/s/${s.id}`}
+                className="underline"
+              >
+                {s.title}
+              </a>
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {s.author} · 版本 {s.version.number} · {s.version.title} ·{" "}
+              {(s.bytes / 1024).toFixed(1)} KiB ·{" "}
+              {SHARE_PROGRESS[s.progress]}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {s.contentRedacted?'受限文字已隐藏，版本归属保持不变':s.metadataBasis === "published"
+                ? "发布时版本信息"
+                : "旧分享 · 当前目录信息"}
+            </p>
+            {s.publicSource && (
+              <a
+                className="underline text-sm"
+                href={`${shares.account}/s/${s.publicSource.id}`}
+                aria-label="查看公开来源"
+              >
+                公开来源：{s.publicSource.title}
+              </a>
+            )}
+            {s.spoiler ? (
+              <details>
+                <summary className="cursor-pointer text-sm">
+                  展开剧透说明
+                </summary>
+                <p className="whitespace-pre-wrap break-words mt-2">
+                  {s.description}
+                </p>
+              </details>
+            ) : (
+              <p className="whitespace-pre-wrap break-words">
+                {s.description}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              版本由作者标注；文件完整性校验不等于游戏内读档验证。
+            </p>
+          </Card>
+        ))
+      )}
+      {shares.next && (
+        <Button variant="outline" asChild>
+          <Link
+            to={`?${new URLSearchParams({ ...(w.saveVersion ? { saveVersion: w.saveVersion } : {}), ...(w.saveProgress ? { saveProgress: w.saveProgress } : {}), saveCursor: shares.next })}#player-saves`}
+          >
+            更多玩家存档
+          </Link>
+        </Button>
+      )}
+      <Button variant="link" asChild>
+        <a href={shares.account + "/account"}>从我的云备份分享</a>
+      </Button>
+    </section>
   );
 }

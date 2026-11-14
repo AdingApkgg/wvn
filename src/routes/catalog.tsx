@@ -1,5 +1,5 @@
 import { brand } from "../brand";
-import { useCallback, useState, type CSSProperties } from "react";
+import { Suspense, useCallback, useState, type CSSProperties } from "react";
 import type { PublicWork } from "../types.ts";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -11,7 +11,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
-import { data, Form, Link, useLoaderData, useLocation } from "react-router";
+import { Await, data, Form, Link, useLoaderData, useLocation } from "react-router";
 import { coverLayout } from "../lib/cover-layout";
 import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
 import { withoutFilter } from "../lib/reader-experience";
@@ -40,7 +40,7 @@ export default function Catalog() {
   const loaded=useLoaderData<typeof loader>();
   const viewer=useContentAccess();
   const location = useLocation();
-  const { counts, recentWorks, q, engine, state, tag, content, contentGate, isSearch, searchError }=loaded;
+  const { deferredCounts: counts, recentWorks, q, engine, state, tag, content, contentGate, isSearch, searchError }=loaded;
   const items=viewer.enabled?loaded.items.flatMap(work=>{const projected=projectWork(work,viewer.access);return projected?[projected]:[]}):loaded.items;
   const staleRestricted=viewer.enabled&&!viewer.access.canViewRestricted&&loaded.contentVisibility==='restricted';
   const total=staleRestricted?items.length:loaded.total;
@@ -62,7 +62,7 @@ export default function Catalog() {
           <div className="search-row">
             <div className="search field"><Label htmlFor="catalog-search">搜索作品</Label><Input id="catalog-search" type="search" name="q" defaultValue={q} placeholder="标题、别名或 VNDB / BGM 编号" /></div>
             <Button type="submit"><Search aria-hidden="true" />查找</Button>
-            {(q || engine || state || tag || content) && <Button asChild variant="ghost"><Link to="/">清除</Link></Button>}
+            {(q || engine || state || tag || content) && <Button asChild variant="ghost"><Link prefetch="intent" to="/">清除</Link></Button>}
           </div>
           <details className="advanced-filters" open={!!(engine || state || content) || undefined}>
             <summary>筛选作品</summary>
@@ -89,14 +89,14 @@ export default function Catalog() {
         </div>
         <div className="story-grid">
           {items.map((w, i) => (
-            <StoryCard key={w.id} work={w} index={i} counts={counts?.[w.id]}/>
+            <StoryCard key={w.id} work={w} index={i} counts={counts}/>
           ))}
         </div>
         {searchError && (
           <div className="empty" role="alert">
             <h2>{searchError}</h2>
             <p>可以稍后重试，或先浏览全部故事。</p>
-            <Button asChild variant="outline"><Link to="/">浏览全部故事</Link></Button>
+            <Button asChild variant="outline"><Link prefetch="intent" to="/">浏览全部故事</Link></Button>
           </div>
         )}
         {!searchError && !items.length && (
@@ -104,14 +104,14 @@ export default function Catalog() {
             <h2>暂时没有匹配的故事</h2>
             <p>试试其他标题、别名或编号。</p>
             <Button asChild variant="outline">
-              <Link to="/">清除筛选</Link>
+              <Link prefetch="intent" to="/">清除筛选</Link>
             </Button>
           </div>
         )}
         {!searchError && nextSearchUrl && (
           <nav aria-label="搜索分页" className="section-title">
             <span>当前为本页可见作品</span>
-            <Button asChild variant="outline"><Link to={nextSearchUrl}>下一页</Link></Button>
+            <Button asChild variant="outline"><Link prefetch="intent" to={nextSearchUrl}>下一页</Link></Button>
           </nav>
         )}
         <footer>
@@ -124,7 +124,7 @@ export default function Catalog() {
 }
 
 
-function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: number;counts?:WorkCounts }) {
+function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: number;counts:Promise<Record<string,WorkCounts>|null> }) {
   const cover = w.metadata?.cover;
   const [naturalRatio, setNaturalRatio] = useState<number>();
   const {ratio, wide} = coverLayout(cover, naturalRatio);
@@ -134,6 +134,7 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
   }, []);
   return (
     <Link
+      prefetch="intent"
       to={w.url}
       className={"story-card" + (wide ? " story-card-wide" : "")}
       style={{ "--cover-ratio": ratio } as CSSProperties}
@@ -153,7 +154,11 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
           {workContentLabels(w.versions).map(label => <Badge key={label} className="max-w-full whitespace-normal" variant={label === "NSFW" ? "destructive" : "secondary"}>{label}</Badge>)}
         </div>
         <p>{w.originalTitle}</p>
-        <WorkCountSummary counts={counts}/>
+        <Suspense fallback={<span className="text-xs text-muted-foreground">正在加载统计…</span>}>
+          <Await resolve={counts} errorElement={<WorkCountSummary counts={null}/>}>
+            {resolved=><WorkCountSummary counts={resolved?.[w.id]}/>}
+          </Await>
+        </Suspense>
         <div className="card-footer">
           <Badge variant="secondary">{w.versions.length} 个版本</Badge>
           <span>阅读详情 ↗</span>
