@@ -43,10 +43,14 @@ test('目录和作品主体不等待统计及玩家存档，附属数据随后�
     assert(!('restricted' in work));
     assert.equal(work.title, '切页验证');
     assert.deepEqual([...started].sort(), ['counts', 'shares']);
+    // 已打开的旧客户端仍按普通值读取旧字段，不能向其发送 Promise。
+    assert.equal(catalog.counts, null);
+    assert.equal(work.counts, null);
+    assert.equal(work.shares, null);
     release();
-    assert.deepEqual(await catalog.counts, { v4: { reads: 9, likes: 2, favorites: 1 } });
-    assert.deepEqual(await work.counts, { reads: 9, likes: 2, favorites: 1 });
-    assert.equal((await work.shares)?.available, true);
+    assert.deepEqual(await catalog.deferredCounts, { v4: { reads: 9, likes: 2, favorites: 1 } });
+    assert.deepEqual(await work.deferredCounts, { reads: 9, likes: 2, favorites: 1 });
+    assert.equal((await work.deferredShares)?.available, true);
   } finally {
     release();
     runtime[key] = previousStore;

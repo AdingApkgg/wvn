@@ -65,7 +65,7 @@ export async function loader({
         )
       : null;
   const counts=projectWorkCounts([w.id],request).then(result=>result?.[w.id]??null);
-  return { ...w, shares, saveVersion, saveProgress,counts,
+  return { ...w, shares: null, counts: null, deferredShares: shares, deferredCounts: counts, saveVersion, saveProgress,
     contentVisibility:access?(access.canViewRestricted?'restricted':'public'):null };
 }
 export function meta({ loaderData: data }: { loaderData?: { title: string;restricted?:unknown } }) {
@@ -90,7 +90,7 @@ export default function Work() {
   if(!projected)return <ContentGate code={accessError(content.access)} returnTo={loaded.url}/>;
   // 版本备注和图片立即按当前权限重投影；旧受限快照的分享原文须等公共 SSR 快照后才恢复。
   const staleShares=content.enabled&&!content.access.canViewRestricted&&loaded.contentVisibility==='restricted';
-  const w={...loaded,...projected,shares:staleShares?null:loaded.shares};
+  const w={...loaded,...projected,shares:staleShares?null:loaded.deferredShares};
   const previous=localReading.items.flatMap(item=>w.versions.filter(version=>version.id===item.id&&!('contentRestricted' in version&&version.contentRestricted)))[0];
   const primary = previous ?? w.versions.find(v => v.id === w.defaultVersionId) ?? w.versions[0];
   const description = w.metadata?.description ?? "";
@@ -116,7 +116,7 @@ export default function Work() {
           </div>
           <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>
           <Suspense key={w.id} fallback={<p className="text-sm text-muted-foreground" role="status">正在加载作品统计…</p>}>
-            <Await resolve={w.counts} errorElement={<WorkInteractions workId={w.id} workUrl={w.url} counts={null}/>}>
+            <Await resolve={w.deferredCounts} errorElement={<WorkInteractions workId={w.id} workUrl={w.url} counts={null}/>}>
               {counts=><WorkInteractions workId={w.id} workUrl={w.url} counts={counts}/>}
             </Await>
           </Suspense>

@@ -40,7 +40,7 @@ export default function Catalog() {
   const loaded=useLoaderData<typeof loader>();
   const viewer=useContentAccess();
   const location = useLocation();
-  const { counts, recentWorks, q, engine, state, tag, content, contentGate, isSearch, searchError }=loaded;
+  const { deferredCounts: counts, recentWorks, q, engine, state, tag, content, contentGate, isSearch, searchError }=loaded;
   const items=viewer.enabled?loaded.items.flatMap(work=>{const projected=projectWork(work,viewer.access);return projected?[projected]:[]}):loaded.items;
   const staleRestricted=viewer.enabled&&!viewer.access.canViewRestricted&&loaded.contentVisibility==='restricted';
   const total=staleRestricted?items.length:loaded.total;
