@@ -1,0 +1,278 @@
+{
+  "schema": 1,
+  "status": "complete",
+  "date": "2026-11-14",
+  "timezone": "Asia/Shanghai",
+  "origin": "https://wg.saop.cc",
+  "commit": "8771e4fe5f615c93488240bf161f5c236ae3ead7",
+  "revision": "main-20261114-8771e4f",
+  "checkedAt": "2026-11-13T19:33:42Z",
+  "artifact": {
+    "trackedSourceFiles": 684,
+    "runtimeFilesVerified": 782,
+    "runtimeBytes": 7421533,
+    "lockfileAndMigrationsUnchanged": true
+  },
+  "deployment": {
+    "updatedServices": [
+      "web",
+      "manager"
+    ],
+    "unaffectedServiceCount": 9,
+    "currentDatabasePreserved": true,
+    "oldAssetsRetained": true,
+    "databaseConnectionsVolumesSecretsUnchanged": true,
+    "cacheAndSearchIndexUnchanged": true
+  },
+  "preflight": {
+    "candidateUsesCloneDatabase": true,
+    "rollbackOnSameClonePassed": true,
+    "routeCount": 5,
+    "publicWorks": 55,
+    "backedUpTableDataSections": 53
+  },
+  "publicBrowser": {
+    "checks": [
+      "production revision",
+      "navigation/layout 320",
+      "navigation/layout 390",
+      "navigation/layout 768",
+      "navigation/layout 1440",
+      "search GET",
+      "mobile work",
+      "reading action layout 390",
+      "reading action layout 320",
+      "guest return path",
+      "rules disclosure",
+      "single share header",
+      "private endpoints isolated",
+      "restricted resources gated",
+      "restricted title hidden",
+      "public catalog projection"
+    ],
+    "checkCount": 16,
+    "publicWorks": 55,
+    "scriptErrors": []
+  },
+  "account": {
+    "checks": [
+      "Passkey注册及登录",
+      "新账号默认公共模式",
+      "规则资格不自动开启",
+      "三次首页进入模式稳定",
+      "生产权限及CAS清单",
+      "真实ONS启动及本机捕获退出",
+      "重新登录保留资格并恢复公共模式"
+    ],
+    "modeSequences": [
+      [
+        "NSFW 已开启"
+      ],
+      [
+        "NSFW 已开启"
+      ],
+      [
+        "NSFW 已开启"
+      ]
+    ],
+    "nativeCasRequests": 6,
+    "mainGameBodyResponses": 0,
+    "oldDomainRequests": 0,
+    "dedicatedTestAccountCreated": true,
+    "signedOutAtEnd": true,
+    "credentialsRetained": false,
+    "existingUsersOrPersonalSavesRead": false,
+    "scriptErrors": []
+  },
+  "monitor": {
+    "status": "passed",
+    "sampleCount": 31,
+    "elapsedSeconds": 924,
+    "errors": 0,
+    "restarts": 0,
+    "oom": 0,
+    "samples": [
+      {
+        "at": "2026-11-13T19:17:39Z",
+        "seconds": 0.998,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:18:10Z",
+        "seconds": 0.882,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:18:41Z",
+        "seconds": 0.909,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:19:11Z",
+        "seconds": 0.853,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:19:42Z",
+        "seconds": 0.804,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:20:13Z",
+        "seconds": 0.769,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:20:44Z",
+        "seconds": 0.783,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:21:15Z",
+        "seconds": 0.923,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:21:46Z",
+        "seconds": 0.959,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:22:16Z",
+        "seconds": 0.717,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:22:47Z",
+        "seconds": 0.867,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:23:18Z",
+        "seconds": 0.824,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:23:49Z",
+        "seconds": 0.843,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:24:20Z",
+        "seconds": 0.872,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:24:51Z",
+        "seconds": 0.725,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:25:21Z",
+        "seconds": 0.744,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:25:52Z",
+        "seconds": 0.726,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:26:23Z",
+        "seconds": 0.721,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:26:53Z",
+        "seconds": 0.699,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:27:24Z",
+        "seconds": 0.802,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:27:55Z",
+        "seconds": 0.737,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:28:26Z",
+        "seconds": 0.737,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:28:56Z",
+        "seconds": 0.7,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:29:27Z",
+        "seconds": 0.885,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:29:58Z",
+        "seconds": 0.775,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:30:29Z",
+        "seconds": 0.79,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:31:00Z",
+        "seconds": 0.915,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:31:31Z",
+        "seconds": 0.925,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:32:02Z",
+        "seconds": 0.868,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:32:32Z",
+        "seconds": 0.823,
+        "revision": "main-20261114-8771e4f"
+      },
+      {
+        "at": "2026-11-13T19:33:03Z",
+        "seconds": 0.744,
+        "revision": "main-20261114-8771e4f"
+      }
+    ]
+  },
+  "sourceReceipts": [
+    {
+      "name": "final-receipt.json",
+      "sha256": "fd3b3b663396564ec61129306925115c81f5975d2364be9cafd53586f5fe0b1e"
+    },
+    {
+      "name": "preflight.json",
+      "sha256": "315c5a82e4370eee483833af140c2715ca30accd1f3d0e3b0682d1b35db62a4a"
+    },
+    {
+      "name": "deploy.json",
+      "sha256": "32eac616bc0867cf04e590d2d237f51ed07886f85b3824981b358e604439a33d"
+    },
+    {
+      "name": "public-browser.json",
+      "sha256": "4a47ccc54c3db7626f49ff6fd44560b65a28433d228986e9bf6e850324119b6c"
+    },
+    {
+      "name": "public-account.json",
+      "sha256": "546698e5ae3ded8a37790561bfeec452c47e196f1a74bbfd0977e69a020c0a83"
+    },
+    {
+      "name": "monitor.json",
+      "sha256": "eb5a6dc14349d8d7c75404a298d0e9d6ba06637d2d43f13f6a88f19f1dee1817"
+    }
+  ]
+}
