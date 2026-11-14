@@ -124,7 +124,7 @@ export async function loadCatalog(request: Request, store: Store, env: NodeJS.Pr
   }
   return {
     items,
-    counts: await projectWorkCounts(items.map(w => w.id)),
+    counts: await projectWorkCounts(items.map(w => w.id),request),
     recentWorks: all.map(w => ({ title: w.title, versions: w.versions.map(v => ({ id: v.id, url: v.url, number: v.number })) })),
     q, engine, state, tag, content, contentGate: env.WG_CONTENT_GATE === '1', isSearch, searchError, searchStatus, nextOffset, nextSearchUrl,
     release: env.WG_DEPLOYMENT_MODE === "production",

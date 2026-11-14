@@ -61,7 +61,7 @@ export async function loader({
           publicProjectionFetch(request),
         )
       : null;
-  const counts=await projectWorkCounts([w.id]);
+  const counts=await projectWorkCounts([w.id],request);
   return { ...w, shares, saveVersion, saveProgress,counts:counts?.[w.id]??null,
     contentVisibility:access?(access.canViewRestricted?'restricted':'public'):null };
 }
