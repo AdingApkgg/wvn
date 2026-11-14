@@ -1,0 +1,1 @@
+export function prepareStartupResources(rows:{sha256:string;bytes:number}[],read:(sha256:string,options:{signal:AbortSignal})=>Promise<unknown>,options?:{signal?:AbortSignal;concurrency?:number;maxBytes?:number}):Promise<void>;

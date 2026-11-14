@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {createCacheClient,createForegroundReader,type ForegroundReader,type CacheClient,type DownloadMode,type DownloadProgress,type ResourceFile} from '../../public/cache/client.mjs';
+import {prepareStartupResources} from '../../public/cache/startup.mjs';
 import {loadCasManifest} from '../../public/player/cas-resources.mjs';
 import {formatTransferBytes} from '../../public/ons/resource-loading.mjs';
 import {Button} from '../components/ui/button';
@@ -42,7 +43,7 @@ export function useResourceDownloads({origin,pilot,releaseId,onFile}:{origin:str
      // 最小启动集优先；模式改变后重新判断门槛，不沿用过时选择进入游戏。
      const m=manifest.current,byPath=new Map<string,any>(m.resources.map((row:any)=>[row.path,row])),targets=new Set<string>((m.engineResources?.files??[]).map((row:any)=>row.sha256));
      for(const file of m.ons?.files??[])if(!file.lazyload){const row=byPath.get(file.path);if(row)targets.add(row.sha256)}
-     const allowed=new Set(bridge.plan.rows.map(row=>row.sha256));for(const sha of targets)if(allowed.has(sha))await foreground.current!.read(sha,{signal:abort.current.signal});
+     const allowed=new Map(bridge.plan.rows.map(row=>[row.sha256,row])),reader=foreground.current!;await prepareStartupResources([...targets].flatMap(sha=>{const row=allowed.get(sha);return row?[row]:[]}),(sha,options)=>reader.read(sha,options),{signal:abort.current.signal});
      if(readMode()!=='complete')break;
     }
    }

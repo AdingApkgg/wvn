@@ -1,3 +1,4 @@
+import {isVerifiedPublicFile} from './store.mjs';
 import {sha256} from './vendor/noble-hashes/sha2.js';
 const hex=value=>[...value].map(n=>n.toString(16).padStart(2,'0')).join('');
 const check=signal=>signal?.throwIfAborted();
@@ -28,10 +29,10 @@ async function resourceFailure(response,signal){
 export async function hashBlob(blob,signal){const hash=sha256.create();for(let offset=0;offset<blob.size;offset+=1024**2){check(signal);hash.update(new Uint8Array(await blob.slice(offset,offset+1024**2).arrayBuffer()))}return hex(hash.digest())}
 
 // 暂存块只有在真正持久提交后才可续传；完整摘要通过之前不返回正文。
-export async function downloadObject(row,{store,fetcher=fetch,signal,onProgress=()=>{},chunkBytes=1024**2,retries=3,idleMs=30000,retryDelay=delay}={}){
+export async function downloadObject(row,{store,fetcher=fetch,signal,onProgress=()=>{},chunkBytes=1024**2,retries=3,idleMs=30000,retryDelay=delay,foreground=()=>false}={}){
  if(!row||!/^[a-f0-9]{64}$/.test(row.sha256)||row.url!=='https://wvn-s3-zi0.saop.cc/'+row.sha256+'.bin'||!Number.isSafeInteger(row.bytes)||row.bytes<0||!Number.isInteger(chunkBytes)||chunkBytes<1||chunkBytes>4*1024**2)throw Error('Invalid immutable resource');
  check(signal);const found=await store.get(row.sha256,{signal});
- if(found){if(found.size===row.bytes&&await hashBlob(found,signal)===row.sha256)return found;await store.remove(row.sha256)}
+ if(found){if(found.size===row.bytes&&(isVerifiedPublicFile(found,row)||await hashBlob(found,signal)===row.sha256))return found;await store.remove(row.sha256)}
  let peakBufferBytes=chunkBytes;let attempt=0;const deadline=Date.now()+1800000;
  for(;;){
   check(signal);let hash=sha256.create(),offset=0;
@@ -44,7 +45,7 @@ export async function downloadObject(row,{store,fetcher=fetch,signal,onProgress=
    if(Date.now()>deadline)throw new DOMException('Resource total timeout','TimeoutError');
    if(offset<row.bytes){
     const headers=new Headers();if(offset)headers.set('range','bytes='+offset+'-');touch();
-    const response=await fetcher(row.url,{headers,credentials:'omit',mode:'cors',redirect:'error',cache:offset?'no-store':'force-cache',priority:'low',signal:controller.signal});
+    const response=await fetcher(row.url,{headers,credentials:'omit',mode:'cors',redirect:'error',cache:offset?'no-store':'force-cache',priority:foreground()?'high':'low',signal:controller.signal});
     if(response.type==='opaque')throw Error('Opaque resource response');
     if(response.status===429||response.status===503){const details=await resourceFailure(response,signal);if(response.status===429||/^(SlowDown|too_many_requests)$/i.test(details?.code??''))throw Object.assign(Error('资源服务暂时限流，已暂停全量下载；请稍后继续'),{name:'RateLimitError',resourceFailure:details});throw Object.assign(Error('Resource download failed '+response.status),{resourceFailure:details})}
     if(offset){if(response.status!==206||response.headers.get('content-range')!==`bytes ${offset}-${row.bytes-1}/${row.bytes}`||response.headers.get('content-encoding'))throw Error('Resource resume range differs')}
