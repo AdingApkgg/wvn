@@ -170,7 +170,7 @@ async function fixture(fn: (a: Store, b: Store) => void | Promise<void>) {
     return new Promise<number>((resolve, reject) => {
       const p = spawn(
         process.execPath,
-        ["--import", "tsx", "tests/allocate-worker.ts", file, barrier, label],
+        ["--import", "@oxc-node/core/register", "tests/allocate-worker.ts", file, barrier, label],
         { cwd: process.cwd() },
       );
       let out = "";

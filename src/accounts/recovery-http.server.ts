@@ -1,3 +1,5 @@
+import { registerJsonRoute } from "../api/route.server.ts";
+import { sessionContract } from "../api/contracts/session.ts";
 import { brand } from "../brand";
 import { createHash } from "node:crypto";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
@@ -26,7 +28,7 @@ export function mountRecovery(
     )
       throw new AccountError(429, "TRY_LATER");
   }
-  app.post("/api/me/recovery-codes", async (c) => {
+  registerJsonRoute(app, sessionContract.recoveryCodes, async (c) => {
     const { session } = await player(c, true);
     const codes = (await recovery.rotate(session.user.id));
     return c.json({ accountId: session.user.id, codes });

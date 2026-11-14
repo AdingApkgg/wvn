@@ -1,3 +1,5 @@
+import { createContractClient } from "../api/client-base.ts";
+import { shareContract } from "../api/contracts/shares.ts";
 import {
   isShareProgress,
   type ShareProgress,
@@ -58,17 +60,28 @@ export async function projectShares(
       url.searchParams.set("cursor", cursor);
     if (progress && isShareProgress(progress))
       url.searchParams.set("progress", progress);
-    const response = await fetcher(url, {
-      credentials: "omit",
-      redirect: "error",
-      cache: "no-store",
-      signal: AbortSignal.timeout(2000),
-      headers: { accept: "application/json" },
+    const client = createContractClient({ publicWorkShares: shareContract.publicWorkShares }, {
+      baseUrl: config.backend,
+      fetch: async (input, init) => {
+        const request = new Request(input, init);
+        const response = await fetcher(request.url, {
+          ...init, credentials: "omit", redirect: "error", cache: "no-store",
+          signal: request.signal, headers: { accept: "application/json" },
+        });
+        if (!response.ok) return response;
+        const text = await response.text();
+        if (text.length > 8 * 1024 ** 2) throw new Error("Share projection too large");
+        return new Response(text, { status: response.status, statusText: response.statusText, headers: response.headers });
+      },
     });
-    if (!response.ok) return empty;
-    const text = await response.text();
-    if (text.length > 8 * 1024 ** 2) return empty;
-    const data = JSON.parse(text);
+    const data = await client.publicWorkShares({
+      params: { work },
+      query: {
+        ...(url.searchParams.has("versionId") ? { versionId: url.searchParams.get("versionId")! } : {}),
+        ...(url.searchParams.has("cursor") ? { cursor: url.searchParams.get("cursor")! } : {}),
+        ...(url.searchParams.has("progress") && progress ? { progress } : {}),
+      },
+    }, { signal: AbortSignal.timeout(2000) });
     if (
       !Array.isArray(data.items) ||
       data.items.length > 20 ||

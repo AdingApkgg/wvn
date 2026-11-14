@@ -12,4 +12,4 @@ set WG_ADMIN_PORT=8282
 set WG_HOST=127.0.0.1
 set NODE_ENV=production
 set PATH=C:\nvm4w\nodejs;%PATH%
-"C:\nvm4w\nodejs\node.exe" --import tsx server.ts > preview.log 2> preview-error.log
+"C:\nvm4w\nodejs\node.exe" --import @oxc-node/core/register server.ts > preview.log 2> preview-error.log

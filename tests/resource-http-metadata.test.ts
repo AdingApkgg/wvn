@@ -91,7 +91,7 @@ test('CLI requires explicit scope and digest; default dry-run and apply use the 
     const path = join(root, 'proof.json'); const bytes = encode(proof()); await writeFile(path, bytes);
     const args = ['--proof', path, '--expected-proof-sha256', digest(bytes), '--schema', f.schema,
       '--namespace', HTTP_METADATA_SCOPE.namespace, '--inventory', HTTP_METADATA_SCOPE.inventorySha256];
-    const invoke = (args: string[]) => spawnSync(process.execPath, ['--import', 'tsx', 'scripts/import-resource-http-metadata.ts', ...args],
+    const invoke = (args: string[]) => spawnSync(process.execPath, ['--import', '@oxc-node/core/register', 'scripts/import-resource-http-metadata.ts', ...args],
       { encoding: 'utf8', env: { ...process.env, WG_RESOURCE_DATABASE_URL: process.env.WVN_TEST_DATABASE_URL } });
     const dry = invoke(args); assert.equal(dry.status, 0, dry.stderr); assert.equal(JSON.parse(dry.stdout).status, 'dry-run');
     assert.equal((await f.db.prepare('SELECT http_content_type FROM wvn_resource_objects').get())?.http_content_type, null);

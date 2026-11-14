@@ -1,15 +1,8 @@
 /* WVN 任务界面规范。游戏运行区的协议、资源和画布样式由原模块负责。 */
 :root {
-  --success: #95d6b1;
-  --warning: #e2c184;
-  --info: #a5c5ef;
-  --surface-raised: #20242d;
   --space-page: 32px;
   --text-body: 16px;
   --text-help: 13px;
-  --control-height: 44px;
-  --radius: 0.75rem;
-  --input: #6e7888;
 }
 body { font-size: var(--text-body); line-height: 1.6; }
 .container { width: min(1200px, calc(100% - 64px)); }
@@ -233,4 +226,42 @@ summary { cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0s !important; }
+}
+
+/* iPhone无元素全屏API时保留原iframe，以页面铺满提供同一组可退出操作。 */
+.reader-surface.reader-page-fullscreen { position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; width: 100%; height: 100dvh; min-height: 0 !important; margin: 0; border: 0; border-radius: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: #08090b; }
+.reader-surface.reader-page-fullscreen iframe, .reader-surface:fullscreen iframe { flex: 1 1 0; min-height: 0; height: 0 !important; }
+.reader-page-fullscreen .reader-toolbar { flex: 0 0 auto; width: 100%; padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left)); }
+.reader-fullscreen-note { flex: 0 0 auto; margin: 0; padding: 4px 12px; background: var(--card); color: var(--muted-foreground); text-align: center; font-size: 11px; }
+.reader-resource-action { pointer-events: auto; margin-top: 8px; }
+
+/* 播放页默认占满可视区域；所有操作独立浮在运行画面上，不挤占iframe。 */
+html:has(.reader-playview:not(.reader-playview-blocked)), body:has(.reader-playview:not(.reader-playview-blocked)) { overflow: hidden; overscroll-behavior: none; }
+.reader-shell.reader-playview { position: fixed; inset: 0; z-index: 40; isolation: isolate; display: block; width: 100%; max-width: none; height: 100dvh; min-height: 0 !important; margin: 0; padding: 0; border: 0; border-radius: 0; overflow: hidden; background: #08090b; }
+.reader-playview.reader-playview-blocked, .reader-playview [hidden] { display: none !important; }
+.reader-playview > .reader-stage { position: absolute; inset: 0; z-index: 0; }
+.reader-shell.reader-playview > .reader-stage > iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100% !important; min-height: 0; border: 0; }
+.reader-playview .reader-preparation { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 88px 24px 148px; overflow: auto; color: #ddd; text-align: center; }
+.reader-playview .reader-heading { position: absolute; z-index: 5; top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); display: flex; justify-content: space-between; gap: 8px; margin: 0; pointer-events: none; }
+.reader-playview .reader-view-actions { display: flex; gap: 6px; margin-left: auto; }
+.reader-playview .reader-heading .brand { max-width: min(45%, 28rem); padding: 8px 12px; font-size: 13px; }
+.reader-playview .reader-heading a, .reader-playview .reader-heading button, .reader-playview .reader-toolbar button { pointer-events: auto; min-height: 44px; border: 1px solid #ffffff30; border-radius: 12px; background: rgb(16 18 22 / 78%); color: #f4f4f5; box-shadow: 0 2px 8px #0004; backdrop-filter: blur(12px); }
+.reader-playview .reader-heading button, .reader-playview .reader-toolbar button { padding: 9px 12px; font-size: 13px; }
+.reader-playview .reader-heading a:hover, .reader-playview .reader-heading button:hover, .reader-playview .reader-toolbar button:hover { background: rgb(36 39 44 / 94%); }
+.reader-shell.reader-playview .reader-toolbar { position: absolute; z-index: 5; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; width: auto; padding: 0; margin: 0; background: none; pointer-events: none; }
+.reader-playview .reader-controls { display: flex; flex-wrap: wrap; gap: 6px; width: auto; }
+.reader-playview .reader-controls [data-slot="button"] { flex: initial; }
+.reader-playview .reader-save-status { position: absolute; z-index: 3; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 58px); left: max(12px, env(safe-area-inset-left)); display: flex; flex-wrap: wrap; gap: 2px 12px; max-width: calc(100% - 24px); margin: 0; padding: 5px 10px; border: 0; border-radius: 8px; background: rgb(16 18 22 / 72%); color: #ddd; font-size: 11px; pointer-events: none; }
+.reader-playview .advanced-tools, .reader-playview .reader-save-panel { position: absolute; z-index: 8; top: calc(max(12px, env(safe-area-inset-top)) + 56px); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 64px); right: max(12px, env(safe-area-inset-right)); width: min(420px, calc(100% - 24px)); max-height: none; margin: 0; padding: 16px; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 16px; background: var(--card); color: var(--foreground); box-shadow: 0 12px 48px #0008; }
+.reader-playview .advanced-tools:not([open]) { display: none; }
+.reader-playview .advanced-tools > div { padding: 12px 0 0; }
+.reader-playview .reader-save-panel { left: max(12px, env(safe-area-inset-left)); width: min(850px, calc(100% - 24px)); margin-inline: auto; }
+.reader-playview .reader-resource-loading { top: calc(max(12px, env(safe-area-inset-top)) + 56px); right: max(12px, env(safe-area-inset-right)); }
+.reader-playview .reader-error { position: absolute; z-index: 9; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 108px); max-height: 30%; padding: 12px; overflow: auto; border-radius: 12px; background: var(--card); }
+.reader-playview .reader-fullscreen-note { position: absolute; z-index: 4; bottom: 0; left: 0; padding: 0 8px; background: #08090b; color: #aaa; font-size: 10px; pointer-events: none; }
+body:has(.reader-playview) aside.container[role="status"] { position: fixed; z-index: 46; top: max(8px, env(safe-area-inset-top)); left: 12px; right: 12px; width: auto; max-height: 35dvh; margin: 0; overflow: auto; background: var(--card); }
+@media (max-width: 420px) {
+  .reader-playview .reader-heading button, .reader-playview .reader-toolbar button { padding-inline: 9px; font-size: 12px; }
+  .reader-playview .reader-heading .brand { max-width: 38%; }
+  .reader-playview .reader-save-status { right: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 104px); }
 }

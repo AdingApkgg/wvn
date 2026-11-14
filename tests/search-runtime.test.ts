@@ -84,7 +84,7 @@ test('continuous CLI worker consumes real isolated schema events and exits clean
   const f = await fixture();
   let child: ReturnType<typeof spawn> | undefined;
   try {
-    child = spawn(process.execPath, ['--import', 'tsx', 'scripts/search-index.ts', 'worker', '2'], {
+    child = spawn(process.execPath, ['--import', '@oxc-node/core/register', 'scripts/search-index.ts', 'worker', '2'], {
       cwd: process.cwd(), env: { ...process.env, DATABASE_URL: process.env.WVN_TEST_DATABASE_URL, WG_DATABASE_URL: process.env.WVN_TEST_DATABASE_URL,
         DATABASE_SCHEMA: f.schema, WG_DATABASE_SCHEMA: '', MEILI_INDEX_UID: f.indexUid,
         MEILI_WRITE_KEY: process.env.MEILI_MASTER_KEY, SEARCH_WORKER_IDLE_MS: '100' }, stdio: ['ignore', 'pipe', 'pipe'],

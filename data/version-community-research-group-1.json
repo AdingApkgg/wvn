@@ -1,0 +1,6595 @@
+{
+  "schemaVersion": 1,
+  "researchGroup": 1,
+  "checkedAt": "2026-11-13T21:07:57Z",
+  "scope": "用户新授权采用VNDB与KUNGal社区标记；本文件只给建议，不修改主分类。",
+  "sourceSnapshot": {
+    "path": "/private/tmp/wvn-version-research/vndb-all-release-candidates.json",
+    "source": "https://api.vndb.org/kana/release",
+    "fetchedAt": "2026-11-13T21:05:20.409670+00:00"
+  },
+  "policy": [
+    "接受作品级/资源级社区标记，不设置官方哈希门槛。",
+    "KUN顶部SFW/NSFW、画廊隐藏图片与游戏性内容不同；优先年龄字段、明确资源说明、VNDB has_ero。",
+    "完整本体、成人补丁、翻译补丁、试玩分别判断。",
+    "webPageOpened=false的发行链接只是API记录的永久定位，不声称网页实际打开；API快照本轮已取回并被读取。",
+    "未点击NSFW确认/登录，未下载游戏或补丁。"
+  ],
+  "counts": {
+    "works": 24,
+    "versions": 35,
+    "suggestedWorks": {
+      "none": 2,
+      "present": 16,
+      "unknown": 6
+    },
+    "suggestedVersions": {
+      "none": 3,
+      "present": 23,
+      "unknown": 9
+    }
+  },
+  "works": [
+    {
+      "workId": "v27448",
+      "title": "ATRI",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://vndb.org/v27448",
+          "site": "VNDB",
+          "scope": "work",
+          "label": "No Sexual Content",
+          "observation": "VNDB作品页面实际可读，带No Sexual Content标签且发行表包含All标记。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/261",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "Artemis Engine（索引正文）",
+          "observation": "资源帖主题为ATRI PC/PE汉化，搜索索引正文明确手机版为Artemis Engine/Tyranor；实际open正文截断。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "partial_body",
+          "ambiguity": "此帖支持引擎候选，内容none主要来自VNDB一致has_ero=false。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 17,
+        "hasEroValues": [
+          false
+        ],
+        "trueCompleteNonPatchCount": 0,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r68470",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-06-18",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r68470",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r71389",
+            "title": "ATRI -My Dear Moments- Demo",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2020-05-01",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r71389",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r73758",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-08-09",
+            "platforms": [
+              "win",
+              "and"
+            ],
+            "url": "https://vndb.org/r73758",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r77932",
+            "title": "ATRI -My Dear Moments- Original Soundtrack - First Press Limited Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-10-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r77932",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r80578",
+            "title": "ATRI -Những Hồi Ức Thân Thương Của Tôi-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-10-29",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r80578",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r83170",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "id"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-01-01",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r83170",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r84992",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-12-16",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r84992",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r85014",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 16,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-12-16",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r85014",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r85015",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 12,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-12-16",
+            "platforms": [
+              "ios"
+            ],
+            "url": "https://vndb.org/r85015",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r85472",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "es"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-12-29",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r85472",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r103068",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-01-07",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r103068",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r106878",
+            "title": "ATRI -Moi dorogie vospominaniya-",
+            "has_ero": false,
+            "minage": 15,
+            "patch": true,
+            "official": false,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-08-13",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r106878",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r111767",
+            "title": "Atri: moi dorogie vospomonaniya",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": false,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-08-15",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r111767",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r120294",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-03-03",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r120294",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140727",
+            "title": "Atri -Lahadhati al Ghaliya-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ar"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-07-02",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r140727",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r147524",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "pt-br"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r147524",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r149908",
+            "title": "ATRI -My Dear Moments-",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "pl"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27448",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-06-30",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r149908",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "none",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部已收录发行has_ero=false，作品页No Sexual Content；包括Artemis官方分支及非官方移植。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-22f82f586933328e09f8545a",
+          "title": "ATRI",
+          "engine": "Artemis",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB全部已收录发行has_ero=false，作品页No Sexual Content；包括Artemis官方分支及非官方移植。"
+        },
+        {
+          "versionId": "6016ffaf-4448-53d8-a129-b907b13b2d77",
+          "title": "ATRI · WebGAL 2026-10-27",
+          "engine": "Artemis",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB全部已收录发行has_ero=false，作品页No Sexual Content；包括Artemis官方分支及非官方移植。"
+        }
+      ]
+    },
+    {
+      "workId": "v4",
+      "title": "CLANNAD",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/86",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "全年龄；无色情内容",
+          "observation": "年龄限制字段全年龄，并有无色情内容标签。顶部SFW未参与判断。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 66,
+        "hasEroValues": [
+          false
+        ],
+        "trueCompleteNonPatchCount": 0,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r13",
+            "title": "Clannad Full Voice",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-02-29",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r13",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r301",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2006-02-23",
+            "platforms": [
+              "ps2"
+            ],
+            "url": "https://vndb.org/r301",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r302",
+            "title": "Clannad - First Press Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2004-04-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r302",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r303",
+            "title": "Clannad - Regular Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2004-08-06",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r303",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r430",
+            "title": "CLANNAD - Kickstarter Limited Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2016-03-09",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r430",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r1441",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-05-29",
+            "platforms": [
+              "psp"
+            ],
+            "url": "https://vndb.org/r1441",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r1629",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-08-28",
+            "platforms": [
+              "xb3"
+            ],
+            "url": "https://vndb.org/r1629",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r3748",
+            "title": "Key 10th Memorial BOX",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              },
+              {
+                "id": "v5",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12",
+                "rtype": "complete"
+              },
+              {
+                "id": "v33",
+                "rtype": "complete"
+              },
+              {
+                "id": "v34",
+                "rtype": "complete"
+              },
+              {
+                "id": "v36",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2009-07-31",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r3748",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r4784",
+            "title": "Clannad - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-10-06",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r4784",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r5587",
+            "title": "Clannad ~tease patch~",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2009-12-24",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r5587",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r7897",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2011-04-21",
+            "platforms": [
+              "ps3"
+            ],
+            "url": "https://vndb.org/r7897",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r8856",
+            "title": "CLANNAD - Memorial Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2010-05-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r8856",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r9435",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-12-31",
+            "platforms": [
+              "psp"
+            ],
+            "url": "https://vndb.org/r9435",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r11075",
+            "title": "Clannad - Best Edition",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2009-07-30",
+            "platforms": [
+              "ps2"
+            ],
+            "url": "https://vndb.org/r11075",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r11098",
+            "title": "Clannad - Key Trilogy Premium Box",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              },
+              {
+                "id": "v33",
+                "rtype": "complete"
+              },
+              {
+                "id": "v36",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2009-07-30",
+            "platforms": [
+              "ps2"
+            ],
+            "url": "https://vndb.org/r11098",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r13119",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "es"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2013-08-20",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r13119",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r21446",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2012-06-07",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r21446",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r21520",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2012-06-25",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r21520",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r22866",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 16,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2012-09-18",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r22866",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r24967",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2007-11-18",
+            "platforms": [
+              "mob"
+            ],
+            "url": "https://vndb.org/r24967",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r25238",
+            "title": "Clannad Full Voice",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2014-01-07",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r25238",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r27053",
+            "title": "Clannad - Download Edition",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2013-02-14",
+            "platforms": [
+              "ps3"
+            ],
+            "url": "https://vndb.org/r27053",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r27166",
+            "title": "CLANNAD FULLVOICE",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2009-03-12",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r27166",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r30397",
+            "title": "Clannad Full Voice",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "it"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-09-14",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r30397",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r31544",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2010-10-26",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r31544",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r33730",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Interchannel/Prototype Legacy Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2014-08-14",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r33730",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r35593",
+            "title": "Clannad Full Voice (PT-BR Patch v1.0)",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "pt-br"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2014-11-21",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r35593",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r36069",
+            "title": "CLANNAD - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-11-23",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r36069",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r40704",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2013-08-24",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r40704",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r56131",
+            "title": "CLANNAD - Package Edition",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-06-14",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r56131",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r57493",
+            "title": "CLANNAD - NA Download Edition",
+            "has_ero": false,
+            "minage": 13,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-06-21",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r57493",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r60209",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2010-06-13",
+            "platforms": [
+              "vnd"
+            ],
+            "url": "https://vndb.org/r60209",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r61228",
+            "title": "CLANNAD - Download Edition",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-07-04",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r61228",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r64839",
+            "title": "CLANNAD - Collector's Edition",
+            "has_ero": false,
+            "minage": 13,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-07-06",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r64839",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r64841",
+            "title": "Clannad Full Voice",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2014-01-15",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r64841",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r64849",
+            "title": "Clannad - Memorial Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2020-03-10",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r64849",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r66916",
+            "title": "CLANNAD - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "RealLive",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-10-17",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r66916",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r70500",
+            "title": "Clannad - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "pl"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "TBA",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r70500",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r71051",
+            "title": "CLANNAD - Package Edition",
+            "has_ero": false,
+            "minage": 13,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-07-06",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r71051",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r71147",
+            "title": "Clannad - Original Soundtrack Restoration Patch",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-04-24",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r71147",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r71682",
+            "title": "Clannad - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-05-11",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r71682",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r75470",
+            "title": "Clannad - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-10-14",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r75470",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r76829",
+            "title": "Clannad - Unofficial Japanese Localization Patch",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-09-20",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r76829",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r82218",
+            "title": "Clannad Full Voice",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "pt-br"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-08-15",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r82218",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r84771",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-10-10",
+            "platforms": [
+              "psp"
+            ],
+            "url": "https://vndb.org/r84771",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r86843",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 15,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-06-04",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r86843",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r104131",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-02-25",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r104131",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r107527",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-05-01",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r107527",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r109579",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-07-02",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r109579",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r113484",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2022-06-08",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r113484",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r114447",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-10-26",
+            "platforms": [
+              "ios",
+              "and",
+              "swi"
+            ],
+            "url": "https://vndb.org/r114447",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r117943",
+            "title": "Clannad After Story - Complete Translation Patch",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2007-12-24",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r117943",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r117946",
+            "title": "CLANNAD - Simplified Chinese Translation Patch Version IV",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2006-10-13",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r117946",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r117947",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-09-14",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r117947",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r121163",
+            "title": "Clannad (Steam HD Patch Italiana)",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "it"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-03-13",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r121163",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r121674",
+            "title": "CLANNAD - Package Edition",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-07-04",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r121674",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r122124",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 13,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-04-21",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r122124",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r136619",
+            "title": "CLANNAD - EU Download Edition",
+            "has_ero": false,
+            "minage": 12,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-03-29",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r136619",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r138201",
+            "title": "CLANNAD - JP Download Edition",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": "Luca System",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-06-13",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r138201",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140052",
+            "title": "Clannad - Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "pt-br"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-08-07",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r140052",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r142112",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "fr"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-09-19",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r142112",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r142279",
+            "title": "Clannad",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "fr"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-09-22",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r142279",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r144537",
+            "title": "CLANNAD - Steam Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "es"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "TBA",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r144537",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r156531",
+            "title": "CLANNAD",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-04-20",
+            "platforms": [
+              "vnd"
+            ],
+            "url": "https://vndb.org/r156531",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r161423",
+            "title": "KLANAD",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "tr"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "TBA",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r161423",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r169136",
+            "title": "CLANNAD HD Steam - Parche de traducción al español",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "es"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v4",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-11-02",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r169136",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "none",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部发行has_ero=false，KUN作品明确全年龄与无色情内容。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-a1a835ec6184bfd5142f454f",
+          "title": "CLANNAD",
+          "engine": "ONS",
+          "suggestedSexualContent": "none",
+          "reason": "VNDB全部发行has_ero=false，KUN作品明确全年龄与无色情内容。"
+        }
+      ]
+    },
+    {
+      "workId": "v97",
+      "title": "沙耶之歌",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/245",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "安卓/ONS",
+          "observation": "明确沙耶之歌安卓ONS资源；该帖未独立写R18。成人推定来自VNDB同类ONS候选全部true。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 54,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 26,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r25",
+            "title": "Saya no Uta",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2003-12-26",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r25",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r64727",
+            "title": "Saya no Uta ~ The Song of Saya - Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": "Diesel Engine",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-08-13",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r64727",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r65935",
+            "title": "Khúc ca của Saya - HD Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-06-02",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r65935",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r68982",
+            "title": "Qsaya4ons",
+            "has_ero": true,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": "NScripter",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-03-09",
+            "platforms": [
+              "psp",
+              "oth"
+            ],
+            "url": "https://vndb.org/r68982",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r124459",
+            "title": "Sayaui Norae",
+            "has_ero": false,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-01-10",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r124459",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r159742",
+            "title": "Saya no Uta Remaster - Demo",
+            "has_ero": false,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2026-06-29",
+            "platforms": [
+              "win",
+              "and"
+            ],
+            "url": "https://vndb.org/r159742",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r168109",
+            "title": "Saya No Uta PSP Enhanced Port",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "ONScripter",
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v97",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-10-17",
+            "platforms": [
+              "psp"
+            ],
+            "url": "https://vndb.org/r168109",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "engine_release_inference",
+      "reason": "当前为ONS，VNDB列NScripter/ONS完整发行及ONS移植工具均has_ero=true；KUN明确旧安卓ONS资源。无色情候选是Steam/韩文删改及RenPy demo，不是此引擎分支。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-37a5c1365c6dec71ede5d1a3",
+          "title": "沙耶之歌",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "当前为ONS，VNDB列NScripter/ONS完整发行及ONS移植工具均has_ero=true；KUN明确旧安卓ONS资源。无色情候选是Steam/韩文删改及RenPy demo，不是此引擎分支。"
+        }
+      ]
+    },
+    {
+      "workId": "v18636",
+      "title": "希尔薇",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/32022",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "NSFW确认页；魔改版V8.0.3（索引）",
+          "observation": "实际open仅显示NSFW确认页，未点击；索引曾列PC+安卓魔改版，不能据它判定部署包版本。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "nsfw_confirmation",
+          "ambiguity": "NSFW展示门禁不单独作为性内容证据；VNDB各完整/试玩发行has_ero均true。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 20,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 13,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r43805",
+            "title": "Dorei to no Seikatsu -Teaching Feeling-",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "TyranoScript",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v18636",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-10-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r43805",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB正式、Legacy、各Tyrano移植及trial全部has_ero=true。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-ab8ed81c42a7266e3ca6cc61",
+          "title": "希尔薇",
+          "engine": "Tyrano",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB正式、Legacy、各Tyrano移植及trial全部has_ero=true。"
+        }
+      ]
+    },
+    {
+      "workId": "v1194",
+      "title": "缘之空",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/51",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18",
+          "observation": "作品年龄限制R18；顶部SFW与内容年龄分开。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/320",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "PC/ONS；2024-02-14",
+          "observation": "旧ONS资源帖在2024发布，早于VNDB所列2026删改简中发行；结合原版R18作ONS分支推定。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "帖文未独立列R18，不能声称确认了本地包与该资源完全相同。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 31,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 7,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r2256",
+            "title": "Yosuga no Sora - First Press Limited Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "EntisGLS",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1194",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2008-12-05",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r2256",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r96574",
+            "title": "Yosuga no Sora: MIÐGARÐ Edition (Demo)",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1194",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2022-10-04",
+            "platforms": [
+              "win",
+              "lin",
+              "mac",
+              "and"
+            ],
+            "url": "https://vndb.org/r96574",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r127196",
+            "title": "Yosuga no Sora - Download Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1194",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-09-10",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r127196",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r130403",
+            "title": "Yuan zhi Kong",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1194",
+                "rtype": "complete"
+              }
+            ],
+            "released": "TBA",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r130403",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r142725",
+            "title": "Yosuga no Sora",
+            "has_ero": false,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "id"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1194",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-08-09",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r142725",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r162459",
+            "title": "Yosuga no Sora (In Solitude, Where We Are Least Alone) Bahasa Indonesia",
+            "has_ero": false,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": "KiriKiri",
+            "languages": [
+              {
+                "lang": "id"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1194",
+                "rtype": "complete"
+              }
+            ],
+            "released": "TBA",
+            "platforms": [
+              "win",
+              "and"
+            ],
+            "url": "https://vndb.org/r162459",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "resource_era_inference",
+      "reason": "KUN作品R18且2024旧ONS资源早于新的删改版；VNDB日文原版/成人补丁true，无色情RenPy demo与2026简中删改版不对应旧ONS。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-caa815636729e8cfa7a09a46",
+          "title": "缘之空",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "KUN作品R18且2024旧ONS资源早于新的删改版；VNDB日文原版/成人补丁true，无色情RenPy demo与2026简中删改版不对应旧ONS。"
+        }
+      ]
+    },
+    {
+      "workId": "v1286",
+      "title": "eden*",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/22",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18",
+          "observation": "年龄字段R18，别名包含PLUS+MOSAIC；这把基础版与成人扩充放在同一作品层。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/1263",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "RenPy网页版示例（索引）",
+          "observation": "索引中的回复#2将EDEN列为RenPy网页版示例；实际open未提供可读正文，未打开游戏示例链接。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "inaccessible",
+          "ambiguity": "引擎匹配不能分辨基础版和PLUS+MOSAIC。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 24,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r2461",
+            "title": "eden* They were only two, on the planet. - Package Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2009-09-18",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r2461",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r6337",
+            "title": "eden* They were only two, on the planet. - Trial Disc",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2009-08-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r6337",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r6338",
+            "title": "eden* They were only two, on the planet. - Web Trial Version",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2009-08-17",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r6338",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r7411",
+            "title": "Eden* They Were Only Two, On The Planet",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2010-04-01",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r7411",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r7675",
+            "title": "Eden* They Were Only Two, On The Planet",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2009-12-24",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r7675",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r35705",
+            "title": "eden* - Censored edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-01-30",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r35705",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r35710",
+            "title": "eden* PLUS＋MOSAIC",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-01-30",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r35710",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r38415",
+            "title": "eden* Trial Version",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2015-02-04",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r38415",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r63324",
+            "title": "eden* They were only two, on the planet. - Download Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-04-19",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r63324",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r64432",
+            "title": "Eden* They Were Only Two, On The Planet.",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2013-10-07",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r64432",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r72176",
+            "title": "Eden* They Were Only Two, On The Planet.",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-04-23",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r72176",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r77596",
+            "title": "Eden* for PSP",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": "Lavis",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2010-01-12",
+            "platforms": [
+              "psp"
+            ],
+            "url": "https://vndb.org/r77596",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r84447",
+            "title": "eden* Chỉ Có Hai Người Họ, Trên Hành Tinh Này.",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-09-18",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r84447",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r84706",
+            "title": "Edem* Na vsej planete ih bylo lish' dvoe (Steam)",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-12-15",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r84706",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r96958",
+            "title": "eden*",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-10-13",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r96958",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r103070",
+            "title": "eden* (Steam)",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1286",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-01-08",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r103070",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "unknown",
+      "suggestionBasis": "mixed_unresolved",
+      "reason": "VNDB基础版/试玩false，PLUS+MOSAIC/R18版true；KUN作品页合并两者，RenPy示例没有成人补丁状态。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-2bc9744f4a39fda45c162027",
+          "title": "eden*",
+          "engine": "RenPy",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB基础版/试玩false，PLUS+MOSAIC/R18版true；KUN作品页合并两者，RenPy示例没有成人补丁状态。"
+        }
+      ]
+    },
+    {
+      "workId": "v1085",
+      "title": "3days～満ちてゆく刻の彼方で～",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/115",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18；NScripter",
+          "observation": "作品年龄限制R18，游戏引擎包括NScripter；VNDB另有简中ONS完整移植条目。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 12,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 7,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r2113",
+            "title": "3days ~Michiteyuku Toki no Kanata de~ First Press Limited Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "NekoBoard",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1085",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2004-06-25",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r2113",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r18460",
+            "title": "3 days ONS Yizhi Ban",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "NScripter",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v1085",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2011-02-25",
+            "platforms": [
+              "win",
+              "lin",
+              "and"
+            ],
+            "url": "https://vndb.org/r18460",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "engine_release_inference",
+      "reason": "VNDB全部true，且r18460是简中NScripter完整ONS移植；KUN作品R18。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-fb8b326a69b71beee0e909a0",
+          "title": "3days～満ちてゆく刻の彼方で～",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，且r18460是简中NScripter完整ONS移植；KUN作品R18。"
+        }
+      ]
+    },
+    {
+      "workId": "v26310",
+      "title": "NinNinDays",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/481",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18；Artemis Engine",
+          "observation": "作品年龄字段R18，Artemis；同一引擎既有删改本体又有成人版，不能只凭此选分支。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 11,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 2,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r65403",
+            "title": "NinNinDays - Censored Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v26310",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-08-08",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r65403",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r69822",
+            "title": "NinNinDays",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v26310",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-03-12",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r69822",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r71865",
+            "title": "NinNinDays",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v26310",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-08-26",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r71865",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r156036",
+            "title": "NinNinDays",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "id"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v26310",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-04-25",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r156036",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r168865",
+            "title": "NinNin Heroines",
+            "has_ero": false,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v26310",
+                "rtype": "complete"
+              },
+              {
+                "id": "v32805",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-09-03",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r168865",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "unknown",
+      "suggestionBasis": "mixed_unresolved",
+      "reason": "Artemis本体存在has_ero=false删改版及true成人版/R18补丁，KUN作品R18未确定当前包补丁状态。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-0a8a7282eb43a670959e29ae",
+          "title": "NinNinDays",
+          "engine": "Artemis",
+          "suggestedSexualContent": "unknown",
+          "reason": "Artemis本体存在has_ero=false删改版及true成人版/R18补丁，KUN作品R18未确定当前包补丁状态。"
+        }
+      ]
+    },
+    {
+      "workId": "v32805",
+      "title": "NinNinDays2",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/482",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18；Artemis Engine",
+          "observation": "作品年龄字段R18，Artemis；未读到对应当前包的已打R18补丁资源说明。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 7,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 2,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r84675",
+            "title": "NinNinDays2",
+            "has_ero": false,
+            "minage": 16,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v32805",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-11-18",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r84675",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r85902",
+            "title": "NinNinDays2",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v32805",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-01-20",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r85902",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r86438",
+            "title": "NinNinDays2",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v32805",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-01-21",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r86438",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r168865",
+            "title": "NinNin Heroines",
+            "has_ero": false,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              },
+              {
+                "lang": "zh-Hant"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v26310",
+                "rtype": "complete"
+              },
+              {
+                "id": "v32805",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-09-03",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r168865",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "unknown",
+      "suggestionBasis": "mixed_unresolved",
+      "reason": "Artemis/PC存在删改与无删改/18+补丁分支；未找到当前包对应补丁标记。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-9eec48bf553b29f80a0cf3b6",
+          "title": "NinNinDays2",
+          "engine": "Artemis",
+          "suggestedSexualContent": "unknown",
+          "reason": "Artemis/PC存在删改与无删改/18+补丁分支；未找到当前包对应补丁标记。"
+        }
+      ]
+    },
+    {
+      "workId": "v30216",
+      "title": "Princess×Princess",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 7,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r77309",
+            "title": "Princess x Princess - Deluxe Limited Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v28",
+                "rtype": "complete"
+              },
+              {
+                "id": "v30216",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-08-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r77309",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r81891",
+            "title": "Princess x Princess - Trial Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v30216",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2021-08-03",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r81891",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r82139",
+            "title": "Princess x Princess - Download Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v30216",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-08-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r82139",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r91921",
+            "title": "Princess x Princess - Trial Edition",
+            "has_ero": false,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v30216",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2021-12-03",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r91921",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "complete_release_inference",
+      "reason": "正式完整发行均true；唯一false候选r91921是简中试玩翻译补丁，rtype=trial且patch=true；当前目录不标试玩。此为完整游戏推定，若之后确认是该trial须改unknown。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。 present建立在当前版本为完整本体、不是仅未注明demo的条件上。",
+      "versions": [
+        {
+          "versionId": "legacy-2bac9ede31401bad314f5d65",
+          "title": "Princess×Princess",
+          "engine": "Artemis",
+          "suggestedSexualContent": "present",
+          "reason": "正式完整发行均true；唯一false候选r91921是简中试玩翻译补丁，rtype=trial且patch=true；当前目录不标试玩。此为完整游戏推定，若之后确认是该trial须改unknown。"
+        }
+      ]
+    },
+    {
+      "workId": "v8038",
+      "title": "万华镜1",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/65",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18",
+          "observation": "作品年龄限制R18，与VNDB全部发行has_ero=true一致。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/74",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "前五作及2.5全集；已打步兵/汉化补丁",
+          "observation": "该PC硬盘合集正文明确六部对应作品并已打去码及汉化补丁，支持成人分支存在；不靠封面NSFW判定。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "此帖为PC合集，不能精确区分当前RenPy/ONS小修复版本。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 24,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 14,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r16197",
+            "title": "Bishoujo Mangekyou -Norowareshi Densetsu no Shoujo- First Press Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "QLIE",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8038",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2011-12-29",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r16197",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r47900",
+            "title": "Kalejdoskop krasavic -Devushka iz prokljatogo skazanija-",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8038",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-07-06",
+            "platforms": [
+              "win",
+              "lin",
+              "mac"
+            ],
+            "url": "https://vndb.org/r47900",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r118978",
+            "title": "Bishoujo Mangekyou -Norowareshi Densetsu no Shoujo-",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8038",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-04-24",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r118978",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r122412",
+            "title": "Bishoujo Mangekyou -Norowareshi Densetsu no Shoujo-",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8038",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-07-16",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r122412",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部true并收录RenPy完整移植；KUN作品年龄R18，合集明确去码。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-163db5b7a02c581d83d546aa",
+          "title": "万华镜系列 · 万华镜1",
+          "engine": "RenPy",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true并收录RenPy完整移植；KUN作品年龄R18，合集明确去码。"
+        },
+        {
+          "versionId": "legacy-51fb3bbaebe819639e1b00cb",
+          "title": "万华镜系列 · 万华镜1 替换ogv",
+          "engine": "RenPy",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true并收录RenPy完整移植；KUN作品年龄R18，合集明确去码。"
+        }
+      ]
+    },
+    {
+      "workId": "v14240",
+      "title": "万华镜2.5",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/74",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "前五作及2.5全集；已打步兵/汉化补丁",
+          "observation": "该PC硬盘合集正文明确六部对应作品并已打去码及汉化补丁，支持成人分支存在；不靠封面NSFW判定。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "此帖为PC合集，不能精确区分当前RenPy/ONS小修复版本。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/1432",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "未取得正文",
+          "observation": "由系列页链接发现对应2.5作品页，但open两次Cache miss；不把失败当标签。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "inaccessible",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 10,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 5,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r31297",
+            "title": "Bishoujo Mangekyou -Katsute Shoujo Datta Kimi e- Package Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "QLIE",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v14240",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2014-02-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r31297",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r101599",
+            "title": "Meishaonü Wanhuajing 2.5: Xiangei Cengjing shi Shaonü de Ni - Ren'Py Port",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v14240",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-01-31",
+            "platforms": [
+              "win",
+              "and"
+            ],
+            "url": "https://vndb.org/r101599",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "engine_release_inference",
+      "reason": "VNDB全部true，r101599明确简中RenPy完整移植；KUN成人PC合集提供旁证。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-34a982d43f20824c615aa356",
+          "title": "万华镜系列 · 万华镜2.5",
+          "engine": "RenPy",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，r101599明确简中RenPy完整移植；KUN成人PC合集提供旁证。"
+        },
+        {
+          "versionId": "legacy-91cbd8b181dfcf0b753c104d",
+          "title": "万华镜系列 · 万华镜2.5 替换ogv",
+          "engine": "RenPy",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，r101599明确简中RenPy完整移植；KUN成人PC合集提供旁证。"
+        }
+      ]
+    },
+    {
+      "workId": "v14365",
+      "title": "万华镜3",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/74",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "前五作及2.5全集；已打步兵/汉化补丁",
+          "observation": "该PC硬盘合集正文明确六部对应作品并已打去码及汉化补丁，支持成人分支存在；不靠封面NSFW判定。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "此帖为PC合集，不能精确区分当前RenPy/ONS小修复版本。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 10,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 6,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r31568",
+            "title": "Bishoujo Mangekyou -Kami ga Tsukuritamouta Shoujo-tachi- Package Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "QLIE",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v14365",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-03-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r31568",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部true，KUN合集与ONS骑兵资源旁证成人分支。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-434dbf1e3ea7d9835fbff5ec",
+          "title": "万华镜系列 · 万华镜3",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，KUN合集与ONS骑兵资源旁证成人分支。"
+        },
+        {
+          "versionId": "legacy-4739feefe694a036c750c25c",
+          "title": "万华镜系列 · 万华镜3 修复",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，KUN合集与ONS骑兵资源旁证成人分支。"
+        },
+        {
+          "versionId": "legacy-a05a24c64b95e9e4c73d69f1",
+          "title": "万华镜系列 · 万华镜3 跳kaleidoscope",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，KUN合集与ONS骑兵资源旁证成人分支。"
+        }
+      ]
+    },
+    {
+      "workId": "v27057",
+      "title": "万华镜5",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/topic/74",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "前五作及2.5全集；已打步兵/汉化补丁",
+          "observation": "该PC硬盘合集正文明确六部对应作品并已打去码及汉化补丁，支持成人分支存在；不靠封面NSFW判定。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "此帖为PC合集，不能精确区分当前RenPy/ONS小修复版本。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/69",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "ONS骑兵合集；PC含补丁分支",
+          "observation": "作品资源区明确七部双端合集中的1/2/3/4/5均有ONS骑兵；另有Steam专属内容恢复补丁说明。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "这是资源级成人版本推定，不是哈希相等或逐场景验证；修复/跳kaleidoscope名不说明是否增删成人剧情。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 15,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 5,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r67697",
+            "title": "Bishoujo Mangekyou -Kotowari to Meikyuu no Shoujo- Package Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "QLIE",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27057",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-05-29",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r67697",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r79290",
+            "title": "Meishaonv Wanhuajing -Li yu Migong de Shaonv- Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27057",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-06-20",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r79290",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r144738",
+            "title": "Bishoujo Mangekyou -Kotowari to Meikyuu no Shoujo-",
+            "has_ero": false,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v27057",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2025-11-10",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r144738",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "resource_engine_inference",
+      "reason": "VNDB区分Steam删改false与成人版true；KUN本作品资源区明确第五作ONS骑兵内容，可按ONS资源分支推定。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-16310c7b01d5049f9ffa78ea",
+          "title": "万华镜系列 · 万华镜5",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB区分Steam删改false与成人版true；KUN本作品资源区明确第五作ONS骑兵内容，可按ONS资源分支推定。"
+        },
+        {
+          "versionId": "legacy-9d58bcf41c683470e5771057",
+          "title": "万华镜系列 · 万华镜5 修复",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB区分Steam删改false与成人版true；KUN本作品资源区明确第五作ONS骑兵内容，可按ONS资源分支推定。"
+        },
+        {
+          "versionId": "legacy-032e99675c2271819eea7e73",
+          "title": "万华镜系列 · 万华镜5 跳kaleidoscope",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB区分Steam删改false与成人版true；KUN本作品资源区明确第五作ONS骑兵内容，可按ONS资源分支推定。"
+        }
+      ]
+    },
+    {
+      "workId": "v44184",
+      "title": "万华镜6",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/99",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "NSFW确认页",
+          "observation": "实际只显示本作品含NSFW及确认按钮，未点击。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "nsfw_confirmation",
+          "ambiguity": "未读到demo0.91/0.92/0.93对应内容；作品整体成人标记不覆盖各demo。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/39710",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "未取得正文",
+          "observation": "搜索发现雪女资源，但openCache miss。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "inaccessible",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 10,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r106553",
+            "title": "Bishoujo Mangekyou Ibun - Yuki Onna - Package Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v44184",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-04-26",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r106553",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r131795",
+            "title": "Meishaonü Wanhuajing Yiwen Xuenü",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v44184",
+                "rtype": "complete"
+              }
+            ],
+            "released": "TBA",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r131795",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "unknown",
+      "suggestionBasis": "demo_unresolved",
+      "reason": "VNDB成人正式版true与未来Steam删改版false并存；四个当前版本均为RenPy demo，未找到对应demo版本标记。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-fe2406e269b2dc19be3a75ba",
+          "title": "万华镜系列 · 万华镜6 demo",
+          "engine": "RenPy",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB成人正式版true与未来Steam删改版false并存；四个当前版本均为RenPy demo，未找到对应demo版本标记。"
+        },
+        {
+          "versionId": "legacy-c193d7dd6680727121b1f9d6",
+          "title": "万华镜系列 · 万华镜6 demo0.91",
+          "engine": "RenPy",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB成人正式版true与未来Steam删改版false并存；四个当前版本均为RenPy demo，未找到对应demo版本标记。"
+        },
+        {
+          "versionId": "legacy-ad49d61a350643ebf45d85b5",
+          "title": "万华镜系列 · 万华镜6 demo0.92",
+          "engine": "RenPy",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB成人正式版true与未来Steam删改版false并存；四个当前版本均为RenPy demo，未找到对应demo版本标记。"
+        },
+        {
+          "versionId": "legacy-31cf96913037760bf3f22036",
+          "title": "万华镜系列 · 万华镜6 demo0.93",
+          "engine": "RenPy",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB成人正式版true与未来Steam删改版false并存；四个当前版本均为RenPy demo，未找到对应demo版本标记。"
+        }
+      ]
+    },
+    {
+      "workId": "v33099",
+      "title": "保健室的老师与哥特萝莉的校医",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/83",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "NSFW确认页",
+          "observation": "实际只显示确认页，未点击；发行has_ero以VNDB为主要证据。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "nsfw_confirmation",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/179",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "R18；PC+TY（索引）",
+          "observation": "搜索索引列R18及PC+TY备注；实际openCache miss。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "inaccessible",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 5,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r85498",
+            "title": "Hokenshitsu no Sensei to Gothloli no Koui - Dakimakura Cover Included Limited Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v33099",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-03-25",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r85498",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部发行/翻译has_ero=true，原版Artemis对应目录引擎；KUN索引R18旁证。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-8be91910e078a0119ba298d4",
+          "title": "保健室的老师与哥特萝莉的校医",
+          "engine": "Artemis",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部发行/翻译has_ero=true，原版Artemis对应目录引擎；KUN索引R18旁证。"
+        }
+      ]
+    },
+    {
+      "workId": "v33969",
+      "title": "保健室的老师与恶魔般的会长",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/82",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18；Artemis Engine",
+          "observation": "年龄字段R18，Artemis；与VNDB一致true。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 4,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r87396",
+            "title": "Hokenshitsu no Sensei to Koakuma na Kaichou - Limited Edition with Dakimakura Cover",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v33969",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-05-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r87396",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部true；KUN作品年龄R18，Artemis。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-4e9ebe39ce34bffc966cf237",
+          "title": "保健室的老师与恶魔般的会长",
+          "engine": "Artemis",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true；KUN作品年龄R18，Artemis。"
+        }
+      ]
+    },
+    {
+      "workId": "v28666",
+      "title": "保健室的老师与沉迷吹泡泡的助手",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/14",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18；Artemis Engine",
+          "observation": "年龄字段R18，Artemis；与VNDB一致true。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 10,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r72685",
+            "title": "Hokenshitsu no Sensei to Shabondama Chuudoku no Joshu",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Artemis Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v28666",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-11-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r72685",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "work_consensus",
+      "reason": "VNDB全部true，包括各trial与译版；KUN作品年龄R18，Artemis。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-985c76e84a4c4e9380401161",
+          "title": "保健室的老师与沉迷吹泡泡的助手",
+          "engine": "Artemis",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true，包括各trial与译版；KUN作品年龄R18，Artemis。"
+        }
+      ]
+    },
+    {
+      "workId": "v7738",
+      "title": "君与彼女与彼女之恋",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/112",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18",
+          "observation": "作品年龄字段R18；不能排除VNDB收录的无色情RenPy完整移植分支。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/2973",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "Steam无和谐补丁（索引）",
+          "observation": "索引明确Steam恢复补丁，实际open不可读；没有对应当前RenPy的资源说明。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "inaccessible",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 36,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 10,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r15523",
+            "title": "Kimi to Kanojo to Kanojo no Koi. - First Press Limited Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2013-06-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r15523",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r27518",
+            "title": "Kimi to Kanojo to Kanojo no Koi. - Trial Edition",
+            "has_ero": false,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2013-06-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r27518",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r38393",
+            "title": "Ni yu Binv he Binv zhi Lian.",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2014-11-04",
+            "platforms": [
+              "win",
+              "and"
+            ],
+            "url": "https://vndb.org/r38393",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r71526",
+            "title": "YOU and ME and HER: A Love Story - Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": "Diesel Engine",
+            "languages": [
+              {
+                "lang": "en"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-05-25",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r71526",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r73143",
+            "title": "Ty, ja i ona: Istorija ljubvi - Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2020-07-21",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r73143",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r79370",
+            "title": "YOU and ME and HER : una historia de amor",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "es"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-04-20",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r79370",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r81346",
+            "title": "YOU and ME and HER: A Love Story - Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "de"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-05-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r81346",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r84524",
+            "title": "YOU and ME and HER: A Love Story - Steam Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": "Diesel Engine",
+            "languages": [
+              {
+                "lang": "en"
+              },
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2021-11-11",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r84524",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r91829",
+            "title": "Dangsingwa Geunyeowa Geunyeoui Sarang",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-05-28",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r91829",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r108947",
+            "title": "Dangsingwa Geunyeowa Geunyeoui Sarang",
+            "has_ero": false,
+            "minage": 15,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ko"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2023-06-08",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r108947",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r124825",
+            "title": "YOU and ME and HER: A Love Story",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-06-28",
+            "platforms": [
+              "ios",
+              "and"
+            ],
+            "url": "https://vndb.org/r124825",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r127992",
+            "title": "YOU and ME and HER: A Love Story",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "ru"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-09-23",
+            "platforms": [
+              "ios",
+              "and",
+              "swi"
+            ],
+            "url": "https://vndb.org/r127992",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r134167",
+            "title": "YOU and ME and HER: A Love Story",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "th"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-04-08",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r134167",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r151073",
+            "title": "Chuyện tình giữa ANH, TÔI và NÀNG",
+            "has_ero": false,
+            "minage": null,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "vi"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v7738",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-03-16",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r151073",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "unknown",
+      "suggestionBasis": "mixed_same_engine",
+      "reason": "VNDB RenPy完整移植同时有true（r38393/r124825）及false（r127992）；中文名/引擎不足分辨，KUN只证作品R18与Steam补丁。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-ece0d0fae22a134abcbf8b22",
+          "title": "君与彼女与彼女之恋",
+          "engine": "RenPy",
+          "suggestedSexualContent": "unknown",
+          "reason": "VNDB RenPy完整移植同时有true（r38393/r124825）及false（r127992）；中文名/引擎不足分辨，KUN只证作品R18与Steam补丁。"
+        }
+      ]
+    },
+    {
+      "workId": "v10597",
+      "title": "夏空的英仙座",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame-rating/594",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "未取得正文",
+          "observation": "定位到夏空对应评论页但openCache miss；不以评论评分替代性内容分级。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "inaccessible",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 10,
+        "hasEroValues": [
+          true
+        ],
+        "trueCompleteNonPatchCount": 5,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r21464",
+            "title": "Natsuzora no Perseus - Deluxe Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "Musica",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v10597",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2012-12-21",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r21464",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r101123",
+            "title": "Xiakong de Yingxianzuo - Ren'Py Port",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": false,
+            "engine": "Ren'Py",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v10597",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-10-21",
+            "platforms": [
+              "win",
+              "lin",
+              "and"
+            ],
+            "url": "https://vndb.org/r101123",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "engine_release_inference",
+      "reason": "VNDB全部true且r101123明确简中RenPy完整移植，细列Beta/Final修正版本。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-55842667e349faaaad5daae5",
+          "title": "夏空的英仙座",
+          "engine": "RenPy",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB全部true且r101123明确简中RenPy完整移植，细列Beta/Final修正版本。"
+        }
+      ]
+    },
+    {
+      "workId": "v8158",
+      "title": "大图书馆的牧羊人",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/654",
+          "site": "KUNGal",
+          "scope": "work",
+          "label": "R18",
+          "observation": "作品年龄字段R18，但VNDB同时存在成人PC和无色情Library Party主机/PC移植分支。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/48825",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "模拟器；泛称KRKR/Tyranor/ONS",
+          "observation": "正文只有通用模拟器平台说明，不明确当前包是否Library Party或成人本体。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "作品/资源资料不是当前部署文件的逐项实测；不要求哈希作为社区推定的门槛。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 26,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 6,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r16537",
+            "title": "Daitoshokan no Hitsujikai - First Press Limited Edition Standard Pack",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "BGI/Ethornell",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2013-01-25",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r16537",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r22588",
+            "title": "TECH GIAN Super Prelude \"Daitoshokan no Hitsujikai\"",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2012-07-27",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r22588",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r22604",
+            "title": "Daitoshokan no Hitsujikai - Web Trial",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2012-08-30",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r22604",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r36588",
+            "title": "Daitoshokan no Hitsujikai -Library Party-",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-02-12",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r36588",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r56108",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Package Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-07-26",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r56108",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r60785",
+            "title": "Daitoshokan no Hitsujikai -Library Party-",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-02-21",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r60785",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r92633",
+            "title": "Datushuguan de Siyangren - Trial Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2012-08-05",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r92633",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r100189",
+            "title": "Daitoshokan no Hitsujikai - Trial Edition",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": true,
+            "engine": "Yox ADV+++",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2018-01-28",
+            "platforms": [
+              "and"
+            ],
+            "url": "https://vndb.org/r100189",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r124271",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Package Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-02-12",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r124271",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r139609",
+            "title": "Datushuguan de Muyangren -Tushuguan Paidui- Yizhijiang Jinyu Xian",
+            "has_ero": false,
+            "minage": 0,
+            "patch": false,
+            "official": false,
+            "engine": "WebGAL",
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "partial"
+              }
+            ],
+            "released": "2026-02-17",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r139609",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140155",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Limited Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-02-21",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r140155",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140156",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Limited Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2015-02-12",
+            "platforms": [
+              "psv"
+            ],
+            "url": "https://vndb.org/r140156",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140157",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Limited Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-07-26",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r140157",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140158",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Download Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2019-02-28",
+            "platforms": [
+              "ps4"
+            ],
+            "url": "https://vndb.org/r140158",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r140159",
+            "title": "Daitoshokan no Hitsujikai -Library Party- Download Edition",
+            "has_ero": false,
+            "minage": 17,
+            "patch": false,
+            "official": true,
+            "engine": "Yeti/Regista Engine",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12480",
+                "rtype": "complete"
+              },
+              {
+                "id": "v12600",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2018-07-26",
+            "platforms": [
+              "swi"
+            ],
+            "url": "https://vndb.org/r140159",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r151369",
+            "title": "Da Tushuguan de Muyangren - Tushuguan Paidui - Yizhijiang Jinyu",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v8158",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-02-17",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r151369",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "unknown",
+      "suggestionBasis": "mixed_unresolved",
+      "reason": "成人PC、全年龄试玩、Library Party主机/内容移植均存在；KUN模拟器资源仅泛称ONS，未明确成人分支。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-eec29e88f9c64b1a6ba50d5c",
+          "title": "大图书馆的牧羊人",
+          "engine": "ONS",
+          "suggestedSexualContent": "unknown",
+          "reason": "成人PC、全年龄试玩、Library Party主机/内容移植均存在；KUN模拟器资源仅泛称ONS，未明确成人分支。"
+        }
+      ]
+    },
+    {
+      "workId": "v6589",
+      "title": "女装山脉",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/47217",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "NSFW展示标记；ONS候选（索引）",
+          "observation": "正文可读但没有独立R18年龄字段；索引相关资源列ONS+安卓直装。性内容依据VNDB完整本体has_ero=true，唯一false为试玩。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "opened",
+          "ambiguity": "不把资源顶部NSFW单独当性内容确证；当前目录版本不标demo。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 10,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 7,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r13143",
+            "title": "Josou Sanmyaku - Package Edition",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "YU-RIS",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v6589",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2011-06-17",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r13143",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r33089",
+            "title": "Josou Sanmyaku - Trial Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v6589",
+                "rtype": "trial"
+              }
+            ],
+            "released": "2011-05-14",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r33089",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "complete_release_inference",
+      "reason": "VNDB正式完整本体全部true，唯一false是trial r33089；目录不标demo，KUN索引有ONS完整版候选。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。 present建立在当前版本为完整本体、不是仅未注明demo的条件上。",
+      "versions": [
+        {
+          "versionId": "legacy-a8c2e67a990feed19dedb3aa",
+          "title": "女装山脉",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB正式完整本体全部true，唯一false是trial r33089；目录不标demo，KUN索引有ONS完整版候选。"
+        }
+      ]
+    },
+    {
+      "workId": "v33206",
+      "title": "妹妹母亲",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 3,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 1,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r85758",
+            "title": "Imooka",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "TyranoScript",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v33206",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2022-06-24",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r85758",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r120217",
+            "title": "Meimei Muqin ~ Muxing Luoli",
+            "has_ero": true,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v33206",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2024-06-01",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r120217",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r162458",
+            "title": "Imooka Bahasa Indonesia",
+            "has_ero": false,
+            "minage": 18,
+            "patch": true,
+            "official": false,
+            "engine": "TyranoScript",
+            "languages": [
+              {
+                "lang": "id"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v33206",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-07-28",
+            "platforms": [
+              "win",
+              "and"
+            ],
+            "url": "https://vndb.org/r162458",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "language_patch_disambiguation",
+      "reason": "VNDB原版Tyrano本体r85758及简中翻译r120217为true；唯一false r162458是印尼语翻译补丁，不能把该补丁自身标记套到中文本体。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-67c9c4a576fcc784c44eafd1",
+          "title": "妹妹母亲",
+          "engine": "Tyrano",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB原版Tyrano本体r85758及简中翻译r120217为true；唯一false r162458是印尼语翻译补丁，不能把该补丁自身标记套到中文本体。"
+        },
+        {
+          "versionId": "legacy-12af3d99fdc41dfac94fb78f",
+          "title": "母性萝莉",
+          "engine": "Tyrano",
+          "suggestedSexualContent": "present",
+          "reason": "VNDB原版Tyrano本体r85758及简中翻译r120217为true；唯一false r162458是印尼语翻译补丁，不能把该补丁自身标记套到中文本体。"
+        }
+      ]
+    },
+    {
+      "workId": "v9303",
+      "title": "妹调教日记",
+      "checkedAt": "2026-11-13T21:07:57Z",
+      "sources": [
+        {
+          "url": "https://api.vndb.org/kana/release",
+          "site": "VNDB",
+          "scope": "release",
+          "label": "has_ero [False, True]",
+          "checkedAt": "2026-11-13T21:05:20.409670+00:00",
+          "accessStatus": "shared_snapshot_fetched",
+          "observation": "读取主任务本轮通过公开VNDB API获取的所有发行索引（包含非官方），按workId筛选；不冒称逐一打开了网页。",
+          "ambiguity": "has_ero是社区发行内容标记；patch=true与rtype=trial须分开判断。"
+        },
+        {
+          "url": "https://www.kungal.com/galgame/resource/280",
+          "site": "KUNGal",
+          "scope": "resource",
+          "label": "R18；ONS本体和FD（索引）",
+          "observation": "索引正文明确本资源包含ONS本体和FD，并列作品R18；实际open只显示NSFW确认页，未点击。",
+          "checkedAt": "2026-11-13T21:07:57Z",
+          "accessStatus": "nsfw_confirmation",
+          "ambiguity": "支持旧ONS成人内容推定；与2026删改Steam/RenPy发行分开。"
+        }
+      ],
+      "vndbSummary": {
+        "totalReleases": 9,
+        "hasEroValues": [
+          false,
+          true
+        ],
+        "trueCompleteNonPatchCount": 3,
+        "selectedReleaseEvidence": [
+          {
+            "id": "r18631",
+            "title": "Imouto Choukyou Nikki ~Konna Tsundere ga Ore no Imouto na Wakenai!~",
+            "has_ero": true,
+            "minage": 18,
+            "patch": false,
+            "official": true,
+            "engine": "CatSystem2",
+            "languages": [
+              {
+                "lang": "ja"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v9303",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2011-09-03",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r18631",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          },
+          {
+            "id": "r157471",
+            "title": "Imouto Choukyou Nikki ~Konna Tsundere ga Ore no Imouto na Wakenai!~ Censored Edition",
+            "has_ero": false,
+            "minage": null,
+            "patch": false,
+            "official": true,
+            "engine": null,
+            "languages": [
+              {
+                "lang": "ja"
+              },
+              {
+                "lang": "zh-Hans"
+              }
+            ],
+            "vns": [
+              {
+                "id": "v9303",
+                "rtype": "complete"
+              }
+            ],
+            "released": "2026-11-04",
+            "platforms": [
+              "win"
+            ],
+            "url": "https://vndb.org/r157471",
+            "webPageOpened": false,
+            "provenance": "shared VNDB API snapshot fetched during this task"
+          }
+        ]
+      },
+      "suggestedSexualContent": "present",
+      "suggestionBasis": "resource_engine_inference",
+      "reason": "KUN资源280明确旧ONS本体+FD并列R18（索引）；VNDB无色情为新删改版，原作/完整盒装及成人DLC均true。",
+      "ambiguity": "社区资料推定，不是当前包逐项实测；年龄限制与色情内容字段分别保留。",
+      "versions": [
+        {
+          "versionId": "legacy-9a1261272a5772ecb5592bcc",
+          "title": "妹调教日记",
+          "engine": "ONS",
+          "suggestedSexualContent": "present",
+          "reason": "KUN资源280明确旧ONS本体+FD并列R18（索引）；VNDB无色情为新删改版，原作/完整盒装及成人DLC均true。"
+        }
+      ]
+    }
+  ]
+}

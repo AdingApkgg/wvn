@@ -8,13 +8,22 @@
           "provider": "official",
           "id": "steam-1698030",
           "url": "https://store.steampowered.com/app/1698030/"
+        },
+        {
+          "provider": "official",
+          "id": "qureate-ninnindays2",
+          "url": "https://qureate.co.jp/ninnindays2/en/"
         }
       ],
       "cover": {
-        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
+        "url": "/media/0225f65c94e96987b4ca8dda3bbf033eeec5b62dbc7c522c9f250fb54d820aa2.png",
+        "sourceUrl": "https://qureate.co.jp/ninnindays2/wp-content/themes/ninnindays2-theme/images/logo.png",
         "source": "official",
-        "kind": "promotion"
-      }
+        "width": 648,
+        "height": 387,
+        "kind": "logo"
+      },
+      "evidence": "原Steam宣传图经AI逐图复核判为suggestive，改用qureate官方纯标题图；审核方式与文件哈希见data/cover-review-20261114.json。"
     },
     {
       "workId": "v33205",

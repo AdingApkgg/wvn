@@ -1,3 +1,5 @@
+import { ApiResponseError } from "../api/client-base";
+import { adminErrorCopy, createModerationClient } from "../api/admin-client";
 import { brand } from "../brand";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
@@ -43,64 +45,34 @@ export function meta() {
     { name: "robots", content: "noindex,nofollow" },
   ];
 }
-export default function ShareAdmin() {
+export function ShareAdminPanel({ apiPrefix = "/api/share-admin", binding }: { apiPrefix?: string; binding?: string } = {}) {
   const [logged, setLogged] = useState(false),
+    [loadingQueue, setLoadingQueue] = useState(true),
     [token, setToken] = useState(""),
     [items, setItems] = useState<Item[]>([]),
     [reason, setReason] = useState(""),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
+  const api=createModerationClient(apiPrefix,{fetch:(input,init)=>fetch(input,{...init,cache:'no-store',headers:{...Object.fromEntries(new Headers(input instanceof Request ? input.headers : undefined)), ...Object.fromEntries(new Headers(init?.headers)),...(binding?{'x-wg-binding':binding}:{})}})});
   async function load() {
-    const response = await fetch("/api/share-admin/queue", {
-      cache: "no-store",
-    });
-    if (response.status === 401) {
-      setLogged(false);
-      return;
-    }
-    if (!response.ok) throw new Error("审核队列暂不可用");
-    setItems(await response.json());
-    setLogged(true);
+    setLoadingQueue(true);
+    try {setItems(await api.shareAdminQueue({}));setLogged(true);}
+    catch(error){if(error instanceof ApiResponseError && error.status===401)setLogged(false);throw error;}
+    finally{setLoadingQueue(false);}
   }
-  async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
-    let response: Response;
-    try {
-      response = await fetch('/api/share-admin/' + path, {
-        method, cache: 'no-store', headers: body === undefined ? undefined : { 'content-type': 'application/json' },
-        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      });
-    } catch { throw new Error('连接暂时中断，请重试；输入已保留。'); }
-    const data = await response.json().catch(() => null);
-    if (response.status === 401) { setLogged(false); throw new Error('管理员会话已失效，请重新进入审核后台。'); }
-    if (response.status === 409) throw new Error(path.startsWith('content/shares/')
-      ? '分享无效、仍有待发布文案，或修订已变化。请先确认分享有效、完成发布审核并核对当前修订；输入已保留。'
-      : '账号状态已变化，请重新查询后再操作；输入已保留。');
-    if (!response.ok) throw new Error(response.status === 404 ? '未找到对应账号或分享。'
-      : data?.code === 'CONTENT_SUSPENDED' ? '资格仍处于暂停状态，请先解除暂停。'
-      : response.status === 400 ? '请检查操作、文案修订和审核理由；理由须为1–1000字且不含控制字符。'
-      : '管理服务暂不可用，请稍后重试；输入已保留。');
-    return data as T;
+  async function refreshQueue(successMessage = "") {
+    try {await load();setMessage(successMessage);}
+    catch(error){setMessage(successMessage + '审核队列加载失败，请点击刷新重试。' + adminErrorCopy(error, 'shares'));}
   }
-  useEffect(() => {
-    void load().catch(() => setMessage("审核队列暂不可用"));
-  }, []);
-  async function moderate(item: Item, action: string) {
-    setBusy(true);
+  useEffect(() => { void refreshQueue(); }, []);
+  async function moderate(item: Item, action: "approve" | "block" | "resolve") {
+    setBusy(true);setMessage("");
     try {
-      const response = await fetch(`/api/share-admin/${item.id}/moderate`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          revision: item.metadataRevision,
-          action,
-          reason,
-        }),
-      });
-      if (!response.ok) {
-        setMessage("操作未完成，可能已有更新。请刷新队列。");
-        return;
-      }
-      await load();
+      await api.shareAdminModerate({params:{id:item.id},body:{revision:item.metadataRevision,action,reason}});
+      await refreshQueue("审核操作已保存。");
+    } catch(error) {
+      if(error instanceof ApiResponseError && error.status===401)setLogged(false);
+      setMessage(adminErrorCopy(error, 'shares'));
     } finally {
       setBusy(false);
     }
@@ -112,7 +84,9 @@ export default function ShareAdmin() {
       <p className="text-muted-foreground">
         独立管理权限 · 批准发布不代表实机兼容性验证
       </p>
-      {!logged ? (
+      {!logged && binding ? (
+        <Card><CardHeader><CardTitle>{loadingQueue ? "正在读取审核队列…" : "审核队列暂不可用"}</CardTitle><CardDescription>使用当前管理员账号连接。</CardDescription></CardHeader><CardContent><Button disabled={loadingQueue} onClick={()=>void refreshQueue()}>重试加载</Button></CardContent></Card>
+      ) : !logged ? (
         <Card>
           <CardHeader>
             <CardTitle>进入审核后台</CardTitle>
@@ -123,14 +97,9 @@ export default function ShareAdmin() {
               className="space-y-4"
               onSubmit={async (e) => {
                 e.preventDefault();
-                const response = await fetch("/api/share-admin/login", {
-                  method: "POST",
-                  headers: { "content-type": "application/json" },
-                  body: JSON.stringify({ token }),
-                });
-                setToken("");
-                if (response.ok) await load();
-                else setMessage("管理令牌无效或已使用。");
+                try {await api.shareAdminLogin({body:{token}});setToken("");await refreshQueue();}
+                catch {setMessage("管理令牌无效或已使用。");}
+
               }}
             >
               <Label htmlFor="share-admin-token">管理令牌</Label>
@@ -155,7 +124,7 @@ export default function ShareAdmin() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
-            <Button variant="outline" onClick={() => load()}>
+            <Button variant="outline" disabled={loadingQueue || busy} onClick={() => void refreshQueue()}>
               刷新审核队列
             </Button>
           </div>
@@ -311,3 +280,5 @@ export default function ShareAdmin() {
     </main>
   );
 }
+
+export default function ShareAdmin() { return <ShareAdminPanel/>; }

@@ -132,10 +132,16 @@ test("reviewed catalog document covers each source record and its import is dry-
     const audited = JSON.parse(readFileSync(new URL("../data/content-classification.json", import.meta.url), "utf8"));
     const catalog = JSON.parse(readFileSync(new URL("../data/catalog.json", import.meta.url), "utf8"));
     const metadata = JSON.parse(readFileSync(new URL("../data/metadata.json", import.meta.url), "utf8"));
+    const coverReview = JSON.parse(readFileSync(new URL("../data/cover-review-20261114.json", import.meta.url), "utf8"));
+    const retired = coverReview.records.filter((image: any) => !image.selected);
+    for (const image of retired) {
+      assert.notEqual(image.sexual, "safe", "保留的替换旧图不能隐式获得安全结论");
+      assert.equal(audited.records.find((record: any) => record.kind === "image" && record.id === image.url)?.classification.sexual, image.sexual);
+    }
     const expected = [
       ...catalog.works.map((w: any) => "work:" + w.id),
       ...catalog.versions.map((v: any) => "version:" + v.id),
-      ...new Set(metadata.works.flatMap((w: any) => [w.cover, ...w.screenshots].filter(Boolean).map((i: any) => "image:" + i.url))),
+      ...new Set([...metadata.works.flatMap((w: any) => [w.cover, ...w.screenshots].filter(Boolean).map((i: any) => "image:" + i.url)), ...retired.map((image: any) => "image:" + image.url)]),
     ];
     assert.deepEqual(audited.records.map((r: any) => r.kind + ":" + r.id).sort(), expected.sort());
     const plan = await records.import(audited, false);

@@ -15,7 +15,7 @@ WVN 用浏览器运行视觉小说，并统一管理作品目录、引擎版本�
 
 ## 技术栈
 
-React 19、React Router 8、Hono、Vite 8、TypeScript、PostgreSQL、Redis、Meilisearch、shadcn/ui、Tailwind CSS、Better Auth / Passkey、Emscripten / WebAssembly、WS / WebRTC / coturn / WebTransport。
+React 19、React Router 8、Hono、oRPC / OpenAPI、Vite 8、TypeScript、PostgreSQL、Redis、Meilisearch、shadcn/ui、Tailwind CSS、Better Auth / Passkey、Emscripten / WebAssembly、WS / WebRTC / coturn / WebTransport。
 
 ## 开发与构建
 
@@ -29,6 +29,8 @@ node --test --test-concurrency=1 tests/*.test.mjs
 NODE_ENV=development npm run typecheck
 NODE_ENV=production npm run build
 ```
+
+代码格式与 lint 使用 Biome，可用 `npm run check -- <文件>` 检查本次改动，`npm run format -- <文件>` 格式化。历史文件没有在本次统计功能中全量重排。Biome 不负责打包或执行 TypeScript，应用由 Vite 8 / Rolldown 构建，TypeScript 服务与脚本通过 `node --import @oxc-node/core/register` 执行。运行器迁移见 [Oxc 说明](docs/superpowers/plans/2026-11-15-oxc-runtime.md)。
 
 首次创建独立目录数据库时，可运行 `npm run seed` 导入仓库中的示例目录和来源元数据。不要用初始化导入替代现有数据库的增量更新、备份和迁移。
 
@@ -57,6 +59,7 @@ NODE_ENV=production npm run build
 
 - [公开仓库与私有配置边界](docs/public-repository.md)
 - [SQLite 阶段 Compose 历史参考](docs/compose-deployment.md)；当前 PG 基础服务使用 `ops/platform/compose.yaml`
+- [oRPC 业务接口与契约](docs/orpc.md)
 - [账号与云存档](docs/accounts-preview.md)、[存档分享](docs/save-sharing-preview.md)
 - [Emscripten 统一管理](docs/emscripten-management.md)、[Ren’Py 云存档兼容](docs/renpy-cloud-saves.md)
 - [启动加载反馈](docs/player-loading.md)、[ONS 资源缓存](docs/ons-resource-cache.md)

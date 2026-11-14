@@ -50,7 +50,7 @@ export WG_ACCOUNT_ORIGIN=https://localhost:18283 WG_ACCOUNT_PORT=18283 WG_ACCOUN
 export WG_ACCOUNT_BLOBS="$preview_state/blobs" WG_ACCOUNT_DELETION_LEDGER="$preview_state/deletions.jsonl"
 export WG_ACCOUNT_SECRET_FILE="$preview_state/secret"
 export WG_ACCOUNT_TLS_KEY="$preview_state/tls.key" WG_ACCOUNT_TLS_CERT="$preview_state/tls.crt"
-nohup node --import tsx accounts-server.ts > "$preview_state/server.log" 2>&1 < /dev/null &
+nohup node --import @oxc-node/core/register accounts-server.ts > "$preview_state/server.log" 2>&1 < /dev/null &
 account_pid=$!
 printf '%s\n' "$account_pid" > "$preview_state/pid"
 for i in {1..30}; do

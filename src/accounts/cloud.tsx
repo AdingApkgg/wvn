@@ -62,8 +62,7 @@ export function CloudBackups({
       kind: "restore" | "delete" | "discard";
       id: string;
     } | null>(null);
-  const owned = <T,>(path: string, body?: unknown, method?: string) =>
-    account.request<T>(path, body, method, owner);
+  const callOptions = { context: { owner } };
   useEffect(() => { setShareRevision(null); }, [content.access, content.loading, content.pendingPublic]);
   useEffect(()=>{setFiles([]);if(fileInput.current)fileInput.current.value=""},[version,release,content.access.canViewRestricted,content.pendingPublic]);
   async function downloadFile(revision:SaveRevision,file:SaveRevision["files"][number],index:number) {
@@ -81,14 +80,12 @@ export function CloudBackups({
       : page.items;
   }
   async function load(versionId = version) {
-    const all=await owned<SaveProfile[]>("/api/me/save-profiles");setSavedProfiles(all);setRuntimeProfiles(all.filter(p=>p.engineReleaseId));
-    const profiles = await owned<SaveProfile[]>(
-      "/api/me/save-profiles?versionId=" + encodeURIComponent(versionId)+(release?"&engineReleaseId="+encodeURIComponent(release):""),
-    );
+    const all=await account.api.saveProfilesList({}, callOptions);setSavedProfiles(all);setRuntimeProfiles(all.filter(p=>p.engineReleaseId));
+    const profiles = await account.api.saveProfilesList({ query: { versionId, ...(release ? { engineReleaseId: release } : {}) } }, callOptions);
     const next = profiles[0] ?? null;
     setProfile(next);
     const page = next
-      ? await owned<SaveHistory>(`/api/me/save-profiles/${next.id}/revisions`)
+      ? await account.api.saveHistory({ params: { id: next.id } }, callOptions)
       : null;
     setHistory(historyItems(page));
     setNextCursor(page?.next ?? null);
@@ -97,7 +94,7 @@ export function CloudBackups({
   useEffect(() => {
     let live = true;
     void account
-      .request<{ manual: boolean; sharing: boolean }>("/api/cloud-options")
+      .api.cloudOptions({})
       .then((options) => {
         if (live) {
           setEnabled(options.manual);
@@ -108,21 +105,17 @@ export function CloudBackups({
     return () => {
       live = false;
     };
-  }, [account.request]);
+  }, [account.api]);
   useEffect(() => {
     if (!enabled || !version) return;
     let live = true;
     setProfile(null);
     setHistory([]);
-    void owned<SaveProfile[]>(
-      "/api/me/save-profiles?versionId=" + encodeURIComponent(version)+(release?"&engineReleaseId="+encodeURIComponent(release):""),
-    )
+    void account.api.saveProfilesList({ query: { versionId: version, ...(release ? { engineReleaseId: release } : {}) } }, callOptions)
       .then(async (profiles) => {
         const next = profiles[0] ?? null;
         const revisions = next
-          ? await owned<SaveHistory>(
-              `/api/me/save-profiles/${next.id}/revisions`,
-            )
+          ? await account.api.saveHistory({ params: { id: next.id } }, callOptions)
           : null;
         const pending = await draftsFor(owner);
         if (live) {
@@ -139,21 +132,17 @@ export function CloudBackups({
       live = false;
     };
   }, [version, release, enabled, owner]);
-  useEffect(()=>{if(!enabled)return;let live=true;setProfilesLoaded(false);void owned<SaveProfile[]>("/api/me/save-profiles").then(rows=>{if(live){setSavedProfiles(rows);setRuntimeProfiles(rows.filter(p=>p.engineReleaseId));setProfilesLoaded(true)}}).catch(()=>{if(live)setMessage("备份目录暂不可用，请刷新重试。")});return()=>{live=false}},[enabled,owner]);
+  useEffect(()=>{if(!enabled)return;let live=true;setProfilesLoaded(false);void account.api.saveProfilesList({}, callOptions).then(rows=>{if(live){setSavedProfiles(rows);setRuntimeProfiles(rows.filter(p=>p.engineReleaseId));setProfilesLoaded(true)}}).catch(()=>{if(live)setMessage("备份目录暂不可用，请刷新重试。")});return()=>{live=false}},[enabled,owner]);
   async function upload(draft: SaveDraft) {
     if (!account.isOwner(owner))
       throw new AccountClientError("IDENTITY_CHANGED");
     try {
-      const upload = await owned<{
-        id: string;
-        complete: boolean;
-        files: { id: string; name: string }[];
-      }>(`/api/me/save-profiles/${draft.profile}/uploads`, {
+      const upload = await account.api.saveUploadReserve({ params: { id: draft.profile }, body: {
         captureId: draft.captureId,
         expectedHead: draft.expectedHead,
         generation: draft.generation,
         files: draft.files.map(({ blob, ...file }) => file),
-      });
+      } }, callOptions);
       if (!upload.complete)
         for (const file of upload.files) {
           const local = draft.files.find((f) => f.name === file.name)!;
@@ -163,7 +152,7 @@ export function CloudBackups({
             owner,
           );
         }
-      await owned(`/api/me/uploads/${upload.id}/commit`, {});
+      await account.api.saveUploadCommit({ params: { id: upload.id } }, callOptions);
       await removeDraft(draft.key);
       setMessage("文件备份已保存到云端。游戏内是否可读仍需你导入后确认。");
       await load(draft.version);
@@ -197,9 +186,9 @@ export function CloudBackups({
     const target =
       profile?.versionId === version && (profile.engineReleaseId??"")===release
         ? profile
-        : await owned<SaveProfile>("/api/me/save-profiles", {
+        : await account.api.saveProfileCreate({ body: {
             versionId: version,...(release?{engineReleaseId:release}:{}),
-          });
+          } }, callOptions);
     const sealed = [];
     for (const file of files) {
       const bytes = await file.arrayBuffer();
@@ -429,9 +418,7 @@ export function CloudBackups({
                 disabled={busy}
                 onClick={() =>
                   action(async () => {
-                    const page = await owned<SaveHistory>(
-                      `/api/me/save-profiles/${profile.id}/revisions?cursor=${encodeURIComponent(nextCursor)}`,
-                    );
+                    const page = await account.api.saveHistory({ params: { id: profile.id }, query: { cursor: nextCursor } }, callOptions);
                     setHistory((current) => [
                       ...new Map(
                         [...current, ...page.items].map((r) => [r.id, r]),
@@ -509,24 +496,17 @@ export function CloudBackups({
                         await removeDraft(choice.id);
                         await reloadDrafts();
                       } else if (choice.kind === "restore" && profile) {
-                        await owned(
-                          `/api/me/save-profiles/${profile.id}/restore`,
-                          {
+                        await account.api.saveRestore({ params: { id: profile.id }, body: {
                             sourceId: choice.id,
                             expectedHead: profile.head,
                             generation: profile.generation,
-                          },
-                        );
+                          } }, callOptions);
                         await load();
                       } else if (profile) {
-                        await owned(
-                          `/api/me/save-profiles/${profile.id}`,
-                          {
+                        await account.api.saveProfileDelete({ params: { id: profile.id }, body: {
                             expectedHead: profile.head,
                             generation: profile.generation,
-                          },
-                          "DELETE",
-                        );
+                          } }, callOptions);
                         await load();
                       }
                     });

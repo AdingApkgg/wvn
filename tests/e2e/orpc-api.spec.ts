@@ -1,0 +1,70 @@
+import { test, expect } from '@playwright/test';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { Pool } from 'pg';
+import { authenticator, register, api } from '../helpers/account-browser';
+
+test('oRPC 隔离夹具建立管理员会话，并通过页面保存资料和进入后台', async ({page}) => {
+  test.skip(process.env.WG_ORPC_QA !== '1', '只用于本轮明确启用的 oRPC 独立 QA');
+  const privateDir=resolve('..','private');
+  const owner=JSON.parse(await readFile(resolve(privateDir,'owner.json'),'utf8'));
+  expect(owner.task).toBe('orpc-20261114');
+  expect(owner.root).toBe(process.cwd());
+  expect(owner.origin).toBe(process.env.WG_TEST_URL);
+  expect(owner.schemas.accounts).toBe('preview_orpc_20261114_accounts');
+  const target=new URL(process.env.WVN_TEST_DATABASE_URL!);
+  expect(target.username).toBe('wvn_qa');expect(target.pathname).toBe('/wvn_qa');expect(target.port).toBe('25539');
+  await page.goto('/account');await authenticator(page);
+  expect((await register(page,'oRPC 隔离预览管理员')).status).toBe(200);
+  const me=(await api(page,'/api/me')).data;
+  const pool=new Pool({connectionString:process.env.WVN_TEST_DATABASE_URL!,max:1});
+  try { await pool.query('INSERT INTO preview_orpc_20261114_accounts.wg_admin_roles(user_id,active,revision,updated_by) VALUES($1,true,1,$1)',[me.user.id]); }
+  finally { await pool.end(); }
+  await page.context().storageState({path:resolve(privateDir,'admin-state.json')});
+  await writeFile(resolve(privateDir,'admin-ids'),me.user.id,{mode:0o600});
+  await page.goto('/account?tab=security');
+  await expect(page.getByRole('heading',{name:'个人资料',exact:true})).toBeVisible();
+  await page.getByLabel('个人简介').fill('oRPC 类型化接口页面验收');
+  await page.getByRole('button',{name:'保存个人资料',exact:true}).click();
+  await expect(page.getByRole('status').filter({hasText:'个人资料已保存'})).toBeVisible();
+  expect((await api(page,'/api/me/profile')).data.bio).toBe('oRPC 类型化接口页面验收');
+  await page.goto('/dash');
+  await expect(page.getByRole('heading',{name:'全站概览'})).toBeVisible();
+});
+
+test('oRPC 云存档上传后可创建和检查链接分享，重复发布保留同一快照', async ({page}) => {
+  test.skip(process.env.WG_ORPC_QA !== '1', '只用于本轮 oRPC 独立 QA');
+  await page.goto('/account');await authenticator(page);
+  expect((await register(page,'oRPC 分享验收')).status).toBe(200);
+  const { RULE_QUESTIONS }=await import('../../src/content/quiz');
+  const attempt=(await api(page,'/api/me/content/attempts',{})).data;
+  const answers=Object.fromEntries(attempt.questions.map((question:{id:string})=>[question.id,RULE_QUESTIONS.find(rule=>rule.id===question.id)!.correctChoiceId]));
+  expect((await api(page,`/api/me/content/attempts/${attempt.id}/submit`,{answers})).status).toBe(200);
+  expect((await api(page,'/api/me/content/mode',{mode:'restricted'},'PATCH')).status).toBe(200);
+  await page.goto('/account?tab=saves');
+  const select=page.getByRole('combobox',{name:'存档所属版本'});
+  await expect(select).toBeVisible();
+  await select.selectOption((await select.locator('option').nth(1).getAttribute('value'))!);
+  await page.locator('.backup-upload > summary').click();
+  await page.getByLabel('游戏导出的存档文件').setInputFiles({name:'orpc-slot.dat',mimeType:'application/octet-stream',buffer:Buffer.from('orpc-share-exact-bytes')});
+  await page.getByRole('button',{name:'上传为新的云端备份',exact:true}).click();
+  await expect(page.getByRole('status')).toContainText('文件备份已保存到云端');
+  await page.getByRole('button',{name:'分享这份存档',exact:true}).click();
+  await page.getByLabel('分享标题').fill('oRPC 链接分享');
+  await page.getByLabel('分享说明').fill('独立 QA 的合成存档');
+  await page.getByLabel('我确认分享所列文件').check();
+  await page.getByRole('button',{name:'创建分享',exact:true}).click();
+  const url=new URL(await page.getByLabel('完整分享链接').inputValue());
+  const id=url.pathname.split('/').at(-1)!;
+  const secret=new URLSearchParams(url.hash.slice(1)).get('key');
+  expect(secret).toBeTruthy();
+  const inspected=await api(page,`/api/share-links/${id}/inspect`,{secret});
+  expect(inspected.status).toBe(200);expect(inspected.data.title).toBe('oRPC 链接分享');expect(inspected.data.files[0].name).toBe('orpc-slot.dat');
+  await page.getByRole('button',{name:'已保存链接',exact:true}).click();
+  await page.getByRole('button',{name:'分享这份存档',exact:true}).click();
+  await page.getByLabel('分享标题').fill('不会覆盖原分享');
+  await page.getByLabel('我确认分享所列文件').check();
+  await page.getByRole('button',{name:'创建分享',exact:true}).click();
+  await expect(page.getByText('这份快照已有有效链接分享，未重复创建。',{exact:true})).toBeVisible();
+  expect((await api(page,'/api/me/save-shares')).data.items).toHaveLength(1);
+});

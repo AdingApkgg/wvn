@@ -43,7 +43,15 @@ export function projectWork(work: PublicWork, access: ContentAccess): ProjectedW
     ?? versions.find(v => !v.contentRestricted) ?? versions.find(v => v.id === work.defaultVersionId) ?? versions[0];
   const safeMedia = (image: NonNullable<PublicWork['metadata']>['screenshots'][number]) =>
     image.classification?.sexual === 'safe' && image.classification.violence === 'tame';
-  return { ...work, defaultVersionId: primary?.id ?? null, versions,
+  const cover = work.metadata?.cover;
+  const classified = cover?.classification;
+  const coverStatus: PublicWork['coverStatus'] = cover
+    ? safeMedia(cover) ? 'available'
+      : classified && (['suggestive', 'explicit'].includes(classified.sexual) || ['violent', 'brutal'].includes(classified.violence)) ? 'restricted' : 'unreviewed'
+    // 客户端会再次投影服务端快照；原图已被移除时仍须保留原因。
+    : work.coverStatus && work.coverStatus !== 'available' ? work.coverStatus
+      : work.metadata?.warnings.some(warning => warning.includes('封面缓存失败')) ? 'unavailable' : 'missing';
+  return { ...work, coverStatus, defaultVersionId: primary?.id ?? null, versions,
     ...(work.metadata ? { metadata: { ...work.metadata,
       cover: work.metadata.cover && safeMedia(work.metadata.cover) ? work.metadata.cover : null,
       screenshots: work.metadata.screenshots.filter(safeMedia),

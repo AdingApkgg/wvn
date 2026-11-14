@@ -1,6 +1,9 @@
+import { adminErrorCopy, type ManagementClient } from "../api/admin-client";
+import { classificationUpdateSchema } from "../api/contracts/admin";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ClassificationRecord, ClassificationReviewRecord, WorkReviewSnapshot } from "./classification.server.ts";
 import type { PublicWork } from "../types.ts";
+import { versionContentLabel } from "./version-label";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -10,10 +13,10 @@ import { Card, CardHeader, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../components/ui/table";
 
-type Api = (path: string, method?: string, body?: unknown) => Promise<any>;
+type Api = ManagementClient;
 const labels: Record<string, string> = {
   work: "作品页面", version: "游玩版本", image: "单张图片", unknown: "待核实", sfw: "SFW 页面", nsfw: "NSFW 页面",
-  none: "已确认不含成人性内容", present: "含成人性内容", safe: "无性内容", suggestive: "含性暗示", explicit: "露骨性内容",
+  none: "SFW（含默认）", present: "含成人性内容", safe: "无性内容", suggestive: "含性暗示", explicit: "露骨性内容",
   tame: "无显著暴力", violent: "暴力", brutal: "强烈暴力", stale: "文案已变化，需复审",
 };
 const keyOf = (record: Pick<ClassificationRecord, "kind" | "id">) => record.kind + ":" + record.id;
@@ -61,8 +64,8 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
   const [message, setMessage] = useState("");
   const editor = useRef<HTMLDivElement>(null);
   const drafts=useRef(new Map<string,ClassificationReviewRecord>());
-  async function refresh() { setRecords(await api("content-classification")); setLoaded(true); }
-  useEffect(() => { void refresh().catch(error => setMessage((error as Error).message)); }, []);
+  async function refresh() { setRecords(await api.manageClassifications({})); setLoaded(true); }
+  useEffect(() => { void refresh().catch(error => setMessage(adminErrorCopy(error))); }, []);
   useEffect(() => { if (selected) editor.current?.scrollIntoView({ block: "start" }); }, [selected]);
   const listed = entries(records, loaded ? catalog : []);
   const record = listed.values.find(value => keyOf(value) === selected);
@@ -91,19 +94,19 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
     }
     setBusy(true); setMessage("");
     try {
-      const result = await api("content-classification", "PATCH", { kind: record.kind, id: record.id, expectedRevision: record.classification.revision,
-        ...(record.kind === "work" ? { expectedFingerprint: record.reviewFingerprint } : {}), payload });
+      const result = await api.manageSetClassification({ body:classificationUpdateSchema.parse({ kind: record.kind, id: record.id, expectedRevision: record.classification.revision,
+        ...(record.kind === "work" ? { expectedFingerprint: record.reviewFingerprint } : {}), payload }) });
       await refresh();
       await onSaved();
       drafts.current.delete(keyOf(record));
       form.dispatchEvent(new Event("wvn-form-saved",{bubbles:true}));
       setMessage("审核已保存，修订 " + result.revision + "。人工审核将优先于后续批量导入。");
-    } catch (error) { setMessage((error as Error).message); }
+    } catch (error) { setMessage(adminErrorCopy(error)); }
     finally { setBusy(false); }
   }
   return <section aria-label="内容分类管理" className="space-y-5">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h2>内容分类与证据</h2><p className="muted">分别审核页面、实际游玩版本和单张图片。文案变更会要求页面复审。</p></div>
-      <Button variant="outline" disabled={busy} onClick={() => void refresh().then(onSaved).catch(error => setMessage(error.message))}>刷新分类</Button></div>
+      <Button variant="outline" disabled={busy} onClick={() => void refresh().then(onSaved).catch(error => setMessage(adminErrorCopy(error)))}>刷新分类</Button></div>
     <div role="status" aria-live="polite">{message}</div>
     {!loaded && <p role="status">正在读取分类记录…</p>}
     <div className="grid gap-3 md:grid-cols-3">
@@ -112,7 +115,7 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
       <Label className="field">分类状态<NativeSelect value={status} onChange={event => { setStatus(event.target.value); setLimit(50); }}><NativeSelectOption value="">全部状态</NativeSelectOption>{["unknown", "stale", "sfw", "nsfw", "none", "present", "safe", "suggestive", "explicit", "tame", "violent", "brutal"].map(value => <NativeSelectOption key={value} value={value}>{labels[value]}</NativeSelectOption>)}</NativeSelect></Label>
     </div>
     {record && <div ref={editor}><Card><CardHeader><h3>审核：{listed.names.get(keyOf(record)) ?? record.id}</h3><p className="break-all text-sm">{labels[record.kind]} · {record.id}</p>
-      <p className="muted">修订 {record.classification.revision} · {record.manual ? "人工覆盖" : "导入或尚未审核"}{record.classification.reviewedAt && " · 上次核实 " + record.classification.reviewedAt}</p>
+      <p className="muted">修订 {record.classification.revision} · {record.manual ? "人工覆盖" : "导入或尚未审核"}{record.classification.reviewedAt && " · 记录更新时间 " + record.classification.reviewedAt}</p>
       {originalImage && <p><a href={originalImage} target="_blank" rel="noreferrer">打开登记的来源原图（新窗口）</a></p>}
       {reviewText && <WorkReviewText text={reviewText} />}
       {currentWork && <details className="space-y-2"><summary>核对当前页面与版本文案</summary><div className="space-y-2 text-sm">
@@ -133,7 +136,7 @@ export function ContentClassificationManagement({ api, catalog, onSaved }: { api
     <p>{filtered.length} 条匹配记录；当前显示 {Math.min(filtered.length, limit)} 条。</p>
     <div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>对象</TableHead><TableHead>状态</TableHead><TableHead>修订</TableHead><TableHead>操作</TableHead></TableRow></TableHeader><TableBody>
       {filtered.slice(0, limit).map(value => <TableRow key={keyOf(value)}><TableCell><strong>{listed.names.get(keyOf(value)) ?? labels[value.kind]}</strong><p className="break-all text-xs">{labels[value.kind]} · {value.id}</p><p className="max-w-xl text-sm">{value.classification.reason || "尚无审核理由"}</p><p className="max-w-xl break-all text-xs text-muted-foreground">来源：{value.classification.source}</p></TableCell>
-        <TableCell>{statusOf(value).map((state, index) => <Badge key={state + index} variant="outline">{labels[state] ?? state}</Badge>)}</TableCell><TableCell>{value.classification.revision}{value.manual && <p className="text-xs">人工覆盖</p>}</TableCell>
+        <TableCell>{statusOf(value).map((state, index) => <Badge key={state + index} variant="outline">{value.kind === "version" ? versionContentLabel(value.classification) : labels[state] ?? state}</Badge>)}</TableCell><TableCell>{value.classification.revision}{value.manual && <p className="text-xs">人工覆盖</p>}</TableCell>
         <TableCell><Button type="button" variant="outline" disabled={busy} aria-pressed={selected === keyOf(value)} onClick={() => setSelected(keyOf(value))}>审核</Button></TableCell></TableRow>)}
     </TableBody></Table></div>
     {filtered.length > limit && <Button variant="outline" onClick={() => setLimit(limit + 50)}>再显示 50 条</Button>}
@@ -159,16 +162,16 @@ function ClassificationEditor({ record, busy, save }: { record: ClassificationRe
     <fieldset disabled={busy} className="space-y-4"><legend className="sr-only">审核分类与证据</legend>
       {record.kind === "work" && select("pageSuitability", "页面适宜性", record.classification.pageSuitability, ["unknown", "sfw", "nsfw"])}
       {record.kind === "version" && <>{select("sexualContent", "实际版本性内容", record.classification.sexualContent, ["unknown", "none", "present"])}
-        <p className="muted">“不含成人性内容”不表示适合所有年龄；需要与本站实际资源包及补丁状态相符的证据。</p>
+        <p className="muted">SFW不表示适合所有年龄。用户指定的未核实默认值须在来源与理由中保留标识，不能写成已确认不含成人内容。</p>
         <Label className="flex items-center gap-2"><input type="checkbox" name="titleSafe" defaultChecked={record.classification.titleSafe} />版本标题已审核，可在公共浏览显示</Label>
         <Label className="field">有证据的年龄分级（可留空）<Input name="ageRating" maxLength={100} defaultValue={record.classification.ageRating ?? ""} /></Label></>}
       {record.kind === "image" && <><div className="grid gap-3 sm:grid-cols-2">{select("sexual", "图片性内容", record.classification.sexual, ["unknown", "safe", "suggestive", "explicit"])}{select("violence", "图片暴力内容", record.classification.violence, ["unknown", "tame", "violent", "brutal"])}</div>
         <Label className="flex items-center gap-2"><input type="checkbox" name="spoiler" defaultChecked={record.classification.spoiler} />可能涉及剧透，或尚未核实</Label>
         <div className="grid gap-3 sm:grid-cols-3"><Label className="field">原始性内容平均分<Input name="rawSexual" type="number" min={0} max={2} step="any" defaultValue={record.classification.rawSexual ?? ""} /></Label><Label className="field">原始暴力平均分<Input name="rawViolence" type="number" min={0} max={2} step="any" defaultValue={record.classification.rawViolence ?? ""} /></Label><Label className="field">原始评分票数<Input name="voteCount" type="number" min={0} step={1} defaultValue={record.classification.voteCount ?? ""} /></Label></div>
-        <p className="muted">保留来源中的 0–2 小数与票数。无票、缺字段或非 VNDB 素材需明确人工审核；“可信来源”本身不等于图片安全。</p></>}
+        <p className="muted">保留来源中的 0–2 小数与票数。自动安全导入需对应图片的双零分与有效票数；独立覆盖记录必须注明审核方式与文件证据。AI 视觉复核不等同人工审核或官方年龄评级；“可信来源”本身不等于图片安全。</p></>}
       <Label className="field">审核理由<Textarea name="reason" required maxLength={4000} defaultValue={record.classification.reason} placeholder="记录检查范围、判定依据和仍缺少的证据" /></Label>
-      <Label className="field">证据来源<Input name="source" required maxLength={2000} defaultValue={record.classification.source} placeholder="对应来源链接或人工审核记录" /></Label>
-      <p className="muted">保存时记录本次核实时间。页面审核只批准上方所见的文案快照；文案已变化时请刷新分类并重新核对。</p>
+      <Label className="field">证据来源<Input name="source" required maxLength={2000} defaultValue={record.classification.source} placeholder="对应来源链接或独立复核记录" /></Label>
+      <p className="muted">保存时记录本次更新时间。页面审核只批准上方所见的文案快照；文案已变化时请刷新分类并重新核对。</p>
       <Button type="submit">{busy ? "正在保存…" : "保存审核"}</Button>
     </fieldset>
   </form>;

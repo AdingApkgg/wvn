@@ -51,6 +51,26 @@ test('只返回已核实安全媒体，开启模式也不自动展示敏感或�
   assert.deepEqual(shown.metadata?.screenshots.map(s => s.url), ['/safe']);
   assert(!JSON.stringify(shown).includes('/explicit'));
 });
+test('封面原因区分未提供、待审核和内容限制，重复投影保留原因且不泄露原图', () => {
+  const raw = fixture() as PublicWork & { metadata: any };
+  assert.equal(projectWork(raw, anonymous)!.coverStatus, 'missing');
+  raw.metadata = { cover: null, screenshots: [], warnings: ['封面缓存失败，暂用占位图。'] };
+  const unavailable = projectWork(raw, anonymous)!;
+  assert.equal(unavailable.coverStatus, 'unavailable');
+  assert.equal(projectWork(unavailable, anonymous)!.coverStatus, 'unavailable');
+  for (const [sexual, violence, status] of [
+    ['unknown', 'unknown', 'unreviewed'], ['safe', 'unknown', 'unreviewed'],
+    ['suggestive', 'tame', 'restricted'], ['safe', 'violent', 'restricted'],
+    ['explicit', 'unknown', 'restricted'], ['safe', 'tame', 'available'],
+  ]) {
+    raw.metadata = { cover: { url: '/hidden-image', classification: { ...evidence, sexual, violence, spoiler: false } }, screenshots: [] };
+    const shown = projectWork(raw, anonymous)!;
+    assert.equal(shown.coverStatus, status);
+    assert.equal(projectWork(shown, anonymous)!.coverStatus, status);
+    if (status !== 'available') assert(!JSON.stringify(shown).includes('/hidden-image'));
+    assert.equal(raw.metadata.cover.url, '/hidden-image');
+  }
+});
 test('返回目标只允许本站相对路径，拒绝协议相对、反斜杠及控制字符', () => {
   assert.equal(safeReturnPath('/4/1/?x=1'), '/4/1/?x=1');
   for (const path of ['https://evil.test', '//evil.test', '/\\evil.test', '/%2f%2fevil.test', '/%5cevil.test', '/a\n']) assert.equal(safeReturnPath(path), '/');

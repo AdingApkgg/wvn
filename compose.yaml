@@ -67,7 +67,7 @@ services:
   catalog-init:
     <<: *app
     restart: "no"
-    command: [node, --import, tsx, ops/compose/seed-catalog.ts]
+    command: [node, --import, "@oxc-node/core/register", ops/compose/seed-catalog.ts]
     environment: {WG_DATABASE: /var/lib/wvn/catalog/catalog.db}
     volumes:
       - type: bind
@@ -119,7 +119,7 @@ services:
 
   manager:
     <<: *app
-    command: [node, --import, tsx, server.ts]
+    command: [node, --import, "@oxc-node/core/register", server.ts]
     environment:
       WG_DATABASE: /var/lib/wvn/catalog/catalog.db
       WG_STATE_DIR: /var/lib/wvn/manager
@@ -138,7 +138,7 @@ services:
   b2-preview:
     <<: *app
     profiles: [b2]
-    command: [node, --import, tsx, b2-entry.ts]
+    command: [node, --import, "@oxc-node/core/register", b2-entry.ts]
     environment:
       <<: *account-env
       WG_DEPLOYMENT_MODE: preview
@@ -173,7 +173,7 @@ services:
   resources:
     <<: *app
     profiles: [storage]
-    command: [node, --import, tsx, resource-server.ts]
+    command: [node, --import, "@oxc-node/core/register", resource-server.ts]
     environment:
       WG_RESOURCE_ROOT: /srv/wvn/resources
       WG_PLAYER_MEDIA_ROOT: /srv/wvn/player-media
@@ -189,7 +189,7 @@ services:
   blobs:
     <<: *app
     profiles: [storage]
-    command: [node, --import, tsx, blob-server.ts]
+    command: [node, --import, "@oxc-node/core/register", blob-server.ts]
     environment:
       WG_BLOB_ROOT: /var/lib/wvn/blobs
       WG_BLOB_BIND: ${WVN_TAILSCALE_IP:-}

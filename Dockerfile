@@ -20,9 +20,9 @@ COPY --from=build /app/data ./data
 COPY --from=build /app/engines ./engines
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/ops ./ops
-COPY --from=build /app/package.json /app/accounts-server.ts /app/server.ts /app/resource-server.ts /app/blob-server.ts ./
+COPY --from=build /app/package.json /app/tsconfig.json /app/accounts-server.ts /app/server.ts /app/resource-server.ts /app/blob-server.ts ./
 USER node
-CMD ["node","--import","tsx","accounts-server.ts"]
+CMD ["node","--import","@oxc-node/core/register","accounts-server.ts"]
 FROM ${QA_BASE_IMAGE} AS browser
 USER root
 RUN node -e "if (Number(process.versions.node.split('.')[0]) < 22) process.exit(1)"

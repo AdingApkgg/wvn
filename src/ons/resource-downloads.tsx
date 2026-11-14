@@ -1,5 +1,7 @@
+import {canUseDirectResources} from './resource-policy.mjs';
 import {useEffect,useRef,useState} from 'react';
 import {createCacheClient,createForegroundReader,type ForegroundReader,type CacheClient,type DownloadMode,type DownloadProgress,type ResourceFile} from '../../public/cache/client.mjs';
+import {prepareStartupResources} from '../../public/cache/startup.mjs';
 import {loadCasManifest} from '../../public/player/cas-resources.mjs';
 import {formatTransferBytes} from '../../public/ons/resource-loading.mjs';
 import {Button} from '../components/ui/button';
@@ -14,15 +16,15 @@ export function useResourceDownloads({origin,pilot,releaseId,onFile}:{origin:str
  const selected=useRef<DownloadMode>('background'),client=useRef<CacheClient|null>(null),manifest=useRef<any>(null),files=useRef(new Map<string,ResourceFile>()),opening=useRef<Promise<CacheClient|null>|null>(null),abort=useRef(new AbortController()),generation=useRef(0),openingEpoch=useRef(0),enterNow=useRef<(()=>void)|null>(null),fileListener=useRef(onFile);fileListener.current=onFile;
  const enabled=!!origin;
  useEffect(()=>{try{const saved=localStorage.getItem(preference);if(isMode(saved)){selected.current=saved;setMode(saved)}}catch{/* 不支持设置持久化时使用默认后台模式。 */}},[]);
- useEffect(()=>{abort.current=new AbortController();return()=>{openingEpoch.current++;generation.current++;abort.current.abort();void client.current?.close();client.current=null;opening.current=null;manifest.current=null;files.current.clear();enterNow.current?.();enterNow.current=null}},[origin,pilot.id,releaseId]);
+ useEffect(()=>{abort.current=new AbortController();directOnly.current=false;foreground.current=null;nativeBusy.current=false;setProgress(null);setProblem('');setNotice('');return()=>{openingEpoch.current++;generation.current++;abort.current.abort();void client.current?.close();client.current=null;opening.current=null;manifest.current=null;files.current.clear();enterNow.current?.();enterNow.current=null}},[origin,pilot.id,releaseId]);
  async function ensure(){
-  if(!origin)throw Error('资源缓存未配置');if(directOnly.current&&selected.current==='demand')return null;if(client.current)return client.current;if(opening.current)return opening.current;
+  if(!origin)throw Error('资源缓存未配置');if(directOnly.current&&selected.current==='demand'&&manifest.current)return null;if(client.current)return client.current;if(opening.current)return opening.current;
   const signal=abort.current.signal,epoch=openingEpoch.current,isCurrent=()=>!signal.aborted&&abort.current.signal===signal&&openingEpoch.current===epoch;
   const check=()=>{signal.throwIfAborted();if(!isCurrent())throw new DOMException('Obsolete resource preparation','AbortError')};
   return ownOpeningTask(opening,async()=>{
    check();if(!manifest.current){const loaded=await runCurrentStep(isCurrent,()=>loadCasManifest(pilot,{engine:releaseId,signal,fetcher:(input,init)=>fetch(input,{...init,credentials:'same-origin'})}));check();manifest.current=loaded}check();
    const created=createCacheClient({origin,manifest:manifest.current,entry:pilot,sharedEngine:pilot.runtimeKind!=='RenPy'||!!releaseId,onProgress:p=>{if(client.current!==created||!isCurrent())return;setProgress(p)},onFile:file=>{if(client.current!==created||!isCurrent())return;files.current.set(file.sha256,file);fileListener.current(file)}});client.current=created;foreground.current=createForegroundReader({client:created,files:files.current,onFallback:()=>{if(isCurrent()&&client.current===created)setProblem('公共缓存空间不足；未缓存资源本次按需从网络读取，已缓存资源与存档保留')}});
-   try{await runCurrentStep(isCurrent,()=>created.ready);check();await runCurrentStep(isCurrent,()=>created.command('start',{mode:selected.current,prepareOnly:true}));check();return created}catch(error){await created.close();check();if(client.current===created)client.current=null;if(selected.current==='demand'&&manifest.current){directOnly.current=true;foreground.current=null;setProblem('公共缓存暂不可用；按需从已登记的资源地址读取，存档保留');return null}throw error}
+   try{await runCurrentStep(isCurrent,()=>created.ready);check();await runCurrentStep(isCurrent,()=>created.command('start',{mode:selected.current,prepareOnly:true}));check();return created}catch(error){await created.close();check();if(client.current===created)client.current=null;if(manifest.current&&canUseDirectResources(error,selected.current)){directOnly.current=true;foreground.current=null;selected.current='demand';setMode('demand');setNotice('此浏览器暂时无法使用资源缓存，本次已改为按需读取。存档和历史备份保留。');return null}throw error}
   });
  }
  async function changeMode(value:DownloadMode){if(value!=='demand')directOnly.current=false;selected.current=value;setMode(value);try{localStorage.setItem(preference,value)}catch{/* 设置不可写不影响当前模式。 */}if(client.current)await client.current.command('start',{mode:value,prepareOnly:!preparing});if(value!=='complete'){enterNow.current?.();enterNow.current=null;}}
@@ -42,7 +44,7 @@ export function useResourceDownloads({origin,pilot,releaseId,onFile}:{origin:str
      // 最小启动集优先；模式改变后重新判断门槛，不沿用过时选择进入游戏。
      const m=manifest.current,byPath=new Map<string,any>(m.resources.map((row:any)=>[row.path,row])),targets=new Set<string>((m.engineResources?.files??[]).map((row:any)=>row.sha256));
      for(const file of m.ons?.files??[])if(!file.lazyload){const row=byPath.get(file.path);if(row)targets.add(row.sha256)}
-     const allowed=new Set(bridge.plan.rows.map(row=>row.sha256));for(const sha of targets)if(allowed.has(sha))await foreground.current!.read(sha,{signal:abort.current.signal});
+     const allowed=new Map(bridge.plan.rows.map(row=>[row.sha256,row])),reader=foreground.current!;await prepareStartupResources([...targets].flatMap(sha=>{const row=allowed.get(sha);return row?[row]:[]}),(sha,options)=>reader.read(sha,options),{signal:abort.current.signal});
      if(readMode()!=='complete')break;
     }
    }

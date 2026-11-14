@@ -1,15 +1,11 @@
-import { readAccountView } from "./response";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createApiClient } from "../api/client.ts";
+import { createContractClient, ApiResponseError } from "../api/client-base.ts";
+import { sessionContract, accountViewSchema } from "../api/contracts/session.ts";
+import type { z } from "zod";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { createAuthClient } from "better-auth/client";
 import { passkeyClient } from "@better-auth/passkey/client";
-export type AccountView = {
-  sessionIdentity?: string;
-  user: { id: string; name: string };
-  binding: string;
-  passkeys: { id: string; name: string; createdAt: number; backedUp: number }[];
-  devices: { id: string; userAgent: string; current: boolean }[];
-  recoveryReady: boolean;
-};
+export type AccountView = z.infer<typeof accountViewSchema>;
 export class AccountClientError extends Error {
   constructor(
     public code: string,
@@ -22,6 +18,7 @@ export function errorCopy(code: string) {
   return (
     (
       {
+        AUTH_BUSY: "设备验证正在进行，请先完成或取消。",
         NICKNAME_INVALID: "昵称需要 1–40 个可见字符。",
         REAUTH_REQUIRED: "请再使用通行密钥验证一次，然后重试。",
         IDENTITY_CHANGED: "账号状态已变化，请重新操作。",
@@ -51,6 +48,7 @@ export function errorCopy(code: string) {
   );
 }
 export function useAccount() {
+  const sessionApi = useMemo(() => createContractClient(sessionContract), []);
   const [options, setOptions] = useState<{
     passkey: boolean;
     signup: string;
@@ -76,6 +74,7 @@ export function useAccount() {
     };
   };
   const withCeremony = async <T>(fn: () => Promise<T>) => {
+    if(ceremony.current)throw new AccountClientError('AUTH_BUSY');
     ceremony.current = true;
     try {
       return await fn();
@@ -97,21 +96,13 @@ export function useAccount() {
       const start = epoch.current,
         seq = ++sequence.current;
       try {
-        const [response, capabilities] = await Promise.all([
-          fetch("/api/me", {
-            cache: "no-store",
-            signal: controller.current.signal,
+        const [next, available] = await Promise.all([
+          sessionApi.sessionGet({}, { signal: controller.current.signal }).catch(error => {
+            if (error instanceof ApiResponseError && error.status === 401) return null;
+            throw error;
           }),
-          fetch("/api/login-options", {
-            cache: "no-store",
-            signal: controller.current.signal,
-          }),
+          sessionApi.loginOptions({}, { signal: controller.current.signal }),
         ]);
-        if (!capabilities.ok) throw new AccountClientError("NETWORK");
-        const available = await capabilities.json();
-        if (!response.ok && response.status !== 401)
-          throw new AccountClientError("NETWORK");
-        const next = await readAccountView(response);
         if (
           !alive.current ||
           seq !== sequence.current ||
@@ -144,7 +135,7 @@ export function useAccount() {
         if (alive.current && seq === sequence.current) setLoading(false);
       }
     },
-    [invalidate],
+    [invalidate, sessionApi],
   );
   useEffect(() => {
     alive.current = true;
@@ -183,7 +174,7 @@ export function useAccount() {
   }, []);
   const request = useCallback(
     async <T = Record<string, unknown>>(
-      path: string,
+      path: "/api/recovery/start" | "/api/recovery/options" | "/api/recovery/complete" | "/api/auth/sign-out",
       body?: unknown,
       method?: string,
       owner?: string,
@@ -215,6 +206,37 @@ export function useAccount() {
     },
     [refresh],
   );
+  const api = useMemo(() => createApiClient({
+    aroundCall: async (_context, invoke) => {
+      const start = epoch.current;
+      const result = await invoke();
+      // 包括 oRPC 的完整正文解码；收到响应头还不代表旧身份结果可使用。
+      if (start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
+      return result;
+    },
+    beforeRequest: ({ owner }) => {
+      if (owner && current.current?.user.id !== owner) throw new AccountClientError("IDENTITY_CHANGED");
+    },
+    fetch: async (input, init) => {
+      const start = epoch.current;
+      const request = new Request(input, init);
+      const headers = new Headers(request.headers);
+      if (current.current) headers.set("x-wg-binding", current.current.binding);
+      const response = await fetch(new Request(request, {
+        headers, cache: "no-store",
+        signal: AbortSignal.any([request.signal, controller.current.signal]),
+      }));
+      if (start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (start !== epoch.current) throw new AccountClientError("IDENTITY_CHANGED");
+        // 匿名资格探测的 401 是正常状态，不能在通行密钥仪式中反复失效账号。
+        if ((response.status === 401 && current.current !== null) || data.code === "IDENTITY_CHANGED") await refresh(true);
+        throw new AccountClientError(data.code ?? "NETWORK", data);
+      }
+      return response;
+    },
+  }), [refresh]);
   const upload = async (path: string, blob: Blob, owner: string) => {
     if (current.current?.user.id !== owner)
       throw new AccountClientError("IDENTITY_CHANGED");
@@ -304,6 +326,7 @@ export function useAccount() {
     kind: "signup" | "login" | "add",
     nickname = "",
   ) => {
+    if(ceremony.current)throw new AccountClientError('AUTH_BUSY');
     ceremony.current = true;
     const start = epoch.current,
       client = authClient();
@@ -350,6 +373,7 @@ export function useAccount() {
     refresh,
     announce,
     request,
+    api,
     passkey,
     upload,
     download,

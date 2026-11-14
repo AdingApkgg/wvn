@@ -36,7 +36,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 cd "$source_dir"
 docker run -d --name "$turn_name" --network host --user "$(id -u):$(id -g)" --cap-drop ALL --cap-add NET_BIND_SERVICE --security-opt no-new-privileges --read-only --tmpfs /tmp:rw,nosuid,noexec,size=8m --cpus 1 --memory 256m --pids-limit 256 -v "$turn_config:/etc/coturn/turnserver.conf:ro" coturn/coturn:4.6.3 -c /etc/coturn/turnserver.conf >/dev/null
-node --import tsx scripts/room-qa-server.ts --isolated-qa > reports/rooms/qa-server.log 2>&1 &
+node --import @oxc-node/core/register scripts/room-qa-server.ts --isolated-qa > reports/rooms/qa-server.log 2>&1 &
 qa_pid=$!
 "$task_root/tools/wvn-webtransport" > reports/rooms/webtransport-qa.log 2>&1 &
 gateway_pid=$!

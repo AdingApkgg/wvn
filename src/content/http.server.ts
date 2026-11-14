@@ -9,9 +9,11 @@ export type ShareReview={suitability:'sfw'|'nsfw'|'unknown';versionId?:string;ti
 type Options={enabled:boolean;access?:(request:Request)=>Promise<ContentAccess>;shareReview?:(id:string)=>Promise<ShareReview>;ownWorkIds?:(request:Request)=>Promise<Set<string>>};
 type Fetcher=(request:Request)=>Response|Promise<Response>;
 function failure(code:string,status=403){return Response.json({code},{status,headers:{'Cache-Control':'private, no-store','Vary':'Cookie'}})}
+// 内容资格响应保持私有；保留运行页声明的no-transform，避免边缘注入破坏opaque沙箱。
+function privateCacheControl(headers:Headers){return headers.get('Cache-Control')?.split(',').some(value=>value.trim().toLowerCase()==='no-transform')?'private, no-store, no-transform':'private, no-store'}
 function replace(response:Response,value:unknown){
  const headers=new Headers(response.headers);for(const name of ['Content-Length','Content-Encoding','ETag'])headers.delete(name);
- headers.set('Cache-Control','private, no-store');headers.set('Vary','Cookie');return Response.json(value,{status:response.status,headers});
+ headers.set('Cache-Control',privateCacheControl(headers));headers.set('Vary','Cookie');return Response.json(value,{status:response.status,headers});
 }
 async function transferBody(request:Request){
  const limit=64*1024;
@@ -59,7 +61,7 @@ export function createContentFetch(next:Fetcher,store:Store,options:Options):Fet
   const workId=workRoute?(workIdPattern.test(workRoute[1])?workRoute[1]:parseWorkSlug(workRoute[1])):undefined;
   if(workId){const work=await store.get(workId);if(work&&!workVisible(work,access))return failure(accessError(access),access.authenticated?403:401)}
   // 分享文本具有独立审核状态；无明确SFW证据时只有主动开启者可读取。
-  const shareRead=/^\/api\/(?:public\/(?:save-shares\/|works\/[^/]+\/save-shares)|share-links\/[^/]+\/inspect)/.test(path);
+  const shareRead=/^\/api\/(?:public\/(?:save-shares\/|works\/[^/]+\/save-shares|users\/[^/]+\/save-shares)|share-links\/[^/]+\/inspect)/.test(path);
   const shareTransfer=request.method==='POST'&&/^\/api\/me\/(?:share-claims$|share-downloads$)/.test(path);
   if(shareTransfer){
    let bytes:Uint8Array<ArrayBuffer>;try{bytes=await transferBody(request)}catch(error){return failure(error instanceof Error&&error.message==='BODY_TOO_LARGE'?'BODY_TOO_LARGE':'INVALID_BODY',error instanceof Error&&error.message==='BODY_TOO_LARGE'?413:400)}
@@ -71,7 +73,7 @@ export function createContentFetch(next:Fetcher,store:Store,options:Options):Fet
    if(!work||!item||versionAccessError(work,item,access)||(!restrictedAllowed(access)&&review?.suitability!=='sfw'))return failure(accessError(access),access.authenticated?403:401);
   }
   const response=await next(request);
-  const headers=new Headers(response.headers);headers.set('Cache-Control','private, no-store');
+  const headers=new Headers(response.headers);headers.set('Cache-Control',privateCacheControl(headers));
   const vary=headers.get('Vary');if(!vary?.split(',').some(v=>v.trim().toLowerCase()==='cookie'))headers.set('Vary',[vary,'Cookie'].filter(Boolean).join(', '));
   const result=new Response(response.body,{status:response.status,statusText:response.statusText,headers});
   if(request.method==='HEAD'||!response.ok||!response.headers.get('Content-Type')?.includes('application/json'))return result;

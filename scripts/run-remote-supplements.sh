@@ -13,10 +13,10 @@ ssh -o BatchMode=yes -o ConnectTimeout=15 "$builder" \
   'test "$(hostname)" = localhost && test -d /home/wvn/wg-manager-preview/node_modules && hostname'
 rsync -az src/ "$builder:$remote_root/src/"
 rsync -az tests/ "$builder:$remote_root/tests/"
-scp scripts/prepare-metadata-supplements.ts scripts/cache-metadata-media.py \
+rsync -az scripts/prepare-metadata-supplements.ts scripts/cache-metadata-media.py \
   scripts/build-metadata-report.py scripts/verify-metadata.mjs \
   "$builder:$remote_root/scripts/"
-scp data/metadata-official-sources.json data/metadata-supplements.json \
+rsync -az data/metadata-official-sources.json data/metadata-supplements.json data/cover-review-20261114.json \
   "$builder:$remote_root/data/"
 
 ssh -o BatchMode=yes -o ConnectTimeout=15 "$builder" 'bash -se' <<'REMOTE' 2>&1 | tee "$log"
@@ -26,8 +26,8 @@ test "$(hostname)" = localhost
 export HTTPS_PROXY=http://127.0.0.1:11090 HTTP_PROXY=http://127.0.0.1:11090
 mkdir -p reports
 cp -p data/metadata.json "reports/before-supplements-$(date +%Y%m%d-%H%M%S).json"
-node --import tsx --test tests/metadata.test.ts
-node --import tsx scripts/prepare-metadata-supplements.ts
+node --import @oxc-node/core/register --test tests/metadata.test.ts
+node --import @oxc-node/core/register scripts/prepare-metadata-supplements.ts
 python3 scripts/cache-metadata-media.py
 python3 - <<'PY'
 import json
@@ -54,9 +54,9 @@ sh tests/e2e/run-remote.sh
 printf '\nWG_REMOTE_SUPPLEMENTS_VERIFIED\n'
 REMOTE
 
-scp "$builder:$remote_root/data/metadata.json" \
+rsync -az "$builder:$remote_root/data/metadata.json" \
   "$builder:$remote_root/data/metadata-media-report.json" \
   "$builder:$remote_root/data/metadata-match-report.json" data/
-scp "$builder:$remote_root/reports/supplements-desktop.png" \
+rsync -az "$builder:$remote_root/reports/supplements-desktop.png" \
   "$builder:$remote_root/reports/supplements-mobile.png" reports/
 printf '\n远程验证完成；本地日志：%s\n生产未修改。\n' "$log"

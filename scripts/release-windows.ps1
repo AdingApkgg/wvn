@@ -94,12 +94,12 @@ source.exec("VACUUM INTO '"+process.env.WG_BASELINE_DB.replaceAll("'","''")+"'")
  if($LASTEXITCODE -ne 0){throw 'Consistent catalog snapshot failed'}
  Copy-Item "$root\state\before-release.db" "$root\state\catalog.db"
  $env:WG_DATABASE="$root\state\catalog.db"
- $dry=& $node --import tsx scripts/import-metadata.ts
+ $dry=& $node --import "@oxc-node/core/register" scripts/import-metadata.ts
  if($LASTEXITCODE -ne 0){throw 'Metadata dry-run failed'}
  $dry | Set-Content -Encoding UTF8 reports/metadata-dry-run.json
  $check=$dry | ConvertFrom-Json
  if($check.total -ne 64 -or $check.added -ne 0 -or $check.updated -ne 19 -or $check.unchanged -ne 45){throw 'Unexpected metadata differences; nothing has been published'}
- & $node --import tsx scripts/import-metadata.ts --apply
+ & $node --import "@oxc-node/core/register" scripts/import-metadata.ts --apply
  if($LASTEXITCODE -ne 0){throw 'Metadata import failed'}
  $preserve=@'
 import {DatabaseSync} from 'node:sqlite';import fs from 'node:fs';import assert from 'node:assert/strict';
@@ -129,7 +129,7 @@ set WG_PORT=8381
 set WG_ADMIN_PORT=8382
 set NODE_ENV=production
 set PATH=C:\nvm4w\nodejs;%PATH%
-"$node" --import tsx server.ts >> production.log 2>> production-error.log
+"$node" --import "@oxc-node/core/register" server.ts >> production.log 2>> production-error.log
 "@ | Set-Content -Encoding ASCII scripts/launch-production.cmd
  Copy-Item $config "$inbox\Caddyfile.before"
  if((Get-FileHash "$inbox\Caddyfile.before" -Algorithm SHA256).Hash -ne $oldHash){throw 'Production configuration changed during backup'}

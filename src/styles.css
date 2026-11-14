@@ -29,25 +29,6 @@
 }
 :root {
   color-scheme: dark;
-  --background: #13151b;
-  --foreground: #eeeee9;
-  --card: #191c24;
-  --card-foreground: #eeeee9;
-  --popover: #20232c;
-  --popover-foreground: #eeeee9;
-  --primary: #d3b9a1;
-  --primary-foreground: #202027;
-  --secondary: #242833;
-  --secondary-foreground: #e1e1e5;
-  --muted: #20232c;
-  --muted-foreground: #a2a5b0;
-  --accent: #303440;
-  --accent-foreground: #eeeee9;
-  --destructive: #e78183;
-  --border: #ffffff18;
-  --input: #ffffff26;
-  --ring: #d3b9a1;
-  --radius: 0.625rem;
   --line: var(--border);
   --story-accent: var(--primary);
 }
@@ -137,13 +118,13 @@
   top: 8px;
   font-size: 320px;
   line-height: 1;
-  color: #2b2c36;
+  color: var(--md-sys-color-surface-container-highest);
   transform: rotate(15deg);
   z-index: -1;
 }
 .hero h1 {
   font-weight: 400;
-  font-family: Georgia, "Songti SC", serif;
+  font-family: var(--font-sans);
   font-size: clamp(42px, 5vw, 76px);
   line-height: 1.27;
   letter-spacing: 2px;
@@ -169,7 +150,7 @@
 .stats b {
   font-family: Georgia, serif;
   font-size: 24px;
-  color: #f0e5db;
+  color: var(--foreground);
   margin-right: 5px;
 }
 .filters {
@@ -201,9 +182,7 @@
 }
 .section-title h2 {
   font:
-    24px Georgia,
-    "Songti SC",
-    serif;
+    24px var(--font-sans);
   margin: 0;
 }
 .section-title > span {
@@ -241,7 +220,7 @@
   transform: translateY(-3px);
 }
 .story-card:hover .card-art {
-  border-color: #d3b9a166;
+  border-color: var(--input);
   box-shadow: 0 12px 30px #0005;
 }
 .story-card:focus-visible {
@@ -253,7 +232,7 @@
   width: 100%;
   flex-shrink: 0;
   position: relative;
-  border: 1px solid #ffffff14;
+  border: 1px solid var(--border);
   border-radius: 6px;
   box-shadow: 0 4px 16px #0003;
   transition:
@@ -281,7 +260,7 @@
 }
 .art-symbol {
   font-size: 85px;
-  color: #e7d2b377;
+  color: var(--primary);
   position: absolute;
   right: 35px;
   top: 12px;
@@ -293,7 +272,7 @@
   top: -30%;
   width: 1px;
   height: 230%;
-  background: #ffffff20;
+  background: var(--border);
   transform: rotate(32deg);
 }
 .art-word {
@@ -302,7 +281,7 @@
   bottom: 14px;
   font: 8px monospace;
   letter-spacing: 2px;
-  color: #ffffff66;
+  color: var(--muted-foreground);
 }
 .card-body {
   min-width: 0;
@@ -374,7 +353,7 @@ footer {
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: #777e8b;
+  color: var(--muted-foreground);
   margin: 65px 0 30px;
   padding-top: 25px;
   border-top: 1px solid var(--line);
@@ -400,7 +379,7 @@ footer {
   border-bottom: 1px solid var(--line);
 }
 .work h1 {
-  font-family: Georgia, "Songti SC", serif;
+  font-family: var(--font-sans);
   font-size: 48px;
   font-weight: 400;
   margin: 20px 0;
@@ -431,13 +410,12 @@ footer {
   padding: 25px;
   flex-direction: row;
   border-radius: 9px;
-  background: #191c24;
+  background: var(--card);
 }
 .slot {
   font:
-    34px Georgia,
-    serif;
-  color: #d3b9a155;
+    34px var(--font-sans);
+  color: var(--muted-foreground);
 }
 .version-info {
   flex: 1;
@@ -824,7 +802,7 @@ footer {
   height: 100%;
   object-fit: contain;
   object-position: center;
-  background: #15171d;
+  background: var(--md-sys-color-surface-container-low);
   z-index: 1;
 }
 .work-heading-body {
@@ -878,9 +856,7 @@ footer {
 }
 .work-metadata h2 {
   font:
-    24px Georgia,
-    "Songti SC",
-    serif;
+    24px var(--font-sans);
   margin: 30px 0 20px;
 }
 .synopsis {
@@ -890,7 +866,7 @@ footer {
   white-space: pre-line;
   font-size: 14px;
   line-height: 1.95;
-  color: #c3c5ce;
+  color: var(--foreground);
   overflow-wrap: anywhere;
 }
 .metadata-credit {
@@ -1010,7 +986,7 @@ footer {
 }
 .account-intro h1,
 .account-heading h1 {
-  font-family: var(--font-serif, Georgia, serif);
+  font-family: var(--font-sans);
   font-size: clamp(2rem, 5vw, 3.6rem);
   letter-spacing: -0.04em;
   margin: 16px 0;
@@ -1092,7 +1068,7 @@ footer {
   margin-bottom: 48px;
 }
 .account-library h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 1.5rem;
 }
 .account-library [data-slot="native-select-wrapper"] {
@@ -1105,7 +1081,7 @@ footer {
   width: 100%;
   height: min(72vh, 800px);
   border: 0;
-  background: #08090c;
+  background: var(--md-sys-color-surface-container-lowest);
 }
 .account-data-actions {
   display: flex;
@@ -1176,7 +1152,7 @@ footer {
 .navigation-account { display: flex; align-items: center; gap: 14px; }
 .catalog-page { padding-top: 34px; }
 .catalog-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
-.catalog-heading h1 { font: 400 clamp(26px, 3vw, 38px)/1.5 Georgia, "Songti SC", serif; margin-top: 10px; }
+.catalog-heading h1 { font: 400 clamp(26px, 3vw, 38px)/1.5 var(--font-sans); margin-top: 10px; }
 .catalog-heading > p { font-size: 12px; color: var(--muted-foreground); padding-bottom: 8px; white-space: nowrap; }
 .catalog-search { border-bottom: 1px solid var(--border); padding-bottom: 16px; }
 .search-row { display: flex; align-items: end; gap: 12px; }
@@ -1282,29 +1258,29 @@ summary:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
 }
 
 /* 仅在启动期间覆盖游戏区域；百分比只代表当前有真实总量的资源。 */
-.reader-loading { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 24px; background: #101216; color: #f3f0eb; }
+.reader-loading { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 24px; background: var(--background); color: var(--foreground); }
 .reader-loading-card { width: min(100%, 420px); text-align: center; }
-.reader-loading-icon { width: 30px; height: 30px; margin: 0 auto 18px; color: #d6b995; }
+.reader-loading-icon { width: 30px; height: 30px; margin: 0 auto 18px; color: var(--primary); }
 .reader-loading-spinner { animation: reader-spin 1.4s linear infinite; }
 .reader-loading-title { font-size: clamp(18px, 3vw, 22px); font-weight: 500; margin-bottom: 20px; }
-.reader-loading-track { height: 6px; border-radius: 99px; overflow: hidden; background: #30343b; }
-.reader-loading-track > span { display: block; height: 100%; border-radius: inherit; background: #d6b995; transition: width .15s; }
+.reader-loading-track { height: 6px; border-radius: 99px; overflow: hidden; background: var(--md-sys-color-surface-container-highest); }
+.reader-loading-track > span { display: block; height: 100%; border-radius: inherit; background: var(--primary); transition: width .15s; }
 .reader-loading-track > .reader-loading-indeterminate { width: 35%; animation: reader-loading 1.8s ease-in-out infinite; }
-.reader-loading-metrics { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12px; color: #b5b9c1; }
-.reader-loading-detail { margin: 20px 0; color: #b5b9c1; font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
-.reader-loading-card button { background: transparent; color: #f3f0eb; border-color: #525965; }
-.reader-loading-card button:hover { background: #282d34; }
-.reader-loading-preserved { margin-top: 12px; color: #949aa5; font-size: 11px; }
+.reader-loading-metrics { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12px; color: var(--muted-foreground); }
+.reader-loading-detail { margin: 20px 0; color: var(--muted-foreground); font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+.reader-loading-card button { background: transparent; color: var(--foreground); border-color: var(--input); }
+.reader-loading-card button:hover { background: var(--accent); }
+.reader-loading-preserved { margin-top: 12px; color: var(--muted-foreground); font-size: 11px; }
 @keyframes reader-spin { to { transform: rotate(360deg); } }
 @keyframes reader-loading { from { transform: translateX(-100%); } to { transform: translateX(385%); } }
 @media (prefers-reduced-motion: reduce) { .reader-loading-spinner, .reader-loading-indeterminate { animation: none !important; } .reader-loading-track > span { transition: none; } }
 
 /* 在全屏与小屏中也保留游戏操作区域，加载提示不拦截指针。 */
-.reader-resource-loading { pointer-events: none; position: absolute; z-index: 3; top: 12px; right: 12px; width: min(280px, calc(100% - 24px)); padding: 10px 12px; border: 1px solid #52596580; border-radius: 8px; background: #101216ed; color: #f3f0eb; box-shadow: 0 2px 12px #0003; }
+.reader-resource-loading { pointer-events: none; position: absolute; z-index: 3; top: 12px; right: 12px; width: min(280px, calc(100% - 24px)); padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--md-sys-color-surface-container-high); color: var(--foreground); box-shadow: 0 2px 12px #0003; }
 .reader-resource-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; line-height: 1.5; }
 .reader-resource-loading .reader-loading-track { height: 3px; margin-top: 8px; }
 
-.reader-transfer-details { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; margin-top: 10px; color: #b5b9c1; font-size: 12px; font-variant-numeric: tabular-nums; }
+.reader-transfer-details { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; margin-top: 10px; color: var(--muted-foreground); font-size: 12px; font-variant-numeric: tabular-nums; }
 .reader-resource-loading { width: min(340px, calc(100% - 24px)); }
 .reader-resource-loading .reader-transfer-details { margin-top: 5px; font-size: 11px; }
 

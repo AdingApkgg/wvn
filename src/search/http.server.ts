@@ -1,3 +1,5 @@
+import { registerJsonRoute } from "../api/route.server.ts";
+import { catalogContract } from "../api/contracts/catalog.ts";
 import { Hono } from 'hono';
 import type { PgDatabase } from '../database/postgres.ts';
 import { MeiliClient, indexName } from './meili.server.ts';
@@ -37,7 +39,7 @@ export function createSearchApp(options: { db: PgDatabase; meili: MeiliClient; i
   const app = new Hono();
   const uid = indexName(options.indexUid);
   let catalog = options.store;
-  app.get('/api/search', async c => {
+  registerJsonRoute(app, catalogContract.searchQuery, async c => {
     let query: SearchQuery;
     try { query = parseSearchQuery(new URL(c.req.url).searchParams); }
     catch { return c.json({ error: 'invalid_search_query' }, 400); }
@@ -89,6 +91,6 @@ export function createSearchApp(options: { db: PgDatabase; meili: MeiliClient; i
       c.header('Cache-Control', 'no-store');
       return c.json({ error: 'search_unavailable' }, 503);
     }
-  });
+  }, { invalidResponse: c => c.json({ error: "invalid_search_query" }, 400) });
   return app;
 }

@@ -1,3 +1,5 @@
+import { registerJsonRoute, configureJsonRouteAuth } from "../api/route.server.ts";
+import { sessionContract } from "../api/contracts/session.ts";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { createHash } from "node:crypto";
 import { Hono, type Context } from "hono";
@@ -36,6 +38,10 @@ import { mountShares } from "./shares-http.server.ts";
 import { WorkStatsStore } from "./work-stats.server.ts";
 import { mountWorkStats } from "./work-stats-http.server.ts";
 import {createAnalyticsApp} from '../analytics/proxy.server.ts';
+import { profileMigrations } from "../database/profiles.ts";
+import { ProfileStore, mountProfiles, adminIds } from "./profiles.server.ts";
+import { adminMigrations } from "../database/admins.ts";
+import { AdminStore } from "./admins.server.ts";
 export type Player = { session: PlayerSession; binding: string };
 export type AccountService = {
   app: Hono;
@@ -43,6 +49,8 @@ export type AccountService = {
   auth: ReturnType<typeof makeAuth>;
   config: AccountConfig;
   player: (c: Context, recent?: boolean) => Promise<Player>;
+  profiles: ProfileStore;
+  admins: AdminStore;
   content: ContentEligibilityStore;
   getContentAccess: (request: Request) => Promise<ContentAccess>;
   getContentOwnWorkIds: (request:Request) => Promise<Set<string>>;
@@ -72,6 +80,10 @@ export async function createAccountService(
   await (await getMigrations(auth.options)).runMigrations();
   await migrate(db, accountMigrations);
   await migrate(db, contentAccountMigrations);
+  await migrate(db, profileMigrations);
+  const profiles = new ProfileStore(db);
+  await migrate(db, adminMigrations);
+  const admins = new AdminStore(db, () => adminIds(config));
   const content = new ContentEligibilityStore(db, config.content);
   const recovery = new RecoveryStore(db);
   const dynamicCatalog = config.catalogProvider ?? (config.catalogOrigin ? catalogProvider(config.catalogOrigin) : undefined);
@@ -93,6 +105,7 @@ export async function createAccountService(
   if (sharing) await sharing.replay();
   await deletions.replay(db, saves);
   const app = new Hono();
+  configureJsonRouteAuth(app, c => player(c));
   // 写操作在各进程先排队，再取得数据库会话锁；读取可并行，跨进程也保护通行密钥等组合操作。
   let tail = Promise.resolve();
   async function withLock<T>(fn: () => T | Promise<T>): Promise<T> {
@@ -274,7 +287,7 @@ export async function createAccountService(
       .get(session.user.id));
     if (!state) throw new AccountError(401, "SIGN_IN_REQUIRED");
     const binding = `${session.session.id}:${state.auth_version}`;
-    if (c.req.method !== "GET" && c.req.header("x-wg-binding") !== binding)
+    if (!["GET", "HEAD"].includes(c.req.method) && c.req.header("x-wg-binding") !== binding)
       throw new AccountError(409, "IDENTITY_CHANGED");
     if (
       recent &&
@@ -291,10 +304,10 @@ export async function createAccountService(
       revision: config.revision ?? null,
     }),
   );
-  app.get("/api/login-options", (c) =>
+  registerJsonRoute(app, sessionContract.loginOptions, (c) =>
     c.json({ passkey: true, signup: "open", password: false, mode:config.deployment??"preview", isolated:config.isolated===true }),
   );
-  app.get("/api/me", async (c) => {
+  registerJsonRoute(app, sessionContract.sessionGet, async (c) => {
     const { session, binding } = await player(c);
     const keys = (await db
       .prepare(
@@ -307,7 +320,8 @@ export async function createAccountService(
       )
       .all(session.user.id, new Date(), new Date(Date.now() - ABSOLUTE_MS)));
     return c.json({
-      user: { id: session.user.id, name: session.user.name },
+      user: { id: session.user.id, name: session.user.name, uid: (await profiles.readOwn(session.user.id)).uid },
+      admin: await admins.isAdmin(session.user.id),
       binding,
       sessionIdentity: createHash('sha256').update(session.session.id).digest('hex'),
       passkeys: keys.map(key => ({ ...key, createdAt: new Date(key.createdAt).getTime(), backedUp: Number(key.backedUp) })),
@@ -389,9 +403,9 @@ export async function createAccountService(
       });
     return response;
   });
-  app.post("/api/me/passkeys/:id/delete", async (c) => {
+  registerJsonRoute(app, sessionContract.passkeyDelete, async (c) => {
     const { session } = await player(c, true);
-    const id = c.req.param("id");
+    const id = c.req.param("id")!;
     await db.transaction(async () => {
       const owned = (await db
         .prepare("SELECT id FROM passkey WHERE \"userId\"=$1 AND id=$2")
@@ -416,11 +430,11 @@ export async function createAccountService(
     }, { lock: 'wvn:account-write' });
     return c.json({ ok: true });
   });
-  app.post("/api/me/devices/:id/revoke", async (c) => {
+  registerJsonRoute(app, sessionContract.deviceRevoke, async (c) => {
     const { session } = await player(c, true);
     (await db.prepare("DELETE FROM session WHERE \"userId\"=$1 AND id=$2").run(
       session.user.id,
-      c.req.param("id"),
+      c.req.param("id")!,
     ));
     return c.json({ ok: true });
   });
@@ -442,6 +456,8 @@ export async function createAccountService(
     content,
     getContentAccess,
     getContentOwnWorkIds,
+    profiles,
+    admins,
     recovery,
     library,
     workStats,
@@ -456,6 +472,7 @@ export async function createAccountService(
     },
   };
   (await mountRecovery(service));
+  mountProfiles(service);
   mountContent(service);
   mountLibrary(service);
   mountWorkStats(service);

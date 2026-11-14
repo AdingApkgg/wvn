@@ -1,4 +1,5 @@
 import { brand } from "../brand";
+import { NativeSelect, NativeSelectOption } from "../components/ui/native-select";
 import {publicProjectionFetch}from"../accounts/public-projection.server.ts";
 import { WorkMetadataPanel } from "../components/work-metadata";
 import { coverKindLabel } from "../metadata-sources.ts";
@@ -17,9 +18,13 @@ import {projectWork,accessError} from '../content/policy.ts';
 import {ContentGate} from '../content/gate';
 import {useContentAccess} from '../content/client';
 import {useLayoutEffect} from 'react';
+import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
+import { versionContentLabel } from "../content/version-label";
+
 import { splitSynopsis } from "../lib/reader-experience";
 import { ShelfButton } from "../accounts/shelf-button";
 import {useLocalReading} from '../accounts/local-reading';
+
 export async function loader({
   params,
   request,
@@ -56,7 +61,7 @@ export async function loader({
           publicProjectionFetch(request),
         )
       : null;
-  const counts=await projectWorkCounts([w.id]);
+  const counts=await projectWorkCounts([w.id],request);
   return { ...w, shares, saveVersion, saveProgress,counts:counts?.[w.id]??null,
     contentVisibility:access?(access.canViewRestricted?'restricted':'public'):null };
 }
@@ -94,21 +99,12 @@ export default function Work() {
       <section
         className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
       >
-        {w.metadata?.cover && (
-          <img
-            className={
-              "work-cover" + (w.metadata.cover.kind ? " cover-fit" : "")
-            }
-            src={w.metadata.cover.url}
-            alt={w.title + " " + coverKindLabel(w.metadata.cover.kind)}
-            width={w.metadata.cover.width}
-            height={w.metadata.cover.height}
-          />
-        )}
+        {w.metadata?.cover && <div className="work-cover-frame"><CoverImage key={w.metadata.cover.url} cover={w.metadata.cover} className="work-cover" alt={w.title + " " + coverKindLabel(w.metadata.cover.kind)} /></div>}
         <div className="work-heading-body">
           <p className="eyebrow">{providerName(w.id)} / {w.id.replace(/^v/, "")}</p>
           <h1>{w.title}</h1>
           <p className="original">{w.originalTitle}</p>
+          {!w.metadata?.cover && <p className="work-cover-reason"><CoverPlaceholder status={w.coverStatus} /></p>}
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
             <Button asChild size="lg"><Link to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
@@ -126,7 +122,7 @@ export default function Work() {
         <div className="version-list">
           {w.versions.map(v => <Card key={v.id} className="version">
             <span className="slot">{String(v.number).padStart(2, "0")}</span>
-            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>{v.classification&&<Badge variant="outline">{({none:'已确认不含成人性内容',present:'含成人性内容',unknown:'内容待核实'})[v.classification.sexualContent]}</Badge>}
+            <div className="version-info"><p className="eyebrow">{v.engine} · {v.language} {v.id === w.defaultVersionId && "· 默认版本"}</p><h3>{v.title}</h3>{v.classification&&<Badge variant="outline">{versionContentLabel(v.classification)}</Badge>}
               {v.notes && <p className="muted">{v.notes}</p>}
               <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>
@@ -143,33 +139,33 @@ export default function Work() {
           </div>
           <form method="get" className="flex flex-wrap gap-3 items-center">
             <label htmlFor="share-version-filter">游戏版本</label>
-            <select
+            <NativeSelect
               id="share-version-filter"
               name="saveVersion"
               key={w.saveVersion}
               defaultValue={w.saveVersion}
             >
-              <option value="">全部版本</option>
+              <NativeSelectOption value="">全部版本</NativeSelectOption>
               {w.versions.map((v) => (
-                <option key={v.id} value={v.id}>
+                <NativeSelectOption key={v.id} value={v.id}>
                   版本 {v.number} · {v.title}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
             <label htmlFor="share-progress-filter">进度类型</label>
-            <select
+            <NativeSelect
               id="share-progress-filter"
               name="saveProgress"
               key={w.saveProgress}
               defaultValue={w.saveProgress}
             >
-              <option value="">全部进度</option>
+              <NativeSelectOption value="">全部进度</NativeSelectOption>
               {Object.entries(SHARE_PROGRESS).map(([value, label]) => (
-                <option key={value} value={value}>
+                <NativeSelectOption key={value} value={value}>
                   {label}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
             <Button type="submit" variant="outline">
               筛选玩家存档
             </Button>

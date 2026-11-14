@@ -1487,7 +1487,7 @@
     },
     {
       "workId": "v32805",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "NinNinDays2",
@@ -1498,10 +1498,12 @@
       "description": "A young man is dazing off while working the night shift at a convenience store, when a girl stops in to ask for a meat bun. The one next to her appears to be her boyfriend, and after doing their shopping, the two of them link arms affectionately and take off. Just when the young man is thinking how nice it would be to have a girlfriend, a pair of girls in ninja cosplay show up.\n\nThe girls just stare at the shop goods without buying anything in particular. Even worse, they're even chatting about ninja techniques or something along those lines. When he calls out to them to prevent theft, it becomes apparent that they have no money.\n\nDespite suspecting that they might try to steal something, he gives in and buys a bento for the two desperately pleading girls.\n\nThe life of that young man is turned upside down from the moment of his encounter with the two young women.\n\nA roommate life with two female ninja, one a Chuunibyou, and the other a fanservice machine, is about to begin?! And so begins a new love story with two ninja girls!\n\n[From Official Website]",
       "descriptionSource": "vndb",
       "cover": {
-        "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1698030/header.jpg?t=1642702039",
+        "url": "/media/0225f65c94e96987b4ca8dda3bbf033eeec5b62dbc7c522c9f250fb54d820aa2.png",
+        "sourceUrl": "https://qureate.co.jp/ninnindays2/wp-content/themes/ninnindays2-theme/images/logo.png",
         "source": "official",
-        "kind": "promotion",
-        "url": "/media/b880fc3c9f2238cebb0a191a03bb8a83935962574da076b1adf7c096587a9bea.jpg"
+        "width": 648,
+        "height": 387,
+        "kind": "logo"
       },
       "screenshots": [
         {
@@ -1615,6 +1617,11 @@
           "provider": "official",
           "id": "steam-1698030",
           "url": "https://store.steampowered.com/app/1698030/"
+        },
+        {
+          "provider": "official",
+          "id": "qureate-ninnindays2",
+          "url": "https://qureate.co.jp/ninnindays2/en/"
         }
       ],
       "warnings": []
@@ -2093,7 +2100,7 @@
     },
     {
       "workId": "v14365",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "美少女万華鏡 -神が造りたもうた少女たち-",
@@ -2114,10 +2121,12 @@
       "description": "In an unknown era.\nLong after humanity's golden age crumbled to dust, and eons rolled by like waves...\n\nIn a realm where the horizon bled into oblivion, a solitary scientist, the last of his kind, dwelled within a tower.\n\nMarooned in this desolate expanse, his heart yearned for companionship.\nArmed with arcane knowledge from a long-lost civilization, he wielded technology akin to sorcery and finally created the ideal maid robot into existence.\n\n[Translated from the official website]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/54dd909d6935a4ffb72fd551978f593719d3d1bbc47b8149bba4a0c7b73c1522.png",
         "sourceUrl": "https://www.omega-star.jp/biman3html/topmenugrp.png",
         "source": "official",
-        "kind": "promotion",
-        "url": "/media/54dd909d6935a4ffb72fd551978f593719d3d1bbc47b8149bba4a0c7b73c1522.png"
+        "width": 950,
+        "height": 146,
+        "kind": "promotion"
       },
       "screenshots": [
         {
@@ -2248,7 +2257,7 @@
     },
     {
       "workId": "v27057",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "美少女万華鏡 -理と迷宮の少女-",
@@ -2399,7 +2408,7 @@
     },
     {
       "workId": "v44184",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "美少女万華鏡異聞 雪おんな",
@@ -2420,10 +2429,12 @@
       "description": "Renfutsu Yukinoshin, a dedicated martial artist and expected successor of his dojo, faces a crushing defeat against a rival, leading him to seek solitude and self-improvement in the mountains. During a harsh winter, he encounters a small white critter in distress and finds himself in a life-threatening situation in his attempt to rescue it.\n\nYukinoshin's life takes an extraordinary turn when a beautiful and enigmatic woman appears, filling his once-ordinary existence with affection and a twist of fate. It marks the beginning of a new chapter of \"Bishoujo Mangekyou\", where love, passion, and the pleasure of the dream realm intertwine.\n\nEmbark on a journey through a world steeped in timeless history and witness the tapestry of reborn souls as they weave through this evolving tale once again.\n\n[Based on  the official site]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/dbe73a43c377b4e3510dd75cde2422cb2f830359977578663da3bc8c63d5715a.jpg",
         "sourceUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3449440/header.jpg?t=1746617201",
         "source": "official",
-        "kind": "promotion",
-        "url": "/media/dbe73a43c377b4e3510dd75cde2422cb2f830359977578663da3bc8c63d5715a.jpg"
+        "width": 460,
+        "height": 215,
+        "kind": "promotion"
       },
       "screenshots": [
         {
@@ -2525,7 +2536,7 @@
     },
     {
       "workId": "v33099",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "保健室のセンセーとゴスロリの校医",
@@ -2546,10 +2557,12 @@
       "description": "\"Perhaps I've been searching for a fresh start.\"\n\"Or maybe, just maybe, I've been searching for love.\"\n\nOriginally intending to serve only for the initial semester, Kazami Sora extended his role as the health counselor at Saika Girls' Academy into the subsequent term. \nThough his erstwhile travel companion, Shirobana, stays as his aide, their shared domicile at the hot spring inn, Shikisai Home, is now a chapter closed.\nHaving fulfilled the heartfelt task of guiding his sister to her final rest, Sora now walks a life shaped more by his own desires than by family obligations.\nPerceiving this personal transition with intuitive understanding, Shirobana opts to step back, watching Sora from a respectful distance—much like his late sister Yuka once did.\n\nAs autumn arrives, the academy brims with a spectrum of educational activities—from experiential learning amidst lavender fields to an eagerly awaited festival in collaboration with sister schools.\nAmidst this fast-paced tapestry of events, a novel enigma joins the seven school mysteries: whispered tales of an ogre haunting the nocturnal campus, allegedly laying waste to the school's surroundings. \nConvinced that a Tamabito may be the culprit, Sora assumes his Okuribito role to unravel this unsettling lore, aided by his reliable confidante and convivial drinking companion, the academy's in-house physician Otohime.\n\nThe poetic symbolism of cherry blossoms embodies an epitome of beauty,\nAnd an essence of purity...\n\n[Translated and edited from the official website]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/d5ddedad3760136d06fbd4f6547845389c6b5d15eb335e6f29a9f86969c35846.png",
         "sourceUrl": "https://citrus-soft.net/product/hokeloli/images/common/logo.png",
         "source": "official",
-        "kind": "logo",
-        "url": "/media/d5ddedad3760136d06fbd4f6547845389c6b5d15eb335e6f29a9f86969c35846.png"
+        "width": 362,
+        "height": 512,
+        "kind": "logo"
       },
       "screenshots": [
         {
@@ -2678,7 +2691,7 @@
     },
     {
       "workId": "v33969",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "保健室のセンセーと小悪魔な会長",
@@ -2699,10 +2712,12 @@
       "description": "\"See you later, Sensei,\"\n\"Let's go on another wonderful date with me!\"\n\nInitially slated to leave after the first term, Kazami Sora continues his role as the school's health counselor into the second term at Saika Girls' Academy.\nShirobana, his traveling companion, is still working as his assistant. However, the two no longer live together at Shikisai Home, a hot spring resort.\nHaving guided his sister to her final rest, Sora embarks on a new journey now dictated by his own desires rather than filial obligation.\nKnowing this, Shirobana decides to step back and keep an eye on Sora from a distance, as Yuka, Sora's older sister, had previously done.\n\nAutumn ushers in a time teeming with school events—ranging from educational outings amid lavender fields to an upcoming school festival in collaboration with sister institutions. \nAmid this bustling timeframe, a fresh rumor gets added to the academy's \"Seven Mysteries\" list: the emergence of an ogre at nightfall, supposedly responsible for desecrating the school's grounds. \nSora, suspecting the work of a Tamabito, assumes his Okuribito role to scrutinize these ogre rumors. He does so in partnership with Tsukimori Rin, a mischievous student council president who is also a particularly problematic student.\n\nThe symbolic language of the red spider lily (higanbana) embodies passion, devotion, and yearning.\nI long solely for you and eagerly await the day we meet again——\n\n[Translated from the official website]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/7ee6d98c63df9488576e18db4bc8753e317f6389eb25e2389438684dbe48538a.png",
         "sourceUrl": "https://citrus-soft.net/product/hokecho/images/common/logo.png",
         "source": "official",
-        "kind": "logo",
-        "url": "/media/7ee6d98c63df9488576e18db4bc8753e317f6389eb25e2389438684dbe48538a.png"
+        "width": 384,
+        "height": 512,
+        "kind": "logo"
       },
       "screenshots": [],
       "tags": [
@@ -3953,7 +3968,7 @@
     },
     {
       "workId": "v14805",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "ちっちゃらぶアパート",
@@ -4076,7 +4091,7 @@
     },
     {
       "workId": "v11071",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "美少女万華鏡 -忘れな草と永遠の少女-",
@@ -4097,10 +4112,12 @@
       "description": "The protagonist, Kanzaki Akihito, was once a cheerful boy.\n\nOnly having grown up, he was now with heart problems; friends of old were friends no more; and more often than not, he was not seen attending school.\n\nHis mind was darkened mostly by his childhood friend and first love Sawatari Shizuku, and the fact that she had been unreachable for a while now.\n\nHe felt as if she had betrayed him.\n\n\nGray days pass by, and once more Shizuku appears before Akihito...\n\nAgain the story starts moving, and to a direction not one of them had expected...\n\n[Translated from The Official Website]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/7b0a4d3181f60858d6d62cceb95541ed0a05e94364a7b7267facf1a330af7074.webp",
         "sourceUrl": "https://www.omega-star.jp/biman15thcc/img/movie-title-02.webp",
         "source": "official",
-        "kind": "logo",
-        "url": "/media/7b0a4d3181f60858d6d62cceb95541ed0a05e94364a7b7267facf1a330af7074.webp"
+        "width": 617,
+        "height": 275,
+        "kind": "logo"
       },
       "screenshots": [
         {
@@ -4234,7 +4251,7 @@
     },
     {
       "workId": "v19182",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "美少女万華鏡 -罪と罰の少女-",
@@ -4255,10 +4272,12 @@
       "description": "Yuuma was forced to take a hiatus from school due to unspecified circumstances that left him hospitalized. \n\nAfter a year apart, he finally reunites with Yuuri, his breathtakingly beautiful twin sister, and they start living together. Nonetheless, Yuuma harbors a secret that he can never share with her - he's head over heels for his own sister...\n\nAs the truth inevitably comes to light, the love becomes an obsession that threatens to swallow him whole...\n\n[Translated and edited from the official site]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/94811dcffe3ac6dcadc89a219ff7143475c4cb196219a5a148f89efeb910ebeb.png",
         "sourceUrl": "https://www.omega-star.jp/biman4html/topmenugrp.png",
         "source": "official",
-        "kind": "promotion",
-        "url": "/media/94811dcffe3ac6dcadc89a219ff7143475c4cb196219a5a148f89efeb910ebeb.png"
+        "width": 950,
+        "height": 146,
+        "kind": "promotion"
       },
       "screenshots": [
         {
@@ -7429,7 +7448,7 @@
     },
     {
       "workId": "v45247",
-      "fetchedAt": "2026-10-19T04:53:07.500Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "アイコトバ-Silver Snow Sister-",
@@ -7450,10 +7469,12 @@
       "description": "Hoshitsugu Kotetsu and Hoshitsugu Shirone are non-blood-related siblings.\n\nThe younger sister Shirone, is an athlete. Her talents in figure skating, smooth skin, and hair that is brighter than snow, earn her the nickname Snow Fairy (Fee des Neiges), her reputation in her hometown Sendai, is spreading.\n\nOn the other hand, the older brother Kotetsu, is unknown...... If anything, he has a bad reputation as well. Although it is a misunderstanding for the most part, the fact that his blonde hair makes him intimidating is undeniable, the positions of the siblings are entirely opposite​. One day, in order to deliver something that Shirone forgets, Kotetsu heads to the skating rink, however......\n\n\"Nii-san should leave me alone. How about getting a girlfriend?\"\n\"That's a good idea.\"\n\nTaking his sister words seriously, Kotetsu uses a popular online app \"Aikotoba\". He gets an 88.88% rate of successfully matching with other partners. But, what comes after is something unexpected......?\n\nMeanwhile, the obsession with the matchmaking app, and the never-seen-before mysterious enthusiasm of Kotetsu, make Shirone feels unpleasant.\n\n\"If Nii-san is let loose​ like this, \nthe peace of this town might be threatened!\"\n\nUsing such thoughts as an excuse, Shirone comes up with a proposal.\n\n\"Unpopular loser...... For Nii-san who is a beginner in love, \nthe ABCs of love, let's learn from the first character.\"\n\nThus begins a love lesson......? Starts with a three months deadline, not enough explanation, but they understand each other.\n\n\"Don't worry, Nii-san. Shirone will take responsibility...... Ah. \nBy responsibility, that's not what I meant, alright.\"\n\"What you meant is?\"\n\"Please die, pervert.\"\n\nWill Shirone guide her brother to become capable of love, and will Kotetsu be able to leave his sister?\n\n[Translated and edited from the official website]",
       "descriptionSource": "vndb",
       "cover": {
+        "url": "/media/a90d667fc959e2f8082429689612caca4f7f162bae846e888c7ae4c5d0c578c3.jpg",
         "sourceUrl": "https://azarashi-soft-plusone.nexton-net.jp/aikotoba-sss/ogp.jpg",
         "source": "official",
-        "kind": "promotion",
-        "url": "/media/a90d667fc959e2f8082429689612caca4f7f162bae846e888c7ae4c5d0c578c3.jpg"
+        "width": 1200,
+        "height": 630,
+        "kind": "promotion"
       },
       "screenshots": [
         {
@@ -8593,7 +8614,7 @@
     },
     {
       "workId": "v32183",
-      "fetchedAt": "2026-10-19T03:15:35Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "アマエミ-longing for you-",
@@ -9673,7 +9694,7 @@
     },
     {
       "workId": "v22880",
-      "fetchedAt": "2026-10-29T17:50:18Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "Destiny Star Girlfriend",
@@ -9832,7 +9853,7 @@
     },
     {
       "workId": "v23290",
-      "fetchedAt": "2026-10-29T17:50:18Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "Destiny Star Girlfriend 2",
@@ -9983,7 +10004,7 @@
     },
     {
       "workId": "v23772",
-      "fetchedAt": "2026-10-29T17:50:18Z",
+      "fetchedAt": "2026-11-13T20:35:02.565Z",
       "titles": [
         {
           "title": "Destiny Star Girlfriend 3",

@@ -1,3 +1,5 @@
+import { shareContract } from "../api/contracts/shares";
+import { registerJsonRoute } from "../api/route.server";
 import { brand } from "../brand";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { randomUUID } from "node:crypto";
@@ -21,51 +23,51 @@ export function mountShares(service: AccountService) {
     await sharing.catalog.refresh();
     return next();
   });
-  app.get("/api/public/works/:work/save-shares", async (c) =>
+  registerJsonRoute(app, shareContract.publicWorkShares, async (c) =>
     c.json(
       (await sharing.listPublic(
-        c.req.param("work"),
+        c.req.param("work")!,
         c.req.query("versionId"),
         c.req.query("cursor"),
         c.req.query("progress"),
       )),
     ),
   );
-  app.get("/api/public/save-shares/:id", async (c) => {
-    const row = (await sharing.row(c.req.param("id")));
+  registerJsonRoute(app, shareContract.publicShareGet, async (c) => {
+    const row = (await sharing.row(c.req.param("id")!));
     if (row.mode !== "public") throw new AccountError(404, "SHARE_UNAVAILABLE");
-    return c.json((await sharing.inspect(c.req.param("id"))));
+    return c.json((await sharing.inspect(c.req.param("id")!)));
   });
-  app.post("/api/share-links/:id/inspect", async (c) => {
+  registerJsonRoute(app, shareContract.shareInspect, async (c) => {
     (await sharing.limit("inspect:" + peer(c), 120, 600_000));
     (await sharing.limit("inspect-global", 3000, 600_000));
     await sharing.catalog.refresh();
     const body = await c.req.json();
-    return c.json((await sharing.inspect(c.req.param("id"), body.secret)));
+    return c.json((await sharing.inspect(c.req.param("id")!, body.secret)));
   });
-  app.get("/api/me/save-shares", async (c) => {
+  registerJsonRoute(app, shareContract.sharesOwn, async (c) => {
     const { session } = await player(c);
     await sharing.catalog.refresh().catch(() => {});
     return c.json((await sharing.listOwn(session.user.id, c.req.query("cursor"))));
   });
-  app.post("/api/me/save-shares", async (c) => {
+  registerJsonRoute(app, shareContract.shareCreate, async (c) => {
     const { session } = await player(c, true);
     await sharing.catalog.refresh(true);
     return c.json(await sharing.create(session.user.id, await c.req.json()), 201);
-  });
-  app.patch("/api/me/save-shares/:id", async (c) => {
+  }, { invalidCode: "SHARE_TEXT_INVALID" });
+  registerJsonRoute(app, shareContract.shareEdit, async (c) => {
     const { session } = await player(c, true),
       b = await c.req.json();
     await sharing.catalog.refresh(true);
-    (await sharing.edit(session.user.id, c.req.param("id"), b.revision, b));
+    (await sharing.edit(session.user.id, c.req.param("id")!, b.revision, b));
     return c.json({ ok: true });
-  });
-  app.post("/api/me/save-shares/:id/revoke", async (c) => {
+  }, { invalidCode: "SHARE_TEXT_INVALID" });
+  registerJsonRoute(app, shareContract.shareRevoke, async (c) => {
     const { session } = await player(c, true);
-    (await sharing.revoke(session.user.id, c.req.param("id")));
+    (await sharing.revoke(session.user.id, c.req.param("id")!));
     return c.json({ ok: true });
   });
-  app.post("/api/me/share-claims", async (c) => {
+  registerJsonRoute(app, shareContract.shareClaim, async (c) => {
     const { session } = await withLock(async () => (await player(c)));
     const release = budget.acquire(session.user.id, peer(c));
     try {
@@ -86,11 +88,11 @@ export function mountShares(service: AccountService) {
       release();
     }
   });
-  app.get("/api/me/share-claims/:request", async (c) => {
+  registerJsonRoute(app, shareContract.shareClaimStatus, async (c) => {
     const { session } = await player(c);
-    return c.json(await claims.status(session.user.id, c.req.param("request")));
+    return c.json(await claims.status(session.user.id, c.req.param("request")!));
   });
-  app.post("/api/me/share-reports", async (c) => {
+  registerJsonRoute(app, shareContract.shareReport, async (c) => {
     const { session } = await player(c);
     const b = await c.req.json();
     await sharing.catalog.refresh();

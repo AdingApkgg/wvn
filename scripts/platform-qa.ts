@@ -188,8 +188,8 @@ try {
   const certificate = spawn('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', tlsKey, '-out', tlsCert, '-days', '1', '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1'], { stdio: 'ignore' });
   await new Promise<void>((yes, no) => { certificate.once('error', no); certificate.once('exit', code => code === 0 ? yes() : no(new Error('QA证书生成失败'))); });
   await chmod(tlsKey, 0o600); await chmod(tlsCert, 0o600);
-  await step('initialize-schemas', ['--import', 'tsx', 'scripts/initialize-platform.ts']);
-  await step('seed-qa-catalog', ['--import', 'tsx', 'scripts/seed.ts']);
+  await step('initialize-schemas', ['--import', '@oxc-node/core/register', 'scripts/initialize-platform.ts']);
+  await step('seed-qa-catalog', ['--import', '@oxc-node/core/register', 'scripts/seed.ts']);
   const catalog = new Store(new PgDatabase(databaseUrl, { schema: schemas.catalog }));
   const resources = new PgDatabase(databaseUrl, { schema: schemas.resources });
   try {
@@ -208,10 +208,10 @@ try {
     await binding.bind({ versionId, namespace, inventorySha256: inventory, prefix: 'qa-game/' });
     await writeFile(fixtureFile, JSON.stringify({ runId, schemas, versionId, namespace, inventory, keys, paths, sha256, cdnUrl: 'https://wvn-s3-zi0.saop.cc/' + sha256 + '.bin' }), { mode: 0o600 });
   } finally { await resources.close(); await catalog.close(); }
-  await step('rebuild-own-search-index', ['--import', 'tsx', 'scripts/search-index.ts', 'rebuild']);
-  await launch('search-worker', ['--import', 'tsx', 'scripts/search-index.ts', 'worker']);
-  await launch('catalog-server', ['--import', 'tsx', 'server.ts']);
-  await launch('account-server', ['--import', 'tsx', 'accounts-server.ts']);
+  await step('rebuild-own-search-index', ['--import', '@oxc-node/core/register', 'scripts/search-index.ts', 'rebuild']);
+  await launch('search-worker', ['--import', '@oxc-node/core/register', 'scripts/search-index.ts', 'worker']);
+  await launch('catalog-server', ['--import', '@oxc-node/core/register', 'server.ts']);
+  await launch('account-server', ['--import', '@oxc-node/core/register', 'accounts-server.ts']);
   const ca = await readFile(tlsCert, 'utf8');
   await waitReady('http://127.0.0.1:4281/health');
   await waitReady('https://localhost:4283/health', ca, env.WG_SHARE_ADMIN_TOKEN_FILE);

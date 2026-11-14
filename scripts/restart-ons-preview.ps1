@@ -8,7 +8,7 @@ $listener=Get-NetTCPConnection -LocalPort 18481 -State Listen -ErrorAction Silen
 if($listener){
  if($listener.LocalAddress -ne '127.0.0.1' -or !$parent -or $parent.CommandLine -notlike "*$root\launch-preview.cmd*"){throw 'Preview process ownership differs'}
  $node=Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)"
- if($node.ParentProcessId -ne $parent.ProcessId -or $node.Name -ne 'node.exe' -or $node.CommandLine -notlike '*--import tsx server.ts*'){throw 'Preview listener ancestry differs'}
+ if($node.ParentProcessId -ne $parent.ProcessId -or $node.Name -ne 'node.exe' -or $node.CommandLine -notmatch '--import (?:tsx|@oxc-node/core/register|"@oxc-node/core/register") server\.ts(?:\s|$)'){throw 'Preview listener ancestry differs'}
  Stop-Process -Id $node.ProcessId
 }
 if($parent){

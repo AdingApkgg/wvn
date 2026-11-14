@@ -62,6 +62,7 @@ export interface PublicVersion {
   sortOrder: number;
 }
 export interface PublicWork extends WorkSeed {
+  coverStatus?: "available" | "missing" | "unavailable" | "unreviewed" | "restricted";
   classification?: WorkClassification;
   metadata?: WorkMetadata;
   revision: number;

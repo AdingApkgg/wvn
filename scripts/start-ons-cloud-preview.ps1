@@ -20,7 +20,7 @@ if($LASTEXITCODE -ne 0){throw 'Source or state preparation failed'}
 if(!(Test-Path node_modules)){
  & cmd.exe /d /c 'npm ci --no-audit --no-fund > reports\install.log 2>&1';if($LASTEXITCODE -ne 0){Get-Content reports\install.log -Tail 25;throw 'Install failed'}
 }
-foreach($check in @(@{name='contracts';command='node --import tsx --test tests/account-response.test.ts tests/ons-cloud.test.ts tests/ons-pilot.test.ts tests/ons-native-checkpoint.test.mjs'},@{name='typecheck';command='npm run typecheck'},@{name='build';command='npm run build'})){
+foreach($check in @(@{name='contracts';command='node --import "@oxc-node/core/register" --test tests/account-response.test.ts tests/ons-cloud.test.ts tests/ons-pilot.test.ts tests/ons-native-checkpoint.test.mjs'},@{name='typecheck';command='npm run typecheck'},@{name='build';command='npm run build'})){
  & cmd.exe /d /c "$($check.command) > reports\$($check.name).log 2>&1"
  Get-Content "reports\$($check.name).log" -Tail 15
  if($LASTEXITCODE -ne 0){throw "Failed: $($check.name)"}
@@ -45,7 +45,7 @@ set WG_MEDIA_ROOT=H:\wg-manager-release-20261019-133308\media
 set WG_ONS_PILOT=1
 set WG_ONS_CLOUD=1
 set NODE_ENV=production
-C:\nvm4w\nodejs\node.exe --import tsx accounts-server.ts > reports\server.log 2>&1
+C:\nvm4w\nodejs\node.exe --import "@oxc-node/core/register" accounts-server.ts > reports\server.log 2>&1
 '@|Set-Content launch-cloud.cmd -Encoding ASCII
 $p=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine="C:\Windows\System32\cmd.exe /d /c $root\launch-cloud.cmd";CurrentDirectory=$root}
 if($p.ReturnValue -ne 0){throw 'Launch failed'}

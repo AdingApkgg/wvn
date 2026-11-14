@@ -100,5 +100,13 @@
     "label": "官方 Garden Party 专题",
     "url": "https://sonokoi-horyu.net/gardenparty/",
     "images": []
+  },
+  "qureate-ninnindays2": {
+    "workId": "v32805",
+    "label": "qureate 官方作品页",
+    "url": "https://qureate.co.jp/ninnindays2/en/",
+    "images": [
+      "https://qureate.co.jp/ninnindays2/wp-content/themes/ninnindays2-theme/images/logo.png"
+    ]
   }
 }

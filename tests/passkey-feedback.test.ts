@@ -1,0 +1,4 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {passkeyFeedback,validNickname} from '../src/accounts/auth-feedback.ts';
+test('Passkey cancellations are recoverable guidance rather than network errors',()=>{for(const code of ['AUTH_CANCELLED','ERROR_CEREMONY_ABORTED','ERROR_PASSTHROUGH_SEE_CAUSE','ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY']){const value=passkeyFeedback({code});assert.equal(value.kind,'notice');assert.match(value.message,/取消|验证|重试/)}assert.equal(passkeyFeedback({code:'NETWORK'}).kind,'error')});
+test('nickname rejects whitespace-only and invisible values before asking for a passkey',()=>{assert(!validNickname('   '));assert(!validNickname('\u200b'));assert(!validNickname('a\u200b'));assert(validNickname('Ａ'));assert(validNickname('读者'));assert(validNickname(' Reader '));assert(!validNickname('a'.repeat(41)))});

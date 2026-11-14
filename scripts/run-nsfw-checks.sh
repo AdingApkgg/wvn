@@ -25,17 +25,17 @@ const target=new URL(process.env.WVN_TEST_DATABASE_URL??'');
 if(target.username!=='wvn_qa'||target.pathname!=='/wvn_qa'||target.port!=='25439'||!['localhost','127.0.0.1'].includes(target.hostname))throw Error('只允许独立QA数据库');
 JS
 case "${1:-}" in
-  baseline) node --import tsx --test --test-concurrency=1 tests/accounts.test.ts tests/catalog-postgres.test.ts tests/search-runtime.test.ts ;;
-  red-account) node --import tsx --test --test-concurrency=1 tests/content-eligibility.test.ts ;;
-  red-classification) node --import tsx --test --test-concurrency=1 tests/content-classification.test.ts ;;
-  content) node --import tsx --test --test-concurrency=1 tests/content-*.test.ts ;;
-  cas) node --import tsx --test --test-concurrency=1 tests/cas-browser-client.test.mjs tests/cas-manifest.test.ts tests/content-preview.test.ts tests/resource-api.test.ts tests/version-resources.test.ts tests/platform-integration.test.ts tests/b2-direct-server.test.ts ;;
+  baseline) node --import @oxc-node/core/register --test --test-concurrency=1 tests/accounts.test.ts tests/catalog-postgres.test.ts tests/search-runtime.test.ts ;;
+  red-account) node --import @oxc-node/core/register --test --test-concurrency=1 tests/content-eligibility.test.ts ;;
+  red-classification) node --import @oxc-node/core/register --test --test-concurrency=1 tests/content-classification.test.ts ;;
+  content) node --import @oxc-node/core/register --test --test-concurrency=1 tests/content-*.test.ts ;;
+  cas) node --import @oxc-node/core/register --test --test-concurrency=1 tests/cas-browser-client.test.mjs tests/cas-manifest.test.ts tests/content-preview.test.ts tests/resource-api.test.ts tests/version-resources.test.ts tests/platform-integration.test.ts tests/b2-direct-server.test.ts ;;
   full) npm test; node --test --test-concurrency=1 tests/*.test.mjs ;;
   build) NODE_ENV=development npm run typecheck; NODE_ENV=production npm run build ;;
-  browser) node --import tsx scripts/nsfw-preview.ts verify ;;
-  cas-browser) WG_CONTENT_NATIVE_CAS=1 WG_CONTENT_TEST_GREP='真实ONS' node --import tsx scripts/nsfw-preview.ts verify ;;
-  browser-red) node --import tsx scripts/nsfw-preview.ts red ;;
-  preview) node --import tsx scripts/nsfw-preview.ts serve ;;
+  browser) node --import @oxc-node/core/register scripts/nsfw-preview.ts verify ;;
+  cas-browser) WG_CONTENT_NATIVE_CAS=1 WG_CONTENT_TEST_GREP='真实ONS' node --import @oxc-node/core/register scripts/nsfw-preview.ts verify ;;
+  browser-red) node --import @oxc-node/core/register scripts/nsfw-preview.ts red ;;
+  preview) node --import @oxc-node/core/register scripts/nsfw-preview.ts serve ;;
   metadata) python3 scripts/fetch-content-image-evidence.py ;;
   media) python3 scripts/prepare-nsfw-media.py ;;
   *) echo '未知检查阶段' >&2; exit 2 ;;

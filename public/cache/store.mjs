@@ -5,6 +5,28 @@ const validPart=(sha,part)=>part?.id?.startsWith(sha+'-')&&/^[a-f0-9]{64}-[a-f0-
 const request=r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
 const cacheCorruption=message=>Object.assign(Error(message),{name:'CacheCorruptionError'});
 
+// 仅本模块实际校验过的不可变Blob可复用证明；不接受持久元数据或调用方自报标志。
+const verifiedFiles=new WeakMap();
+export function isVerifiedPublicFile(blob,row){const proof=verifiedFiles.get(blob);return !!proof&&proof.sha256===row.sha256&&proof.bytes===row.bytes&&blob.size===row.bytes}
+
+// Web Locks作为会话存活租约：后台冻结不会过期，崩溃后浏览器自动释放。
+// 无锁能力的会话使用不同前缀，不能被另一页面误判成遗留目录。
+export async function openPublicViewSession(root,locks){
+ const id=(locks?'session-':'unlocked-')+crypto.randomUUID();let release,held,closed=false;
+ if(locks){
+  let acquired,failed;const ready=new Promise((resolve,reject)=>{acquired=resolve;failed=reject});
+  held=locks.request('wvn-public-view/'+id,{mode:'exclusive'},async()=>{const untilClose=new Promise(resolve=>release=resolve);acquired();await untilClose});held.catch(failed);await ready;
+ }
+ try{
+  const directory=await root.getDirectoryHandle(id,{create:true});
+  if(locks)for await(const name of root.keys()){
+   if(name===id||!/^session-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(name))continue;
+   await locks.request('wvn-public-view/'+name,{mode:'exclusive',ifAvailable:true},async lock=>{if(!lock)return;try{await root.removeEntry(name,{recursive:true})}catch(error){if(error.name!=='NotFoundError')throw error}});
+  }
+  return {id,directory,async close(){if(closed)return;closed=true;try{await root.removeEntry(id,{recursive:true})}finally{release?.();await held}}};
+ }catch(error){release?.();await held;throw error}
+}
+
 export const PUBLIC_FILE_VIEW_THRESHOLD=32*1024**2;
 export function publicFileViewReserve(rows,backend){return backend==='opfs'?rows.reduce((n,row)=>n+(row.bytes>=PUBLIC_FILE_VIEW_THRESHOLD?row.bytes:0),0):0}
 // 大对象仍保留原分块；只生成当前运行区私有的、校验完成后才能返回的文件视图。
@@ -16,7 +38,7 @@ export async function createPublicFileView({row,parts,directory,signal}){
   const handle=await directory.getFileHandle(id,{create:true});created=true;signal?.throwIfAborted();writer=await handle.createWritable();
   for await(const part of parts){if(part.offset!==size)throw corrupt();for(let offset=0;offset<part.data.size;offset+=65536){signal?.throwIfAborted();const bytes=new Uint8Array(await part.data.slice(offset,offset+65536).arrayBuffer());if(size+bytes.byteLength>row.bytes)throw corrupt();await writer.write(bytes);hash.update(bytes);size+=bytes.byteLength}}
   signal?.throwIfAborted();const digest=[...hash.digest()].map(v=>v.toString(16).padStart(2,'0')).join('');if(size!==row.bytes||digest!==row.sha256)throw corrupt();await writer.close();writer=undefined;signal?.throwIfAborted();
-  const file=await handle.getFile();if(file.size!==row.bytes)throw corrupt();complete=true;return {id,blob:file.slice(0,file.size,row.contentType)};
+  const file=await handle.getFile();if(file.size!==row.bytes)throw corrupt();const blob=file.slice(0,file.size,row.contentType);verifiedFiles.set(blob,{sha256:row.sha256,bytes:row.bytes});complete=true;return {id,blob};
  }finally{if(writer)await writer.abort().catch(()=>{});if(created&&!complete)await directory.removeEntry(id)}
 }
 
@@ -38,13 +60,13 @@ export async function confirmPublicCapacity({directory,storage,bytes,signal}){
  signal?.throwIfAborted();return {...await storage.estimate(),source:'native-opfs-reservation',reservedBytes:bytes};
 }
 
-export async function openChunkStore({indexedDB=globalThis.indexedDB,caches=globalThis.caches,storage=globalThis.navigator?.storage,origin=globalThis.location?.origin}={}){
+export async function openChunkStore({indexedDB=globalThis.indexedDB,caches=globalThis.caches,storage=globalThis.navigator?.storage,origin=globalThis.location?.origin,locks=globalThis.navigator?.locks}={}){
  if(!indexedDB||!origin)throw Error('Public resource storage unavailable');
  const opening=indexedDB.open(DB,2);opening.onupgradeneeded=()=>{for(const name of ['objects','sessions','leases'])if(!opening.result.objectStoreNames.contains(name))opening.result.createObjectStore(name,{keyPath:'key'})};const db=await request(opening);db.onversionchange=()=>db.close();
  let directory;try{directory=await(await storage?.getDirectory()).getDirectoryHandle('wvn-public-chunks-v1',{create:true})}catch{/* OPFS 不可用时保留 Cache Storage 分块后端。 */}
  const cache=!directory&&caches?await caches.open(CACHE):null;if(!directory&&!cache){db.close();throw Error('No public chunk backend')}
- let viewsDirectory,closed=false,closePromise;const viewFiles=new Map(),viewTasks=new Map(),getTasks=new Set(),viewShutdown=new AbortController();
- if(directory)viewsDirectory=await directory.getDirectoryHandle('wvn-public-views-v1',{create:true});
+ let viewsDirectory,viewSession,closed=false,closePromise;const viewFiles=new Map(),viewTasks=new Map(),getTasks=new Set(),viewShutdown=new AbortController();
+ if(directory)try{const root=await directory.getDirectoryHandle('wvn-public-views-v1',{create:true});viewSession=await openPublicViewSession(root,locks);viewsDirectory=viewSession.directory}catch(error){db.close();throw error}
  function tx(name,mode,run){return new Promise((resolve,reject)=>{const transaction=db.transaction(name,mode);let value;transaction.oncomplete=()=>resolve(value);transaction.onabort=()=>reject(transaction.error??Error('Cache transaction aborted'));transaction.onerror=()=>{};try{run(transaction.objectStore(name),x=>value=x)}catch(error){transaction.abort();reject(error)}})}
 
  // 内容写入与租约校验在同一事务，旧写入者即使已写完临时块也不能发布。
@@ -113,10 +135,10 @@ export async function openChunkStore({indexedDB=globalThis.indexedDB,caches=glob
     };
    });
    for(const meta of result.removed)for(const part of meta.parts??[])if(validPart(meta.sha256,part))await erase(part);
-   if(viewsDirectory){const keys=new Set(result.cleanupKeys);for await(const name of viewsDirectory.keys())if(/^[a-f0-9]{64}-[a-f0-9-]{36}$/.test(name)&&keys.has(name.slice(0,64)))await viewsDirectory.removeEntry(name)}
+   if(directory){const legacyViews=await directory.getDirectoryHandle('wvn-public-views-v1',{create:true}),keys=new Set(result.cleanupKeys);for await(const name of legacyViews.keys())if(/^[a-f0-9]{64}-[a-f0-9-]{36}$/.test(name)&&keys.has(name.slice(0,64)))await legacyViews.removeEntry(name)}
    return {removed:result.removed.length,retained:result.retained};
   },
-  close(){if(closePromise)return closePromise;closed=true;viewShutdown.abort(new DOMException('Public store closed','AbortError'));closePromise=(async()=>{await Promise.allSettled([...getTasks]);try{for(const {id} of viewFiles.values())try{await viewsDirectory.removeEntry(id)}catch(error){if(error.name!=='NotFoundError')throw error}viewFiles.clear()}finally{db.close()}})();return closePromise},
+  close(){if(closePromise)return closePromise;closed=true;viewShutdown.abort(new DOMException('Public store closed','AbortError'));closePromise=(async()=>{await Promise.allSettled([...getTasks]);try{for(const {id} of viewFiles.values())try{await viewsDirectory.removeEntry(id)}catch(error){if(error.name!=='NotFoundError')throw error}viewFiles.clear()}finally{try{await viewSession?.close()}finally{db.close()}}})();return closePromise},
  };
  return api;
 }

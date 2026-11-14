@@ -1,3 +1,5 @@
+import { accountContract } from "../api/contracts/account.ts";
+import { registerJsonRoute } from "../api/route.server.ts";
 import {createHmac} from 'node:crypto';
 import {getConnInfo} from '@hono/node-server/conninfo';
 import {getCookie,setCookie} from 'hono/cookie';
@@ -12,9 +14,9 @@ export function mountWorkStats({app,config,workStats,player}:AccountService){
   try{const rows=await(config.catalogProvider?.()??(config.catalogOrigin?(await catalogProvider(config.catalogOrigin)()):Promise.resolve(config.catalog??[])));workStats.setCatalog(rows);return rows}
   catch(e){if(e instanceof AccountError)throw e;throw new AccountError(503,'CATALOG_UNAVAILABLE')}
  }
- app.get('/api/public/work-stats',async c=>{await catalog();return c.json((await workStats.counts((c.req.query('ids')??'').split(','))))});
- app.post('/api/public/works/:id/read',async c=>{
-  const rows=await catalog(),id=c.req.param('id'),body=await c.req.json();
+ registerJsonRoute(app, accountContract.statsGet,async c=>{await catalog();return c.json((await workStats.counts((c.req.query('ids')??'').split(','))))}, { invalidCode: "STATS_INVALID" });
+ registerJsonRoute(app, accountContract.statsRead,async c=>{
+  const rows=await catalog(),id=c.req.param('id')!,body=await c.req.json();
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>k!=='versionId')||typeof body.versionId!=='string')throw new AccountError(400,'STATS_INVALID');
   if(!rows.some(w=>w.id===id&&w.versions.some(v=>v.id===body.versionId)))throw new AccountError(404,'VERSION_UNAVAILABLE');
   let peer='';try{peer=getConnInfo(c).remote.address??''}catch{}
@@ -33,12 +35,12 @@ export function mountWorkStats({app,config,workStats,player}:AccountService){
   }
   if(!(await workStats.allow('visitor:'+visitor,60,600_000)))throw new AccountError(429,'TRY_LATER');
   return c.json((await workStats.read(id,body.versionId,visitor)));
- });
- app.get('/api/me/work-stats/:id',async c=>{const {session}=await player(c);await catalog();return c.json((await workStats.mine(session.user.id,c.req.param('id'))))});
- app.put('/api/me/work-stats/:id/:kind',async c=>{
+ }, { invalidCode: "STATS_INVALID" });
+ registerJsonRoute(app, accountContract.statsMine,async c=>{const {session}=await player(c);await catalog();return c.json((await workStats.mine(session.user.id,c.req.param('id')!)))});
+ registerJsonRoute(app, accountContract.statsReact,async c=>{
   const {session}=await player(c);await catalog();const body=await c.req.json();
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>k!=='enabled'))throw new AccountError(400,'REACTION_INVALID');
-  return c.json((await workStats.react(session.user.id,c.req.param('id'),c.req.param('kind') as 'like'|'favorite',body.enabled)));
- });
- app.get('/api/me/favorites',async c=>{const {session}=await player(c);await catalog();return c.json((await workStats.favorites(session.user.id)))});
+  return c.json((await workStats.react(session.user.id,c.req.param('id')!,c.req.param('kind')! as 'like'|'favorite',body.enabled)));
+ }, { invalidCode: "REACTION_INVALID" });
+ registerJsonRoute(app, accountContract.favoritesList,async c=>{const {session}=await player(c);await catalog();return c.json((await workStats.favorites(session.user.id)))});
 }

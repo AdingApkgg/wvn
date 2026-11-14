@@ -18,7 +18,7 @@ for(const [engine,path] of [["Artemis","/27448/1/"],["RenPy","/1286/1/"],["Tyran
     await page.goto(path);await page.getByRole("button",{name:"开始阅读",exact:true}).click();
     await expect(page.getByRole("button",{name:"游戏菜单",exact:true})).toBeEnabled({timeout:180_000});
     if(engine==="Artemis"){
-      await page.getByRole("button",{name:"全屏",exact:true}).click();
+      await page.getByRole("button",{name:"浏览器全屏",exact:true}).click();
       await expect.poll(()=>page.evaluate(()=>document.fullscreenElement?.classList.contains("reader-surface"))).toBe(true);
       await expect(page.getByRole("button",{name:"结束阅读",exact:true})).toBeVisible();
       await page.getByRole("button",{name:"存档与备份",exact:true}).click();

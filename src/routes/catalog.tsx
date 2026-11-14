@@ -13,6 +13,7 @@ import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
 import { data, Form, Link, useLoaderData, useLocation } from "react-router";
 import { coverLayout } from "../lib/cover-layout";
+import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
 import { withoutFilter } from "../lib/reader-experience";
 import { workSlug } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
@@ -22,6 +23,7 @@ import type {WorkCounts} from '../accounts/work-stats.server';
 import {getContentAccess} from '../content/access.server.ts';
 import {projectWork} from '../content/policy';
 import {useContentAccess} from '../content/client';
+import { workContentLabels } from "../content/version-label";
 export function meta() {
   return [
     { title: brand.title },
@@ -46,7 +48,7 @@ export default function Catalog() {
   const nextSearchUrl=staleRestricted?null:loaded.nextSearchUrl;
   const recentKey=String(loaded.contentVisibility)+':'+JSON.stringify(recentWorks);
   const stateLabels:Record<string,string>={unchecked:"未导入检查",passed:"有通过记录",failed:"有失败记录",incomplete:"检查未完成"};
-  const contentLabels:Record<string,string>={none:"不含成人性内容",present:"含成人性内容",unknown:"内容待核实"};
+  const contentLabels:Record<string,string>={none:"SFW（含默认）",present:"含成人性内容",unknown:"内容待核实"};
   const filterValue=(key:string,value:string)=>key==="state"?(stateLabels[value]??value):key==="content"?(contentLabels[value]??value):value;
   return (
     <>
@@ -68,7 +70,7 @@ export default function Catalog() {
               <p className="text-sm text-muted-foreground">引擎和检查记录为技术筛选；日常阅读可保持全部。</p>
               <div className="field"><Label htmlFor="catalog-engine">引擎</Label><NativeSelect id="catalog-engine" name="engine" defaultValue={engine}><NativeSelectOption value="">全部引擎</NativeSelectOption>{["ONS", "Artemis", "RenPy", "Tyrano"].map(x => <NativeSelectOption key={x}>{x}</NativeSelectOption>)}</NativeSelect></div>
               <div className="field"><Label htmlFor="catalog-state">检查记录</Label><NativeSelect id="catalog-state" name="state" defaultValue={state}><NativeSelectOption value="">全部状态</NativeSelectOption><NativeSelectOption value="unchecked">未导入检查</NativeSelectOption><NativeSelectOption value="passed">有通过记录</NativeSelectOption><NativeSelectOption value="failed">有失败记录</NativeSelectOption><NativeSelectOption value="incomplete">检查未完成</NativeSelectOption></NativeSelect></div>
-              {contentGate && <div className="field"><Label htmlFor="catalog-content">版本内容</Label><NativeSelect id="catalog-content" name="content" defaultValue={content}><NativeSelectOption value="">全部可见版本</NativeSelectOption><NativeSelectOption value="none">已确认不含成人性内容</NativeSelectOption><NativeSelectOption value="present">含成人性内容</NativeSelectOption><NativeSelectOption value="unknown">内容待核实</NativeSelectOption></NativeSelect></div>}
+              {contentGate && <div className="field"><Label htmlFor="catalog-content">版本内容</Label><NativeSelect id="catalog-content" name="content" defaultValue={content}><NativeSelectOption value="">全部可见版本</NativeSelectOption><NativeSelectOption value="none">SFW（含默认）</NativeSelectOption><NativeSelectOption value="present">含成人性内容</NativeSelectOption><NativeSelectOption value="unknown">内容待核实</NativeSelectOption></NativeSelect></div>}
               <p className="text-xs text-muted-foreground">检查记录仅反映已执行的项目。</p>
             </div>
           </details>
@@ -136,33 +138,20 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
       className={"story-card" + (wide ? " story-card-wide" : "")}
       style={{ "--cover-ratio": ratio } as CSSProperties}
     >
-      <div className={"card-art tone-" + (i % 5)} aria-hidden="true">
-        {cover && (
-          <img
-            className={"cover-image" + (cover.kind ? " cover-fit" : "")}
-            src={cover.url}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width={cover.width}
-            height={cover.height}
-            ref={updateRatio}
-            onLoad={(e) => updateRatio(e.currentTarget)}
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-        )}
-        <span className="art-line" />
-        <span className="art-symbol">{["✦", "◌", "✧", "◇", "⋆"][i % 5]}</span>
-        <span className="art-word">STORY / {w.versions[0].engine.toUpperCase()}</span>
+      <div className={"card-art tone-" + (i % 5)}>
+        {cover ? <CoverImage key={cover.url} cover={cover} onDimensions={updateRatio} /> : <CoverPlaceholder status={w.coverStatus} />}
       </div>
       <div className="card-body">
         <div className="card-meta">
           <span className="eyebrow">
-            {[...new Set(w.versions.map((v) => v.language).filter(Boolean))].join(" / ") || "在线阅读"}
+            {[...new Set(w.versions.map((v) => v.language?.trim()).filter(language => language && language !== "未标注"))].join(" / ") || "在线阅读"}
           </span>
           <span className="card-work-id">{workSlug(w.id)}</span>
         </div>
         <h3>{w.title}</h3>
+        <div className="flex flex-wrap gap-1.5" aria-label="版本内容分类">
+          {workContentLabels(w.versions).map(label => <Badge key={label} className="max-w-full whitespace-normal" variant={label === "NSFW" ? "destructive" : "secondary"}>{label}</Badge>)}
+        </div>
         <p>{w.originalTitle}</p>
         <WorkCountSummary counts={counts}/>
         <div className="card-footer">
