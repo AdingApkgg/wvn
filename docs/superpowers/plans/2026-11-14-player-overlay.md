@@ -12,6 +12,17 @@
 - `wvn-player-overlay-all-chromium-20261114`：12项全部通过；`wvn-player-overlay-all-webkit-browser-20261114`：11项通过、1项Chromium专用虚拟验证器跳过。涵盖默认满视口、横竖屏、隐藏控件后仍可点击输入、同iframe保留、存档/设置面板开关、离开确认，以及既有资源异常和账号回归。其他既有引擎/M3测试仅同步按钮名称，未宣称本轮完成所有引擎实测。
 - 真实CLANNAD视觉验证`wvn-player-overlay-visual-02-20261114`通过：375×667、667×375、1440×900均为iframe坐标0,0且大小等于视口，切换尺寸保留同一iframe；存档浮层、隐藏/显示操作与结束阅读通过，未捕获脚本异常。此项只模拟缓存权限拒绝，运行页、ONS JS/WASM及游戏资源均真实读取；不是iPhone实机。首次视觉任务120秒未启动且无脚本异常，保留该失败，不把新实验当作历史原因还原。
 
-真实截图与回执在构建机`/home/i/wvn-ios-reader-auth-20261114/overlay-visual-02/`；本机审阅副本`/private/tmp/wvn-player-overlay-evidence/final/`。人工复核竖屏、横屏、隐藏操作和存档面板图均符合浮层布局。游戏保持原比例，不裁剪内容或拉伸画面，竖屏自然留黑边。新布局尚未发布，当前生产仍为此前iPhone交互修复版本。
+真实截图与回执在构建机`/home/i/wvn-ios-reader-auth-20261114/overlay-visual-02/`；本机审阅副本`/private/tmp/wvn-player-overlay-evidence/final/`。人工复核竖屏、横屏、隐藏操作和存档面板图均符合浮层布局。游戏保持原比例，不裁剪内容或拉伸画面，竖屏自然留黑边。当时封装候选尚未发布；后续已沿用本轮更新生产授权发布，最终状态见下方。
 
 追加`wvn-player-overlay-native-20261114`：Chromium原生全屏1项通过，确认存档面板与离开确认会先退出原生全屏，弹层可见，取消离开仍保留原游戏实例。合计Chromium13项通过、WebKit11项通过；未将未执行的其他引擎测试计入此数。
+
+
+## 生产发布完成
+
+沿用用户“更新生产吧”对同一全屏问题修正的授权，按其随后补充的默认满视口/控件覆盖要求完成发布。产品提交`cb7208eb544afebd1ac3bebf31c493349d30b030`，版本`player-overlay-20261114-cb7208e`；当前公网健康标记一致。只发布三个产品文件与104个运行文件，不带入dashboard/profiles。新compose摘要`15d9b3a35d5fcff98deca034843178cd86ec2972dd909eb5d4d1fd06371b15d1`。
+
+隔离数据库副本预检通过后只切换Web/manager；无数据库导入、无B2/CF配置修改、无独立缓存模块变更，原版本与哈希资源保留用于回退。生产任务`wvn-player-overlay-deploy-20261114`，目录`/srv/wvn-player-overlay-release-20261114/`。
+
+公网Chromium和WebKit分别使用真实CLANNAD、真实缓存来源，在375×667、667×375、1440×900下验证默认iframe等于视口、工具栏在画面内、切换尺寸和面板保持同一iframe、存档面板不超视口、隐藏/显示操作及结束阅读。未模拟缓存拒绝，未捕获脚本异常，匿名受限资源仍401。回执与图片在构建机`/home/i/wvn-player-overlay-release-20261114/public-{chromium,webkit}/`；真实iPhone仍未验收。
+
+5分钟11次健康采样通过，部署退出码0。最终104个运行文件和未变的14个缓存文件摘要均一致；Web/manager错误日志0、重启0、OOM为false，其他容器不变。最终回执`/srv/wvn-player-overlay-release-20261114/final-receipt.json`；本机副本`/private/tmp/wvn-player-overlay-release-20261114/final-receipt.json`。回滚入口为同目录`release.py rollback`，执行前必须核对当前compose仍为本候选摘要。
