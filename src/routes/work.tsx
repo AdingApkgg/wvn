@@ -7,7 +7,8 @@ import { coverKindLabel } from "../metadata-sources.ts";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
-import { Await, Form, useLoaderData } from "react-router";
+import { Await, Form, useLoaderData, type ClientLoaderFunctionArgs } from "react-router";
+import { catalogBodies } from '../lib/catalog-body-cache';
 import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { projectShares } from "../server/share-projection";
@@ -72,8 +73,27 @@ export async function loader({
 export function meta({ loaderData: data }: { loaderData?: { title: string;restricted?:unknown } }) {
   return [{ title: data ? `${data.title} — ${brand.shortName}` : brand.title },...(data?.restricted?[{name:'robots',content:'noindex,nofollow'}]:[])];
 }
+export async function clientLoader({ request, serverLoader }: ClientLoaderFunctionArgs) {
+  const fresh = serverLoader<typeof loader>();
+  const cached = catalogBodies.get(new URL(request.url));
+  if (!cached) return fresh;
+  return { ...cached, shares: null, counts: null, saveVersion: '', saveProgress: '', contentVisibility: 'public' as const,
+    deferredCounts: fresh.then(value => 'restricted' in value ? null : value.deferredCounts).catch(() => null),
+    deferredShares: fresh.then(value => 'restricted' in value ? null : value.deferredShares).catch(() => null),
+    refresh: fresh,
+  };
+}
+type WorkData = Awaited<ReturnType<typeof clientLoader>>;
+function WorkRefreshError() {
+  return <main className="container work"><h1>作品暂时无法确认</h1><p>最新信息暂时无法读取，请重试或返回目录。</p><Link to="/">返回目录</Link></main>;
+}
 export default function Work() {
-  const loaded = useLoaderData<typeof loader>();
+  const loaded = useLoaderData<typeof clientLoader>();
+  return 'refresh' in loaded ? <Suspense fallback={<WorkBody loaded={loaded} pending />}>
+    <Await resolve={loaded.refresh} errorElement={<WorkRefreshError />}>{fresh => <WorkBody loaded={fresh} />}</Await>
+  </Suspense> : <WorkBody loaded={loaded} />;
+}
+function WorkBody({ loaded, pending = false }: { loaded: WorkData; pending?: boolean }) {
   const content = useContentAccess();
   const projected = 'restricted' in loaded ? null : content.enabled ? projectWork(loaded,content.access) : loaded;
   const localReading=useLocalReading(projected?.versions??[]);
@@ -98,7 +118,8 @@ export default function Work() {
   const summary = splitSynopsis(description).primary.split(/\n\s*\n/)[0];
   const readLabel = (version: typeof primary) => 'contentRestricted' in version && version.contentRestricted ? content.access.authenticated && content.access.eligibility === 'qualified' ? '开启显示后阅读' : '取得资格后阅读' : localReading.items.some(item=>item.id===version.id)?'继续阅读':'开始阅读';
   return (
-    <main className="container work">
+    <main className="container work" data-catalog-preview={pending || undefined}>
+      {pending && <p role="status" className="text-sm text-muted-foreground">正在确认最新信息…</p>}
       <nav className="work-breadcrumb" aria-label="面包屑"><Link to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
       <section
         className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
@@ -112,7 +133,7 @@ export default function Work() {
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
             <Button asChild size="lg"><Link to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
-            <ShelfButton key={w.id} workId={w.id} workUrl={w.url}/>
+            {pending ? <Button size="lg" variant="outline" disabled>加入书架</Button> : <ShelfButton key={w.id} workId={w.id} workUrl={w.url}/>}
             {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
           <p className="text-xs text-muted-foreground">版本 {primary.number} · {primary.language || primary.engine} · 存档按版本分别保留</p>

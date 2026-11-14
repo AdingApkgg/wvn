@@ -1,6 +1,10 @@
 import { IntentLink as Link } from "../components/intent-link";
 import { brand } from "../brand";
-import { Suspense, useCallback, useState, type CSSProperties } from "react";
+import { Suspense, useCallback, useLayoutEffect, useState, type CSSProperties } from "react";
+import { rememberCatalogBodies } from '../lib/catalog-body-cache';
+import { useContext } from 'react';
+import { preloadModule } from 'react-dom';
+import { UNSAFE_FrameworkContext } from 'react-router';
 import type { PublicWork } from "../types.ts";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -38,8 +42,15 @@ export async function loader({ request }: { request: Request }) {
 }
 
 export default function Catalog() {
+  const framework = useContext(UNSAFE_FrameworkContext);
+  // 轻量clientLoader在目录期间准备好，避免未命中导航先下载它再请求主体。
+  const clientLoaderModule = framework?.manifest.routes['routes/work']?.clientLoaderModule;
+  if (clientLoaderModule) preloadModule(clientLoaderModule, { as: 'script' });
   const loaded=useLoaderData<typeof loader>();
   const viewer=useContentAccess();
+  useLayoutEffect(() => {
+    rememberCatalogBodies(loaded.items, loaded.contentGate && !loaded.isSearch && !loaded.searchError && loaded.contentVisibility === 'public' && viewer.settled && !viewer.access.canViewRestricted);
+  }, [loaded.items, loaded.contentGate, loaded.isSearch, loaded.searchError, loaded.contentVisibility, viewer.settled, viewer.access]);
   const location = useLocation();
   const { deferredCounts: counts, recentWorks, q, engine, state, tag, content, contentGate, isSearch, searchError }=loaded;
   const items=viewer.enabled?loaded.items.flatMap(work=>{const projected=projectWork(work,viewer.access);return projected?[projected]:[]}):loaded.items;
