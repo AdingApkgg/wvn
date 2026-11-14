@@ -15,9 +15,8 @@ const update = z.object({
     context.addIssue({ code: "custom", path: ["expectedFingerprint"], message: "页面审核必须提交所见文案的指纹" });
 });
 
-/** 仅挂载于已有登录与 Origin 中间件之后的私有管理监听器。 */
-export function registerContentClassificationAdmin(app: Hono, store: Store) {
-  const path = "/api/manage/content-classification";
+/** 仅挂载于已有管理员登录与 Origin 中间件之后。 */
+export function registerContentClassificationAdmin(app: Hono, store: Store, path = "/api/manage/content-classification") {
   app.get(path, async c => {
     c.header("Cache-Control", "private, no-store");
     return c.json(await store.classifications.reviewList());

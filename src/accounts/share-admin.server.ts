@@ -66,11 +66,23 @@ export function createShareAdminApp(
     });
     return c.json({ ok: true });
   });
-  app.get("/api/share-admin/queue", async (c) => {
+  registerShareAdminRoutes(app, service);
+  app.onError((e, c) =>
+    c.json(
+      { code: e instanceof AccountError ? e.code : "REQUEST_FAILED" },
+      e instanceof AccountError ? e.status : 500,
+    ),
+  );
+  return { app, token };
+}
+
+/** 调用方负责管理员认证、同源和请求体限制。 */
+export function registerShareAdminRoutes(app: Hono, service: AccountService, prefix = "/api/share-admin") {
+  app.get(`${prefix}/queue`, async (c) => {
     await service.sharing?.catalog.refresh().catch(() => {});
     return c.json(await service.sharing?.queue() ?? []);
   });
-  app.get("/api/share-admin/audit", async (c) =>
+  app.get(`${prefix}/audit`, async (c) =>
     c.json(
       (await service.db
         .prepare(
@@ -79,7 +91,7 @@ export function createShareAdminApp(
         .all()),
     ),
   );
-  app.post("/api/share-admin/:id/moderate", async (c) => {
+  app.post(`${prefix}/:id/moderate`, async (c) => {
     if (!service.sharing) throw new AccountError(404);
     const body = await c.req.json();
     if (body.action === "approve") await service.sharing.catalog.refresh(true);
@@ -91,12 +103,5 @@ export function createShareAdminApp(
     ));
     return c.json({ ok: true });
   });
-  mountContentAdmin(app, service);
-  app.onError((e, c) =>
-    c.json(
-      { code: e instanceof AccountError ? e.code : "REQUEST_FAILED" },
-      e instanceof AccountError ? e.status : 500,
-    ),
-  );
-  return { app, token };
+  mountContentAdmin(app, service, `${prefix}/content`);
 }

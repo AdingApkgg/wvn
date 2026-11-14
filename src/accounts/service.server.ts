@@ -36,6 +36,8 @@ import { mountShares } from "./shares-http.server.ts";
 import { WorkStatsStore } from "./work-stats.server.ts";
 import { mountWorkStats } from "./work-stats-http.server.ts";
 import {createAnalyticsApp} from '../analytics/proxy.server.ts';
+import { profileMigrations } from "../database/profiles.ts";
+import { ProfileStore, mountProfiles, adminIds } from "./profiles.server.ts";
 export type Player = { session: PlayerSession; binding: string };
 export type AccountService = {
   app: Hono;
@@ -43,6 +45,7 @@ export type AccountService = {
   auth: ReturnType<typeof makeAuth>;
   config: AccountConfig;
   player: (c: Context, recent?: boolean) => Promise<Player>;
+  profiles: ProfileStore;
   content: ContentEligibilityStore;
   getContentAccess: (request: Request) => Promise<ContentAccess>;
   getContentOwnWorkIds: (request:Request) => Promise<Set<string>>;
@@ -72,6 +75,9 @@ export async function createAccountService(
   await (await getMigrations(auth.options)).runMigrations();
   await migrate(db, accountMigrations);
   await migrate(db, contentAccountMigrations);
+  await migrate(db, profileMigrations);
+  const profiles = new ProfileStore(db);
+  const administrators = adminIds(config);
   const content = new ContentEligibilityStore(db, config.content);
   const recovery = new RecoveryStore(db);
   const dynamicCatalog = config.catalogProvider ?? (config.catalogOrigin ? catalogProvider(config.catalogOrigin) : undefined);
@@ -274,7 +280,7 @@ export async function createAccountService(
       .get(session.user.id));
     if (!state) throw new AccountError(401, "SIGN_IN_REQUIRED");
     const binding = `${session.session.id}:${state.auth_version}`;
-    if (c.req.method !== "GET" && c.req.header("x-wg-binding") !== binding)
+    if (!["GET", "HEAD"].includes(c.req.method) && c.req.header("x-wg-binding") !== binding)
       throw new AccountError(409, "IDENTITY_CHANGED");
     if (
       recent &&
@@ -307,7 +313,8 @@ export async function createAccountService(
       )
       .all(session.user.id, new Date(), new Date(Date.now() - ABSOLUTE_MS)));
     return c.json({
-      user: { id: session.user.id, name: session.user.name },
+      user: { id: session.user.id, name: session.user.name, uid: (await profiles.readOwn(session.user.id)).uid },
+      admin: administrators.has(session.user.id),
       binding,
       sessionIdentity: createHash('sha256').update(session.session.id).digest('hex'),
       passkeys: keys.map(key => ({ ...key, createdAt: new Date(key.createdAt).getTime(), backedUp: Number(key.backedUp) })),
@@ -442,6 +449,7 @@ export async function createAccountService(
     content,
     getContentAccess,
     getContentOwnWorkIds,
+    profiles,
     recovery,
     library,
     workStats,
@@ -456,6 +464,7 @@ export async function createAccountService(
     },
   };
   (await mountRecovery(service));
+  mountProfiles(service);
   mountContent(service);
   mountLibrary(service);
   mountWorkStats(service);

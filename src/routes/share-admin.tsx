@@ -43,30 +43,35 @@ export function meta() {
     { name: "robots", content: "noindex,nofollow" },
   ];
 }
-export default function ShareAdmin() {
+export function ShareAdminPanel({ apiPrefix = "/api/share-admin", binding }: { apiPrefix?: string; binding?: string } = {}) {
   const [logged, setLogged] = useState(false),
+    [loadingQueue, setLoadingQueue] = useState(true),
     [token, setToken] = useState(""),
     [items, setItems] = useState<Item[]>([]),
     [reason, setReason] = useState(""),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   async function load() {
-    const response = await fetch("/api/share-admin/queue", {
+    setLoadingQueue(true);
+    try {
+    const response = await fetch(apiPrefix + "/queue", {
       cache: "no-store",
     });
     if (response.status === 401) {
       setLogged(false);
+      if(binding)setMessage("管理会话已失效，请刷新页面重新登录。");
       return;
     }
     if (!response.ok) throw new Error("审核队列暂不可用");
     setItems(await response.json());
     setLogged(true);
+    } finally { setLoadingQueue(false); }
   }
   async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     let response: Response;
     try {
-      response = await fetch('/api/share-admin/' + path, {
-        method, cache: 'no-store', headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+      response = await fetch(apiPrefix + '/' + path, {
+        method, cache: 'no-store', headers: { ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...(binding ? { 'x-wg-binding': binding } : {}) },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
     } catch { throw new Error('连接暂时中断，请重试；输入已保留。'); }
@@ -87,9 +92,9 @@ export default function ShareAdmin() {
   async function moderate(item: Item, action: string) {
     setBusy(true);
     try {
-      const response = await fetch(`/api/share-admin/${item.id}/moderate`, {
+      const response = await fetch(`${apiPrefix}/${item.id}/moderate`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...(binding ? { "x-wg-binding": binding } : {}) },
         body: JSON.stringify({
           revision: item.metadataRevision,
           action,
@@ -112,7 +117,9 @@ export default function ShareAdmin() {
       <p className="text-muted-foreground">
         独立管理权限 · 批准发布不代表实机兼容性验证
       </p>
-      {!logged ? (
+      {!logged && binding ? (
+        <Card><CardHeader><CardTitle>{loadingQueue ? "正在读取审核队列…" : "审核队列暂不可用"}</CardTitle><CardDescription>使用当前管理员账号连接。</CardDescription></CardHeader><CardContent><Button disabled={loadingQueue} onClick={()=>void load().catch(()=>setMessage("审核队列暂不可用，请重试。"))}>重试加载</Button></CardContent></Card>
+      ) : !logged ? (
         <Card>
           <CardHeader>
             <CardTitle>进入审核后台</CardTitle>
@@ -123,9 +130,9 @@ export default function ShareAdmin() {
               className="space-y-4"
               onSubmit={async (e) => {
                 e.preventDefault();
-                const response = await fetch("/api/share-admin/login", {
+                const response = await fetch(apiPrefix + "/login", {
                   method: "POST",
-                  headers: { "content-type": "application/json" },
+                  headers: { "content-type": "application/json", ...(binding ? { "x-wg-binding": binding } : {}) },
                   body: JSON.stringify({ token }),
                 });
                 setToken("");
@@ -311,3 +318,5 @@ export default function ShareAdmin() {
     </main>
   );
 }
+
+export default function ShareAdmin() { return <ShareAdminPanel/>; }

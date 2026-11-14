@@ -4,7 +4,8 @@ import { createAuthClient } from "better-auth/client";
 import { passkeyClient } from "@better-auth/passkey/client";
 export type AccountView = {
   sessionIdentity?: string;
-  user: { id: string; name: string };
+  user: { id: string; name: string; uid?: string };
+  admin?: boolean;
   binding: string;
   passkeys: { id: string; name: string; createdAt: number; backedUp: number }[];
   devices: { id: string; userAgent: string; current: boolean }[];

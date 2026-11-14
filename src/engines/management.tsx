@@ -3,9 +3,9 @@ import {Button}from'../components/ui/button';import{Card,CardHeader,CardContent}
 import type{managementSummary}from'./status.ts';
 type Summary=ReturnType<typeof managementSummary>;
 const labels:Record<string,string>={created:'已创建',fetching:'准备源码与依赖',building:'编译中',artifact_verified:'产物已校验',testing:'验收中',preview_ready:'预览验收通过',failed:'失败'};
-export function EngineManagement(){
+export function EngineManagement({apiPrefix="/api/manage"}:{apiPrefix?:string}){
  const [data,setData]=useState<Summary|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- async function refresh(){setBusy(true);setError('');try{const r=await fetch('/api/manage/engines');if(!r.ok)throw Error(r.status===401?'请重新登录管理后台':'引擎登记暂时不可用');setData(await r.json());}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ async function refresh(){setBusy(true);setError('');try{const r=await fetch(apiPrefix+'/engines');if(!r.ok)throw Error(r.status===401?'请重新登录管理后台':'引擎登记暂时不可用');setData(await r.json());}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  useEffect(()=>{void refresh();},[]);
  return <section aria-label="引擎与 SDK" className="space-y-5"><div className="flex items-center justify-between gap-3"><div><h2>引擎与 SDK</h2><p className="muted">查看固定版本、游戏绑定与构建回执。安装和编译通过构建机受控命令执行。</p></div><Button variant="outline" disabled={busy} onClick={()=>void refresh()}>刷新状态</Button></div>{error&&<p role="alert">{error}</p>}{!data?<p role="status">{busy?'正在读取登记…':'尚未读取登记'}</p>:<>
  <p>{data.versions} 个游戏版本 · {data.emscriptenVersions} 个使用 Emscripten · {data.releases.length} 组固定引擎产物</p>

@@ -2,8 +2,8 @@ import type { Hono } from 'hono';
 import type { AccountService } from './service.server.ts';
 import { AccountError } from './errors.server.ts';
 
-// 只挂到已经验证独立管理员会话的私有应用；不挂到公共账号应用。
-export function mountContentAdmin(app: Hono, { db, content, config }: AccountService) {
+// 仅挂到已验证管理员身份的路由后：旧私有监听器或站内后台管理员中间件。
+export function mountContentAdmin(app: Hono, { db, content, config }: AccountService, prefix = "/api/share-admin/content") {
   if (!config.contentGate) return;
   async function read(userId: string) {
     if (!await db.prepare('SELECT user_id FROM wg_account WHERE user_id=$1').get(userId)) throw new AccountError(404, 'NOT_FOUND');
@@ -16,9 +16,9 @@ export function mountContentAdmin(app: Hono, { db, content, config }: AccountSer
       },
     };
   }
-  app.get('/api/share-admin/content/users/:userId', async c =>
+  app.get(`${prefix}/users/:userId`, async c =>
     c.json(await db.transaction(() => read(c.req.param('userId')), { lock: 'wvn:account-write' })));
-  app.post('/api/share-admin/content/users/:userId/moderate', async c => {
+  app.post(`${prefix}/users/:userId/moderate`, async c => {
     const body = await c.req.json().catch(() => { throw new AccountError(400, 'CONTENT_MODERATION_INVALID'); });
     if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length !== 2 ||
       !Object.hasOwn(body, 'action') || !Object.hasOwn(body, 'reason') ||
@@ -29,7 +29,7 @@ export function mountContentAdmin(app: Hono, { db, content, config }: AccountSer
       return read(userId);
     }, { lock: 'wvn:account-write' }));
   });
-  app.patch('/api/share-admin/content/shares/:id', async c => {
+  app.patch(`${prefix}/shares/:id`, async c => {
     const body = await c.req.json().catch(() => { throw new AccountError(400, 'CONTENT_SHARE_CLASSIFICATION_INVALID'); });
     if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length !== 3 ||
       !Object.hasOwn(body, 'suitability') || !Object.hasOwn(body, 'revision') || !Object.hasOwn(body, 'reason'))

@@ -1,3 +1,4 @@
+import { mountDashboard } from "./src/accounts/dashboard.server.ts";
 import {CasManifestService,createCasManifestApp,RENPY_RELEASE} from './src/player/cas-manifest.server.ts';
 import { mountPublicPlatform } from './src/platform/public.server.ts';
 import { mountAccountRooms } from './src/platform/rooms.server.ts';
@@ -59,6 +60,7 @@ const service = await createAccountService({
 });
 const platform = await mountPublicPlatform(service.app, getStore());
 if(process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN)registerPreviewManifests(service.app,{origin:process.env.WG_PREVIEW_CAS_MANIFEST_ORIGIN,deployment:process.env.WG_DEPLOYMENT_MODE??'preview',manifestDirectory:process.env.WG_PREVIEW_CAS_MANIFEST_DIRECTORY});
+mountDashboard(service, {store:getStore(), sources:JSON.parse(readFileSync(process.env.WG_INVENTORY_FILE ?? "data/sources.json", "utf8"))});
 const rooms = await mountAccountRooms(service, getStore());
 const moderation = service.sharing
   ? createShareAdminApp(service, required("WG_SHARE_ADMIN_ORIGIN"))
@@ -72,6 +74,7 @@ if(engineCandidate&&!process.env.WG_B2_CONTROL_FILE)registerEngineArtifacts(serv
 if (process.env.WG_ACCOUNT_UI === "1") {
   const buildPath = "./build/server/index.js";
   const handler = createRequestHandler(await import(buildPath), "production");
+  for(const path of ['/dash','/dash/*','/dash.data','/u/:uid','/u/:uid.data','/u/:uid/*']) service.app.on(["GET","HEAD"],path,c=>handler(c.req.raw,new RouterContextProvider()));
   for(const path of ['/content','/content.data','/content/_.data'])service.app.get(path,c=>handler(c.req.raw,new RouterContextProvider()));
   service.app.get("/assets/*", (c) =>
     fileResponse(c.req.raw, resolve("build/client"), c.req.path),
@@ -139,7 +142,7 @@ const contentFetch=createContentFetch(service.app.fetch,getStore(),{enabled:cont
   const text=row.approved?JSON.parse(row.approved):{};
   return {title:text.title,description:text.description,progress:text.progress,spoiler:text.spoiler,suitability:await service.content.shareSuitability(id),versionId:row.version};
 })});
-if(service.sharing&&process.env.WG_ALL_ENGINES==='1')configurePublicProjection(origin,contentFetch);
+if(process.env.WG_ACCOUNT_UI==='1')configurePublicProjection(origin,contentFetch);
 const serverOptions = plainHttp ? undefined : {
   key: readFileSync(required("WG_ACCOUNT_TLS_KEY")),
   cert: readFileSync(required("WG_ACCOUNT_TLS_CERT")),

@@ -1,3 +1,4 @@
+import { ProfileSettings } from "../accounts/profile-settings";
 import {passkeyFeedback,validNickname} from '../accounts/auth-feedback';
 import { brand } from "../brand";
 import { useEffect, useRef, useState } from "react";
@@ -339,6 +340,7 @@ function AccountPage({account}:{account:ReaderAccount}) {
               <TabsContent value="shares" forceMount hidden={tab !== "shares"}><ShareManagement key={"shares-" + me.user.id} account={account} run={run} /></TabsContent>
               <TabsContent value="security" forceMount hidden={tab !== "security"}>
             <div className="account-grid account-settings">
+              <ProfileSettings key={me.user.id} account={account}/>
               <Card>
                 <CardHeader>
                   <KeyRound />

@@ -15,6 +15,7 @@ import {
 import "./styles.css";
 import "./ui-system.css";
 import "./m3-system.css";
+import "./dashboard.css";
 import { MotionSystem, RouteMotion } from "./components/motion-system";
 import { Button } from "./components/ui/button";
 import { SiteNavigation } from "./components/site-navigation";
@@ -56,10 +57,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Root() {
   const flags=useLoaderData<typeof loader>();const [notice,setNotice]=useState(false),[workerError,setWorkerError]=useState('');
   const location = useLocation();
-  const privatePage = /^\/(?:share-admin|manage)(?:\/|$)/.test(location.pathname);
+  const privatePage = /^\/(?:share-admin|manage|dash)(?:\/|$)/.test(location.pathname);
   const playerPage = /^\/(?:\d+|b\d+)\/\d+\/?$/.test(location.pathname);
   useEffect(()=>{
-    if(!flags.isolated||/^\/(?:share-admin|manage)(?:\/|$)/.test(location.pathname))return;
+    if(!flags.isolated||/^\/(?:share-admin|manage|dash)(?:\/|$)/.test(location.pathname))return;
     let active=true;
     const acknowledged=()=>setNotice(false);window.addEventListener('wg-legacy-tabs-acknowledged',acknowledged);
     const path='/player/legacy-context.mjs';

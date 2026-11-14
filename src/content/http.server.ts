@@ -61,7 +61,7 @@ export function createContentFetch(next:Fetcher,store:Store,options:Options):Fet
   const workId=workRoute?(workIdPattern.test(workRoute[1])?workRoute[1]:parseWorkSlug(workRoute[1])):undefined;
   if(workId){const work=await store.get(workId);if(work&&!workVisible(work,access))return failure(accessError(access),access.authenticated?403:401)}
   // 分享文本具有独立审核状态；无明确SFW证据时只有主动开启者可读取。
-  const shareRead=/^\/api\/(?:public\/(?:save-shares\/|works\/[^/]+\/save-shares)|share-links\/[^/]+\/inspect)/.test(path);
+  const shareRead=/^\/api\/(?:public\/(?:save-shares\/|works\/[^/]+\/save-shares|users\/[^/]+\/save-shares)|share-links\/[^/]+\/inspect)/.test(path);
   const shareTransfer=request.method==='POST'&&/^\/api\/me\/(?:share-claims$|share-downloads$)/.test(path);
   if(shareTransfer){
    let bytes:Uint8Array<ArrayBuffer>;try{bytes=await transferBody(request)}catch(error){return failure(error instanceof Error&&error.message==='BODY_TOO_LARGE'?'BODY_TOO_LARGE':'INVALID_BODY',error instanceof Error&&error.message==='BODY_TOO_LARGE'?413:400)}

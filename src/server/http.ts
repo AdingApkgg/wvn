@@ -167,37 +167,44 @@ export function createAdminApp(store: Store, auth: Auth, sourceData: unknown) {
     auth.set(c, session);
     return c.json({ ok: true });
   });
-  app.get("/api/manage/engines", c=>c.json(managementSummary()));
-  app.get("/api/manage/catalog", async (c) => c.json((await store.list(true))));
-  app.get("/api/manage/pending", async (c) => c.json((await store.pending())));
-  app.post("/api/manage/works", async (c) =>
+  registerManagementRoutes(app, store, sourceData);
+  return app;
+}
+
+/** 由调用方先验证管理员；站内后台与私有监听器共用业务校验。 */
+export function registerManagementRoutes(parent: Hono, store: Store, sourceData: unknown, prefix = "/api/manage") {
+  const app = base();
+  app.get(`${prefix}/engines`, c=>c.json(managementSummary()));
+  app.get(`${prefix}/catalog`, async (c) => c.json((await store.list(true))));
+  app.get(`${prefix}/pending`, async (c) => c.json((await store.pending())));
+  app.post(`${prefix}/works`, async (c) =>
     c.json((await store.createWork(await c.req.json())), 201),
   );
-  app.post("/api/manage/pending/:id/assign", async (c) => {
+  app.post(`${prefix}/pending/:id/assign`, async (c) => {
     const b = await c.req.json();
     return c.json((await store.bindPending(c.req.param("id"), b.workId)), 201);
   });
-  app.get("/api/manage/sources", (c) => c.json(sourceData));
-  registerContentClassificationAdmin(app, store);
-  app.patch("/api/manage/works/:id", async (c) => {
+  app.get(`${prefix}/sources`, (c) => c.json(sourceData));
+  registerContentClassificationAdmin(app, store, `${prefix}/content-classification`);
+  app.patch(`${prefix}/works/:id`, async (c) => {
     const b = await c.req.json();
     return c.json((await store.editWork(c.req.param("id"), b.revision, b.patch)));
   });
-  app.post("/api/manage/works/:id/versions", async (c) =>
+  app.post(`${prefix}/works/:id/versions`, async (c) =>
     c.json((await store.addVersion(c.req.param("id"), await c.req.json())), 201),
   );
-  app.patch("/api/manage/versions/:id", async (c) => {
+  app.patch(`${prefix}/versions/:id`, async (c) => {
     const b = await c.req.json();
     return c.json((await store.editVersion(c.req.param("id"), b.revision, b.patch)));
   });
-  app.post("/api/manage/versions/:id/reassign", async (c) => {
+  app.post(`${prefix}/versions/:id/reassign`, async (c) => {
     const b = await c.req.json();
     return c.json(
       (await store.reassignVersion(c.req.param("id"), b.workId, b.revision)),
     );
   });
-  app.post("/api/manage/reports", async (c) =>
+  app.post(`${prefix}/reports`, async (c) =>
     c.json((await store.importReport(await c.req.json())), 201),
   );
-  return app;
+  parent.route("/", app);
 }

@@ -105,3 +105,12 @@ test('实际文件监听器也对下划线和根目录旧入口应用版本权�
   assert.equal(response.status,401,legacyPath);
  }}finally{if(previous===undefined)delete process.env.WG_CONTENT_GATE;else process.env.WG_CONTENT_GATE=previous}
 });
+
+test('数字主页的公开分享沿用分级过滤，未知文案不能从作者列表泄露',async()=>{
+ const share={id:'share',title:'未审核分享',description:'敏感分享文案',work:{id:'v4'},version:{id:'adult'}};
+ const run=createContentFetch(()=>Response.json({items:[share],next:null}),store,{enabled:true,access:async()=>PUBLIC_CONTENT_ACCESS});
+ const response=await run(new Request('https://fixture.test/api/public/users/1/save-shares'));
+ const page=await response.json();assert.deepEqual(page.items,[]);assert(!JSON.stringify(page).includes('敏感分享文案'));
+ const restricted=createContentFetch(()=>Response.json({items:[share],next:null}),store,{enabled:true,access:async()=>({...PUBLIC_CONTENT_ACCESS,authenticated:true,eligibility:'qualified',displayMode:'restricted',canViewRestricted:true})});
+ assert.equal((await(await restricted(new Request('https://fixture.test/api/public/users/1/save-shares'))).json()).items.length,1);
+});

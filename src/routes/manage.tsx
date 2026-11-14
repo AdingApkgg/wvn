@@ -54,11 +54,12 @@ export function meta() {
     { name: "robots", content: "noindex, nofollow" },
   ];
 }
-export default function Manage() {
+export function ManagePanel({ apiPrefix = "/api/manage", section, binding }: { apiPrefix?: string; section?: "catalog" | "classification"; binding?: string } = {}) {
   const [items, setItems] = useState<PublicWork[]>([]),
     [sources, setSources] = useState<any[]>([]),
     [pending, setPending] = useState<any[]>([]),
     [logged, setLogged] = useState(false),
+    [loadingCatalog, setLoadingCatalog] = useState(true),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false),
     [query, setQuery] = useState(""),
@@ -71,9 +72,9 @@ export default function Manage() {
   const matches=items.filter(work=>(work.title+work.id+work.aliases.join(" ")).toLowerCase().includes(query.toLowerCase()));
   const currentWork=matches.some(work=>work.id===selectedWork)?selectedWork:matches[0]?.id??"";
   async function api(path: string, method = "GET", body?: unknown) {
-    const r = await fetch("/api/manage/" + path, {
+    const r = await fetch(apiPrefix + "/" + path, {
       method,
-      headers: body ? { "content-type": "application/json" } : undefined,
+      headers: { ...(body ? { "content-type": "application/json" } : {}), ...(binding ? { "x-wg-binding": binding } : {}) },
       body: body ? JSON.stringify(body) : undefined,
     });
     const data = await r.json();
@@ -88,6 +89,8 @@ export default function Manage() {
     return data;
   }
   async function reload() {
+    setLoadingCatalog(true);
+    try {
     const [catalog, data, unresolved] = await Promise.all([
       api("catalog"),
       api("sources"),
@@ -98,9 +101,10 @@ export default function Manage() {
     setSources(data.entries ?? []);
     setPending(unresolved);
     setLogged(true);
+    } finally { setLoadingCatalog(false); }
   }
   useEffect(() => {
-    reload().catch(() => {});
+    reload().catch(() => setMessage("目录暂时不可用，请重试；如会话失效请刷新页面重新登录。"));
   }, []);
   async function act(fn: () => Promise<any>) {
     const form=submitting.current;submitting.current=null;
@@ -133,7 +137,9 @@ export default function Manage() {
           </Alert>
         )}
       </div>
-      {!logged ? (
+      {!logged && binding ? (
+        <Card><CardHeader><h2>{loadingCatalog ? "正在读取目录…" : "目录暂时不可用"}</h2><p className="muted">使用当前管理员账号连接，无需额外的私有令牌。</p></CardHeader><CardContent><Button disabled={loadingCatalog} onClick={()=>void reload().catch(()=>setMessage("目录暂时不可用，请重试。"))}>重试加载</Button></CardContent></Card>
+      ) : !logged ? (
         <Card className="login-panel">
           <CardHeader>
             <h2>登录目录管理</h2>
@@ -191,7 +197,7 @@ export default function Manage() {
               </CardContent>
             </Card>
           </div>
-          <Tabs defaultValue="catalog" className="admin-tabs">
+          <Tabs defaultValue={section ?? "catalog"} className="admin-tabs">
             <TabsList aria-label="管理内容">
               <TabsTrigger value="catalog">作品与版本</TabsTrigger>
               <TabsTrigger value="sources">来源与映射</TabsTrigger>
@@ -199,7 +205,7 @@ export default function Manage() {
               <TabsTrigger value="engines">引擎与 SDK</TabsTrigger>
               <TabsTrigger value="classification">内容分类</TabsTrigger>
             </TabsList>
-            <TabsContent value="engines" forceMount className="data-[state=inactive]:hidden"><EngineManagement /></TabsContent>
+            <TabsContent value="engines" forceMount className="data-[state=inactive]:hidden"><EngineManagement apiPrefix={apiPrefix}/></TabsContent>
             <TabsContent value="classification" forceMount className="data-[state=inactive]:hidden"><ContentClassificationManagement api={api} catalog={items} onSaved={reload} /></TabsContent>
             <TabsContent
               value="catalog"
@@ -735,3 +741,5 @@ function Disclosure({
     </Accordion>
   );
 }
+
+export default function Manage() { return <ManagePanel/>; }

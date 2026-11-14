@@ -1,4 +1,5 @@
 export type AccountConfig = {
+  adminUserIds?: string[];
   contentGate?: boolean;
   content?: import('./content-eligibility.server.ts').ContentEligibilityOptions;
   engineCloud?: {versionId:string;releaseId:string}[];
