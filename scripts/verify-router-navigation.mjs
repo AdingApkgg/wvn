@@ -28,10 +28,9 @@ try {
       const url = new URL(response.url());
       if (url.origin === origin && url.pathname.endsWith('.data')) dataRequests.push({ path: url.pathname, status: response.status() });
     });
-    // 路由发现请求由客户端挂载后发出，确保点击经过客户端路由而非浏览器整页跳转。
-    const discovered = page.waitForResponse(r => new URL(r.url()).origin === origin && new URL(r.url()).pathname === '/__manifest');
+    // 完整路由清单模式不发发现请求；等待客户端路由器初始化后再点击。
     assert.equal((await page.goto(origin + '/', { waitUntil: 'domcontentloaded', timeout: 30000 })).status(), 200);
-    await discovered;
+    await page.waitForFunction(() => !!window.__reactRouterDataRouter);
     const workData = page.waitForResponse(r => new URL(r.url()).pathname === `/${slug}/_.data`);
     await page.locator(`a.story-card[href="/${slug}/"]`).click();
     assert.equal((await workData).status(), 200, `作品 ${slug} 客户端数据`);

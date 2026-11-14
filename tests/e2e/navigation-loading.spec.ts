@@ -2,39 +2,45 @@ import { test, expect } from '@playwright/test';
 import { authenticator, register, api } from '../helpers/account-browser';
 import { RULE_QUESTIONS } from '../../src/content/quiz';
 
-// 检查实际浏览器预取请求与路由生命周期，不依赖源码文本。
-test('作品卡片按悬停意图预取，切页保留文档且后退可用', async ({ page }) => {
-  const errors: string[] = [];
+// 从实际框架清单取目标模块，验证浏览器请求而非源码文本。
+test('悬停只预加载作品模块，点击后才请求权限数据并保持同一文档', async ({ page }) => {
+  const errors: string[] = [], dataRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
-  await expect(page.locator('.story-card').first()).toBeVisible();
-  // 等待 hydration；React Router 会在客户端发现链接。
-  await page.getByRole('navigation', { name: '主要导航' }).getByRole('link', { name: '书架', exact: true }).focus();
+  await page.waitForFunction(() => (window as any).__reactRouterManifest.routes['routes/work']?.module);
+  const module = await page.evaluate(() => (window as any).__reactRouterManifest.routes['routes/work'].module as string);
+  page.on('request', request => { if (new URL(request.url()).pathname.endsWith('.data')) dataRequests.push(request.url()); });
   const card = page.locator('.story-card').first();
-  const path = (await card.getAttribute('href'))!;
-  await page.evaluate(() => { (window as typeof window & { navigationMarker?: string }).navigationMarker = 'same-document'; });
-  const prefetched = page.waitForRequest(request => {
-    const url = new URL(request.url());
-    return url.pathname.startsWith(path.replace(/\/$/, '') + '/') && url.pathname.endsWith('.data');
-  });
+  await page.evaluate(() => { (window as any).navigationMarker = 'same-document'; });
+  const prefetched = page.waitForRequest(request => new URL(request.url()).pathname === new URL(module, page.url()).pathname);
   await card.hover();
   await prefetched;
+  await expect(page.locator('link[rel="prefetch"][as="fetch"]')).toHaveCount(0);
+  expect(dataRequests).toEqual([]);
   await card.click();
   await expect(page.locator('.work-heading h1')).toBeVisible();
-  expect(await page.evaluate(() => (window as typeof window & { navigationMarker?: string }).navigationMarker)).toBe('same-document');
+  expect(await page.evaluate(() => (window as any).navigationMarker)).toBe('same-document');
+  expect(dataRequests.length).toBeGreaterThan(0);
   await page.goBack();
   await expect(page.locator('.story-card').first()).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test('键盘聚焦导航会预取目标页面', async ({ page }) => {
+test('键盘聚焦只预加载账号模块，确认导航后再读取数据', async ({ page }) => {
   await page.goto('/');
+  await page.waitForFunction(() => (window as any).__reactRouterManifest.routes['routes/account']?.module);
+  const module = await page.evaluate(() => (window as any).__reactRouterManifest.routes['routes/account'].module as string);
+  const dataRequests: string[] = [];
+  page.on('request', request => { if (new URL(request.url()).pathname.endsWith('.data')) dataRequests.push(request.url()); });
   const target = page.getByRole('navigation', { name: '主要导航' }).getByRole('link', { name: '书架', exact: true });
-  const prefetched = page.waitForRequest(request => new URL(request.url()).pathname.includes('/account') && new URL(request.url()).pathname.endsWith('.data'));
+  const prefetched = page.waitForRequest(request => new URL(request.url()).pathname === new URL(module, page.url()).pathname);
   await target.focus();
   await prefetched;
+  await expect(page.locator('link[rel="prefetch"][as="fetch"]')).toHaveCount(0);
+  expect(dataRequests).toEqual([]);
   await page.keyboard.press('Enter');
   await expect(target).toHaveAttribute('aria-current', 'page');
+  expect(dataRequests.length).toBeGreaterThan(0);
 });
 
 test('附属接口慢时先显示作品主体并随后补齐统计和存档', async ({ page }, info) => {

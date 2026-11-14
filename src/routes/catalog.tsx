@@ -1,3 +1,4 @@
+import { IntentLink as Link } from "../components/intent-link";
 import { brand } from "../brand";
 import { Suspense, useCallback, useState, type CSSProperties } from "react";
 import type { PublicWork } from "../types.ts";
@@ -11,7 +12,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { RecentReading } from "../components/recent-reading";
 import { Search } from "lucide-react";
-import { Await, data, Form, Link, useLoaderData, useLocation } from "react-router";
+import { Await, data, Form, useLoaderData, useLocation } from "react-router";
 import { coverLayout } from "../lib/cover-layout";
 import { CoverImage, CoverPlaceholder } from "../components/cover-artwork";
 import { withoutFilter } from "../lib/reader-experience";
@@ -62,7 +63,7 @@ export default function Catalog() {
           <div className="search-row">
             <div className="search field"><Label htmlFor="catalog-search">搜索作品</Label><Input id="catalog-search" type="search" name="q" defaultValue={q} placeholder="标题、别名或 VNDB / BGM 编号" /></div>
             <Button type="submit"><Search aria-hidden="true" />查找</Button>
-            {(q || engine || state || tag || content) && <Button asChild variant="ghost"><Link prefetch="intent" to="/">清除</Link></Button>}
+            {(q || engine || state || tag || content) && <Button asChild variant="ghost"><Link to="/">清除</Link></Button>}
           </div>
           <details className="advanced-filters" open={!!(engine || state || content) || undefined}>
             <summary>筛选作品</summary>
@@ -96,7 +97,7 @@ export default function Catalog() {
           <div className="empty" role="alert">
             <h2>{searchError}</h2>
             <p>可以稍后重试，或先浏览全部故事。</p>
-            <Button asChild variant="outline"><Link prefetch="intent" to="/">浏览全部故事</Link></Button>
+            <Button asChild variant="outline"><Link to="/">浏览全部故事</Link></Button>
           </div>
         )}
         {!searchError && !items.length && (
@@ -104,14 +105,14 @@ export default function Catalog() {
             <h2>暂时没有匹配的故事</h2>
             <p>试试其他标题、别名或编号。</p>
             <Button asChild variant="outline">
-              <Link prefetch="intent" to="/">清除筛选</Link>
+              <Link to="/">清除筛选</Link>
             </Button>
           </div>
         )}
         {!searchError && nextSearchUrl && (
           <nav aria-label="搜索分页" className="section-title">
             <span>当前为本页可见作品</span>
-            <Button asChild variant="outline"><Link prefetch="intent" to={nextSearchUrl}>下一页</Link></Button>
+            <Button asChild variant="outline"><Link to={nextSearchUrl}>下一页</Link></Button>
           </nav>
         )}
         <footer>
@@ -134,7 +135,7 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
   }, []);
   return (
     <Link
-      prefetch="intent"
+
       to={w.url}
       className={"story-card" + (wide ? " story-card-wide" : "")}
       style={{ "--cover-ratio": ratio } as CSSProperties}

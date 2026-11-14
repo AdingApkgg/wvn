@@ -1,3 +1,4 @@
+import { IntentLink as Link } from "../components/intent-link";
 import { brand } from "../brand";
 import { NativeSelect, NativeSelectOption } from "../components/ui/native-select";
 import {publicProjectionFetch}from"../accounts/public-projection.server.ts";
@@ -6,7 +7,7 @@ import { coverKindLabel } from "../metadata-sources.ts";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
-import { Await, Form, Link, useLoaderData } from "react-router";
+import { Await, Form, useLoaderData } from "react-router";
 import { parseWorkSlug, providerLink, providerName } from "../identity.ts";
 import { getStore } from "../server/runtime.ts";
 import { projectShares } from "../server/share-projection";
@@ -98,7 +99,7 @@ export default function Work() {
   const readLabel = (version: typeof primary) => 'contentRestricted' in version && version.contentRestricted ? content.access.authenticated && content.access.eligibility === 'qualified' ? '开启显示后阅读' : '取得资格后阅读' : localReading.items.some(item=>item.id===version.id)?'继续阅读':'开始阅读';
   return (
     <main className="container work">
-      <nav className="work-breadcrumb" aria-label="面包屑"><Link prefetch="intent" to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
+      <nav className="work-breadcrumb" aria-label="面包屑"><Link to="/">发现</Link><span aria-hidden="true"> / </span><span>{w.title}</span></nav>
       <section
         className={"work-heading" + (w.metadata?.cover ? " has-cover" : "")}
       >
@@ -110,7 +111,7 @@ export default function Work() {
           {!w.metadata?.cover && <p className="work-cover-reason"><CoverPlaceholder status={w.coverStatus} /></p>}
           {summary && <p className="work-summary">{summary}</p>}
           <div className="work-read-actions">
-            <Button asChild size="lg"><Link prefetch="intent" to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
+            <Button asChild size="lg"><Link to={primary.url} state={{startReading: primary.id}}>{readLabel(primary)}</Link></Button>
             <ShelfButton key={w.id} workId={w.id} workUrl={w.url}/>
             {w.versions.length > 1 && <Button asChild variant="outline"><a href="#work-versions">切换版本 · {w.versions.length}</a></Button>}
           </div>
@@ -133,7 +134,7 @@ export default function Work() {
               {v.notes && <p className="muted">{v.notes}</p>}
               <details className="version-checks"><summary>查看检查记录</summary>{v.checks.length ? v.checks.map(c => <p className="muted" key={c.kind}>{({resources:"资源",http:"HTTP",startup:"启动"})[c.kind]}：{({passed:"通过",failed:"失败",incomplete:"未完成"})[c.status]} · {c.detail} · {c.checkedAt.slice(0,10)}</p>) : <p className="muted">尚未导入本版本的检查记录</p>}</details>
             </div>
-            <Button asChild variant="outline"><Link prefetch="intent" to={v.url} state={{startReading:v.id}}>{readLabel(v)} · 版本 {v.number}</Link></Button>
+            <Button asChild variant="outline"><Link to={v.url} state={{startReading:v.id}}>{readLabel(v)} · 版本 {v.number}</Link></Button>
           </Card>)}
         </div>
         {!!w.aliases.length && <details className="metadata-titles"><summary>别名 · {w.aliases.length}</summary><div className="aliases">{w.aliases.map(x => <Badge key={x} variant="secondary">{x}</Badge>)}</div></details>}
