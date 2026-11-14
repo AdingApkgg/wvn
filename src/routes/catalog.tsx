@@ -23,6 +23,7 @@ import type {WorkCounts} from '../accounts/work-stats.server';
 import {getContentAccess} from '../content/access.server.ts';
 import {projectWork} from '../content/policy';
 import {useContentAccess} from '../content/client';
+import { workContentLabels } from "../content/version-label";
 export function meta() {
   return [
     { title: brand.title },
@@ -143,11 +144,14 @@ function StoryCard({ work: w, index: i,counts }: { work: PublicWork; index: numb
       <div className="card-body">
         <div className="card-meta">
           <span className="eyebrow">
-            {[...new Set(w.versions.map((v) => v.language).filter(Boolean))].join(" / ") || "在线阅读"}
+            {[...new Set(w.versions.map((v) => v.language?.trim()).filter(language => language && language !== "未标注"))].join(" / ") || "在线阅读"}
           </span>
           <span className="card-work-id">{workSlug(w.id)}</span>
         </div>
         <h3>{w.title}</h3>
+        <div className="flex flex-wrap gap-1.5" aria-label="版本内容分类">
+          {workContentLabels(w.versions).map(label => <Badge key={label} className="max-w-full whitespace-normal" variant={label === "NSFW" ? "destructive" : "secondary"}>{label}</Badge>)}
+        </div>
         <p>{w.originalTitle}</p>
         <WorkCountSummary counts={counts}/>
         <div className="card-footer">
