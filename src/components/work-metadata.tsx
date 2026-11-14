@@ -1,4 +1,5 @@
-import { Link } from "react-router";
+import { IntentLink as Link } from "./intent-link";
+
 import { Badge } from "./ui/badge";
 import type { WorkMetadata } from "../metadata.ts";
 import { metadataSourceLabel, coverKindLabel } from "../metadata-sources.ts";
@@ -73,7 +74,7 @@ export function WorkMetadataPanel({
       {!!m.tags.length && (
         <div className="metadata-tags" aria-label="作品标签">
           {m.tags.map((t) => (
-            <Link prefetch="intent"
+            <Link
               key={t.source + t.name}
               to={"/?tag=" + encodeURIComponent(t.name)}
               title={"来源：" + (t.source === "bgm" ? "BGM" : "VNDB")}

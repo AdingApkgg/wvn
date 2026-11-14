@@ -1,5 +1,6 @@
+import { IntentLink as Link } from "./intent-link";
 import { brand } from "../brand";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import { BookOpen, Compass, HardDrive, Shield, Settings } from "lucide-react";
 import { useContentAccess } from "../content/client";
 import { accountReturnPath, sectionFor } from "../lib/reader-experience";
@@ -22,16 +23,16 @@ export function SiteNavigation({ preview }: { preview: boolean }) {
     { to: "/account?tab=security", label: "设置", icon: Settings, active: section === "settings" },
   ];
   return <header className="site-header site-navigation">
-    <Link prefetch="intent" className="brand" to="/" aria-label={`${brand.shortName} ${brand.translation}首页`}>{brand.shortName}<span>{brand.translation}</span></Link>
+    <Link className="brand" to="/" aria-label={`${brand.shortName} ${brand.translation}首页`}>{brand.shortName}<span>{brand.translation}</span></Link>
     <LayoutGroup id="primary-navigation"><nav aria-label="主要导航" className="primary-navigation">
-      {links.map(({ to, label, icon: Icon, active }) => <Link prefetch="intent" key={to} to={to} aria-current={active ? "page" : undefined}>
+      {links.map(({ to, label, icon: Icon, active }) => <Link key={to} to={to} aria-current={active ? "page" : undefined}>
         {active && <motion.span className="navigation-indicator" layoutId="active-destination" transition={m3Motion.spatial.fast} aria-hidden="true" />}
         <Icon size={22} aria-hidden="true" /><span className="navigation-label">{label}</span>
       </Link>)}
     </nav></LayoutGroup>
     <div className="navigation-account">
       {preview && <span className="preview-badge">远程预览</span>}
-      {enabled && <Link prefetch="intent" to={contentPage ? location.pathname + location.search : contentTarget} className="content-mode-entry"
+      {enabled && <Link to={contentPage ? location.pathname + location.search : contentTarget} className="content-mode-entry"
         data-restricted={access.canViewRestricted || undefined}
         aria-label={contentLabel} title={`${contentLabel} · ${access.eligibility === "qualified" ? "已取得资格，可管理当前会话的显示" : "查看浏览规则与测试"}`} aria-current={contentPage ? "page" : undefined}>
         <Shield size={16} aria-hidden="true" /><span className="content-mode-label">{contentLabel}</span>
