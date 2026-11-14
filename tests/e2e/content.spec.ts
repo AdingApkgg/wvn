@@ -132,6 +132,53 @@ test("切回公共浏览立即收起状态，不等待关闭请求返回", async
   } finally { release(); await sibling.close(); }
 });
 
+test("首页首次进入不闪回公共模式，缓存恢复仍先遮挡复查", async ({ page }) => {
+  await reader(page);
+  await completeQuiz(page);
+  await enable(page);
+  await page.addInitScript(() => {
+    const labels: string[] = [];
+    (window as any).__modeLabels = labels;
+    new MutationObserver(() => {
+      const label = document.querySelector('.content-mode-entry')?.textContent ?? '';
+      if (label && labels.at(-1) !== label) labels.push(label);
+    }).observe(document, { subtree: true, childList: true, characterData: true });
+  });
+  await page.goto(origin + '/');
+  await page.waitForLoadState('networkidle');
+  const labels = await page.evaluate(() => (window as any).__modeLabels as string[]);
+  console.log('首页模式序列：' + JSON.stringify(labels));
+  expect(labels.length).toBeGreaterThan(0);
+  expect(labels.every(label => label.includes('NSFW 已开启'))).toBe(true);
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/me/content', async route => { await held; await route.continue().catch(() => {}); });
+  try {
+    // 非缓存的pageshow也可能晚于hydration；它不是重新返回旧页面。
+    await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: false })));
+    await expect(page.getByRole('link', { name: 'NSFW 已开启', exact: true })).toBeVisible();
+    await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+    await expect(page.getByRole('link', { name: '公共浏览', exact: true })).toBeVisible();
+  } finally { release(); }
+});
+
+for (const identity of ['signed-out', 'different-session']) test(`首页首次账号确认${identity}时不等待权限请求就收起旧模式`, async ({ page }) => {
+  await reader(page); await completeQuiz(page); await enable(page);
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/me', async route => {
+    if (identity === 'signed-out') return route.fulfill({ status: 401, json: { code: 'SIGN_IN_REQUIRED' } });
+    const response = await route.fetch();
+    await route.fulfill({ response, json: { ...await response.json(), sessionIdentity: 'different-session' } });
+  });
+  await page.route('**/api/me/content', async route => { await held; await route.continue().catch(() => {}); });
+  try {
+    const response = await page.goto(origin + '/');
+    expect(await response!.text()).toContain('aria-label="NSFW 已开启"');
+    await expect(page.getByRole('link', { name: '公共浏览', exact: true })).toBeVisible({ timeout: 1500 });
+  } finally { release(); }
+});
+
 test("跨标签页关闭会丢弃延迟的旧权限响应，重新聚焦会复查", async ({ page }) => {
   await reader(page);
   await completeQuiz(page);
