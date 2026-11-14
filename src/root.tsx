@@ -11,6 +11,7 @@ import {
   useLoaderData,
   useLocation,
   type LoaderFunctionArgs,
+  type ShouldRevalidateFunctionArgs,
 } from "react-router";
 import "./styles.css";
 import "./ui-system.css";
@@ -23,6 +24,13 @@ import {Analytics} from './analytics/client';
 import { ContentProvider } from "./content/client";
 import { PUBLIC_CONTENT_ACCESS } from "./content/policy";
 import { getContentAccess } from "./content/access.server";
+import { catalogBodies } from './lib/catalog-body-cache';
+// 公共主体的后台请求仍重新鉴权；普通命中导航不再额外等待根快照。
+// 显式复查、同URL重载和表单提交仍沿用框架的根loader校验。
+export function shouldRevalidate(args: ShouldRevalidateFunctionArgs) {
+  if (!args.formMethod && args.currentUrl.href !== args.nextUrl.href && catalogBodies.get(args.nextUrl)) return false;
+  return args.defaultShouldRevalidate;
+}
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN" className="dark">

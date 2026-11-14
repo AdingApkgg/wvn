@@ -14,6 +14,7 @@ type ContentContextValue = {
   access: ContentAccess;
   enabled: boolean;
   loading: boolean;
+  settled: boolean;
   error: string;
   pendingPublic: boolean;
   account: Account | null;
@@ -24,7 +25,7 @@ type ContentContextValue = {
 
 function unavailable(): never { throw new AccountClientError("CONTENT_DISABLED"); }
 const ContentContext = createContext<ContentContextValue>({
-  access: PUBLIC_CONTENT_ACCESS, enabled: false, loading: false, error: "", pendingPublic: false, account: null,
+  access: PUBLIC_CONTENT_ACCESS, enabled: false, loading: false, settled: false, error: "", pendingPublic: false, account: null,
   refresh: async () => PUBLIC_CONTENT_ACCESS, api: { contentAttemptCreate: async () => unavailable(), contentAttemptSubmit: async () => unavailable() }, setMode: async () => unavailable(),
 });
 
@@ -62,7 +63,7 @@ function checkedAccess(value: unknown): ContentAccess {
 export function ContentProvider({ initial, enabled, children }: { initial: ContentAccess; enabled: boolean; children: ReactNode }) {
   return enabled ? <EnabledContentProvider initial={initial}>{children}</EnabledContentProvider> :
     <ContentContext.Provider value={{
-      access: PUBLIC_CONTENT_ACCESS, enabled: false, loading: false, error: "", pendingPublic: false, account: null,
+      access: PUBLIC_CONTENT_ACCESS, enabled: false, loading: false, settled: false, error: "", pendingPublic: false, account: null,
       refresh: async () => PUBLIC_CONTENT_ACCESS, api: { contentAttemptCreate: async () => unavailable(), contentAttemptSubmit: async () => unavailable() }, setMode: async () => unavailable(),
     }}>{children}</ContentContext.Provider>;
 }
@@ -72,6 +73,7 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
   const revalidator = useRevalidator();
   const [access, setAccess] = useState(() => checkedAccess(initial));
   const [loading, setLoading] = useState(true);
+  const [verification, setVerification] = useState<{ identity: string | null; binding: unknown; initial: ContentAccess } | null>(null);
   const [error, setError] = useState("");
   const [pendingPublic, setPendingPublic] = useState(false);
   const current = useRef(access), alive = useRef(false), epoch = useRef(0), sequence = useRef(0);
@@ -113,6 +115,8 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
   }, [publish]);
 
   const refresh = useCallback(async (silent = false) => {
+    const bound = accountRef.current, snapshot = initialRef.current;
+    const identity = bound.me?.sessionIdentity ?? null, binding = bound.me?.binding ?? null;
     const start = epoch.current, seq = ++sequence.current;
     if (!silent) {
       // 显式复查换一份展示快照；即使结果权限相同，也不能短暂重用复查前的独立 API 文案。
@@ -133,7 +137,11 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
       }
       return current.current;
     } finally {
-      if (!silent && alive.current && start === epoch.current && seq === sequence.current) setLoading(false);
+      if (alive.current && start === epoch.current && seq === sequence.current) {
+        if (!bound.loading && identity === (accountRef.current.me?.sessionIdentity ?? null) && binding === (accountRef.current.me?.binding ?? null))
+          setVerification({ identity, binding, initial: snapshot });
+        if (!silent) setLoading(false);
+      }
     }
   }, [accept, publish]);
 
@@ -283,9 +291,11 @@ function EnabledContentProvider({ initial, children }: { initial: ContentAccess;
     }
   }, [accept, announce, lock]);
 
+  const settled = !loading && !account.loading && verification !== null && verification.initial === initial &&
+    verification.identity === (account.me?.sessionIdentity ?? null) && verification.binding === (account.me?.binding ?? null);
   const value = useMemo<ContentContextValue>(() => ({
-    access, enabled: true, loading, error, pendingPublic, account, refresh, api, setMode,
-  }), [access, loading, error, pendingPublic, account, refresh, api, setMode]);
+    access, enabled: true, loading, settled, error, pendingPublic, account, refresh, api, setMode,
+  }), [access, loading, settled, error, pendingPublic, account, refresh, api, setMode]);
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 }
 
