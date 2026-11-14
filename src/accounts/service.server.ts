@@ -38,6 +38,8 @@ import { mountWorkStats } from "./work-stats-http.server.ts";
 import {createAnalyticsApp} from '../analytics/proxy.server.ts';
 import { profileMigrations } from "../database/profiles.ts";
 import { ProfileStore, mountProfiles, adminIds } from "./profiles.server.ts";
+import { adminMigrations } from "../database/admins.ts";
+import { AdminStore } from "./admins.server.ts";
 export type Player = { session: PlayerSession; binding: string };
 export type AccountService = {
   app: Hono;
@@ -46,6 +48,7 @@ export type AccountService = {
   config: AccountConfig;
   player: (c: Context, recent?: boolean) => Promise<Player>;
   profiles: ProfileStore;
+  admins: AdminStore;
   content: ContentEligibilityStore;
   getContentAccess: (request: Request) => Promise<ContentAccess>;
   getContentOwnWorkIds: (request:Request) => Promise<Set<string>>;
@@ -77,7 +80,8 @@ export async function createAccountService(
   await migrate(db, contentAccountMigrations);
   await migrate(db, profileMigrations);
   const profiles = new ProfileStore(db);
-  const administrators = adminIds(config);
+  await migrate(db, adminMigrations);
+  const admins = new AdminStore(db, () => adminIds(config));
   const content = new ContentEligibilityStore(db, config.content);
   const recovery = new RecoveryStore(db);
   const dynamicCatalog = config.catalogProvider ?? (config.catalogOrigin ? catalogProvider(config.catalogOrigin) : undefined);
@@ -314,7 +318,7 @@ export async function createAccountService(
       .all(session.user.id, new Date(), new Date(Date.now() - ABSOLUTE_MS)));
     return c.json({
       user: { id: session.user.id, name: session.user.name, uid: (await profiles.readOwn(session.user.id)).uid },
-      admin: administrators.has(session.user.id),
+      admin: await admins.isAdmin(session.user.id),
       binding,
       sessionIdentity: createHash('sha256').update(session.session.id).digest('hex'),
       passkeys: keys.map(key => ({ ...key, createdAt: new Date(key.createdAt).getTime(), backedUp: Number(key.backedUp) })),
@@ -450,6 +454,7 @@ export async function createAccountService(
     getContentAccess,
     getContentOwnWorkIds,
     profiles,
+    admins,
     recovery,
     library,
     workStats,
