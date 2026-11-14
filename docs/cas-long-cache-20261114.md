@@ -4,7 +4,7 @@
 
 2026-11-14已通过现有Cloudflare CLI身份只读核实saop.cc实际账号及线上规则：WVN资源域的200–299边缘TTL已为31,536,000秒；400–599显式不存储。200/206/304响应头是`public, max-age=31536000, no-transform`，缺少immutable。
 
-本次最小变更：仅修改既有`wvn_zi0_public_headers_20261031`规则中的Cache-Control值为`public, max-age=315360000, immutable, no-transform`，将浏览器新响应保鲜期设为10年；CF边缘成功响应保鲜期仍为一年。CF普通缓存不保证永久驻留，10年也不是物理永久存储。保持错误no-store、CORS、字节保持及其他域名所有规则；不清缓存、不改DNS、不加Worker、不启用付费服务。旧哈希不覆盖，页面和清单继续刷新到新哈希。已经在浏览器中按旧头缓存的对象自然沿用旧保鲜期，直到重新取得响应。
+第一批最小变更：仅修改既有`wvn_zi0_public_headers_20261031`规则中的Cache-Control值为`public, max-age=315360000, immutable, no-transform`，将浏览器新响应保鲜期设为10年；CF边缘成功响应保鲜期仍为一年。CF普通缓存不保证永久驻留，10年也不是物理永久存储。保持错误no-store、CORS、字节保持及其他域名所有规则；不清缓存、不改DNS、不加Worker、不启用付费服务。旧哈希不覆盖，页面和清单继续刷新到新哈希。已经在浏览器中按旧头缓存的对象自然沿用旧保鲜期，直到重新取得响应。
 
 变更前核对完整规则快照，单条PATCH，变更后回读目标字段并比较其他规则未变。只保留该条规则的回滚体，不以旧快照覆盖整个共享规则集。准备材料与前后快照在`/private/tmp/wvn-cas-cache-20261114/`，不包含认证凭据。
 
@@ -33,3 +33,10 @@ Cloudflare规则 `314dc3cea57c441f86beb8e3a25c2695` 已从version 2更新至3；
 - https://developers.cloudflare.com/cache/how-to/cache-keys/
 - https://developers.cloudflare.com/cache/concepts/retention-vs-freshness/
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control
+
+
+## 后续：边缘TTL也延长至10年
+
+用户追问CF边缘能否更长，随后询问immutable含义。本轮对当前Cache Rules接口做实际核验：仅将既有`wvn_zi0_public_cache_20261031`规则中200–299的`status_code_ttl`从31,536,000改为315,360,000秒。API接受并回读一致，目标规则 `e0cfae651ec248c0b377d8702cc625be` 从version 3变为4；其他字段、400–599的-1不存储、其他所有规则均未变。没有purge。准备、单条回滚与回读证据在`/private/tmp/wvn-cas-cache-edge-20261114/`。
+
+当前最终配置是浏览器10年+immutable、成功资源CF边缘TTL10年。前文一年仅为第一批操作时保留的原值，不能将它称为当前Cache Rules接口上限。API接受10年配置证明控制面值生效；不证明边缘会物理保留10年，也不能解决冷缓存回源时的B2限流。immutable表示保鲜期内内容不会改变，不阻止缓存被淘汰；CAS内容变更应使用新URL。
