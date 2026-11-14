@@ -42,7 +42,7 @@ async function modules() {
 }
 // Firefox 刷新时不能沿用上次按钮的可用状态；以本次存档初始化为准。
 const startButtonPersistence = { autoComplete: "off" } as const;
-export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=null, contentBlocked=false, autoStart=false,versionNumber }: { pilot: Pilot; workUrl: string; cloud?: boolean; resourceCacheOrigin?:string|null;contentBlocked?:boolean;autoStart?:boolean;versionNumber?:number }) {
+export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=null, contentBlocked=false, autoStart=false,versionNumber,contentNotice }: { pilot: Pilot; workUrl: string; cloud?: boolean; resourceCacheOrigin?:string|null;contentBlocked?:boolean;autoStart?:boolean;versionNumber?:number;contentNotice?:string }) {
   const routeLocation=useLocation(),starting=useRef(false);
   const confirmation=useActionConfirmation();
   const runtime=pilot.engineRuntime??pilot.engineCandidate,releaseId=pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId;
@@ -56,10 +56,11 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   const [localBusy, setBusy] = useState(false), [cloudBusy,setCloudBusy]=useState(false), [history, setHistory] = useState<History[]>([]), [selected, setSelected] = useState("");
   const busy=localBusy||cloudBusy;
   const [savePanel, setSavePanel] = useState(false), [cloudStatus, setCloudStatus] = useState(cloud ? "云端：正在确认账号" : "云端：未启用");
+  const [toolsOpen,setToolsOpen]=useState(false),[controlsVisible,setControlsVisible]=useState(true);
   const [head, setHead] = useState<SavedRevision | null>(null);
   const inputSpec=nativeInputSpec(pilot.id),[playerName,setPlayerName]=useState("");
   const store = useRef<SaveStore | null>(null), current = useRef<SavedRevision | null>(null);
-  const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null), surface = useRef<HTMLElement>(null);
   const fullscreen=useRef<ReturnType<typeof createReaderFullscreen>|null>(null),[fullscreenMode,setFullscreenMode]=useState<FullscreenMode>('none');
   useEffect(()=>{if(!surface.current)return;const controller=createReaderFullscreen(surface.current,{onChange:setFullscreenMode});fullscreen.current=controller;return()=>{controller.close();if(fullscreen.current===controller)fullscreen.current=null}},[]);
   useEffect(()=>{if(contentBlocked)void fullscreen.current?.exit().catch(()=>{})},[contentBlocked]);
@@ -73,6 +74,8 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   const channel = useRef<{ port: MessagePort; nonce: string; seq: number; writing: boolean;started:boolean;resourceReady?:boolean;dispose:()=>void;cache?:ResourceSession } | null>(null);
   const pending = useRef(new Map<string, { resolve: (value: { snapshot: Snapshot; saved: boolean }) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const downloads=useResourceDownloads({origin:pilot.resourceDelivery==='cas'?resourceCacheOrigin:null,pilot,releaseId,onFile:file=>{const c=channel.current;if(c?.resourceReady)c.port.postMessage({type:'cache-files',pilot:pilot.id,nonce:c.nonce,files:[file]})}});
+  useEffect(()=>{if(downloads.problem||error){setToolsOpen(true);setControlsVisible(true)}},[downloads.problem,error]);
+  useEffect(()=>{if(downloads.notice)setControlsVisible(true)},[downloads.notice]);
   const active = useRef(true);
   const runningNow = useRef(false);
   const blockedNow=useRef(contentBlocked);blockedNow.current=contentBlocked;
@@ -93,6 +96,7 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
     channel.current?.dispose();channel.current=null;void downloads.cancel();changeRunning(false);setError("");setStatus("已取消加载，本机存档和历史备份保留");
   }
   const blocker = useBlocker(({ currentLocation, nextLocation }) => runningNow.current && (currentLocation.pathname !== nextLocation.pathname || new URLSearchParams(currentLocation.search).get("engine") !== new URLSearchParams(nextLocation.search).get("engine")));
+  useEffect(()=>{if(blocker.state==='blocked')void fullscreen.current?.exit().catch(()=>{})},[blocker.state]);
   async function refresh() {
     const value = await store.current!.get(pilot.id);
     current.current = value; setHead(value); setHistory(await store.current!.history(pilot.id));
@@ -256,30 +260,36 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
   }
   const renderedStartupAttempt=startupAttempt.current;
   return (
-    <main className="reader-shell">
-      <header className="reader-heading">
-        <Link to={workUrl} className="brand" aria-label="返回作品">← {pilot.title}</Link>
-        <Link to="/" className="text-sm text-muted-foreground">发现更多故事</Link>
+    <main ref={surface} className={'reader-shell reader-surface reader-playview'+(contentBlocked?' reader-playview-blocked':'')} data-controls-visible={controlsVisible}>
+      <header className="reader-heading" onMouseDown={preserveGameFocus}>
+        {controlsVisible&&<Link to={workUrl} className="brand" aria-label="返回作品">← {pilot.title}</Link>}
+        <div className="reader-view-actions">
+          {controlsVisible&&<Button variant="ghost" aria-expanded={toolsOpen} aria-controls="reader-tools" onClick={()=>run(async()=>{await fullscreen.current?.exit();setSavePanel(false);setToolsOpen(open=>!open)})}>加载设置</Button>}
+          <Button variant="ghost" aria-expanded={controlsVisible} aria-controls="reader-toolbar" onClick={()=>{setControlsVisible(value=>!value);setToolsOpen(false);setSavePanel(false)}}>{controlsVisible?'隐藏操作':'显示操作'}</Button>
+        </div>
       </header>
-      <p className="reader-context text-sm text-muted-foreground">{targetLabel}</p>
-      <div ref={surface} className="reader-surface" style={{ minHeight: running ? "min(72vh, 850px)" : "min(50vh, 520px)" }}>
-        {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen *; gamepad *" allowFullScreen aria-busy={!gameStarted} onLoad={event => { const element=event.currentTarget;if(bootstrapExpired.current||startupAttempt.current!==renderedStartupAttempt||frame.current!==element)return;void connect(element,renderedStartupAttempt).catch(e=>{if(active.current&&runningNow.current&&!bootstrapExpired.current&&startupAttempt.current===renderedStartupAttempt&&frame.current===element&&e.name!=="AbortError")setLoading({stage:"failed",message:e.message});}); }} style={{ display: "block", border: 0, width: "100%", height: "72vh" }} /> : <p className="p-10 text-center text-muted-foreground">{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>}
-        {running&&gameStarted&&<ResourceLoadingBar progress={resources} onManage={()=>{void run(async()=>{await fullscreen.current?.exit();const tools=surface.current?.parentElement?.querySelector<HTMLDetailsElement>('.advanced-tools');if(tools){tools.open=true;tools.scrollIntoView({block:'nearest'})}})}}/>}
+      <div className="reader-stage">
+        {running ? <iframe ref={frame} title={`${pilot.title} · ${pilot.runtimeKind ?? "ONS"} 沙箱`} src={`${pilot.runtimeKind ? "/__player/runtime/" : "/__ons/runtime/"}${pilot.id}`} sandbox="allow-scripts" allow="autoplay; fullscreen *; gamepad *" allowFullScreen aria-busy={!gameStarted} onLoad={event => { const element=event.currentTarget;if(bootstrapExpired.current||startupAttempt.current!==renderedStartupAttempt||frame.current!==element)return;void connect(element,renderedStartupAttempt).catch(e=>{if(active.current&&runningNow.current&&!bootstrapExpired.current&&startupAttempt.current===renderedStartupAttempt&&frame.current===element&&e.name!=="AbortError")setLoading({stage:"failed",message:e.message});}); }} /> : <div className="reader-preparation"><p>{head ? `已保留 ${head.snapshot.files.length} 个存档文件，开始阅读后恢复。` : `游戏自身保存后，${brand.shortName} 会保留本机副本。`}</p>{contentNotice&&<p role="note">{contentNotice}</p>}
+          {inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
+        </div>}
+        {running&&gameStarted&&<ResourceLoadingBar progress={toolsOpen?null:resources} onManage={()=>{void run(async()=>{await fullscreen.current?.exit();setSavePanel(false);setToolsOpen(true);setControlsVisible(true)})}}/>}
         {running&&!gameStarted&&loading&&<LoadingView progress={loading} startedAt={loadStartedAt} onCancel={cancelLoading} />}
-      {!running&&inputSpec&&<div className="my-4 max-w-sm space-y-2"><Label htmlFor="player-name">{inputSpec.label}</Label><Input id="player-name" value={playerName} maxLength={inputSpec.maxLength} autoComplete="off" placeholder="输入游戏中使用的名字" onChange={event=>setPlayerName(event.target.value)} /><p className="text-sm text-muted-foreground">开始新游戏时使用此名字；读取旧档后以存档内容为准。</p></div>}
-      <div className="reader-toolbar" aria-label="阅读操作" onMouseDown={preserveGameFocus}>
+      </div>
+      <div id="reader-toolbar" className="reader-toolbar" aria-label="阅读操作" hidden={!controlsVisible} onMouseDown={preserveGameFocus}>
         <div className="reader-controls">
           {!running ? <Button {...startButtonPersistence} data-testid="reader-start" data-ready={ready?"true":"false"} disabled={!ready || busy||contentBlocked} onClick={() => run(startReading)}>{head?.snapshot.files.length ? "继续阅读" : "开始阅读"}</Button> : <>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => { const c = channel.current; if (c) c.port.postMessage({ type: "menu", pilot: pilot.id, nonce: c.nonce }); }}>游戏菜单</Button>
             <Button variant="outline" disabled={busy||!gameStarted} onClick={() => run(async () => { const result = await capture(); if (!result.saved) throw Error("存档尚未保留，请先导出当前存档"); channel.current?.dispose(); channel.current = null; changeRunning(false); setStatus("阅读已结束，本机副本已保留"); })}>结束阅读</Button>
-            <Button variant="ghost" aria-pressed={fullscreenMode!=='none'} onClick={() => run(async () => { await fullscreen.current?.toggle(); })}>{fullscreenMode==='none'?'全屏':'退出全屏'}</Button>
+            <Button variant="ghost" aria-pressed={fullscreenMode!=='none'} onClick={() => run(async () => { await fullscreen.current?.toggle(); })}>{fullscreenMode==='none'?'浏览器全屏':'退出全屏'}</Button>
           </>}
         </div>
-        <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => {void run(async()=>{await fullscreen.current?.exit();setSavePanel(open => !open)})}}>存档与备份</Button>
+        <Button variant="ghost" aria-expanded={savePanel} aria-controls="reader-save-panel" onClick={() => {void run(async()=>{await fullscreen.current?.exit();setToolsOpen(false);setSavePanel(open => !open)})}}>存档与备份</Button>
       </div>
-      {fullscreenMode==='page'&&<p className="reader-fullscreen-note" role="status">已铺满页面；Safari 地址栏由浏览器控制。</p>}
-      </div>
-      <details className="advanced-tools" open={downloads.preparing||!!downloads.problem||!!downloads.notice||!!error||undefined}><summary>加载与高级工具</summary><div>
+      {fullscreenMode==='page'&&controlsVisible&&<p className="reader-fullscreen-note" role="status">Safari 地址栏由浏览器控制。</p>}
+      <details id="reader-tools" className="advanced-tools" open={toolsOpen} onToggle={event=>setToolsOpen(event.currentTarget.open)}><summary>加载与高级工具</summary><div>
+      <Button variant="ghost" size="sm" onClick={()=>setToolsOpen(false)}>关闭加载设置</Button>
+      <p className="reader-context text-sm text-muted-foreground">{targetLabel}</p>
+      {resources?.failed&&<p role="alert">部分资源加载失败，请检查网络后重试。已有存档保留。</p>}
       <ResourceDownloads downloads={downloads} running={running}/>
       {!pilot.runtimeKind&&!downloads.enabled&&<div className="reader-cache-info" data-testid="ons-cache-status" data-hits={cacheStats?.hits??0} data-downloads={cacheStats?.downloads??0} data-preloaded={cacheStats?.preloaded??0} data-bytes={cacheStats?.bytes??0}>
         <p>{cacheStats?(cacheStats.available?`资源缓存：本次复用 ${cacheStats.hits} 项 · 已用 ${formatTransferBytes(cacheStats.bytes)}`:'浏览器缓存暂不可用，本次仍可正常阅读'):'读过的资源会保留在浏览器中；空闲时少量预加载。'}{cacheStats?.prefetching?' · 正在预加载':cacheStats?.preloaded?` · 已预加载 ${cacheStats.preloaded} 项`:''}</p>
@@ -289,12 +299,12 @@ export function OnsPlayer({ pilot, workUrl, cloud = false, resourceCacheOrigin=n
       {pilot.engineRuntime&&<p role="note" className="muted">新引擎 {pilot.engineRuntime.engineReleaseId.slice(0,20)} · 使用独立本机工作区与云端档案。旧档需主动复制，原档和历史保留。{pilot.engineRuntime.stage==='cloud-testing'?'正在预览验收。':''}</p>}
       {pilot.engineCandidate&&<p role="note" className="muted">候选引擎 · 存档保留在独立工作区，云端同步关闭。导入旧档仅创建副本，兼容性尚未确认。</p>}
       </div></details>
-      <div className="reader-save-status" data-state={error?"error":head?"saved":"pending"} role="status" aria-live="polite"><span>本机副本：{head?new Date(head.createdAt).toLocaleString('zh-CN')+' · ':''}{status}</span><span>{cloudStatus}</span></div>
-      {error && blocker.state !== "blocked" && <div role="alert" className="reader-error"><p>{error}</p><Button variant="outline" size="sm" onClick={() => setSavePanel(true)}>打开存档管理并导出</Button></div>}
-      <p className="reader-tip">游戏进度请在游戏内存档；WVN 备份已有存档文件。本机副本不会自动上传云端。</p>
+      <div className="reader-save-status" hidden={!controlsVisible} data-state={error?"error":head?"saved":"pending"} role="status" aria-live="polite"><span>本机副本：{head?new Date(head.createdAt).toLocaleString('zh-CN')+' · ':''}{status}</span><span>{cloudStatus}</span>{downloads.notice&&!toolsOpen&&!savePanel&&<span className="reader-resource-notice">{downloads.notice}</span>}</div>
+      {error && blocker.state !== "blocked" && <div role="alert" className="reader-error"><p>{error}</p><Button variant="outline" size="sm" onClick={() => {setToolsOpen(false);setSavePanel(true)}}>打开存档管理并导出</Button></div>}
       <ReadingSession running={running&&gameStarted} />
       <section id="reader-save-panel" className="reader-save-panel space-y-5" hidden={!savePanel} aria-label="存档管理面板" onMouseDown={preserveGameFocus}>
-        <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档与备份</h2><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,releaseId), "backup"); })}>下载本机备份</Button></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2>存档与备份</h2><Button variant="ghost" onClick={()=>setSavePanel(false)}>关闭存档面板</Button><Button variant="outline" disabled={!ready || busy} onClick={() => run(async () => { const { storage } = await modules(); const snapshot = running ? (await capture()).snapshot : current.current?.snapshot; if (!snapshot) throw Error("还没有可导出的存档"); download(await storage.exportBackup(snapshot,releaseId), "backup"); })}>下载本机备份</Button></div>
+        <p className="reader-tip">游戏进度请在游戏内存档；WVN 备份已有存档文件。本机副本不会自动上传云端。</p>
         {pilot.runtimeKind === "Tyrano" && <p className="text-sm text-muted-foreground">新存档使用文字缩略图；旧存档中的图片预览继续保留。</p>}
       {cloud&&ready&&<OnsCloud pilot={pilot} targetLabel={targetLabel} running={running} onStatus={setCloudStatus} onBusy={setCloudBusy} capture={async()=>{
         const result=runningNow.current?await capture():null;

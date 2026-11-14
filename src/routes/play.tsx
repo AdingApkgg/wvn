@@ -78,10 +78,11 @@ export default function Play() {
   useLayoutEffect(()=>{if(content.enabled)document.title=liveTitle},[content.enabled,liveTitle,data]);
   if(!previous)return <ContentGate code={data.restricted?.code??'CONTENT_MODE_REQUIRED'} returnTo={data.restricted?.returnTo??location.pathname}/>;
   const {pilot,work,cloud,version}=previous;
+  const contentNotice=previous.requiresQualification?(version.classification?.sexualContent==='present'?'此版本含成人性内容。请确认当前环境适合，再开始阅读。':'此版本内容尚待核实，不能据此认定为全年龄版本。请确认当前环境适合，再开始阅读。'):undefined;
   return <div className="content-player-shell">
     <div inert={blocked||undefined} aria-hidden={blocked||undefined} style={blocked?{display:'none'}:undefined}>
-      {previous.requiresQualification&&<aside className="container text-sm p-4" role="note">{version.classification?.sexualContent==='present'?'此版本含成人性内容。':'此版本内容尚待核实，不能据此认定为全年龄版本。'} 请确认当前环境适合，再开始阅读。</aside>}
-      {pilot?<OnsPlayer key={pilot.id+':'+(pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} versionNumber={version.number} workUrl={work.url} cloud={cloud} resourceCacheOrigin={previous.resourceCacheOrigin} contentBlocked={blocked} autoStart={!previous.requiresQualification}/>:<LegacyPlay version={version} work={work} requiresConfirmation={previous.requiresQualification}/>}
+      {contentNotice&&!pilot&&<aside className="container text-sm p-4" role="note">{contentNotice}</aside>}
+      {pilot?<OnsPlayer key={pilot.id+':'+(pilot.engineRuntime?.engineReleaseId??pilot.engineCandidate?.releaseId??'legacy')} pilot={pilot} versionNumber={version.number} workUrl={work.url} cloud={cloud} resourceCacheOrigin={previous.resourceCacheOrigin} contentBlocked={blocked} autoStart={!previous.requiresQualification} contentNotice={contentNotice}/>:<LegacyPlay version={version} work={work} requiresConfirmation={previous.requiresQualification}/>}
     </div>
     {blocked&&<section className="container content-playback-shield"><h1>敏感内容已收起</h1><p role="status">本次浏览权限已关闭或失效。运行实例与本机存档仍保留；恢复权限后可继续。</p>{pilot&&<Button variant="outline" onClick={()=>window.dispatchEvent(new Event('wg-content-save-exit'))}>保存到本机后退出</Button>}{saveError&&<p role="status">{saveError}</p>}<ContentSettings embedded returnTo={location.pathname}/></section>}
   </div>;

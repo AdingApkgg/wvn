@@ -64,13 +64,13 @@ test("浏览器后退保持导航语义且阅读器祖先没有变换", async ({
   await page.goto("/4/1/");
   await expect(page.locator(".reader-surface")).toBeVisible();
   await page.getByRole("button", { name: "开始阅读", exact: true }).click();
-  await expect(page.getByRole("button", { name: "全屏", exact: true })).toBeEnabled({ timeout: 30000 });
+  await expect(page.getByRole("button", { name: "浏览器全屏", exact: true })).toBeEnabled({ timeout: 30000 });
   await expect(page.locator(".reader-surface iframe")).toHaveAttribute("aria-busy", "false", { timeout: 30000 });
   const frame = page.frames().find(frame => frame.url().includes("/__ons/runtime/clannad"))!;
   await expect(frame.locator("#fixture-input")).toBeVisible();
   const identity = await frame.evaluate(() => (window as unknown as { instanceId: string }).instanceId);
   await frame.getByLabel("夹具输入").fill("输入保持");
-  await page.getByRole("button", { name: "全屏", exact: true }).click();
+  await page.getByRole("button", { name: "浏览器全屏", exact: true }).click();
   await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);
   await page.getByRole("button", { name: "存档与备份", exact: true }).click();
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);

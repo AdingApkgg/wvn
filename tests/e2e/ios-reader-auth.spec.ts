@@ -16,16 +16,16 @@ test('SE3 page fullscreen keeps the same iframe, input and visible exit control'
  await page.addInitScript(()=>{Object.defineProperty(Element.prototype,'requestFullscreen',{configurable:true,value:undefined});Object.defineProperty(Element.prototype,'webkitRequestFullscreen',{configurable:true,value:undefined})});
  await reader(page,{storageError:true,mode:'background'});await page.getByTestId('reader-start').click();await expect(page.locator('.reader-surface iframe')).toHaveAttribute('aria-busy','false');
  const frame=page.frames().find(frame=>frame.url().includes('/__ons/runtime/clannad'))!;await frame.getByLabel('游戏输入').fill('进度保留');const identity=await frame.evaluate(()=>(window as any).instance);
- await page.getByRole('button',{name:'全屏',exact:true}).click();await expect(page.locator('.reader-page-fullscreen')).toBeVisible();await expect(page.getByRole('button',{name:'退出全屏',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'浏览器全屏',exact:true}).click();await expect(page.locator('.reader-page-fullscreen')).toBeVisible();await expect(page.getByRole('button',{name:'退出全屏',exact:true})).toBeVisible();
  const box=await page.locator('.reader-page-fullscreen').boundingBox();expect(box!.x).toBe(0);expect(box!.y).toBe(0);expect(box!.height).toBe(667);
  await page.getByRole('button',{name:'退出全屏',exact:true}).click();await expect(page.locator('.reader-page-fullscreen')).toHaveCount(0);expect(await frame.evaluate(()=>(window as any).instance)).toBe(identity);await expect(frame.getByLabel('游戏输入')).toHaveValue('进度保留');
- await page.getByRole('button',{name:'全屏',exact:true}).click();await page.getByRole('button',{name:'存档与备份',exact:true}).click();await expect(page.locator('.reader-page-fullscreen')).toHaveCount(0);
+ await page.getByRole('button',{name:'浏览器全屏',exact:true}).click();await page.getByRole('button',{name:'存档与备份',exact:true}).click();await expect(page.locator('.reader-page-fullscreen')).toHaveCount(0);
 });
 test('Safari cache denial falls back from background to demand without losing the startup manifest',async({page})=>{
- await reader(page,{storageError:true,mode:'background'});await page.getByTestId('reader-start').click();await expect(page.locator('.reader-surface iframe')).toHaveAttribute('aria-busy','false');await expect(page.getByText('此浏览器暂时无法使用资源缓存，本次已改为按需读取。存档和历史备份保留。',{exact:true})).toBeAttached();await expect(page.getByRole('combobox').filter({has:page.locator('option[value="demand"]')})).toHaveValue('demand');
+ await reader(page,{storageError:true,mode:'background'});await page.getByTestId('reader-start').click();await expect(page.locator('.reader-surface iframe')).toHaveAttribute('aria-busy','false');await expect(page.locator('.reader-save-status').getByText('此浏览器暂时无法使用资源缓存，本次已改为按需读取。存档和历史备份保留。',{exact:true})).toBeVisible();await page.getByRole('button',{name:'加载设置',exact:true}).click();await expect(page.getByRole('combobox').filter({has:page.locator('option[value="demand"]')})).toHaveValue('demand');
 });
 test('database permission UnknownError can start with the validated manifest',async({page})=>{
- await reader(page,{databaseDenied:true,mode:'demand'});await page.getByTestId('reader-start').click();await expect(page.locator('.reader-surface iframe')).toHaveAttribute('aria-busy','false');await expect(page.getByText('此浏览器暂时无法使用资源缓存，本次已改为按需读取。存档和历史备份保留。',{exact:true})).toBeVisible();
+ await reader(page,{databaseDenied:true,mode:'demand'});await page.getByTestId('reader-start').click();await expect(page.locator('.reader-surface iframe')).toHaveAttribute('aria-busy','false');await expect(page.locator('.reader-save-status').getByText('此浏览器暂时无法使用资源缓存，本次已改为按需读取。存档和历史备份保留。',{exact:true})).toBeVisible();
 });
 test('cache integrity failure never falls back to unverified bytes',async({page})=>{
  await reader(page,{integrityError:true,mode:'background'});await page.getByTestId('reader-start').click();await expect(page.getByText(/Invalid cache file proof/).first()).toBeVisible();await expect(page.locator('.reader-surface iframe')).toHaveCount(0);await expect(page.getByRole('combobox').filter({has:page.locator('option[value="demand"]')})).toHaveValue('background');
