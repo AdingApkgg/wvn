@@ -1,6 +1,6 @@
 # iPhone阅读器与账号交互修复
 
-目标设备：用户提供CLANNAD、Safari iOS 27、iPhone SE 3。保留上一轮no-transform修复，生产发布仍待单独批准。
+目标设备：用户提供CLANNAD、Safari iOS 27、iPhone SE 3。以下为发布前排查记录；用户后续明确要求“更新生产吧”，本轮已完成生产发布，最终结果见[发布记录](ios-reader-auth-release-20261114.md)。
 
 ## 决定与验证计划
 
