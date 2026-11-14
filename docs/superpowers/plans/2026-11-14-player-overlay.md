@@ -26,3 +26,15 @@
 公网Chromium和WebKit分别使用真实CLANNAD、真实缓存来源，在375×667、667×375、1440×900下验证默认iframe等于视口、工具栏在画面内、切换尺寸和面板保持同一iframe、存档面板不超视口、隐藏/显示操作及结束阅读。未模拟缓存拒绝，未捕获脚本异常，匿名受限资源仍401。回执与图片在构建机`/home/i/wvn-player-overlay-release-20261114/public-{chromium,webkit}/`；真实iPhone仍未验收。
 
 5分钟11次健康采样通过，部署退出码0。最终104个运行文件和未变的14个缓存文件摘要均一致；Web/manager错误日志0、重启0、OOM为false，其他容器不变。最终回执`/srv/wvn-player-overlay-release-20261114/final-receipt.json`；本机副本`/private/tmp/wvn-player-overlay-release-20261114/final-receipt.json`。回滚入口为同目录`release.py rollback`，执行前必须核对当前compose仍为本候选摘要。
+
+## 窄屏游戏画布居中修正
+
+用户反馈窄屏仍置顶，问题在ONS运行页内部：canvas的`margin:auto`只水平居中。产品提交`2d2df56`在B2/CAS与本地ONS两条运行页中增加`body{display:grid;place-items:center}`，沿用现有`scale_full`保持游戏比例。账号服务器直接导入这两处运行页生成模块，无需重新构建前端；发布复用前次已验证的构建，不包含并行dashboard/profiles修改。
+
+新增实际运行页几何回归，320×640旧样式垂直偏移200px而失败；修复后Chromium/WebKit均通过320×640、375×667、667×375、1440×900及连续切换，4项B2/CAS HTTP回归通过。
+
+沿用同一问题生产更新授权，版本`canvas-center-20261114-2d2df56`，compose摘要`310c5a3861d872fdcf344e81369f0d321510fa321200806f6ec0d96b5a19b721`。只替换两处服务端文件；隔离副本预检通过，切换Web/manager，保留旧版本。任务目录`/srv/wvn-canvas-center-release-20261114/`，可核对当前compose后用`release.py rollback`回退。
+
+公网真实CLANNAD在Chromium/WebKit均通过：375×667的画布为375×281.25，y=192.875；667×375的画布为500×375，x=83.5；桌面1440×900的画布为1200×900，x=120。画面中心与视口中心一致，画面比例4:3，浮层与同iframe保留检查通过，无脚本异常。人工查看WebKit竖屏截图确认画面居中。证据在构建机`/home/i/wvn-canvas-center-release-20261114/public-{chromium,webkit}/`；Linux WebKit结果不能替代真实iPhone验收。
+
+最终5分钟11次健康采样通过，部署退出码0；两处运行文件及未变的14个缓存文件摘要一致。Web/manager日志错误0、重启0、OOM为false，其他容器不变，无数据库导入。最终回执`/srv/wvn-canvas-center-release-20261114/final-receipt.json`，本机副本位于`/private/tmp/wvn-canvas-center-release-20261114/`。
