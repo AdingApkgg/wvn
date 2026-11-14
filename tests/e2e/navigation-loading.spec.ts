@@ -2,6 +2,28 @@ import { test, expect } from '@playwright/test';
 import { authenticator, register, api } from '../helpers/account-browser';
 import { RULE_QUESTIONS } from '../../src/content/quiz';
 
+test('未悬停直接点击时，作品依赖不等待主模块响应', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter && !!(window as any).__reactRouterManifest.routes['routes/work']?.module);
+  const assets = await page.evaluate(() => {
+    const route = (window as any).__reactRouterManifest.routes['routes/work'];
+    const loaded = new Set(performance.getEntriesByType('resource').map(entry => new URL(entry.name).pathname));
+    return { module: route.module as string, dependencies: (route.imports as string[]).filter(href => !loaded.has(new URL(href, location.href).pathname)) };
+  });
+  expect(assets.dependencies.length).toBeGreaterThan(0);
+  const requested = new Set<string>();
+  page.on('request', request => requested.add(new URL(request.url()).pathname));
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route(assets.module, async route => { await held; await route.continue(); });
+  try {
+    // 不触发 hover/focus/touch，单独覆盖快速点击的依赖瀑布。
+    await page.locator('.story-card').first().dispatchEvent('click');
+    await expect.poll(() => assets.dependencies.filter(href => !requested.has(new URL(href, page.url()).pathname)), { timeout: 2000 }).toEqual([]);
+  } finally { release(); }
+  await expect(page.locator('.work-heading h1')).toBeVisible();
+});
+
 // 从实际框架清单取目标模块，验证浏览器请求而非源码文本。
 test('悬停只预加载作品模块，点击后才请求权限数据并保持同一文档', async ({ page }) => {
   const errors: string[] = [], dataRequests: string[] = [];

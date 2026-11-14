@@ -12,7 +12,7 @@ import {
 // 权限数据是 no-store，Cloudflare 原生 prefetch 不回源；只提前加载构建清单中的代码/样式。
 // FrameworkContext 为当前锁定的 React Router 版本提供的资产清单，升级时由浏览器回归验证。
 export const IntentLink = forwardRef<HTMLAnchorElement, Omit<LinkProps, "prefetch">>(function IntentLink(
-  { onMouseEnter, onMouseLeave, onFocus, onBlur, onTouchStart, ...props },
+  { onClick, onMouseEnter, onMouseLeave, onFocus, onBlur, onTouchStart, ...props },
   ref,
 ) {
   const framework = useContext(UNSAFE_FrameworkContext);
@@ -38,6 +38,11 @@ export const IntentLink = forwardRef<HTMLAnchorElement, Omit<LinkProps, "prefetc
     }
   };
   return <Link {...props} ref={ref} prefetch="none"
+    onClick={event => {
+      onClick?.(event);
+      // 快速点击可能早于 hover 延迟；并行请求依赖，避免主模块下载后才发现它们。
+      if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) prepare();
+    }}
     onMouseEnter={event => { onMouseEnter?.(event); if (!event.defaultPrevented) { cancel(); timer.current = setTimeout(prepare, 100); } }}
     onMouseLeave={event => { onMouseLeave?.(event); cancel(); }}
     onFocus={event => { onFocus?.(event); if (!event.defaultPrevented) prepare(); }}
