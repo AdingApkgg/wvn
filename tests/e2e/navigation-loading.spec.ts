@@ -7,6 +7,7 @@ test('悬停只预加载作品模块，点击后才请求权限数据并保持�
   const errors: string[] = [], dataRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   await page.waitForFunction(() => (window as any).__reactRouterManifest.routes['routes/work']?.module);
   const module = await page.evaluate(() => (window as any).__reactRouterManifest.routes['routes/work'].module as string);
   page.on('request', request => { if (new URL(request.url()).pathname.endsWith('.data')) dataRequests.push(request.url()); });
@@ -28,6 +29,7 @@ test('悬停只预加载作品模块，点击后才请求权限数据并保持�
 
 test('键盘聚焦只预加载账号模块，确认导航后再读取数据', async ({ page }) => {
   await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   await page.waitForFunction(() => (window as any).__reactRouterManifest.routes['routes/account']?.module);
   const module = await page.evaluate(() => (window as any).__reactRouterManifest.routes['routes/account'].module as string);
   const dataRequests: string[] = [];
@@ -48,6 +50,7 @@ test('附属接口慢时先显示作品主体并随后补齐统计和存档', as
   const flag = process.env.NAVIGATION_TEST_DELAY;
   test.skip(!flag, '需要本任务隔离预览的延迟夹具');
   await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   const card = page.locator('.story-card').first();
   // 延迟标记只控制本任务预览，不改变业务数据。
   await writeFile(flag!, 'delayed');
@@ -69,6 +72,7 @@ test('附属接口慢时先显示作品主体并随后补齐统计和存档', as
 test('作品页进场逐帧收敛，不在内容出现后反向跳动', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   await page.evaluate(() => {
     const state = window as typeof window & { routeFrames?: number[] };
     state.routeFrames = [];
@@ -96,6 +100,7 @@ test('公共浏览切换后，延迟完成的旧权限分享不会重新出现',
   const flag = process.env.NAVIGATION_TEST_DELAY;
   test.skip(!flag, '需要本任务隔离预览的延迟夹具');
   await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   const publicPath = (await page.locator('.story-card').first().getAttribute('href'))!;
   await authenticator(page);
   expect((await register(page, '流式权限验证')).status).toBe(200);
@@ -104,7 +109,12 @@ test('公共浏览切换后，延迟完成的旧权限分享不会重新出现',
   expect((await api(page, '/api/me/content/attempts/' + attempt.id + '/submit', { answers })).data.passed).toBe(true);
   expect((await api(page, '/api/me/content/mode', { mode: 'restricted' }, 'PATCH')).status).toBe(200);
   await page.goto('/');
+  await page.waitForFunction(() => !!(window as any).__reactRouterDataRouter);
   await expect(page.getByRole('link', { name: 'NSFW 已开启', exact: true })).toBeVisible();
+  // 等首次账号/权限复查完成，再制造慢分享响应，避免把 SSR 标签当作客户端已就绪。
+  await page.waitForFunction(() => ['/api/me', '/api/me/content'].every(path =>
+    performance.getEntriesByType('resource').some(entry => new URL(entry.name).pathname === path && (entry as PerformanceResourceTiming).responseEnd > 0),
+  ));
   await writeFile(flag!, 'delayed');
   let release!: () => void;
   const revalidation = new Promise<void>(resolve => { release = resolve; });
